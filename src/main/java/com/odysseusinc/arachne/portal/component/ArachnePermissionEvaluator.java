@@ -24,6 +24,7 @@ package com.odysseusinc.arachne.portal.component;
 import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.analysisAuthorIs;
 import static com.odysseusinc.arachne.portal.component.PermissionDsl.domainObject;
 import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.analysisFileAuthorIs;
+import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.userIsLeadInvestigator;
 import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.hasRole;
 import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.instanceOf;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.ACCESS_STUDY;
@@ -186,7 +187,10 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
 
     protected PermissionDsl analysisFileRules(Object domainObject, ArachneUser user) {
 
-        return domainObject(domainObject).when(instanceOf(AnalysisFile.class).and(analysisFileAuthorIs(user)))
+        return domainObject(domainObject)
+                .when(instanceOf(AnalysisFile.class).and(analysisFileAuthorIs(user)))
+                .then(file -> Collections.singleton(DELETE_ANALYSIS_FILES)).apply()
+                .when(instanceOf(AnalysisFile.class).and(userIsLeadInvestigator(user)))
                 .then(file -> Collections.singleton(DELETE_ANALYSIS_FILES)).apply();
     }
 
