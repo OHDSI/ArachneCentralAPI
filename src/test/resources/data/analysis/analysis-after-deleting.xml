@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <analyses
+            id="2"
+            author_id="1"
+            study_id="1"
+            type="CUSTOM"
+            is_locked="false"
+            title="analysisTitle2"
+    />
+    <analyses
+            id="3"
+            author_id="1"
+            study_id="1"
+            type="CUSTOM"
+            is_locked="false"
+            title="analysisTitle3"
+    />
+</dataset>

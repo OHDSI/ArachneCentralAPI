@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <professional_types
+            id="1"
+            name = "professionalTypeName"
+    />
+    <users id="1"
+           firstname="adminFirstName"
+           middlename="adminMiddleName"
+           lastname="adminLastName"
+           password="password"
+           enabled="true"
+           email="admin@odysseusinc.com"
+           email_confirmed="true"
+           professional_type_id="1"
+    />
+    <studies_users/>
+    <skills
+            id="1"
+            name="skillName"
+    />
+    <users_skills
+            user_id="1"
+            skill_id="1"
+    />
+
+</dataset>

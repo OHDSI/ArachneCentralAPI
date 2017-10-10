@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <analyses_files
+            id="10"
+            uuid="68b75ac9-ab29-49a6-8edb-95142456f5fc"
+            analysis_id="1"
+            real_name="test_updated.jpg"
+            executable="false"
+            content_type="image/jpeg"
+            label="codeFile"
+            author_id="1"
+            version="2"
+            updated_by="1"
+    />
+</dataset>

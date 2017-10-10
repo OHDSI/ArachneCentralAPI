@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <professional_types/>
+    <study_types/>
+
+    <studies/>
+    <users/>
+    <studies_users/>
+    <papers/>
+    <paper_protocols/>
+    <paper_papers/>
+    <skills/>
+    <roles/>
+    <analyses/>
+    <analysis_jobs/>
+    <datanodes_health_check_journal/>
+    <datanodes/>
+    <data_sources/>
+    <submission_groups/>
+    <submission_files/>
+    <submissions/>
+    <characterizations/>
+    <achilles_files/>
+    <datanodes_users/>
+    <achilles_reports/>
+    <studies_data_sources/>
+    <achilles_permissions/>
+    <analysis_unlock_requests/>
+    <result_files/>
+</dataset>

@@ -1,0 +1,31 @@
+packratPath <- "{{packratPath}}"
+entryPoint <- "{{entryPoint}}"
+
+workDir <- getwd()
+
+if (!require("packrat")) {
+  install.packages("packrat")
+}
+
+# Get project folder as first part of entrypoint filepath
+packratFolder <- gsub("^([^/]+)/.+", "\\1", entryPoint)
+
+tryCatch(
+  {
+    setwd(workDir)
+    packrat::unbundle(bundle = packratPath, where = workDir)
+    setwd(packratFolder)
+    packrat_mode(on=TRUE)
+    writeLines("Session library paths:")
+    print(.libPaths())
+    source(file.path(workDir, entryPoint), chdir=T);
+  },
+  finally = {
+    setwd(workDir)
+    writeLines("Session info:")
+    print(sessionInfo())
+    if (file.exists(packratFolder)) {
+      unlink(packratFolder, recursive = TRUE)
+    }
+  }
+)

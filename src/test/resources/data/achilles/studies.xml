@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<dataset>
+    <study_types
+            id="4"
+            name="type"
+    />
+    <studies id="1"
+             title="test_study"
+             type_id="4"
+    />
+</dataset>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <analysis_unlock_requests
+            id="30"
+            user_id="1"
+            analysis_id="1"
+            description="please unlock"
+            status="APPROVED"
+            created="2017-02-02"
+            token="token123"
+    />
+</dataset>

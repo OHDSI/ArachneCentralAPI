@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<dataset>
+    <datanodes_users id="1"
+                    user_id="1"
+                    datanode_id="1" />
+    <datanodes_users id="2"
+                     user_id="2"
+                     datanode_id="1" />
+</dataset>

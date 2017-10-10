@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <studies_data_sources
+            id="20"
+            study_id="1"
+            data_source_id="1"
+            status="DELETED"
+            created_by="1"
+            token="token"
+    />
+</dataset>

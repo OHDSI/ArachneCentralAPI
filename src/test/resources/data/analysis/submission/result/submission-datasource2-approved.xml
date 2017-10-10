@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <submission_status_history
+            status="PENDING"
+            author_id="2"
+            is_last="false"
+    />
+    <submission_status_history
+            status="IN_PROGRESS"
+            author_id="2"
+            is_last="true"
+    />
+</dataset>

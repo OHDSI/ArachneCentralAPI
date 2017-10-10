@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <users
+            id="1"
+            firstname="adminFirstName"
+            middlename="adminMiddleName"
+            lastname="adminLastName"
+            password="password"
+            enabled="true"
+            email="admin@odysseusinc.com"
+            email_confirmed="true"
+            professional_type_id="1"
+    />
+    <studies_users/>
+
+    <user_publications
+            user_id="1"
+            title="userLinkTitle"
+            description="userLinkDescription"
+            url="userLinkUrl"
+            publisher="userPublicationPublisher"
+            date="2017-01-01"
+    />
+
+</dataset>

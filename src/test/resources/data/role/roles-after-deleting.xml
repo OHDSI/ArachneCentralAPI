@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <roles
+            id="2"
+            name = "ADMIN_ROLE"
+            description = "Admin role"
+    />
+    <roles
+            id="3"
+            name = "NO_ROLE"
+            description = "No role"
+    />
+</dataset>

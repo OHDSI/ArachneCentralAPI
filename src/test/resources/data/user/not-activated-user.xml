@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <professional_types
+            id="1"
+            name="professionalTypeName"
+    />
+
+    <users
+            id="1"
+            password="password"
+            enabled="true"
+            email="admin@odysseusinc.com"
+            email_confirmed="true"
+            professional_type_id="1"/>
+
+    <users
+            id="2"
+            password="encoded_password"
+            firstname="firstName"
+            middlename="middleName"
+            lastname="lastName"
+            enabled="false"
+            email="mail@mail.com"
+            email_confirmed="false"
+            professional_type_id="1"
+            registration_code="activationCode"/>
+
+    <studies_users/>
+
+</dataset>

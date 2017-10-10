@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <professional_types
+            id="1"
+            name = "Medical"
+    />
+</dataset>

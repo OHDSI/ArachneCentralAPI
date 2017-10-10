@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <analyses
+            id="1"
+            author_id="1"
+            study_id="2"
+            type="CUSTOM"
+            is_locked="false"
+            title="analysisTitle1"
+    />
+    <analyses
+            id="2"
+            author_id="1"
+            study_id="2"
+            type="CUSTOM"
+            is_locked="false"
+            title="analysisTitle2"
+    />
+    <analyses
+            id="3"
+            author_id="1"
+            study_id="1"
+            type="CUSTOM"
+            is_locked="false"
+            title="analysisTitle3"
+    />
+    <analyses_files
+            id="1"
+            analysis_id="3"
+            uuid="078f135d-07f0-4c6a-afd2-b705a1c8d948"
+            real_name="SQL_Request.sql"
+            executable="true"
+            created="2017-05-24 11:14:59.550000"
+            updated="2017-05-24 11:14:59.550000"
+            content_type="application/sql"
+            label="SQL_Request.sql"
+            author_id="1"
+            version="1"
+            updated_by="1"
+    />
+    <studies_data_sources
+            study_id="1"
+            data_source_id="1"
+            id="1"
+            status="APPROVED"
+            created="2017-05-26 15:22:49.151000"
+            token="d03a97b2-e512-4f97-9b47-69db59dc4eb3"
+            created_by="1"
+    />
+    <studies_data_sources
+            study_id="1"
+            data_source_id="2"
+            id="2"
+            status="APPROVED"
+            created="2017-05-30 18:28:42.918000"
+            token="de172d2f-75ba-4ac5-9367-bfde91ae061d"
+            created_by="1"
+    />
+    <!--<studies_data_sources
+            study_id="1"
+            data_source_id="3"
+            id="3"
+            status="APPROVED"
+            created="2017-06-06 17:17:32.971000"
+            token="fd10f782-b282-4bfa-a387-7a3b48a37aa7"
+            created_by="1"
+    />
+    <studies_data_sources
+            study_id="1"
+            data_source_id="4"
+            id="4"
+            status="APPROVED"
+            created="2017-06-06 17:17:32.971000"
+            token="fd10f782-b282-4bfa-a387-7a3b48a37aa7"
+            created_by="1"
+    />-->
+</dataset>
