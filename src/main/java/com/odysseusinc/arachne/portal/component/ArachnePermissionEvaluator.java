@@ -22,6 +22,11 @@
 
 package com.odysseusinc.arachne.portal.component;
 
+import static com.odysseusinc.arachne.portal.component.PermissionDsl.authorIs;
+import static com.odysseusinc.arachne.portal.component.PermissionDsl.domainObject;
+import static com.odysseusinc.arachne.portal.component.PermissionDsl.hasRole;
+import static com.odysseusinc.arachne.portal.component.PermissionDsl.instanceOf;
+import static com.odysseusinc.arachne.portal.security.ArachnePermission.ACCESS_STUDY;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.DELETE_ANALYSIS_FILES;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.DELETE_DATASOURCE;
 
@@ -45,20 +50,25 @@ import com.odysseusinc.arachne.portal.repository.submission.SubmissionRepository
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
 import com.odysseusinc.arachne.portal.service.BaseArachneSecureService;
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+
 
 @Component("ArachnePermissionEvaluator")
 public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> implements PermissionEvaluator {
@@ -70,6 +80,7 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
     protected final BaseDataSourceRepository dataSourceRepository;
     protected final SubmissionGroupRepository submissionGroupRepository;
     protected final PaperRepository<T> paperRepository;
+    private Map<String, CrudRepository> repositoryMap = new HashMap<>();
 
     @Autowired
     public ArachnePermissionEvaluator(
@@ -88,6 +99,17 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
         this.dataSourceRepository = dataSourceRepository;
         this.submissionGroupRepository = submissionGroupRepository;
         this.paperRepository = paperRepository;
+        initRepositoriesMap();
+    }
+
+    private void initRepositoriesMap() {
+
+        repositoryMap.put("Study", studyRepository);
+        repositoryMap.put("Analysis", analysisRepository);
+        repositoryMap.put("Submission", submissionRepository);
+        repositoryMap.put("SubmissionGroup", submissionGroupRepository);
+        repositoryMap.put("DataSource", dataSourceRepository);
+        repositoryMap.put("Paper", paperRepository);
     }
 
     @Override
@@ -107,7 +129,7 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
             }
             if (!arachnePermissions.isEmpty()) {
                 Set<ArachnePermission> allPermission = getAllPermissions(domainObject, user);
-                return allPermission != null && allPermission.containsAll(arachnePermissions);
+                return Objects.nonNull(allPermission) && allPermission.containsAll(arachnePermissions);
             }
         }
         return false;
@@ -117,113 +139,101 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
     public boolean hasPermission(Authentication authentication, Serializable targetId,
                                  String targetType, Object permission) {
 
-        switch (targetType) {
-            case "Study": {
-                Study study = studyRepository.findOne((Long) targetId);
-                return hasPermission(authentication, study, permission);
-            }
-            case "Analysis": {
-                Analysis analysis = analysisRepository.findOne((Long) targetId);
-                return hasPermission(authentication, analysis, permission);
-            }
-            case "Submission": {
-                Submission submission = submissionRepository.findOne((Long) targetId);
-                return hasPermission(authentication, submission, permission);
-            }
-            case "DataSource": {
-                DataSource dataSource;
-                if (targetId instanceof String) {
-                    dataSource = dataSourceRepository.findByUuid((String) targetId);
-                } else if (targetId instanceof Long) {
-                    dataSource = dataSourceRepository.findOne((Long) targetId);
-                } else {
-                    return false;
-                }
-                return hasPermission(authentication, dataSource, permission);
-            }
-            case "SubmissionGroup": {
-                SubmissionGroup submissionGroup = submissionGroupRepository.findOne((Long) targetId);
-                return hasPermission(authentication, submissionGroup, permission);
-            }
-            case "Paper": {
-                final Paper paper = paperRepository.findOne((Long) targetId);
-                return hasPermission(authentication, paper, permission);
+        Object domainObject = null;
+        if (repositoryMap.containsKey(targetType)) {
+            CrudRepository repository = repositoryMap.get(targetType);
+            if (Objects.equals(targetType, "DataSource")
+                    && targetId instanceof String) {
+                domainObject = dataSourceRepository.findByUuid(targetId.toString());
+            } else {
+                domainObject = repository.findOne(targetId);
             }
         }
-        return false;
+        return Objects.nonNull(domainObject)
+                && hasPermission(authentication, domainObject, permission);
     }
 
-    private Set<ArachnePermission> getAllPermissions(Object domainObject, ArachneUser user) {
+    protected PermissionDsl studyRules(Object domainObject, ArachneUser user) {
 
-        List<ParticipantRole> roles;
-        Set<ArachnePermission> allPermission = new HashSet<>();
-        if (prehandlePermissions(domainObject, user, allPermission)) {
-            // work with permissions is done
-        } else if (domainObject instanceof Study) {
-            roles = secureService.getRolesByStudy(user, (Study) domainObject);
-            allPermission = getArachnePermissions(roles);
-        } else if (domainObject instanceof Analysis) {
-            roles = secureService.getRolesByAnalysis(user, (Analysis) domainObject);
-            allPermission = getArachnePermissions(roles);
-            for (Iterator<ArachnePermission> iterator = allPermission.iterator(); iterator.hasNext(); ) {
-                ArachnePermission arachnePermission = iterator.next();
-                Analysis analysis = (Analysis) domainObject;
-                if (ArachnePermission.DELETE_ANALYSIS.equals(arachnePermission)
+        return domainObject(domainObject).when(instanceOf(Study.class))
+                .then(study -> Collections.singleton(ACCESS_STUDY)).and()
+                .then(study -> getArachnePermissions(secureService.getRolesByStudy(user, study))).apply();
+    }
+
+    protected PermissionDsl analysisRules(Object domainObject, ArachneUser user) {
+
+        return domainObject(domainObject).when(instanceOf(Analysis.class))
+                .then(analysis -> Collections.singleton(ACCESS_STUDY)).and()
+                .then(analysis -> getArachnePermissions(secureService.getRolesByAnalysis(user, analysis)))
+                .filter((analysis, permission) -> !(ArachnePermission.DELETE_ANALYSIS.equals(permission)
                         && (
-                        analysis.getAuthor() == null
-                                || !user.getId().equals(analysis.getAuthor().getId())
-                                || (analysis.getFiles() != null && !analysis.getFiles().isEmpty())
-                                || (analysis.getSubmissions() != null && !analysis.getSubmissions().isEmpty())
-                )
-                        ) {
-                    iterator.remove();
-                }
-            }
-        } else if (domainObject instanceof Submission) {
-            roles = secureService.getRolesBySubmission(user, (Submission) domainObject);
-            allPermission = getArachnePermissions(roles);
-        } else if (domainObject instanceof AnalysisFile) {
-            AnalysisFile analysisFile = (AnalysisFile) domainObject;
-            Analysis analysis = analysisFile.getAnalysis();
-            roles = secureService.getRolesByAnalysis(user, analysis);
-            allPermission = getArachnePermissions(roles);
-            if (analysisFile.getAuthor() != null && analysisFile.getAuthor().getId() != null
-                    && analysisFile.getAuthor().getId().equals(user.getId())) {
-                allPermission.add(DELETE_ANALYSIS_FILES);
-            }
-        } else if (domainObject instanceof DataSource) {
-            roles = secureService.getRolesByDataSource(user, (D) domainObject);
-            allPermission = getArachnePermissions(roles);
-            if (user.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
-                allPermission.add(DELETE_DATASOURCE);
-            }
-        } else if (domainObject instanceof DataNode) {
-            roles = secureService.getRolesByDataNode(user, (DataNode) domainObject);
-            allPermission = getArachnePermissions(roles);
-        } else if (domainObject instanceof SubmissionGroup) {
-            roles = secureService.getRolesBySubmissionGroup(user, (SubmissionGroup) domainObject);
-            allPermission = getArachnePermissions(roles);
-        } else if (domainObject instanceof  Paper) {
-            roles = secureService.getRolesByPaper(user, (T) domainObject);
-            allPermission.addAll(getArachnePermissions(roles));
-
-        }
-        posthandlePermissions(allPermission, domainObject);
-        return allPermission;
+                        Objects.isNull(analysis.getAuthor())
+                                || !Objects.equals(user.getId(), analysis.getAuthor().getId())
+                                || (Objects.nonNull(analysis.getFiles()) && !analysis.getFiles().isEmpty())
+                                || (Objects.nonNull(analysis.getSubmissions()) && !analysis.getSubmissions().isEmpty())
+                ))).apply();
     }
 
-    protected void posthandlePermissions(Set<ArachnePermission> allPermission, Object domainObject) {
+    protected PermissionDsl submissionRules(Object domainObject, ArachneUser user) {
 
-        if (domainObject instanceof Analysis) {
-            if (allPermission.isEmpty()) {
-                allPermission.add(ArachnePermission.ACCESS_STUDY);
-            }
-        }
+        return domainObject(domainObject).when(instanceOf(Submission.class))
+                .then(submission -> getArachnePermissions(secureService.getRolesBySubmission(user, submission))).apply();
     }
 
-    protected boolean prehandlePermissions(Object domainObject, ArachneUser user, Set<ArachnePermission> allPermission) {
+    protected PermissionDsl analysisFileRules(Object domainObject, ArachneUser user) {
 
-        return false;
+        return domainObject(domainObject).when(instanceOf(AnalysisFile.class).and(authorIs(user)))
+                .then(file -> Collections.singleton(DELETE_ANALYSIS_FILES)).apply()
+                .when(instanceOf(AnalysisFile.class).and(authorIs(user)))
+                .then(file -> Collections.singleton(DELETE_ANALYSIS_FILES)).apply();
+    }
+
+    protected PermissionDsl dataSourceRules(Object domainObject, ArachneUser user) {
+
+        return domainObject(domainObject).when(instanceOf(DataSource.class))
+                .then(dataSource -> getArachnePermissions(secureService.getRolesByDataSource(user, (D) dataSource))).apply()
+                .when(instanceOf(DataSource.class).and(hasRole(user, "ROLE_ADMIN")))
+                .then(dataSource -> Collections.singleton(DELETE_DATASOURCE)).apply();
+
+    }
+
+    protected PermissionDsl dataNodeRules(Object domainObject, ArachneUser user) {
+
+        return domainObject(domainObject).when(instanceOf(DataNode.class))
+                .then(dataNode -> getArachnePermissions(secureService.getRolesByDataNode(user, dataNode))).apply();
+    }
+
+    protected PermissionDsl submissionGroupRules(Object domainObject, ArachneUser user) {
+
+        return domainObject(domainObject).when(instanceOf(SubmissionGroup.class))
+                .then(submissionGroup -> getArachnePermissions(secureService.getRolesBySubmissionGroup(user, submissionGroup)))
+                .apply();
+    }
+
+    protected PermissionDsl paperRules(Object domainObject, ArachneUser user) {
+
+        return domainObject(domainObject).when(instanceOf(Paper.class))
+                .then(paper -> getArachnePermissions(secureService.getRolesByPaper(user, (T) paper))).apply();
+    }
+
+    protected PermissionDsl additionalRules(Object domainObject, ArachneUser user) {
+
+        return domainObject(domainObject);
+    }
+
+    protected Set<ArachnePermission> getAllPermissions(Object domainObject, ArachneUser user) {
+
+        return domainObject(domainObject)
+                .with(studyRules(domainObject, user))
+                .with(analysisRules(domainObject, user))
+                .with(submissionRules(domainObject, user))
+                .with(analysisFileRules(domainObject, user))
+                .with(dataSourceRules(domainObject, user))
+                .with(dataNodeRules(domainObject, user))
+                .with(submissionGroupRules(domainObject, user))
+                .with(paperRules(domainObject, user))
+                .with(additionalRules(domainObject, user))
+                .getPermissions();
     }
 
     protected Set<ArachnePermission> getArachnePermissions(List<ParticipantRole> roles) {
