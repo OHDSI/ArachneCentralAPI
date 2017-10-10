@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <professional_types
+            id="1"
+            name = "Medical"
+    />
+    <users
+            id="1"
+            firstname="Admin"
+            middlename="Admin"
+            lastname="Admin"
+            password="$2a$10$hgNCb8.0jCl3y0c4PUX73OBXO8kYeE2co5JzDe1gG6ZTyfUh/vdke"
+            enabled="true"
+            email="admin@odysseusinc.com"
+            username="admin@odysseusinc.com"
+            email_confirmed="true"
+            professional_type_id="1"
+    />
+    <roles
+            id="1"
+            name="ROLE_ADMIN"
+            description="Built-in Administration Role"
+    />
+    <users_roles
+            user_id="1"
+            role_id="1"
+    />
+    <users
+            id="2"
+            firstname="User1"
+            middlename="User1"
+            lastname="User1"
+            password="password"
+            enabled="true"
+            email="user1@odysseusinc.com"
+            username="user1@odysseusinc.com"
+            email_confirmed="true"
+            professional_type_id="1"
+    />
+    <users
+            id="3"
+            firstname="User2"
+            middlename="User2"
+            lastname="User2"
+            password="password"
+            enabled="true"
+            email="user2@odysseusinc.com"
+            username="user2@odysseusinc.com"
+            email_confirmed="true"
+            professional_type_id="1"
+    />
+    <users
+            id="4"
+            firstname="User3"
+            middlename="User3"
+            lastname="User3"
+            password="password"
+            enabled="true"
+            email="user3@odysseusinc.com"
+            username="user3@odysseusinc.com"
+            email_confirmed="true"
+            professional_type_id="1"
+    />
+</dataset>

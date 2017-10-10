@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <study_types
+            id="4"
+            name="type"
+    />
+    <studies
+            title="Test Study"
+            type_id="4"
+    />
+    <studies_users
+            user_id="1"
+            role="LEAD_INVESTIGATOR"
+            status="APPROVED"
+            created_by="1"
+    />
+</dataset>

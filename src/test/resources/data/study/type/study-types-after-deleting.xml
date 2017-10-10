@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <study_types id="2"
+                    name="updatedName2"
+    />
+    <study_types id="3"
+                    name="updatedName3"
+    />
+</dataset>

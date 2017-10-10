@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <study_types
+            id="1"
+            name="type"
+    />
+    <studies
+            id="1"
+            title="Title"
+            start_date="2017-05-21 00:00:00.000000"
+            end_date="2017-05-23 00:00:00.000000"
+            description="Description"
+            created="2017-05-21 00:00:00.000000"
+            status_id="2"
+            type_id="1"
+    />
+    <studies
+            id="2"
+            title="Title 2"
+            start_date="2017-05-21 00:00:00.000000"
+            end_date="2017-05-23 00:00:00.000000"
+            description="Description"
+            created="2017-05-21 00:00:00.000000"
+            status_id="2"
+            type_id="1"
+    />
+    <studies
+            id="3"
+            title="Title 3"
+            start_date="2017-05-21 00:00:00.000000"
+            end_date="2017-05-23 00:00:00.000000"
+            description="Description"
+            created="2017-05-21 00:00:00.000000"
+            status_id="2"
+            type_id="1"
+    />
+    <studies_users
+            id="1"
+            study_id="1"
+            user_id="1"
+            role="LEAD_INVESTIGATOR"
+            status="APPROVED"
+            created="2017-05-23 00:00:00.000000"
+            created_by="1"
+    />
+    <studies_users
+            id="2"
+            study_id="2"
+            user_id="2"
+            role="LEAD_INVESTIGATOR"
+            status="APPROVED"
+            created="2017-05-23 00:00:00.000000"
+            created_by="2"
+    />
+    <studies_users
+            id="3"
+            study_id="3"
+            user_id="3"
+            role="LEAD_INVESTIGATOR"
+            status="APPROVED"
+            created="2017-05-23 00:00:00.000000"
+            created_by="3"
+    />
+    <studies_users
+            id="4"
+            study_id="1"
+            user_id="4"
+            role="CONTRIBUTOR"
+            status="APPROVED"
+            created="2017-05-23 00:00:00.000000"
+            created_by="1"
+    />
+</dataset>

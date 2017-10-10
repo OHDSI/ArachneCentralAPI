@@ -1,0 +1,41 @@
+Release 1.1.0
+
+* Decrease required length for skills in Profile to 3 chars
+
+* Fixed styling of avatars (made rounded and of proper size) at Expert Finder
+
+* Added popup showing About info
+
+* Added upload of files by link into Study + Analysis
+
+* Added separate Welcome screen after registration complete
+
+* Fixed styling of Submission's status
+
+* Fixed Submission status and Status history styling in Firefox
+
+* Added Download all for Study files
+
+* Added Download all for Analysis code files
+
+* Added Download all for Submission's files
+
+* Minor placeholders fix
+
+* Fixed bug of user being authed after email verification
+
+* Added all information on use profile to be indexed and searchable
+
+* Updated names of submission statuses
+
+* Fixed duplication of data source owners at Study page
+
+* Enabled resetting password for unverified emails
+
+* Fixed multiple bugs on file deleting
+
+* Fixed access to result files
+
+* Fixed bugs for status history
+
+* Updated texts of notification emails

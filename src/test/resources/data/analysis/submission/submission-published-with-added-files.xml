@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <submission_groups
+            id="1"
+            author_id="2"
+            analysis_id="3"
+    />
+    <submissions
+            id="1"
+            author_id="2"
+            analysis_id="3"
+            data_source_id="2"
+            submission_group_id="1"
+    />
+    <submission_files
+            id="1"
+            real_name="SQL_Request.sql"
+            executable="true"
+            submission_group_id="1"
+            author_id="2"
+            uuid="1234-1234"
+    />
+    <submission_status_history
+            id="1"
+            submission_id="1"
+            date="2017-05-30 17:54:00.000000"
+            status="PENDING"
+            author_id="2"
+            is_last="false"
+    />
+    <submission_status_history
+            id="2"
+            submission_id="1"
+            date="2017-05-30 17:55:00.000000"
+            status="STARTING"
+            author_id="2"
+            is_last="false"
+    />
+    <submission_status_history
+            id="3"
+            submission_id="1"
+            date="2017-05-30 17:56:00.000000"
+            status="IN_PROGRESS"
+            author_id="2"
+            is_last="false"
+    />
+    <submission_status_history
+            id="4"
+            submission_id="1"
+            date="2017-06-30 17:56:00.000000"
+            status="EXECUTED_PUBLISHED"
+            author_id="2"
+            is_last="true"
+    />
+    <result_files
+            id="40"
+            submission_id="1"
+            uuid="1234135d-07f0-4c6a-afd2-b705a1c8d948"
+            real_name="test_manual.sql"
+            manual_upload="true"
+    />
+    <result_files
+            id="41"
+            submission_id="1"
+            uuid="9934135d-07f0-4c6a-afd2-b705a1c8d948"
+            real_name="test_auto_loaded.sql"
+            manual_upload="false"
+    />
+</dataset>

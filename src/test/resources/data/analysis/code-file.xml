@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <analyses_files
+            analysis_id="1"
+            real_name="test.jpg"
+            executable="false"
+            content_type="image"
+            label="newCodeFile"
+            author_id="1"
+            version="1"
+            updated_by="1"
+    />
+</dataset>

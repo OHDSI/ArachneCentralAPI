@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <studies/>
+    <study_types
+            id="4"
+            name="type"
+    />
+    <studies_users/>
+</dataset>

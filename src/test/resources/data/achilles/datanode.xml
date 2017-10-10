@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<dataset>
+    <datanodes id="1"
+               name="datanode_1"
+               sid="21a21a91-e476-4cb0-a733-a1868d099be0"
+               description="datanode"
+               health_status="NOT_CONNECTED"
+               health_status_description="100% health packets is lost"
+               token="8c775004f8394e88b8e2b6cad3bf4ff6"
+               status_id="2"
+               is_virtual="false"
+    />
+</dataset>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <result_files
+            id="40"
+            submission_id="1"
+            uuid="1234135d-07f0-4c6a-afd2-b705a1c8d948"
+            real_name="test.sql"
+            manual_upload="true"
+    />
+</dataset>

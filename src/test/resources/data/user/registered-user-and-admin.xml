@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <professional_types
+            id="1"
+            name="professionalTypeName"/>
+    <users
+            firstname="adminFirstName"
+            middlename="adminMiddleName"
+            lastname="adminLastName"
+            enabled="true"
+            email="admin@odysseusinc.com"
+            email_confirmed="true"
+            professional_type_id="1"
+    />
+
+    <users
+            firstname="firstName"
+            middlename="middleName"
+            lastname="lastName"
+            enabled="false"
+            email="mail@mail.com"
+            email_confirmed="false"
+            professional_type_id="1"
+    />
+
+</dataset>
