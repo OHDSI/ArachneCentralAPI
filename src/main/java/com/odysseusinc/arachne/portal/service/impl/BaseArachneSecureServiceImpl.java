@@ -167,16 +167,6 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends D
         return participantRoles;
     }
 
-    protected void handleParticipantRoles(List<ParticipantRole> participantRoles, P paper) {
-
-        final boolean hasSpecificRoles = checkIfAccessPaperPermissionPresent(participantRoles);
-
-        if (paper.getPublishState() == PublishState.PUBLISHED
-                && !hasSpecificRoles) {
-            participantRoles.add(ParticipantRole.PAPER_READER);
-        }
-    }
-
     protected boolean checkIfAccessPaperPermissionPresent(List<ParticipantRole> participantRoles) {
 
         return participantRoles.stream()
@@ -194,11 +184,7 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends D
     @Override
     public List<ParticipantRole> getRolesByPaper(ArachneUser user, P paper) {
 
-        List<ParticipantRole> participantRoles = new LinkedList<>(getRolesByStudy(user, paper.getStudy()));
-
-        handleParticipantRoles(participantRoles, paper);
-
-        return participantRoles;
+        return new LinkedList<>(getRolesByStudy(user, paper.getStudy()));
     }
 
     public List<ParticipantRole> getParticipantRoles(final Long userId, final Study study) {

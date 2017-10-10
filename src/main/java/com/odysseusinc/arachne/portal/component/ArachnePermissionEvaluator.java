@@ -35,6 +35,7 @@ import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
+import com.odysseusinc.arachne.portal.model.PublishState;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionGroup;
@@ -212,7 +213,10 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
     protected PermissionDsl paperRules(Object domainObject, ArachneUser user) {
 
         return domainObject(domainObject).when(instanceOf(Paper.class))
-                .then(paper -> getArachnePermissions(secureService.getRolesByPaper(user, (T) paper))).apply();
+                .then(paper -> getArachnePermissions(secureService.getRolesByPaper(user, (T) paper))).apply()
+                .when(instanceOf(Paper.class).and(paper -> paper.getPublishState() == PublishState.PUBLISHED))
+                .then(paper -> Collections.singleton(ArachnePermission.ACCESS_PAPER))
+                .apply();
     }
 
     protected PermissionDsl additionalRules(Object domainObject, ArachneUser user) {
