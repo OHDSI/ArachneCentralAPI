@@ -21,10 +21,11 @@
 
 package com.odysseusinc.arachne.portal.component;
 
-import static com.odysseusinc.arachne.portal.component.PermissionDsl.authorIs;
+import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.analysisAuthorIs;
 import static com.odysseusinc.arachne.portal.component.PermissionDsl.domainObject;
-import static com.odysseusinc.arachne.portal.component.PermissionDsl.hasRole;
-import static com.odysseusinc.arachne.portal.component.PermissionDsl.instanceOf;
+import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.analysisFileAuthorIs;
+import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.hasRole;
+import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.instanceOf;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.ACCESS_STUDY;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.DELETE_ANALYSIS_FILES;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.DELETE_DATASOURCE;
@@ -162,7 +163,8 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
 
     protected PermissionDsl analysisRules(Object domainObject, ArachneUser user) {
 
-        return domainObject(domainObject).when(instanceOf(Analysis.class))
+        return domainObject(domainObject)
+                .when(instanceOf(Analysis.class))
                 .then(analysis -> Collections.singleton(ACCESS_STUDY)).and()
                 .then(analysis -> getArachnePermissions(secureService.getRolesByAnalysis(user, analysis)))
                 .filter((analysis, permission) -> !(ArachnePermission.DELETE_ANALYSIS.equals(permission)
@@ -171,7 +173,9 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
                                 || !Objects.equals(user.getId(), analysis.getAuthor().getId())
                                 || (Objects.nonNull(analysis.getFiles()) && !analysis.getFiles().isEmpty())
                                 || (Objects.nonNull(analysis.getSubmissions()) && !analysis.getSubmissions().isEmpty())
-                ))).apply();
+                ))).apply()
+                .when(instanceOf(Analysis.class).and(analysisAuthorIs(user)))
+                .then(analysis -> Collections.singleton(DELETE_ANALYSIS_FILES)).apply();
     }
 
     protected PermissionDsl submissionRules(Object domainObject, ArachneUser user) {
@@ -182,9 +186,7 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
 
     protected PermissionDsl analysisFileRules(Object domainObject, ArachneUser user) {
 
-        return domainObject(domainObject).when(instanceOf(AnalysisFile.class).and(authorIs(user)))
-                .then(file -> Collections.singleton(DELETE_ANALYSIS_FILES)).apply()
-                .when(instanceOf(AnalysisFile.class).and(authorIs(user)))
+        return domainObject(domainObject).when(instanceOf(AnalysisFile.class).and(analysisFileAuthorIs(user)))
                 .then(file -> Collections.singleton(DELETE_ANALYSIS_FILES)).apply();
     }
 
