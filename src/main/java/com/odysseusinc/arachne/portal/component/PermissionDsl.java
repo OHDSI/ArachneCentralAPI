@@ -21,11 +21,7 @@
 
 package com.odysseusinc.arachne.portal.component;
 
-import com.odysseusinc.arachne.portal.model.AnalysisFile;
-import com.odysseusinc.arachne.portal.model.security.ArachneUser;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
@@ -49,21 +45,6 @@ public class PermissionDsl {
     public static PermissionDsl domainObject(Object domainObject) {
 
         return new PermissionDsl(domainObject);
-    }
-
-    public static <T> Predicate<T> instanceOf(Class<T> targetClass) {
-
-        return targetClass::isInstance;
-    }
-
-    public static <T extends AnalysisFile> Predicate<T> authorIs(ArachneUser user) {
-
-        return file -> file.getAuthor() != null && Objects.equals(user.getId(), file.getAuthor().getId());
-    }
-
-    public static <T> Predicate<T> hasRole(ArachneUser user, String role) {
-
-        return entity -> user.getAuthorities().contains(new SimpleGrantedAuthority(role));
     }
 
     public <T> PermissionExecutor<T> when(Predicate<T> predicate) {

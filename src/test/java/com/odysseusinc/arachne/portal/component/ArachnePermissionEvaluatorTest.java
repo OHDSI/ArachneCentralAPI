@@ -183,6 +183,57 @@ public class ArachnePermissionEvaluatorTest extends BaseControllerTest {
         dataSource.hasNoAccess("%s should not have access to create datasource", ArachnePermission.DELETE_DATASOURCE);
     }
 
+    @Test
+    @WithUserDetails("admin@odysseusinc.com")
+    @DatabaseSetups({
+            @DatabaseSetup("/data/users.xml"),
+            @DatabaseSetup("/data/study-with-contributor.xml"),
+            @DatabaseSetup("/data/analysis/analysis-list.xml")
+    })
+    public void leadCanDeleteAnalysisFile() {
+
+        AccessHelper analysis = new AccessHelper("Analysis");
+        analysis.hasAccess("%s should be able to delete analysis files" , ArachnePermission.DELETE_ANALYSIS_FILES);
+    }
+
+    @Test
+    @WithUserDetails("user1@odysseusinc.com")
+    @DatabaseSetups({
+            @DatabaseSetup("/data/users.xml"),
+            @DatabaseSetup("/data/study-with-contributor.xml"),
+            @DatabaseSetup("/data/analysis/analysis-created-by-user1.xml")
+    })
+    public void analysisCreatorCanDeleteAnalysisFile() {
+
+        AccessHelper analysis = new AccessHelper("Analysis");
+        analysis.hasAccess("%s should be able to delete analysis files" , ArachnePermission.DELETE_ANALYSIS_FILES);
+    }
+
+    @Test
+    @WithUserDetails("user2@odysseusinc.com")
+    @DatabaseSetups({
+            @DatabaseSetup("/data/users.xml"),
+            @DatabaseSetup("/data/study-with-contributor.xml"),
+            @DatabaseSetup("/data/analysis/analysis-created-by-user1.xml")
+    })
+    public void contributorCantDeleteAnalysisFile() {
+
+        AccessHelper analysis = new AccessHelper("Analysis");
+        analysis.hasNoAccess("%s should not be able to delete analysis files" , ArachnePermission.DELETE_ANALYSIS_FILES);
+    }
+
+    @Test
+    @WithUserDetails("user2@odysseusinc.com")
+    @DatabaseSetups({
+            @DatabaseSetup("/data/users.xml"),
+            @DatabaseSetup("/data/study-with-pending-contributor.xml"),
+            @DatabaseSetup("/data/analysis/analysis-created-by-user1.xml")
+    })
+    public void pendingInvestigatorCantDeleteAnalysisFile() {
+
+        AccessHelper analysis = new AccessHelper("Analysis");
+        analysis.hasNoAccess("%s should not be able to delete analysis files" , ArachnePermission.DELETE_ANALYSIS_FILES);
+    }
 
     private void checkPermission(String desc, ArachnePermission permission, String domain, boolean expectedResult) {
 
