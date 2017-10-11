@@ -90,6 +90,9 @@ public enum ParticipantRole {
             UNLINK_DATASOURCE,
             ACCESS_PAPER
     }),
+    STUDY_PENDING_CONTRIBUTOR("Pending contributor", new ArachnePermission[]{
+            ACCESS_STUDY,
+    }),
     DATA_SET_USER("Data Set User", new ArachnePermission[]{
             ACCESS_DATASOURCE
     }),
