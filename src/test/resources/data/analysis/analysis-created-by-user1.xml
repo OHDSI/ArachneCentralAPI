@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <analyses
+            id="1"
+            author_id="2"
+            study_id="2"
+            type="CUSTOM"
+            is_locked="false"
+            title="analysisTitle1"
+    />
+</dataset>
