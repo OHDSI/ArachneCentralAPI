@@ -34,12 +34,14 @@ import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionGroup;
 import com.odysseusinc.arachne.portal.model.User;
+import com.odysseusinc.arachne.portal.model.UserStudy;
 import com.odysseusinc.arachne.portal.model.UserStudyGrouped;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
 import com.odysseusinc.arachne.portal.repository.AnalysisRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeUserRepository;
 import com.odysseusinc.arachne.portal.repository.UserStudyGroupedRepository;
+import com.odysseusinc.arachne.portal.repository.UserStudyRepository;
 import com.odysseusinc.arachne.portal.repository.submission.SubmissionRepository;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.util.DataNodeUtils;
@@ -50,6 +52,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,19 +67,22 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends D
     protected final SubmissionRepository submissionRepository;
     protected final DataNodeRepository dataNodeRepository;
     protected final DataNodeUserRepository dataNodeUserRepository;
+    protected final UserStudyRepository userStudyRepository;
 
     @Autowired
     public BaseArachneSecureServiceImpl(UserStudyGroupedRepository userStudyGroupedRepository,
                                         AnalysisRepository analysisRepository,
                                         SubmissionRepository submissionRepository,
                                         DataNodeRepository dataNodeRepository,
-                                        DataNodeUserRepository dataNodeUserRepository) {
+                                        DataNodeUserRepository dataNodeUserRepository,
+                                        UserStudyRepository userStudyRepository) {
 
         this.userStudyGroupedRepository = userStudyGroupedRepository;
         this.analysisRepository = analysisRepository;
         this.submissionRepository = submissionRepository;
         this.dataNodeRepository = dataNodeRepository;
         this.dataNodeUserRepository = dataNodeUserRepository;
+        this.userStudyRepository = userStudyRepository;
     }
 
     @Override
@@ -167,13 +173,6 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends D
         return participantRoles;
     }
 
-    protected boolean checkIfAccessPaperPermissionPresent(List<ParticipantRole> participantRoles) {
-
-        return participantRoles.stream()
-                .flatMap(r -> Arrays.stream(r.getPermissions()))
-                .anyMatch(p -> p == ArachnePermission.ACCESS_PAPER);
-    }
-
     @Override
     public boolean test(Long id) {
 
@@ -189,16 +188,15 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends D
 
     public List<ParticipantRole> getParticipantRoles(final Long userId, final Study study) {
 
-        final List<ParticipantRole> result = new LinkedList<>();
-        final List<UserStudyGrouped> byUserAndStudy = userStudyGroupedRepository.findByUserIdAndStudyId(userId, study.getId());
-        for (UserStudyGrouped userStudyLink : byUserAndStudy) {
-            Arrays.stream(
-                    userStudyLink.getRole() != null
-                            ? userStudyLink.getRole().split(",")
-                            : new String[]{})
-                    .forEach(link ->
-                            result.add(ParticipantRole.valueOf(link)));
-        }
-        return result;
+        List<UserStudy> userStudyList = userStudyRepository.findByUserIdAndStudyIdAndStatusIn(
+                userId,
+                study.getId(),
+                Arrays.asList(ParticipantStatus.APPROVED, ParticipantStatus.PENDING)
+        );
+        return userStudyList.stream()
+                .map(userStudy -> userStudy.getStatus().equals(ParticipantStatus.APPROVED)
+                        ? ParticipantRole.valueOf(userStudy.getRole().name())
+                        : ParticipantRole.STUDY_PENDING_CONTRIBUTOR)
+                .collect(Collectors.toList());
     }
 }
