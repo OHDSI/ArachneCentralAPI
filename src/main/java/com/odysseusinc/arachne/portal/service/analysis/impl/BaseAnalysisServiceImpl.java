@@ -371,9 +371,7 @@ public abstract class BaseAnalysisServiceImpl<
                                  Boolean isExecutable, DataReference dataReference) throws IOException {
 
         String originalFilename = multipartFile.getOriginalFilename();
-        String originalExtension = FilenameUtils.getExtension(originalFilename);
 
-        Study study = analysis.getStudy();
         String fileNameLowerCase = UUID.randomUUID().toString();
         try {
             Path analysisPath = getAnalysisPath(analysis);
@@ -395,9 +393,11 @@ public abstract class BaseAnalysisServiceImpl<
             analysisFile.setCreated(created);
             analysisFile.setUpdated(created);
             analysisFile.setVersion(1);
+            beforeSaveAnalysisFile(analysisFile);
 
             AnalysisFile saved = analysisFileRepository.save(analysisFile);
             analysis.getFiles().add(saved);
+            afterSaveAnalysisFile(saved);
 
             if (Boolean.TRUE.equals(isExecutable)) {
                 setIsExecutable(saved.getUuid());
@@ -412,6 +412,14 @@ public abstract class BaseAnalysisServiceImpl<
             LOGGER.error(message, ex);
             throw new IOException(message);
         }
+    }
+
+    protected void beforeSaveAnalysisFile(AnalysisFile file) {
+
+    }
+
+    protected void afterSaveAnalysisFile(AnalysisFile analysisFile) {
+
     }
 
     protected Path getAnalysisPath(Analysis analysis) throws IOException {
