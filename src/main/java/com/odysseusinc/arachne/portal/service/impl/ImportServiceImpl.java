@@ -68,14 +68,15 @@ public class ImportServiceImpl implements ImportService {
 
         final List<MultipartFile> mpfList = importedFiles.stream()
                 .map(importedFile -> {
+                    ImportedFile file = importedFile;
                     if (FilenameUtils.getExtension(importedFile.getOriginalFilename()).toLowerCase().equals("r")) {
                         try {
-                            fillEstimationCodePlaceholders(importedFile);
+                            file = fillEstimationCodePlaceholders(importedFile);
                         } catch (IOException ex) {
                             throw new UncheckedIOException(ex);
                         }
                     }
-                    return conversionService.convert(importedFile, MockMultipartFile.class);
+                    return conversionService.convert(file, MockMultipartFile.class);
                 })
                 .collect(Collectors.toList());
 
@@ -102,10 +103,10 @@ public class ImportServiceImpl implements ImportService {
         return mpfList;
     }
 
-    private void fillEstimationCodePlaceholders(ImportedFile importedFile) throws IOException {
+    private ImportedFile fillEstimationCodePlaceholders(ImportedFile importedFile) throws IOException {
 
-        Template template = loadTemplate(new ByteArrayResource(importedFile.getData()));
+        Template template = loadTemplate(importedFile);
         String processedContent = template.apply(estimationTemplateParams);
-        importedFile.setData(processedContent.getBytes());
+        return new ImportedFile(importedFile.getFilename(), processedContent.getBytes());
     }
 }

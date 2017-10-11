@@ -46,8 +46,11 @@ import com.odysseusinc.arachne.portal.util.ImportedFile;
 import io.swagger.annotations.Api;
 import java.io.IOException;
 import java.io.Serializable;
+import java.io.UncheckedIOException;
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import javax.jms.JMSException;
@@ -198,7 +201,7 @@ public abstract class BaseDataNodeMessagingController<DN extends DataNode> exten
             @RequestParam(required = false) MultipartFile[] files
     ) throws PermissionDeniedException, IOException {
 
-        ArrayList<ImportedFile> importedFiles = new ArrayList<>();
+        LinkedList<ImportedFile> importedFiles = new LinkedList<>();
         for (MultipartFile mpf: files) {
             importedFiles.add(new ImportedFile(mpf.getOriginalFilename(), mpf.getBytes()));
         }
