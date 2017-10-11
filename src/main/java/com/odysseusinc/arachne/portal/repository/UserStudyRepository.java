@@ -49,6 +49,8 @@ public interface UserStudyRepository extends CrudRepository<UserStudy, Long>, Jp
 
     List<UserStudy> findByUserAndStatus(User user, ParticipantStatus pending);
 
+    List<UserStudy> findByUserIdAndStudyIdAndStatusIn(Long userId, Long studyId, List<ParticipantStatus> pending);
+
     UserStudy findByIdAndUser(Long id, User user);
 
     UserStudy findByIdAndStatusAndToken(Long id, ParticipantStatus pending, String token);
