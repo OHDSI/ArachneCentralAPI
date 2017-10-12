@@ -38,7 +38,8 @@ public class DsDomainObjectLoader extends DomainObjectLoader {
     @Override
     protected Serializable getTargetId(Object domainObject) {
 
-        return ObjectUtils.firstNonNull(((DataSource) domainObject).getUuid(), ((DataSource) domainObject).getId());
+        DataSource ds = (DataSource) domainObject;
+        return ObjectUtils.firstNonNull(ds.getUuid(), ds.getId());
     }
 
     private Object loadById() {
