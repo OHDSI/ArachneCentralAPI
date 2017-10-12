@@ -139,7 +139,7 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
                 .loadDomainObject();
 
         return Objects.nonNull(domainObject)
-                && hasPermission(authentication, domainObject, permission);
+                && checkPermission(authentication, domainObject, permission);
     }
 
     protected PermissionDsl studyRules(Object domainObject, ArachneUser user) {
