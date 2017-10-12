@@ -24,6 +24,8 @@ package com.odysseusinc.arachne.portal.service.domain;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.repository.CrudRepository;
 
 public class DsDomainObjectLoader extends DomainObjectLoader {
@@ -36,23 +38,36 @@ public class DsDomainObjectLoader extends DomainObjectLoader {
     @Override
     protected Serializable getTargetId(Object domainObject) {
 
-        return ((DataSource) domainObject).getUuid();
+        return ObjectUtils.firstNonNull(((DataSource) domainObject).getUuid(), ((DataSource) domainObject).getId());
+    }
+
+    private Object loadById() {
+
+        return getRepository().findOne(targetId);
+    }
+
+    private Object loadByUuid() {
+
+        CrudRepository repo = getRepository();
+        try {
+            return repo
+                    .getClass()
+                    .getMethod("findByUuid", String.class)
+                    .invoke(repo, targetId);
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     @Override
     public Object loadDomainObject() {
 
-        try {
-
-            CrudRepository repo = getRepository();
-            return targetId != null
-                    ? repo
-                    .getClass()
-                    .getMethod("findByUuid", String.class)
-                    .invoke(repo, targetId)
-                    : null;
-        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) {
-            throw new RuntimeException(ex);
+        if (targetId == null) {
+            return null;
+        } else if (StringUtils.isNumeric(targetId.toString())) {
+            return loadById();
+        } else {
+            return loadByUuid();
         }
     }
 }
