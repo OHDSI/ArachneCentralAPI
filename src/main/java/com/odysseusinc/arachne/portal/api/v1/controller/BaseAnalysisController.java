@@ -31,12 +31,9 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
-import com.odysseusinc.arachne.commons.api.v1.dto.CommonCohortDTO;
-import com.odysseusinc.arachne.commons.api.v1.dto.CommonEntityDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonEntityRequestDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.commons.service.messaging.ProducerConsumerTemplate;
-import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisContentFileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisCreateDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisDTO;
@@ -99,9 +96,7 @@ import javax.jms.JMSException;
 import javax.jms.ObjectMessage;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -615,33 +610,15 @@ public abstract class BaseAnalysisController<T extends Analysis,
             throw new ServiceNotAvailableException(message);
         }
         List<MultipartFile> files = new LinkedList<>();
-        switch (entityType) {
-            case COHORT:
-                final CommonEntityDTO cohortDTO = (CommonEntityDTO) responseMessage.getObject();
-                final String sqlFileName = cohortDTO.getName() + CommonFileUtils.OHDSI_SQL_EXT;
-                String expression = ((CommonCohortDTO) cohortDTO).getExpression();
-                files.add(createFile(sqlFileName, ANALISYS_MIMETYPE_MAP.getOrDefault(entityType, DEFAULT_MIMETYPE),
-                        expression));
-                break;
-            case ESTIMATION:
-                final List<ImportedFile> importedFiles = (List<ImportedFile>) responseMessage.getObject();
-                files.addAll(importService.processEstimation(importedFiles));
-                break;
-            default:
-                break;
+        final List<ImportedFile> importedFiles = (List<ImportedFile>) responseMessage.getObject();
+        if (entityType.equals(CommonAnalysisType.ESTIMATION)) {
+            files.addAll(importService.processEstimation(importedFiles));
+        } else {
+            files = importedFiles.stream()
+                    .map(file -> conversionService.convert(file, MockMultipartFile.class))
+                    .collect(Collectors.toList());
         }
         return files;
     }
 
-    private MultipartFile createFile(String fileName, String contentType, String expression) throws IOException {
-
-        try (InputStream inputStream = new ByteArrayInputStream(expression.getBytes())) {
-            return new MockMultipartFile(
-                    fileName,
-                    fileName,
-                    contentType,
-                    inputStream
-            );
-        }
-    }
 }
