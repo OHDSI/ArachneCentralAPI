@@ -26,10 +26,8 @@ import static com.odysseusinc.arachne.commons.service.messaging.MessagingUtils.g
 import static com.odysseusinc.arachne.commons.service.messaging.MessagingUtils.getResponseQueueName;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
-import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.AtlasInfoDTO;
-import com.odysseusinc.arachne.commons.api.v1.dto.CommonCohortDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonEntityDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonEntityRequestDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonListEntityRequest;
@@ -40,22 +38,8 @@ import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.messaging.BaseDataNodeMessageService;
-import com.odysseusinc.arachne.portal.service.messaging.DataNodeMessageService;
 import com.odysseusinc.arachne.portal.service.messaging.MessagingUtils;
 import com.odysseusinc.arachne.portal.util.ImportedFile;
-import io.swagger.annotations.Api;
-import java.io.IOException;
-import java.io.Serializable;
-import java.io.UncheckedIOException;
-import java.security.Principal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-import javax.jms.JMSException;
-import javax.jms.ObjectMessage;
-import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,6 +50,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
+
+import javax.jms.JMSException;
+import javax.jms.ObjectMessage;
+import javax.validation.Valid;
+import java.io.IOException;
+import java.io.Serializable;
+import java.security.Principal;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
 
 public abstract class BaseDataNodeMessagingController<DN extends DataNode> extends BaseController<DN> {
 
@@ -179,23 +174,10 @@ public abstract class BaseDataNodeMessagingController<DN extends DataNode> exten
     }
 
     @RequestMapping(
-            value = "/api/v1/data-nodes/cohorts/{id}",
-            method = PUT
-    )
-    public void saveCohort(
-            Principal principal,
-            @PathVariable("id") String id,
-            @RequestBody @Valid CommonCohortDTO commonCohortDTO
-    ) throws PermissionDeniedException {
-
-        saveCommonEntity(principal, id, commonCohortDTO);
-    }
-
-    @RequestMapping(
-            value = "/api/v1/data-nodes/estimations/{id}",
+            value = "/api/v1/data-nodes/common-entity/{id}",
             method = POST
     )
-    public void saveEstimation(
+    public void saveEntity(
             Principal principal,
             @PathVariable("id") String id,
             @RequestParam(required = false) MultipartFile[] files
