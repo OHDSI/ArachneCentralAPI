@@ -45,10 +45,12 @@ public class DsDomainObjectLoader extends DomainObjectLoader {
         try {
 
             CrudRepository repo = getRepository();
-            return repo
+            return targetId != null
+                    ? repo
                     .getClass()
                     .getMethod("findByUuid", String.class)
-                    .invoke(repo, targetId);
+                    .invoke(repo, targetId)
+                    : null;
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) {
             throw new RuntimeException(ex);
         }
