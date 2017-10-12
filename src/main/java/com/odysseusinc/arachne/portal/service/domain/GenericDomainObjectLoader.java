@@ -39,6 +39,6 @@ public class GenericDomainObjectLoader extends DomainObjectLoader {
     @Override
     public Object loadDomainObject() {
 
-        return getRepository().findOne(targetId);
+        return targetId != null ? getRepository().findOne(targetId) : null;
     }
 }
