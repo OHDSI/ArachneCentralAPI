@@ -29,21 +29,18 @@ import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import com.odysseusinc.arachne.portal.model.ParticipantStatus;
-import com.odysseusinc.arachne.portal.model.PublishState;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionGroup;
 import com.odysseusinc.arachne.portal.model.User;
-import com.odysseusinc.arachne.portal.model.UserStudy;
-import com.odysseusinc.arachne.portal.model.UserStudyGrouped;
+import com.odysseusinc.arachne.portal.model.UserStudyExtended;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
 import com.odysseusinc.arachne.portal.repository.AnalysisRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeUserRepository;
+import com.odysseusinc.arachne.portal.repository.UserStudyExtendedRepository;
 import com.odysseusinc.arachne.portal.repository.UserStudyGroupedRepository;
-import com.odysseusinc.arachne.portal.repository.UserStudyRepository;
 import com.odysseusinc.arachne.portal.repository.submission.SubmissionRepository;
-import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.util.DataNodeUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -67,7 +64,7 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends D
     protected final SubmissionRepository submissionRepository;
     protected final DataNodeRepository dataNodeRepository;
     protected final DataNodeUserRepository dataNodeUserRepository;
-    protected final UserStudyRepository userStudyRepository;
+    protected final UserStudyExtendedRepository userStudyExtendedRepository;
 
     @Autowired
     public BaseArachneSecureServiceImpl(UserStudyGroupedRepository userStudyGroupedRepository,
@@ -75,14 +72,14 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends D
                                         SubmissionRepository submissionRepository,
                                         DataNodeRepository dataNodeRepository,
                                         DataNodeUserRepository dataNodeUserRepository,
-                                        UserStudyRepository userStudyRepository) {
+                                        UserStudyExtendedRepository userStudyExtendedRepository) {
 
         this.userStudyGroupedRepository = userStudyGroupedRepository;
         this.analysisRepository = analysisRepository;
         this.submissionRepository = submissionRepository;
         this.dataNodeRepository = dataNodeRepository;
         this.dataNodeUserRepository = dataNodeUserRepository;
-        this.userStudyRepository = userStudyRepository;
+        this.userStudyExtendedRepository = userStudyExtendedRepository;
     }
 
     @Override
@@ -188,7 +185,7 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends D
 
     public List<ParticipantRole> getParticipantRoles(final Long userId, final Study study) {
 
-        List<UserStudy> userStudyList = userStudyRepository.findByUserIdAndStudyIdAndStatusIn(
+        List<UserStudyExtended> userStudyList = userStudyExtendedRepository.findByUserIdAndStudyIdAndStatusIn(
                 userId,
                 study.getId(),
                 Arrays.asList(ParticipantStatus.APPROVED, ParticipantStatus.PENDING)
