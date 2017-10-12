@@ -43,18 +43,12 @@ import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionGroup;
 import com.odysseusinc.arachne.portal.model.UserStudyGrouped;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
-import com.odysseusinc.arachne.portal.repository.AnalysisRepository;
-import com.odysseusinc.arachne.portal.repository.BaseDataSourceRepository;
-import com.odysseusinc.arachne.portal.repository.PaperRepository;
-import com.odysseusinc.arachne.portal.repository.StudyRepository;
-import com.odysseusinc.arachne.portal.repository.SubmissionGroupRepository;
-import com.odysseusinc.arachne.portal.repository.submission.SubmissionRepository;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
 import com.odysseusinc.arachne.portal.service.BaseArachneSecureService;
+import com.odysseusinc.arachne.portal.service.domain.DomainObjectLoaderFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
@@ -76,46 +70,31 @@ import java.util.Set;
 public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> implements PermissionEvaluator {
 
     protected final BaseArachneSecureService<T, D> secureService;
-    protected final StudyRepository studyRepository;
-    protected final SubmissionRepository submissionRepository;
-    protected final AnalysisRepository analysisRepository;
-    protected final BaseDataSourceRepository dataSourceRepository;
-    protected final SubmissionGroupRepository submissionGroupRepository;
-    protected final PaperRepository<T> paperRepository;
-    private Map<String, CrudRepository> repositoryMap = new HashMap<>();
+    protected final DomainObjectLoaderFactory domainObjectLoaderFactory;
+    protected Map<String, Class> domainClassMap = new HashMap<>();
 
     @Autowired
     public ArachnePermissionEvaluator(
             BaseArachneSecureService<T, D> secureService,
-            StudyRepository studyRepository,
-            SubmissionRepository submissionRepository,
-            AnalysisRepository analysisRepository,
-            BaseDataSourceRepository dataSourceRepository,
-            SubmissionGroupRepository submissionGroupRepository,
-            PaperRepository<T> paperRepository) {
+            DomainObjectLoaderFactory domainObjectLoaderFactory) {
 
         this.secureService = secureService;
-        this.studyRepository = studyRepository;
-        this.submissionRepository = submissionRepository;
-        this.analysisRepository = analysisRepository;
-        this.dataSourceRepository = dataSourceRepository;
-        this.submissionGroupRepository = submissionGroupRepository;
-        this.paperRepository = paperRepository;
-        initRepositoriesMap();
+        this.domainObjectLoaderFactory = domainObjectLoaderFactory;
+
+        initDomainClassMap();
     }
 
-    private void initRepositoriesMap() {
+    protected void initDomainClassMap() {
 
-        repositoryMap.put("Study", studyRepository);
-        repositoryMap.put("Analysis", analysisRepository);
-        repositoryMap.put("Submission", submissionRepository);
-        repositoryMap.put("SubmissionGroup", submissionGroupRepository);
-        repositoryMap.put("DataSource", dataSourceRepository);
-        repositoryMap.put("Paper", paperRepository);
+        domainClassMap.put(Study.class.getSimpleName(), Study.class);
+        domainClassMap.put(Analysis.class.getSimpleName(), Analysis.class);
+        domainClassMap.put(Submission.class.getSimpleName(), Submission.class);
+        domainClassMap.put(SubmissionGroup.class.getSimpleName(), SubmissionGroup.class);
+        domainClassMap.put(DataSource.class.getSimpleName(), DataSource.class);
+        domainClassMap.put(Paper.class.getSimpleName(), Paper.class);
     }
 
-    @Override
-    public boolean hasPermission(Authentication authentication, Object domainObject, Object permissions) {
+    protected boolean checkPermission(Authentication authentication, Object domainObject, Object permissions) {
 
         if (authentication.getPrincipal() instanceof ArachneUser) {
             ArachneUser user = (ArachneUser) authentication.getPrincipal();
@@ -138,19 +117,24 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
     }
 
     @Override
+    public boolean hasPermission(Authentication authentication, Object domainObject, Object permissions) {
+
+        Object refreshedDomainObject = domainObjectLoaderFactory.getDomainObjectLoader(domainObject.getClass())
+            .withTargetId(domainObject)
+            .loadDomainObject();
+
+        return Objects.nonNull(refreshedDomainObject)
+                && checkPermission(authentication, refreshedDomainObject, permissions);
+    }
+
+    @Override
     public boolean hasPermission(Authentication authentication, Serializable targetId,
                                  String targetType, Object permission) {
 
-        Object domainObject = null;
-        if (repositoryMap.containsKey(targetType)) {
-            CrudRepository repository = repositoryMap.get(targetType);
-            if (Objects.equals(targetType, "DataSource")
-                    && targetId instanceof String) {
-                domainObject = dataSourceRepository.findByUuid(targetId.toString());
-            } else {
-                domainObject = repository.findOne(targetId);
-            }
-        }
+        Object domainObject = domainObjectLoaderFactory.getDomainObjectLoader(domainClassMap.get(targetType))
+                .withTargetId(targetId)
+                .loadDomainObject();
+
         return Objects.nonNull(domainObject)
                 && hasPermission(authentication, domainObject, permission);
     }
