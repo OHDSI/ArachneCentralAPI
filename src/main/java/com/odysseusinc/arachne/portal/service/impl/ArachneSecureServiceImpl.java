@@ -27,8 +27,8 @@ import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.repository.AnalysisRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeUserRepository;
+import com.odysseusinc.arachne.portal.repository.UserStudyExtendedRepository;
 import com.odysseusinc.arachne.portal.repository.UserStudyGroupedRepository;
-import com.odysseusinc.arachne.portal.repository.UserStudyRepository;
 import com.odysseusinc.arachne.portal.repository.submission.SubmissionRepository;
 import com.odysseusinc.arachne.portal.service.ArachneSecureService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +47,7 @@ public class ArachneSecureServiceImpl extends BaseArachneSecureServiceImpl<Paper
                                     SubmissionRepository submissionRepository,
                                     DataNodeRepository dataNodeRepository,
                                     DataNodeUserRepository dataNodeUserRepository,
-                                    UserStudyRepository userStudyRepository
+                                    UserStudyExtendedRepository userStudyExtendedRepository
     ) {
 
         super(userStudyGroupedRepository,
@@ -55,6 +55,6 @@ public class ArachneSecureServiceImpl extends BaseArachneSecureServiceImpl<Paper
                 submissionRepository,
                 dataNodeRepository,
                 dataNodeUserRepository,
-                userStudyRepository);
+                userStudyExtendedRepository);
     }
 }

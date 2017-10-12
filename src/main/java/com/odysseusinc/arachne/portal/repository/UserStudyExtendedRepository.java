@@ -36,6 +36,8 @@ import org.springframework.data.repository.query.Param;
 public interface UserStudyExtendedRepository extends CrudRepository<UserStudyExtended, Long>,
         JpaSpecificationExecutor<UserStudyExtended> {
 
+    List<UserStudyExtended> findByUserIdAndStudyIdAndStatusIn(Long userId, Long studyId, List<ParticipantStatus> pending);
+
     @Query(nativeQuery = true, value = "SELECT * FROM  users_studies_extended WHERE study_id = :studyId "
             + "ORDER BY"
             + "  CASE WHEN (status != 'DELETED')"
