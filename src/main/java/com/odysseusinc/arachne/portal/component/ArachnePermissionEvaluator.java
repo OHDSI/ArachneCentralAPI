@@ -47,6 +47,8 @@ import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
 import com.odysseusinc.arachne.portal.service.BaseArachneSecureService;
 import com.odysseusinc.arachne.portal.service.domain.DomainObjectLoaderFactory;
+import java.util.Objects;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.PermissionEvaluator;
@@ -62,7 +64,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 
@@ -123,8 +124,10 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
             .withTargetId(domainObject)
             .loadDomainObject();
 
-        return Objects.nonNull(refreshedDomainObject)
-                && checkPermission(authentication, refreshedDomainObject, permissions);
+        // For case when there is no persisted entity yet, e.g. when entity is being created
+        refreshedDomainObject = ObjectUtils.firstNonNull(refreshedDomainObject, domainObject);
+
+        return checkPermission(authentication, refreshedDomainObject, permissions);
     }
 
     @Override
