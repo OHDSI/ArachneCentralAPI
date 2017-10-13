@@ -22,22 +22,27 @@
 
 package com.odysseusinc.arachne.portal.util;
 
+import org.springframework.core.io.AbstractResource;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
+import java.util.Objects;
 
 // This class is required only due to unavailability to serialize incoming MultipartFile
-public class ImportedFile implements Serializable {
+public class ImportedFile extends AbstractResource implements Serializable {
 
     private String originalFilename;
     private byte[] data;
 
     public ImportedFile() {
-
     }
 
     public ImportedFile(String originalFilename, byte[] data) {
 
-        this.originalFilename = originalFilename;
         this.data = data;
+        this.originalFilename = Objects.nonNull(originalFilename) ? originalFilename : "";
     }
 
     public String getOriginalFilename() {
@@ -45,9 +50,34 @@ public class ImportedFile implements Serializable {
         return originalFilename;
     }
 
-    public void setOriginalFilename(String originalFilename) {
+    @Override
+    public String getFilename() {
 
-        this.originalFilename = originalFilename;
+        return originalFilename;
+    }
+
+    @Override
+    public String getDescription() {
+
+        return originalFilename;
+    }
+
+    @Override
+    public boolean exists() {
+
+        return true;
+    }
+
+    @Override
+    public long contentLength() throws IOException {
+
+        return (long)this.data.length;
+    }
+
+    @Override
+    public InputStream getInputStream() throws IOException {
+
+        return new ByteArrayInputStream(data);
     }
 
     public byte[] getData() {

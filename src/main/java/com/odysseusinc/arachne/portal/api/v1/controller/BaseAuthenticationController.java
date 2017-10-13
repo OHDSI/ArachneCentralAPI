@@ -25,6 +25,7 @@ package com.odysseusinc.arachne.portal.api.v1.controller;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAuthMethodDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAuthenticationRequest;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAuthenticationResponse;
+import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserOriginDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.api.v1.dto.RemindPasswordDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ResetPasswordDTO;
@@ -105,7 +106,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
     public JsonResult<CommonAuthMethodDTO> authMethod() {
 
         final JsonResult<CommonAuthMethodDTO> result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
-        result.setResult(new CommonAuthMethodDTO(userOrigin));
+        result.setResult(new CommonAuthMethodDTO(CommonUserOriginDTO.valueOf(userOrigin)));
         return result;
     }
 
