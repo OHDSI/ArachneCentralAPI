@@ -17,7 +17,6 @@
  * Product Owner/Architecture: Gregory Klebanov
  * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
  * Created: September 27, 2017
- *
  */
 
 package com.odysseusinc.arachne.portal.api.v1.controller;
@@ -33,12 +32,9 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
-import com.odysseusinc.arachne.commons.api.v1.dto.CommonCohortDTO;
-import com.odysseusinc.arachne.commons.api.v1.dto.CommonEntityDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonEntityRequestDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.commons.service.messaging.ProducerConsumerTemplate;
-import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisContentFileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisCreateDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisDTO;
@@ -101,9 +97,7 @@ import javax.jms.JMSException;
 import javax.jms.ObjectMessage;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -123,8 +117,8 @@ public abstract class BaseAnalysisController<T extends Analysis,
         A_C_DTO extends AnalysisCreateDTO> extends BaseController<DN> {
     protected static final Map<CommonAnalysisType, String> ANALISYS_MIMETYPE_MAP = new HashMap<>();
     private static final Logger LOGGER = LoggerFactory.getLogger(AnalysisController.class);
-    private static final String COHORT_NOT_AVAILABLE
-            = "Cohort with guid='%s' from DataNode with sid='%s' is not available";
+    private static final String ENTITY_IS_NOT_AVAILABLE
+            = "'%s' with guid='%s' from DataNode with sid='%s' is not available";
     private static final String DEFAULT_EXTENSION = ".txt";
     private static final String DEFAULT_MIMETYPE = "plain/text";
     protected final BaseDataSourceService dataSourceService;
@@ -279,13 +273,13 @@ public abstract class BaseAnalysisController<T extends Analysis,
         return new JsonResult<>(NO_ERROR, analysisOptionDTOs);
     }
 
-    @ApiOperation("Add entity to analysis")
+    @ApiOperation("Add common entity to analysis")
     @RequestMapping(value = "/api/v1/analysis-management/analyses/{analysisId}/entities", method = POST)
-    public JsonResult addCohortToAnalysis(@PathVariable("analysisId") Long analysisId,
-                                          @RequestBody @Valid DataReferenceDTO entityReference,
-                                          @RequestParam(value = "type", required = false,
-                                                  defaultValue = "COHORT") CommonAnalysisType analysisType,
-                                          Principal principal)
+    public JsonResult addCommonEntityToAnalysis(@PathVariable("analysisId") Long analysisId,
+                                                @RequestBody @Valid DataReferenceDTO entityReference,
+                                                @RequestParam(value = "type", required = false,
+                                                        defaultValue = "COHORT") CommonAnalysisType analysisType,
+                                                Principal principal)
             throws NotExistException, JMSException, IOException, PermissionDeniedException {
 
         final User user = getUser(principal);
@@ -296,8 +290,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
         entityFiles.forEach(entityFile -> {
 
             try {
-                analysisService.saveFile(entityFile, user, analysis, entityFile.getName(),
-                        ANALISYS_MIMETYPE_MAP.containsValue(entityFile.getContentType()), dataReference);
+                doAddCommonEntityToAnalysis(analysis, dataReference, user, analysisType, entityFile);
             } catch (IOException e) {
                 LOGGER.error("Failed to save file", e);
                 throw new RuntimeIOException(e.getMessage(), e);
@@ -306,24 +299,32 @@ public abstract class BaseAnalysisController<T extends Analysis,
         return new JsonResult(NO_ERROR);
     }
 
-    @ApiOperation("update cohort in analysis")
+    protected void doAddCommonEntityToAnalysis(T analysis, DataReference dataReference, User user,
+                                               CommonAnalysisType analysisType,
+                                               MultipartFile file)
+            throws IOException {
+
+        analysisService.saveFile(file, user, analysis, file.getName(), false, dataReference);
+    }
+
+    @ApiOperation("update common entity in analysis")
     @RequestMapping(value = "/api/v1/analysis-management/analyses/{analysisId}/entities/{fileUuid}", method = PUT)
-    public JsonResult updateCohortInAnalysis(@PathVariable("analysisId") Long analysisId,
-                                             @PathVariable("fileUuid") String fileUuid,
-                                             @RequestParam(value = "type", required = false,
-                                                     defaultValue = "COHORT") CommonAnalysisType analysisType,
-                                             Principal principal) throws IOException, JMSException {
+    public JsonResult updateCommonEntityInAnalysis(@PathVariable("analysisId") Long analysisId,
+                                                   @PathVariable("fileUuid") String fileUuid,
+                                                   @RequestParam(value = "type", required = false,
+                                                           defaultValue = "COHORT") CommonAnalysisType analysisType,
+                                                   Principal principal) throws IOException, JMSException {
 
         final AnalysisFile analysisFile = analysisService.getAnalysisFile(analysisId, fileUuid);
         final DataReference dataReference = analysisFile.getDataReference();
-        final DataReferenceDTO cohortReference = new DataReferenceDTO(
+        final DataReferenceDTO entityReference = new DataReferenceDTO(
                 dataReference.getDataNode().getSid(), dataReference.getGuid());
-        final List<MultipartFile> cohortFiles = getEntityFiles(cohortReference, dataReference.getDataNode(), analysisType);
-        cohortFiles.forEach(cohortFile -> {
+        final List<MultipartFile> entityFiles = getEntityFiles(entityReference, dataReference.getDataNode(), analysisType);
+        entityFiles.forEach(entityFile -> {
 
             try {
-                analysisService.updateFile(fileUuid, cohortFile, analysisId,
-                        ANALISYS_MIMETYPE_MAP.containsValue(cohortFile.getContentType()));
+                analysisService.updateFile(fileUuid, entityFile, analysisId,
+                        ANALISYS_MIMETYPE_MAP.containsValue(entityFile.getContentType()));
             } catch (IOException e) {
                 LOGGER.error("Failed to update file", e);
                 throw new RuntimeIOException(e.getMessage(), e);
@@ -583,13 +584,13 @@ public abstract class BaseAnalysisController<T extends Analysis,
         return result;
     }
 
-    private List<MultipartFile> getEntityFiles(DataReferenceDTO cohortReference, DataNode dataNode, CommonAnalysisType entityType)
+    protected List<MultipartFile> getEntityFiles(DataReferenceDTO entityReference, DataNode dataNode, CommonAnalysisType entityType)
             throws JMSException, IOException {
 
         Long waitForResponse = 60000L;
         Long messageLifeTime = 60000L;
         String baseQueue = MessagingUtils.Entities.getBaseQueue(dataNode);
-        CommonEntityRequestDTO request = new CommonEntityRequestDTO(cohortReference.getEntityGuid(), entityType);
+        CommonEntityRequestDTO request = new CommonEntityRequestDTO(entityReference.getEntityGuid(), entityType);
 
         ProducerConsumerTemplate exchangeTpl = new ProducerConsumerTemplate(
                 destinationResolver,
@@ -603,41 +604,22 @@ public abstract class BaseAnalysisController<T extends Analysis,
                 true
         );
         if (responseMessage == null) {
-            String message = String.format(COHORT_NOT_AVAILABLE,
-                    cohortReference.getEntityGuid(),
-                    cohortReference.getDatanodeSid());
+            String message = String.format(ENTITY_IS_NOT_AVAILABLE,
+                    entityType.getTitle(),
+                    entityReference.getEntityGuid(),
+                    entityReference.getDatanodeSid());
             throw new ServiceNotAvailableException(message);
         }
         List<MultipartFile> files = new LinkedList<>();
-        switch (entityType) {
-            case COHORT:
-                final CommonEntityDTO cohortDTO = (CommonEntityDTO) responseMessage.getObject();
-                final String sqlFileName = cohortDTO.getName() + CommonFileUtils.OHDSI_SQL_EXT;
-                String expression;
-                expression = ((CommonCohortDTO) cohortDTO).getExpression();
-                files.add(createFile(sqlFileName, ANALISYS_MIMETYPE_MAP.getOrDefault(entityType, DEFAULT_MIMETYPE),
-                        expression));
-                break;
-            case ESTIMATION:
-                final List<ImportedFile> importedFiles = (List<ImportedFile>) responseMessage.getObject();
-                files.addAll(importService.processEstimation(importedFiles));
-                break;
-            default:
-                expression = "";
-                break;
+        final List<ImportedFile> importedFiles = (List<ImportedFile>) responseMessage.getObject();
+        if (entityType.equals(CommonAnalysisType.ESTIMATION)) {
+            files.addAll(importService.processEstimation(importedFiles));
+        } else {
+            files = importedFiles.stream()
+                    .map(file -> conversionService.convert(file, MockMultipartFile.class))
+                    .collect(Collectors.toList());
         }
         return files;
     }
 
-    private MultipartFile createFile(String fileName, String contentType, String expression) throws IOException {
-
-        try (InputStream inputStream = new ByteArrayInputStream(expression.getBytes())) {
-            return new MockMultipartFile(
-                    fileName,
-                    fileName,
-                    contentType,
-                    inputStream
-            );
-        }
-    }
 }
