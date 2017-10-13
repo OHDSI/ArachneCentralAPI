@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <submission_status_history
+            submission_id="1"
+            status="PENDING"
+            author_id="2"
+            is_last="false"
+    />
+    <submission_status_history
+            submission_id="1"
+            status="STARTING"
+            author_id="2"
+            is_last="false"
+    />
+    <submission_status_history
+            submission_id="1"
+            status="IN_PROGRESS"
+            author_id="2"
+            is_last="false"
+    />
+    <submission_status_history
+            submission_id="1"
+            status="EXECUTED"
+            author_id="2"
+            is_last="false"
+    />
+    <submission_status_history
+            submission_id="1"
+            status="EXECUTED_PUBLISHED"
+            author_id="2"
+            is_last="true"
+    />
+</dataset>

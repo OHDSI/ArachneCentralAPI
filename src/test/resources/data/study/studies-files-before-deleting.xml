@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <studies_files
+            id="10"
+            study_id="1"
+            real_name="test.jpg"
+            content_type="image/jpeg"
+            author_id="1"
+            label="labelUploadedFile"
+            uuid="07c463d8-075a-4a33-b027-c9f6b623f722"
+    />
+</dataset>

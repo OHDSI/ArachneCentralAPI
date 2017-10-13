@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <studies_files
+            study_id="1"
+            real_name="test.jpg"
+            content_type="image"
+            author_id="1"
+            label="labelUploadedFile"
+    />
+</dataset>

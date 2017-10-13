@@ -1,0 +1,93 @@
+/**
+ *
+ * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Company: Odysseus Data Services, Inc.
+ * Product Owner/Architecture: Gregory Klebanov
+ * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
+ * Created: January 13, 2017
+ *
+ */
+
+package com.odysseusinc.arachne.portal.api.v1.dto;
+
+public class AnalysisFileDTO extends FileDTO {
+
+    private Boolean isExecutable;
+    private Long analysisId;
+    private Integer version;
+    private UserInfoDTO updatedBy;
+    private Boolean imported;
+    private String entryPoint;
+
+    public Boolean getIsExecutable() {
+
+        return isExecutable;
+    }
+
+    public void setIsExecutable(Boolean executable) {
+
+        isExecutable = executable;
+    }
+
+    public Long getAnalysisId() {
+
+        return analysisId;
+    }
+
+    public void setAnalysisId(Long analysisId) {
+
+        this.analysisId = analysisId;
+    }
+
+    public Integer getVersion() {
+
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+
+        this.version = version;
+    }
+
+    public UserInfoDTO getUpdatedBy() {
+
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(UserInfoDTO updatedBy) {
+
+        this.updatedBy = updatedBy;
+    }
+
+    public Boolean getImported() {
+
+        return imported;
+    }
+
+    public void setImported(Boolean imported) {
+
+        this.imported = imported;
+    }
+
+    public String getEntryPoint() {
+
+        return entryPoint;
+    }
+
+    public void setEntryPoint(String entryPoint) {
+
+        this.entryPoint = entryPoint;
+    }
+}

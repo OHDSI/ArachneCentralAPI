@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <analyses
+            id="1"
+            author_id="1"
+            study_id="1"
+            type="CHARACTERIZATION"
+            is_locked="false"
+    />
+</dataset>

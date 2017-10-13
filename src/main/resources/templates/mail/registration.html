@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <style>
+        div,p {
+            color: black;
+        }
+    </style>
+</head>
+<body>
+<p th:text="Dear+' '+${userFirstName}+', '"></p>
+<p>
+    Thank you for registering at Arachne Collaboration Network.
+    Please follow this
+    <a th:href="@{${portalUrl} + '/api/v1/user-management/activation/' + ${registrationCode}(callbackUrl=${callbackUrl})}">link</a>
+    to verify your email and start using the Arachne Collaboration Network!
+</p>
+<p>
+    Regards,<br/>
+    Odysseus Data Services, Inc.
+</p>
+</body>
+</html>

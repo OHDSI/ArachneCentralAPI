@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <style>
+        div,p {
+            color: black;
+        }
+    </style>
+</head>
+<body>
+<p th:text="Dear+' '+${userFirstName}+', '"></p>
+<div>
+You have been requested to unlock analysis for edit
+<a th:href="${analysisUrl}"><span class="btn-link" th:text="${analysisTitle}"></span></a>.
+<br/>
+To accept this request, please follow this
+<a th:href="@{${invitationUrl}(id=${requestId},accepted='true',type='UNLOCK_ANALYSIS',token=${token},userId=${userId})}">link</a>. Alternatively, please follow this
+<a th:href="@{${invitationUrl}(id=${requestId},accepted='false',type='UNLOCK_ANALYSIS',token=${token},userId=${userId})}">link</a>
+if you wish to reject this invitation.</div>
+<p>
+    Regards,<br/>
+    Odysseus Data Services, Inc.
+</p>
+</body>
+</html>
