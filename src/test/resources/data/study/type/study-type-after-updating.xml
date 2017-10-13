@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <study_types
+            id = "1"
+            name ="updatedName"/>
+</dataset>

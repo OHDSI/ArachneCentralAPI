@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <datanodes
+            name="Virtual"
+            is_virtual="true"
+    />
+    <datanodes_users
+            user_id="1"
+    />
+    <data_sources
+            name="virtual"
+    />
+    <studies_data_sources
+            study_id="1"
+            status="APPROVED"
+    />
+</dataset>

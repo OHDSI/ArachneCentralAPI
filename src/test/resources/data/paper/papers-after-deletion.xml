@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <papers
+            id="2"
+            study_id="2"
+            publish_state="PUBLISHED"
+    />
+    <papers
+            id="3"
+            study_id="3"
+            publish_state="DRAFT"
+    />
+    <paper_users
+            paper_id="2"
+            user_id="3"
+            status="APPROVED"
+            author_id="1"
+    />
+</dataset>

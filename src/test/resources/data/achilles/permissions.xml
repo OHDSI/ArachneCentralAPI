@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<dataset>
+    <achilles_permissions
+            id="1"
+            datasource_id="2"
+            achilles_report_id="1"
+            grant_type="APPROVED" />
+    <achilles_permissions
+            id="2"
+            datasource_id="2"
+            achilles_report_id="13"
+            grant_type="DISABLED" />
+    <achilles_permissions
+            id="3"
+            datasource_id="3"
+            achilles_report_id="13"
+            grant_type="DISABLED" />
+    <achilles_permissions
+            id="4"
+            datasource_id="3"
+            achilles_report_id="1"
+            grant_type="APPROVED" />
+</dataset>

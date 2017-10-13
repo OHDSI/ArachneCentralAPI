@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <professional_types
+            id="1"
+            name = "updatedProfessionalTypeName"
+    />
+    <study_types
+            id="4"
+            name="type"
+    />
+    <studies id = "1"
+             title="updatedStudyTitle"
+             type_id="4"
+    />
+    <users
+            id="1"
+            firstname="adminFirstName"
+            middlename="adminMiddleName"
+            lastname="adminLastName"
+            password="password"
+            enabled = "true"
+            email = "admin@odysseusinc.com"
+            username = "admin@odysseusinc.com"
+            email_confirmed = "true"
+            professional_type_id="1"
+    />
+    <users
+            id="2"
+            firstname="firstName"
+            middlename="middleName"
+            lastname="lastName"
+            password="userPassword"
+            enabled = "true"
+            email = "user@mail.com"
+            username = "user@mail.com"
+            email_confirmed = "true"
+            professional_type_id="1"
+    />
+    <studies_users
+            id="1"
+            study_id = "1"
+            user_id="2"
+            role="LEAD_INVESTIGATOR"
+            status = "APPROVED"
+            created_by="2"
+    />
+    <studies_users
+            id="2"
+            study_id = "1"
+            user_id="1"
+            role="CONTRIBUTOR"
+            status = "PENDING"
+            created_by="2"
+    />
+</dataset>

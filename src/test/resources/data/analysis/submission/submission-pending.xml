@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <submission_groups
+            id="1"
+            author_id="2"
+            analysis_id="3"
+    />
+    <submissions
+            id="1"
+            author_id="2"
+            analysis_id="3"
+            data_source_id="2"
+            submission_group_id="1"
+    />
+    <submission_files
+            id="1"
+            uuid="06cd6d72-c6f5-4d9f-87a7-79025e79623f"
+            real_name="SQL_Request.sql"
+            executable="true"
+            submission_group_id="1"
+            author_id="2"
+    />
+    <submission_status_history
+            id="1"
+            submission_id="1"
+            date="2017-05-30 17:54:52.207000"
+            status="PENDING"
+            author_id="2"
+            is_last="true"
+    />
+</dataset>
