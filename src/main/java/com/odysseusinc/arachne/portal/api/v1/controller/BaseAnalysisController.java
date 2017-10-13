@@ -35,6 +35,7 @@ import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonEntityRequestDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.commons.service.messaging.ProducerConsumerTemplate;
+import com.odysseusinc.arachne.execution_engine_common.api.v1.dto.DBMSType;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisContentFileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisCreateDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisDTO;
@@ -73,9 +74,13 @@ import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.service.messaging.MessagingUtils;
 import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
 import com.odysseusinc.arachne.portal.util.ImportedFile;
+import com.odysseusinc.arachne.portal.util.ZipUtil;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.assertj.core.api.exception.RuntimeIOException;
+import org.ohdsi.sql.SqlRender;
+import org.ohdsi.sql.SqlTranslate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.convert.support.GenericConversionService;
@@ -97,7 +102,10 @@ import javax.jms.JMSException;
 import javax.jms.ObjectMessage;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -110,6 +118,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+import java.util.zip.ZipOutputStream;
 
 public abstract class BaseAnalysisController<T extends Analysis,
         D extends AnalysisDTO,
@@ -305,6 +314,31 @@ public abstract class BaseAnalysisController<T extends Analysis,
             throws IOException {
 
         analysisService.saveFile(file, user, analysis, file.getName(), false, dataReference);
+        if (analysisType.equals(CommonAnalysisType.COHORT)) {
+            String statement = org.apache.commons.io.IOUtils.toString(file.getInputStream(), "UTF-8");
+            String renderedSql = SqlRender.renderSql(statement, null, null);
+            DBMSType[] dbTypes = new DBMSType[]{DBMSType.POSTGRESQL, DBMSType.ORACLE, DBMSType.MS_SQL_SERVER,
+                    DBMSType.REDSHIFT, DBMSType.PDW};
+            String baseName = FilenameUtils.getBaseName(file.getOriginalFilename());
+            String extension = FilenameUtils.getExtension(file.getOriginalFilename());
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            try (final ZipOutputStream zos = new ZipOutputStream(out)) {
+                for (final DBMSType dialect : dbTypes) {
+                    final String sql = SqlTranslate.translateSql(renderedSql, DBMSType.MS_SQL_SERVER.getOhdsiDB(),
+                            dialect.getOhdsiDB());
+                    final String fileName = baseName + "."
+                            + dialect.getLabel().replaceAll(" ", "-")
+                            + "." + extension;
+                    try(final Reader reader = new StringReader(sql)) {
+                        ZipUtil.addZipEntry(zos, fileName, reader);
+                    }
+                }
+            }
+            String fileName = baseName + ".zip";
+            MultipartFile sqlArchive = new MockMultipartFile(fileName, fileName, "application/zip",
+                    out.toByteArray());
+            analysisService.saveFile(sqlArchive, user, analysis, fileName, false, dataReference);
+        }
     }
 
     @ApiOperation("update common entity in analysis")
