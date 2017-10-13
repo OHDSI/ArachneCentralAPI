@@ -25,7 +25,6 @@ package com.odysseusinc.arachne.portal.api.v1.controller;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAuthMethodDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAuthenticationRequest;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAuthenticationResponse;
-import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserOriginDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.api.v1.dto.RemindPasswordDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ResetPasswordDTO;
@@ -47,10 +46,6 @@ import edu.vt.middleware.password.PasswordData;
 import edu.vt.middleware.password.PasswordValidator;
 import edu.vt.middleware.password.RuleResult;
 import io.swagger.annotations.ApiOperation;
-import java.io.IOException;
-import java.security.Principal;
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,6 +61,11 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+import java.io.IOException;
+import java.security.Principal;
 
 public abstract class BaseAuthenticationController extends BaseController<DataNode> {
 
@@ -106,7 +106,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
     public JsonResult<CommonAuthMethodDTO> authMethod() {
 
         final JsonResult<CommonAuthMethodDTO> result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
-        result.setResult(new CommonAuthMethodDTO(CommonUserOriginDTO.valueOf(userOrigin)));
+        result.setResult(new CommonAuthMethodDTO(userOrigin));
         return result;
     }
 
