@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,8 +24,13 @@ package com.odysseusinc.arachne.portal.util;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
+import org.apache.commons.io.IOUtils;
+
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.zip.ZipEntry;
@@ -34,7 +39,9 @@ import java.util.zip.ZipOutputStream;
 
 public class ZipUtil {
 
-    private ZipUtil(){}
+    private ZipUtil() {
+
+    }
 
     public static void unzipToDir(Path zipFile, Path destination) throws IOException {
 
@@ -59,10 +66,21 @@ public class ZipUtil {
 
     public static void addZipEntry(ZipOutputStream zos, String realName, Path file) throws IOException {
 
+        addZipEntry(zos, realName, Files.newInputStream(file));
+    }
+
+    public static void addZipEntry(ZipOutputStream zos, String realName, InputStream data) throws IOException {
+
+        addZipEntry(zos, realName, new InputStreamReader(data));
+    }
+
+    public static void addZipEntry(ZipOutputStream zos, String realName, Reader data) throws IOException {
+
+        byte[] bytes = IOUtils.toByteArray(data, "UTF-8");
         ZipEntry entry = new ZipEntry(realName);
-        entry.setSize(file.toFile().length());
+        entry.setSize((long) bytes.length);
         zos.putNextEntry(entry);
-        zos.write(Files.readAllBytes(file));
+        zos.write(bytes);
         zos.closeEntry();
     }
 
