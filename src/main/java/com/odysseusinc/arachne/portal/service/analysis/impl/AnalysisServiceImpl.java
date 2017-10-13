@@ -56,11 +56,6 @@ import com.odysseusinc.arachne.portal.service.impl.AnalysisPreprocessorService;
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import com.odysseusinc.arachne.portal.util.AnalysisHelper;
 import com.odysseusinc.arachne.portal.util.LegacyAnalysisHelper;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.file.Path;
-import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.convert.support.GenericConversionService;
@@ -72,6 +67,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Path;
+import java.util.List;
 
 @Service
 @SuppressWarnings("unused")
@@ -211,7 +212,7 @@ public class AnalysisServiceImpl extends BaseAnalysisServiceImpl<Analysis, Study
     }
 
     @Override
-    @PreAuthorize("hasPermission(#analysisFile.analysis,  'Analysis', "
+    @PreAuthorize("hasPermission(#analysisFile.analysis, "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
     public Path getAnalysisFile(AnalysisFile analysisFile) throws FileNotFoundException {
 
