@@ -334,7 +334,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
                     }
                 }
             }
-            String fileName = baseName + ".zip";
+            String fileName = baseName.replaceAll("\\.ohdsi", "") + ".zip";
             MultipartFile sqlArchive = new MockMultipartFile(fileName, fileName, "application/zip",
                     out.toByteArray());
             analysisService.saveFile(sqlArchive, user, analysis, fileName, false, dataReference);
