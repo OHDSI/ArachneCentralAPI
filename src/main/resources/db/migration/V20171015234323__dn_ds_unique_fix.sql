@@ -1,4 +1,7 @@
+ALTER TABLE datanodes DROP CONSTRAINT IF EXISTS name_not_virtual_uq;
 DROP INDEX IF EXISTS name_not_virtual_uq;
+
+ALTER TABLE data_sources DROP CONSTRAINT IF EXISTS name_uk;
 DROP INDEX IF EXISTS name_uk;
 
 CREATE UNIQUE INDEX IF NOT EXISTS datanodes_not_virtual_name_uq
