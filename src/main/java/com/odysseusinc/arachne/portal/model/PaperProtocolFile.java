@@ -23,11 +23,29 @@
 package com.odysseusinc.arachne.portal.model;
 
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
 @Entity
 @Table(name = "paper_protocols")
 public class PaperProtocolFile extends AbstractPaperFile {
+
+    @Id
+    @SequenceGenerator(name = "paper_protocols_pk_sequence", sequenceName = "paper_protocols_id_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "paper_protocols_pk_sequence")
+    protected Long id;
+
+    @Override
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     @Override
     public PaperFileType getType() {
