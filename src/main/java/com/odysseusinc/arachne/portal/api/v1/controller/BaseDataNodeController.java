@@ -39,9 +39,6 @@ import com.odysseusinc.arachne.portal.service.BaseUserService;
 import com.odysseusinc.arachne.portal.service.StudyDataSourceService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import io.swagger.annotations.ApiOperation;
-import java.io.IOException;
-import java.security.Principal;
-import javax.validation.Valid;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +48,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+
+import javax.validation.Valid;
+import java.io.IOException;
+import java.security.Principal;
 
 @SuppressWarnings("unused")
 public abstract class BaseDataNodeController
@@ -102,16 +103,16 @@ public abstract class BaseDataNodeController
     protected abstract DN convertRegisterDtoToDataNode(CommonDataNodeRegisterDTO commonDataNodeRegisterDTO);
 
     @ApiOperation("Update data node info")
-    @RequestMapping(value = "/api/v1/data-nodes/{dataNodeUuid}", method = RequestMethod.PUT)
+    @RequestMapping(value = "/api/v1/data-nodes/{dataNodeId}", method = RequestMethod.PUT)
     public JsonResult<CommonDataNodeRegisterResponseDTO> updateDataNode(
-            @PathVariable("dataNodeUuid") String dataNodeUuid,
+            @PathVariable("dataNodeId") Long dataNodeId,
             @RequestBody @Valid CommonDataNodeRegisterDTO commonDataNodeRegisterDTO,
             Principal principal
     ) throws PermissionDeniedException, NotExistException {
 
         final User user = getUser(principal);
         final DN dataNode = convertRegisterDtoToDataNode(commonDataNodeRegisterDTO);
-        dataNode.setSid(dataNodeUuid);
+        dataNode.setId(dataNodeId);
         final DN updatedDataNode = baseDataNodeService.update(dataNode);
         final CommonDataNodeRegisterResponseDTO dataNodeRegisterResponseDTO
                 = conversionService.convert(updatedDataNode, CommonDataNodeRegisterResponseDTO.class);
