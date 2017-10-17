@@ -1,23 +1,21 @@
 /**
- *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
+ * <p>
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
  * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
  * Created: September 18, 2017
- *
  */
 
 package com.odysseusinc.arachne.portal.service.impl;
@@ -37,17 +35,19 @@ import com.odysseusinc.arachne.portal.repository.DataNodeRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeStatusRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeUserRepository;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
-import java.sql.Timestamp;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.sql.Timestamp;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 
 public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements BaseDataNodeService<DN> {
 
@@ -111,7 +111,7 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_DATANODE)")
     public DN update(DN dataNode) throws NotExistException {
 
-        final DN existsDataNode = getBySid(dataNode.getSid());
+        final DN existsDataNode = getById(dataNode.getId());
         existsDataNode.setName(dataNode.getName());
         existsDataNode.setDescription(dataNode.getDescription());
         existsDataNode.setAtlasVersion(dataNode.getAtlasVersion());
@@ -146,6 +146,21 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
             return dataNode;
         } else {
             throw new IllegalArgumentException("unable to find datanode by uuid " + uuid);
+        }
+    }
+
+    @Override
+    public DN getById(Long id) throws NotExistException {
+
+        if (Objects.nonNull(id)) {
+            final DN dataNode = dataNodeRepository.findOne(id);
+            if (dataNode == null) {
+                final String message = String.format(IS_NOT_FOUND_EXCEPTION, id);
+                throw new NotExistException(message, DataNode.class);
+            }
+            return dataNode;
+        } else {
+            throw new IllegalArgumentException("unable to find datanode by null id ");
         }
     }
 
