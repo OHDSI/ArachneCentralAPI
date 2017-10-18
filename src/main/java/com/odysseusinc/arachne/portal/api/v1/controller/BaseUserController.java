@@ -136,7 +136,7 @@ public abstract class BaseUserController<
         SB extends Submission> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseUserController.class);
-    private static final String JPEG_CONTENT_TYPE = "image/jpeg";
+    private static final String AVATAR_CONTENT_TYPE = "image/*";
     private static final String DATA_NODE_NOT_FOUND_EXCEPTION = "dataNode %s not found";
 
     protected final TokenUtils tokenUtils;
@@ -848,12 +848,12 @@ public abstract class BaseUserController<
     private void putAvatarToResponse(HttpServletResponse response, U user) throws IOException {
 
         try (final InputStream is = userService.getUserAvatar(user)) {
-            response.setContentType("image/jpeg");
-            response.setHeader("Content-type", JPEG_CONTENT_TYPE);
+            response.setContentType(AVATAR_CONTENT_TYPE);
+            response.setHeader("Content-type", AVATAR_CONTENT_TYPE);
             response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
             response.setHeader("Pragma", "no-cache");
             response.setHeader("Expires", "0");
-            response.setHeader("Content-Disposition", "attachment; filename=avatar.jpg");
+            response.setHeader("Content-Disposition", "attachment; filename=avatar");
             org.apache.commons.io.IOUtils.copy(is, response.getOutputStream());
             response.flushBuffer();
         }
