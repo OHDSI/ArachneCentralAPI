@@ -80,7 +80,7 @@ import com.odysseusinc.arachne.portal.repository.SubmissionStatusHistoryReposito
 import com.odysseusinc.arachne.portal.repository.submission.BaseSubmissionRepository;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.CommentService;
-import com.odysseusinc.arachne.portal.service.FileService;
+import com.odysseusinc.arachne.portal.service.StudyFileService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.service.impl.AnalysisPreprocessorService;
 import com.odysseusinc.arachne.portal.service.impl.CRUDLServiceImpl;
@@ -89,6 +89,7 @@ import com.odysseusinc.arachne.portal.service.impl.submission.SubmissionActionTy
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import com.odysseusinc.arachne.portal.service.mail.UnlockAnalysisRequestMailMessage;
 import com.odysseusinc.arachne.portal.util.AnalysisHelper;
+import com.odysseusinc.arachne.portal.util.FileUtils;
 import com.odysseusinc.arachne.portal.util.LegacyAnalysisHelper;
 import com.odysseusinc.arachne.portal.util.ZipUtil;
 import org.apache.commons.collections.CollectionUtils;
@@ -116,7 +117,6 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.crypto.codec.Base64;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
@@ -197,7 +197,7 @@ public abstract class BaseAnalysisServiceImpl<
     private String fileStorePath;
     protected final BaseStudyService<S, DS, SS, SU> studyService;
     protected final AnalysisHelper analysisHelper;
-    protected final FileService fileService;
+    protected final StudyFileService fileService;
 
     public BaseAnalysisServiceImpl(GenericConversionService conversionService,
                                    BaseAnalysisRepository<A> analysisRepository,
@@ -221,7 +221,7 @@ public abstract class BaseAnalysisServiceImpl<
                                    StudyStateMachine studyStateMachine,
                                    BaseStudyService<S, DS, SS, SU> studyService,
                                    AnalysisHelper analysisHelper,
-                                   FileService fileService) {
+                                   StudyFileService fileService) {
 
         this.conversionService = conversionService;
         this.analysisRepository = analysisRepository;
@@ -730,17 +730,14 @@ public abstract class BaseAnalysisServiceImpl<
     @Override
     public byte[] getAllBytes(ArachneFile arachneFile) throws IOException {
 
-        byte[] result = Files.readAllBytes(getPath(arachneFile));
-        if (checkIfBase64EncodingNeeded(arachneFile)) {
-            result = Base64.encode(result);
-        }
-        return result;
+        Path path = getPath(arachneFile);
+        return FileUtils.getBytes(path, checkIfBase64EncodingNeeded(arachneFile));
     }
 
     private boolean checkIfBase64EncodingNeeded(ArachneFile arachneFile) {
 
         String contentType = arachneFile.getContentType();
-        return Stream.of("image", "pdf")
+        return Stream.of(CommonFileUtils.TYPE_IMAGE, CommonFileUtils.TYPE_PDF)
                 .anyMatch(type -> org.apache.commons.lang3.StringUtils.containsIgnoreCase(contentType, type));
     }
 

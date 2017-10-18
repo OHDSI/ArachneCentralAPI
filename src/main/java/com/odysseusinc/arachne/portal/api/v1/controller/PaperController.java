@@ -29,7 +29,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.UpdatePaperDTO;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.search.PaperSearch;
 import com.odysseusinc.arachne.portal.service.BasePaperService;
-import com.odysseusinc.arachne.portal.service.FileService;
+import com.odysseusinc.arachne.portal.service.StudyFileService;
 import io.swagger.annotations.Api;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -49,7 +49,7 @@ public class PaperController extends BasePaperController
     public PaperController(
             BasePaperService<Paper, PaperSearch> paperService,
             GenericConversionService conversionService,
-            FileService fileService) {
+            StudyFileService fileService) {
 
         super(paperService, conversionService, fileService);
     }
