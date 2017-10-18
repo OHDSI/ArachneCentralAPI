@@ -36,8 +36,6 @@ import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.MetadataException;
 import com.drew.metadata.exif.ExifIFD0Directory;
-import com.drew.metadata.jpeg.JpegDirectory;
-import com.google.common.io.Files;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchExpertListDTO;
 import com.odysseusinc.arachne.portal.exception.ArachneSystemRuntimeException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
@@ -57,7 +55,6 @@ import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.StateProvince;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserLink;
-import com.odysseusinc.arachne.portal.model.UserOrigin;
 import com.odysseusinc.arachne.portal.model.UserPublication;
 import com.odysseusinc.arachne.portal.model.UserRegistrant;
 import com.odysseusinc.arachne.portal.model.UserStudy;
@@ -113,7 +110,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
 import javax.validation.constraints.NotNull;
-import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
@@ -137,7 +133,7 @@ import java.util.stream.Stream;
 public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF extends SolrField> implements BaseUserService<U, S> {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseUserServiceImpl.class);
     private static final String USERS_DIR = "users";
-    private static final String AVATAR_EXT = "jpg";
+    private static final String AVATAR_CONTENT_TYPE = "image";
     private static final String AVATAR_FILE_NAME = "avatar.jpg";
     private static final String PASSWORD_NOT_MATCH_EXC = "Old password is incorrect";
     private final MessageSource messageSource;
@@ -612,8 +608,9 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     public void saveAvatar(U user, MultipartFile file)
             throws IOException, WrongFileFormatException, ImageProcessingException, MetadataException {
 
-        if (!Files.getFileExtension(file.getOriginalFilename()).equalsIgnoreCase(AVATAR_EXT)) {
-            throw new WrongFileFormatException("file", "only JPG");
+        String file_ext = file.getContentType().split("/")[1];
+        if (!file.getContentType().split("/")[0].equals(AVATAR_CONTENT_TYPE)) {
+            throw new WrongFileFormatException("file", "only image");
         }
 
         File filesStoreDir = new File(fileStorePath);
@@ -624,12 +621,14 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         if (!userFilesDir.exists()) {
             userFilesDir.mkdirs();
         }
-        final File avatar = Paths.get(userFilesDir.getPath(), "avatar.jpg").toFile();
+        final File avatar = Paths.get(userFilesDir.getPath(), AVATAR_FILE_NAME).toFile();
         BufferedImage img = ImageIO.read(file.getInputStream());
+        if (img == null) {
+            throw new ImageProcessingException("File format is not supported");
+        }
 
         Metadata metadata = ImageMetadataReader.readMetadata(file.getInputStream());
         ExifIFD0Directory exifIFD0Directory = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
-        JpegDirectory jpegDirectory = metadata.getFirstDirectoryOfType(JpegDirectory.class);
 
         int orientation = 1;
         try {
@@ -638,10 +637,6 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
             LOGGER.debug(ignore.getMessage(), ignore);
         }
 
-        int width = jpegDirectory.getImageWidth();
-        int height = jpegDirectory.getImageHeight();
-
-        AffineTransform affineTransform = new AffineTransform();
         List<Scalr.Rotation> rotations = new LinkedList<>();
 
         switch (orientation) {
@@ -680,7 +675,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         BufferedImage thumbnail = Scalr.resize(img,
                 Math.min(Math.max(img.getHeight(), img.getWidth()), 640),
                 Scalr.OP_ANTIALIAS);
-        ImageIO.write(thumbnail, "jpg", avatar);
+        ImageIO.write(thumbnail, file_ext, avatar);
 
 
     }
