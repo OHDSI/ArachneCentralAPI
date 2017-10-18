@@ -49,7 +49,7 @@ import com.odysseusinc.arachne.portal.repository.SubmissionResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionStatusHistoryRepository;
 import com.odysseusinc.arachne.portal.repository.submission.SubmissionRepository;
 import com.odysseusinc.arachne.portal.service.CommentService;
-import com.odysseusinc.arachne.portal.service.FileService;
+import com.odysseusinc.arachne.portal.service.StudyFileService;
 import com.odysseusinc.arachne.portal.service.StudyService;
 import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
 import com.odysseusinc.arachne.portal.service.impl.AnalysisPreprocessorService;
@@ -102,7 +102,7 @@ public class AnalysisServiceImpl extends BaseAnalysisServiceImpl<Analysis, Study
                                StudyStateMachine studyStateMachine,
                                StudyService studyService,
                                AnalysisHelper analysisHelper,
-                               FileService fileService) {
+                               StudyFileService fileService) {
 
         super(conversionService,
                 analysisRepository,

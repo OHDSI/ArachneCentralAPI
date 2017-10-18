@@ -24,6 +24,7 @@ package com.odysseusinc.arachne.portal.service;
 
 import com.odysseusinc.arachne.portal.model.AbstractStudyFile;
 import com.odysseusinc.arachne.portal.model.Study;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,7 +33,11 @@ import java.nio.file.Path;
 import java.util.List;
 import org.springframework.web.multipart.MultipartFile;
 
-public interface FileService {
+public interface StudyFileService {
+
+    Path getPathToFile(AbstractStudyFile studyFile);
+
+    boolean checkIfBase64EncodingNeeded(AbstractStudyFile arachneFile);
 
     void saveFile(MultipartFile file, AbstractStudyFile studyFile) throws IOException;
 

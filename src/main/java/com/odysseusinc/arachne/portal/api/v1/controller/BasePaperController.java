@@ -37,13 +37,12 @@ import com.odysseusinc.arachne.portal.exception.NotUniqueException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.AbstractPaperFile;
-import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.PaperFileType;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.PaperSearch;
 import com.odysseusinc.arachne.portal.service.BasePaperService;
-import com.odysseusinc.arachne.portal.service.FileService;
+import com.odysseusinc.arachne.portal.service.StudyFileService;
 import io.swagger.annotations.ApiOperation;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -71,10 +70,10 @@ public abstract class BasePaperController
 
     protected BasePaperService<P, PS> paperService;
     protected GenericConversionService conversionService;
-    protected FileService fileService;
+    protected StudyFileService fileService;
 
     @Autowired
-    public BasePaperController(BasePaperService<P, PS> paperService, GenericConversionService conversionService, FileService fileService) {
+    public BasePaperController(BasePaperService<P, PS> paperService, GenericConversionService conversionService, StudyFileService fileService) {
 
         this.paperService = paperService;
         this.conversionService = conversionService;

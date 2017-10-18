@@ -39,6 +39,7 @@ import com.odysseusinc.arachne.portal.exception.NotUniqueException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
+import com.odysseusinc.arachne.portal.model.ArachneFile;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
 import com.odysseusinc.arachne.portal.model.DataSource;
@@ -71,7 +72,7 @@ import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
-import com.odysseusinc.arachne.portal.service.FileService;
+import com.odysseusinc.arachne.portal.service.StudyFileService;
 import com.odysseusinc.arachne.portal.service.StudyStatusService;
 import com.odysseusinc.arachne.portal.service.StudyTypeService;
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
@@ -89,12 +90,15 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
-import org.apache.commons.io.FileUtils;
+
+import com.odysseusinc.arachne.portal.util.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.hibernate.Hibernate;
@@ -147,7 +151,7 @@ public abstract class BaseStudyServiceImpl<
     private String portalUrl;
     private final JavaMailSender javaMailSender;
     private final UserStudyExtendedRepository userStudyExtendedRepository;
-    private final FileService fileService;
+    private final StudyFileService fileService;
     private final BaseUserStudyLinkRepository<SU> baseUserStudyLinkRepository;
     private final UserStudyRepository userStudyRepository;
     private final BaseStudyRepository<T> studyRepository;
@@ -170,7 +174,7 @@ public abstract class BaseStudyServiceImpl<
     private final Map<String, String[]> studySortPaths = new HashMap<>();
 
     public BaseStudyServiceImpl(UserStudyExtendedRepository userStudyExtendedRepository,
-                                FileService fileService,
+                                StudyFileService fileService,
                                 BaseUserStudyLinkRepository<SU> baseUserStudyLinkRepository,
                                 UserStudyGroupedRepository userStudyGroupedRepository,
                                 UserStudyRepository userStudyRepository,
@@ -622,8 +626,10 @@ public abstract class BaseStudyServiceImpl<
     public Boolean getDeleteStudyFile(Long studyId, String uuid) throws FileNotFoundException {
 
         StudyFile studyFile = studyFileRepository.findByUuid(uuid);
+        if (!Objects.equals(studyFile.getContentType(), "link") && studyFile.getLink() == null) {
+            fileService.delete(studyFile);
+        }
         studyFileRepository.delete(studyFile);
-        fileService.delete(studyFile);
         return true;
     }
 
@@ -803,6 +809,13 @@ public abstract class BaseStudyServiceImpl<
     public List<T> getByIds(List<Long> studyIds) {
 
         return studyRepository.findByIdIn(studyIds);
+    }
+
+    @Override
+    public byte[] getAllBytes(StudyFile studyFile) throws IOException {
+
+        Path pathToFile = fileService.getPathToFile(studyFile);
+        return FileUtils.getBytes(pathToFile, fileService.checkIfBase64EncodingNeeded(studyFile));
     }
 
     @Override
