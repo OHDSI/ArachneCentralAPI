@@ -127,7 +127,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
     protected static final Map<CommonAnalysisType, String> ANALISYS_MIMETYPE_MAP = new HashMap<>();
     private static final Logger LOGGER = LoggerFactory.getLogger(AnalysisController.class);
     private static final String ENTITY_IS_NOT_AVAILABLE
-            = "'%s' with guid='%s' from DataNode with sid='%s' is not available";
+            = "'%s' with guid='%s' from DataNode with id='%d' is not available";
     private static final String DEFAULT_EXTENSION = ".txt";
     private static final String DEFAULT_MIMETYPE = "plain/text";
     protected final BaseDataSourceService dataSourceService;
@@ -292,7 +292,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
             throws NotExistException, JMSException, IOException, PermissionDeniedException {
 
         final User user = getUser(principal);
-        final DataNode dataNode = dataNodeService.getBySid(entityReference.getDatanodeSid());
+        final DataNode dataNode = dataNodeService.getById(entityReference.getDataNodeId());
         final T analysis = analysisService.getById(analysisId);
         final DataReference dataReference = dataReferenceService.addOrUpdate(entityReference.getEntityGuid(), dataNode);
         final List<MultipartFile> entityFiles = getEntityFiles(entityReference, dataNode, analysisType);
@@ -352,7 +352,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
         final AnalysisFile analysisFile = analysisService.getAnalysisFile(analysisId, fileUuid);
         final DataReference dataReference = analysisFile.getDataReference();
         final DataReferenceDTO entityReference = new DataReferenceDTO(
-                dataReference.getDataNode().getSid(), dataReference.getGuid());
+                dataReference.getDataNode().getId(), dataReference.getGuid());
         final List<MultipartFile> entityFiles = getEntityFiles(entityReference, dataReference.getDataNode(), analysisType);
         entityFiles.forEach(entityFile -> {
 
@@ -641,7 +641,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
             String message = String.format(ENTITY_IS_NOT_AVAILABLE,
                     entityType.getTitle(),
                     entityReference.getEntityGuid(),
-                    entityReference.getDatanodeSid());
+                    entityReference.getDataNodeId());
             throw new ServiceNotAvailableException(message);
         }
         List<MultipartFile> files = new LinkedList<>();

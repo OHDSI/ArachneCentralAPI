@@ -88,7 +88,6 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
         if (dataNodeStatus == null) {
             throw new IllegalStateException("Unable to found status 'New' for data node");
         }
-        dataNode.setSid(UUID.randomUUID().toString());
         dataNode.setStatus(dataNodeStatus);
         dataNode.setToken(UUID.randomUUID().toString().replace("-", ""));
         dataNode.setCreated(new Date());
@@ -123,7 +122,7 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
     @PreAuthorize("#dataNode == authentication.principal")
     public DN updateAtlasInfo(DataNode dataNode) throws NotExistException {
 
-        final DN existsDataNode = getBySid(dataNode.getSid());
+        final DN existsDataNode = getById(dataNode.getId());
         existsDataNode.setAtlasVersion(dataNode.getAtlasVersion());
         return null;
     }
@@ -210,14 +209,6 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
             dataNodeUser.setDataNode(dataNode);
             saveOrUpdateDataNodeUser(dataNode, dataNodeUser);
         });
-    }
-
-    @Override
-    public DN getByUuidAndToken(String uuid, String token) throws NotExistException {
-
-        return dataNodeRepository.findBySidAndToken(uuid, token).orElseThrow(
-                () -> new NotExistException(DATANODE_WITH_TOKEN_NOT_EXIST_EXC, DataNode.class)
-        );
     }
 
     @Override

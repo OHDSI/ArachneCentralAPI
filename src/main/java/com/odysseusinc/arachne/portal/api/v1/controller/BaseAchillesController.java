@@ -145,7 +145,7 @@ public abstract class BaseAchillesController<DS extends DataSource> {
     }
 
     @ApiOperation("Get file contents")
-    @RequestMapping(value = {"datasource/{uuid}/files/{filename:.*}",
+    @RequestMapping(value = {"datasource/{id}/files/{filename:.*}",
             "datasource/{id}/files/{filepath:.*}/{filename:.*}"},
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)

@@ -27,14 +27,13 @@ import com.odysseusinc.arachne.commons.api.v1.dto.CommonCohortAnalysisDTO;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.messaging.BaseDataNodeMessageService;
-import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import java.util.List;
-import javax.jms.JMSException;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+
+import javax.jms.JMSException;
+import java.util.List;
 
 public abstract class BaseDataNodeEstimationController<DN extends DataNode> extends BaseController<DN> {
 
@@ -55,14 +54,14 @@ public abstract class BaseDataNodeEstimationController<DN extends DataNode> exte
      */
     @ApiOperation("List estimations")
     @RequestMapping(
-            value = "/api/v1/data-nodes/{dataNodeUuid}/estimations",
+            value = "/api/v1/data-nodes/{dataNodeId}/estimations",
             method = RequestMethod.GET
     )
     public List<CommonCohortAnalysisDTO> listEstimations(
-            @PathVariable("dataNodeUuid") String dataNodeUuid
+            @PathVariable("dataNodeId") Long dataNodeId
     ) throws JMSException {
 
-        DN dataNode = baseDataNodeService.getBySid(dataNodeUuid);
+        DN dataNode = baseDataNodeService.getById(dataNodeId);
         return dataNodeMessageService.getDataList(dataNode, CommonAnalysisType.ESTIMATION);
     }
 
