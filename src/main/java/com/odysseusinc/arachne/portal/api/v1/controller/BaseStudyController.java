@@ -41,6 +41,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.CreateVirtualDataSourceDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.DataSourceDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.EntityLinkDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.MoveAnalysisDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.ShortUserDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.StudyDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.StudyListDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightDTO;
@@ -56,7 +57,6 @@ import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.DataSource;
-import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
@@ -65,7 +65,6 @@ import com.odysseusinc.arachne.portal.model.SubmissionInsight;
 import com.odysseusinc.arachne.portal.model.SuggestSearchRegion;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserStudy;
-import com.odysseusinc.arachne.portal.model.search.PaperSearch;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.model.statemachine.study.StudyStateMachine;
 import com.odysseusinc.arachne.portal.model.statemachine.study.StudyTransition;
@@ -81,6 +80,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -476,6 +476,47 @@ public abstract class BaseStudyController<
         );
         final DataSourceDTO registeredDataSourceDTO = conversionService.convert(dataSource, DataSourceDTO.class);
         return new JsonResult<>(NO_ERROR, registeredDataSourceDTO);
+    }
+
+    @ApiOperation("Get data source linked to study")
+    @RequestMapping(value = "/api/v1/study-management/studies/{studyId}/data-sources/{dataSourceId}", method = GET)
+    public DataSourceDTO getDataSource(
+            Principal principal,
+            @PathVariable("studyId") Long studyId,
+            @PathVariable("dataSourceId") Long dataSourceId) throws PermissionDeniedException {
+
+        final User createdBy = getUser(principal);
+        final DS dataSource = studyService.getStudyDataSource(createdBy, studyId, dataSourceId);
+        final DataSourceDTO dataSourceDTO = conversionService.convert(dataSource, DataSourceDTO.class);
+        final List<ShortUserDTO> userDTOs = dataSource.getDataNode().getDataNodeUsers().stream()
+                .map(dnu -> {
+                    final User user = dnu.getUser();
+                    final ShortUserDTO userDTO = new ShortUserDTO();
+                    userDTO.setId(user.getId());
+                    userDTO.setFirstname(user.getFirstname());
+                    userDTO.setLastname(user.getLastname());
+                    return userDTO;
+                })
+                .distinct()
+                .collect(Collectors.toList());
+        dataSourceDTO.getDataNode().setDataOwners(userDTOs);
+        return dataSourceDTO;
+    }
+
+    @ApiOperation("Update data source linked to study")
+    @RequestMapping(value = "/api/v1/study-management/studies/{studyId}/data-sources/{dataSourceId}", method = PUT)
+    public JsonResult<DataSourceDTO> updateDataSource(
+            Principal principal,
+            @PathVariable("studyId") Long studyId,
+            @PathVariable("dataSourceId") Long dataSourceId,
+            @RequestBody @Valid CreateVirtualDataSourceDTO dataSourceDTO
+    ) throws PermissionDeniedException, ValidationException, IOException, NoSuchFieldException, SolrServerException, IllegalAccessException {
+
+        final User user = getUser(principal);
+        DataSource dataSource = studyService.updateVirtualDataSource(
+                user, studyId, dataSourceId, dataSourceDTO.getName(), dataSourceDTO.getDataOwnersIds()
+        );
+        return new JsonResult<>(NO_ERROR, conversionService.convert(dataSource, DataSourceDTO.class));
     }
 
     @ApiOperation("Add data source to the study.")
