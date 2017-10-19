@@ -23,6 +23,7 @@
 package com.odysseusinc.arachne.portal.api.v1.dto;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
+import java.util.List;
 
 public class DataNodeDTO {
     private String uuid;
@@ -32,6 +33,7 @@ public class DataNodeDTO {
     private String atlasVerion;
     private CommonHealthStatus healthStatus;
     private String healthStatusTitle;
+    private List<ShortUserDTO> dataOwners;
 
     public DataNodeDTO() {
 
@@ -105,5 +107,15 @@ public class DataNodeDTO {
     public void setHealthStatusTitle(String healthStatusTitle) {
 
         this.healthStatusTitle = healthStatusTitle;
+    }
+
+    public List<ShortUserDTO> getDataOwners() {
+
+        return dataOwners;
+    }
+
+    public void setDataOwners(List<ShortUserDTO> dataOwners) {
+
+        this.dataOwners = dataOwners;
     }
 }
