@@ -812,13 +812,6 @@ public abstract class BaseStudyServiceImpl<
     }
 
     @Override
-    public byte[] getAllBytes(StudyFile studyFile) throws IOException {
-
-        Path pathToFile = fileService.getPathToFile(studyFile);
-        return FileUtils.getBytes(pathToFile, fileService.checkIfBase64EncodingNeeded(studyFile));
-    }
-
-    @Override
     public Iterable<T> suggestStudy(String query, User owner, Long id, SuggestSearchRegion region) {
 
         Iterable<T> suggest;

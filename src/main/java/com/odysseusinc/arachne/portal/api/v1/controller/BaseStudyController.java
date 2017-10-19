@@ -393,7 +393,7 @@ public abstract class BaseStudyController<
 
     @ApiOperation("Get file of the study.")
     @RequestMapping(value = "/api/v1/study-management/studies/{studyId}/files/{fileUuid}", method = GET)
-    public JsonResult<StudyFileContentDTO> getFile(
+    public StudyFileContentDTO getFile(
             @PathVariable("studyId") Long studyId,
             @PathVariable("fileUuid") String uuid,
             @RequestParam(defaultValue = "true") Boolean withContent
@@ -403,11 +403,11 @@ public abstract class BaseStudyController<
         StudyFileContentDTO studyFileDTO = conversionService.convert(studyFile, StudyFileContentDTO.class);
 
         if (withContent) {
-            final String content = new String(studyService.getAllBytes(studyFile));
+            final String content = new String(fileService.getAllBytes(studyFile));
             studyFileDTO.setContent(content);
         }
 
-        return new JsonResult<>(NO_ERROR, studyFileDTO);
+        return studyFileDTO;
     }
 
     @ApiOperation("Download file of the study.")
