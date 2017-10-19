@@ -48,6 +48,8 @@ import java.util.Objects;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
+import com.odysseusinc.arachne.portal.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -97,6 +99,14 @@ public class StudyFileServiceImpl implements StudyFileService {
         }
         return new FileInputStream(file);
     }
+
+    @Override
+    public byte[] getAllBytes(AbstractStudyFile studyFile) throws IOException {
+
+        Path pathToFile = getPathToFile(studyFile);
+        return FileUtils.getBytes(pathToFile, checkIfBase64EncodingNeeded(studyFile));
+    }
+
 
     private InputStream getInputStream(AbstractStudyFile studyFile) {
         HttpHeaders headers = new HttpHeaders();

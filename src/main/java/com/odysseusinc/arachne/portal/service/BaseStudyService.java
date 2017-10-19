@@ -120,6 +120,4 @@ public interface BaseStudyService<
     boolean fullDelete(List<T> studies);
 
     List<T> getByIds(List<Long> studyIds);
-
-    byte[] getAllBytes(StudyFile studyFile) throws IOException;
 }

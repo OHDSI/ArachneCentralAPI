@@ -30,6 +30,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 import com.odysseusinc.arachne.portal.api.v1.dto.BooleanDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.CreatePaperDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.PaperDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.PaperFileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ShortPaperDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdatePaperDTO;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
@@ -174,12 +175,30 @@ public abstract class BasePaperController
 
     @ApiOperation("Get file of the Paper")
     @RequestMapping(value = "/{id}/files/{fileUuid}", method = GET)
-    public void getFile(
+    public PaperFileDTO getFile(
+            @PathVariable("id") Long id,
+            @PathVariable("fileUuid") String uuid,
+            @RequestParam("type") PaperFileType type,
+            @RequestParam(defaultValue = "true") Boolean withContent) throws PermissionDeniedException, IOException {
+
+        final AbstractPaperFile paperFile = paperService.getFile(id, uuid, type);
+        final PaperFileDTO fileDto = conversionService.convert(paperFile, PaperFileDTO.class);
+
+        if (withContent) {
+            final String content = new String(fileService.getAllBytes(paperFile));
+            fileDto.setContent(content);
+        }
+
+        return fileDto;
+    }
+
+    @ApiOperation("Download file of the Paper")
+    @RequestMapping(value = "/{id}/files/{fileUuid}/download", method = GET)
+    public void downloadFile(
             @PathVariable("id") Long id,
             @PathVariable("fileUuid") String uuid,
             @RequestParam("type") PaperFileType type,
             HttpServletResponse response) throws PermissionDeniedException, IOException {
-
 
         final AbstractPaperFile paperFile = paperService.getFile(id, uuid, type);
         final InputStream inputStream = fileService.getFileInputStream(paperFile);
