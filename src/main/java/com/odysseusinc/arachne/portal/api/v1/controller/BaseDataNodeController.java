@@ -1,23 +1,21 @@
 /**
- *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
+ * <p>
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
  * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
  * Created: September 04, 2017
- *
  */
 
 package com.odysseusinc.arachne.portal.api.v1.controller;
@@ -122,8 +120,8 @@ public abstract class BaseDataNodeController
     }
 
     @ApiOperation("Register new data source of datanode.")
-    @RequestMapping(value = "/api/v1/data-nodes/{dataNodeUuid}/data-sources", method = RequestMethod.POST)
-    public JsonResult registerDataSource(@PathVariable("dataNodeUuid") String uuid,
+    @RequestMapping(value = "/api/v1/data-nodes/{dataNodeId}/data-sources", method = RequestMethod.POST)
+    public JsonResult registerDataSource(@PathVariable("dataNodeId") Long id,
                                          @RequestBody @Valid C_DS_DTO commonDataSourceDTO
     ) throws FieldException,
             NotExistException,
@@ -132,9 +130,9 @@ public abstract class BaseDataNodeController
             SolrServerException, NoSuchFieldException, IllegalAccessException {
 
         JsonResult<CommonDataSourceDTO> result;
-        DataNode dataNode = baseDataNodeService.getBySid(uuid);
+        DataNode dataNode = baseDataNodeService.getById(id);
         if (dataNode == null) {
-            throw new IllegalArgumentException("Unable to find datanode by UUID " + uuid);
+            throw new IllegalArgumentException("Unable to find datanode by ID " + id);
         }
 
         DS dataSource = convertCommonDataSourceDtoToDataSource(commonDataSourceDTO);
@@ -145,15 +143,26 @@ public abstract class BaseDataNodeController
         return result;
     }
 
+    @RequestMapping(value = "/api/v1/data-nodes/{dataNodeId}", method = RequestMethod.GET)
+    public JsonResult<CommonDataNodeRegisterResponseDTO> getDataNode(@PathVariable("dataNodeId") Long dataNodeId) {
+
+        DataNode dataNode = baseDataNodeService.getById(dataNodeId);
+        if (dataNode == null) {
+            throw new NotExistException(DataNode.class);
+        }
+        CommonDataNodeRegisterResponseDTO dto = conversionService.convert(dataNode, CommonDataNodeRegisterResponseDTO.class);
+        return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, dto);
+    }
+
     protected abstract DS convertCommonDataSourceDtoToDataSource(C_DS_DTO commonDataSourceDTO);
 
     @ApiOperation("Unregister data source of datanode")
-    @RequestMapping(value = "/api/v1/data-nodes/{dataNodeUuid}/data-sources/{dataSourceUuid}", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/api/v1/data-nodes/{dataNodeUuid}/data-sources/{dataSourceId}", method = RequestMethod.DELETE)
     public JsonResult unregisterDataSource(@PathVariable("dataNodeUuid") String dataNodeUuid,
-                                           @PathVariable("dataSourceUuid") String dataSourceUuid)
+                                           @PathVariable("dataSourceUuid") Long dataSourceId)
             throws PermissionDeniedException, IOException, SolrServerException {
 
-        final DS dataSource = dataSourceService.findByUuid(dataSourceUuid);
+        final DS dataSource = dataSourceService.findById(dataSourceId);
         studyDataSourceService.softDeletingDataSource(dataSource);
         return new JsonResult(JsonResult.ErrorCode.NO_ERROR);
     }
