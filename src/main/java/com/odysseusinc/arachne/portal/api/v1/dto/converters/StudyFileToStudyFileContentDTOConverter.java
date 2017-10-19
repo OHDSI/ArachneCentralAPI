@@ -43,6 +43,7 @@ public class StudyFileToStudyFileContentDTOConverter extends BaseConversionServi
         fileContentDTO.setAuthor(conversionService.convert(source.getAuthor(), UserInfoDTO.class));
 
         fileContentDTO.setDocType(source.getContentType());
+        fileContentDTO.setStudyId(source.getStudy().getId());
 
         return fileContentDTO;
     }
