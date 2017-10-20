@@ -29,6 +29,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.DataSourceDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ParticipantDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ParticipantExtendedDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.StudyMediumDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.dictionary.StudyStatusDTO;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
@@ -65,6 +66,7 @@ public class StudyToStudyMediumDTOConverter extends BaseConversionServiceAwareCo
         studyDTO.setCreated(source.getCreated());
         studyDTO.setStartDate(source.getStartDate());
         studyDTO.setEndDate(source.getEndDate());
+        studyDTO.setStatus(conversionService.convert(source.getStatus(), StudyStatusDTO.class));
 
         final Map<ParticipantRole, List<UserStudyExtended>> studyParticipants = source.getParticipants()
                 .stream()
