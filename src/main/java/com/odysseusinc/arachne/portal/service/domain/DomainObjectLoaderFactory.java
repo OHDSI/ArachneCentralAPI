@@ -21,12 +21,12 @@
 
 package com.odysseusinc.arachne.portal.service.domain;
 
-import com.odysseusinc.arachne.portal.model.DataSource;
-import javax.persistence.EntityManagerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.support.Repositories;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.WebApplicationContext;
+
+import javax.persistence.EntityManagerFactory;
 
 @Service
 public class DomainObjectLoaderFactory {
@@ -43,12 +43,7 @@ public class DomainObjectLoaderFactory {
 
     public DomainObjectLoader getDomainObjectLoader(Class domainClazz) {
 
-        DomainObjectLoader domainObjectLoader;
-        if (DataSource.class.isAssignableFrom(domainClazz))
-            domainObjectLoader = new DsDomainObjectLoader(domainClazz);
-        else
-            domainObjectLoader = new GenericDomainObjectLoader(domainClazz);
-
+        DomainObjectLoader domainObjectLoader = new GenericDomainObjectLoader(domainClazz);
         return domainObjectLoader.withServices(repositories, entityManagerFactory);
     }
 }
