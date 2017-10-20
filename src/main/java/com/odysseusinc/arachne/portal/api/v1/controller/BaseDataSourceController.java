@@ -189,8 +189,8 @@ public abstract class BaseDataSourceController<DS extends DataSource,
 
     protected abstract DS convertDTOToDataSource(DTO dto);
 
-    @RequestMapping(value = "/api/v1/data-sources/{uuid}/complete", method = RequestMethod.GET)
-    public JsonResult<DS_DTO> getWhole(@PathVariable("uuid") Long dataSourceUuid) throws NotExistException {
+    @RequestMapping(value = "/api/v1/data-sources/{id}/complete", method = RequestMethod.GET)
+    public JsonResult<DS_DTO> getWhole(@PathVariable("id") Long dataSourceUuid) throws NotExistException {
 
         DS dataSource = dataSourceService.findById(dataSourceUuid);
         return new JsonResult<>(NO_ERROR, conversionService.convert(dataSource, getDataSourceDTOClass()));

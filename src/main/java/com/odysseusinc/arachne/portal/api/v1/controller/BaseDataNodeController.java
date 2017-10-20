@@ -157,8 +157,8 @@ public abstract class BaseDataNodeController
     protected abstract DS convertCommonDataSourceDtoToDataSource(C_DS_DTO commonDataSourceDTO);
 
     @ApiOperation("Unregister data source of datanode")
-    @RequestMapping(value = "/api/v1/data-nodes/{dataNodeUuid}/data-sources/{dataSourceId}", method = RequestMethod.DELETE)
-    public JsonResult unregisterDataSource(@PathVariable("dataNodeUuid") String dataNodeUuid,
+    @RequestMapping(value = "/api/v1/data-nodes/{dataNodeId}/data-sources/{dataSourceId}", method = RequestMethod.DELETE)
+    public JsonResult unregisterDataSource(@PathVariable("dataNodeId") Long dataNodeId,
                                            @PathVariable("dataSourceUuid") Long dataSourceId)
             throws PermissionDeniedException, IOException, SolrServerException {
 
