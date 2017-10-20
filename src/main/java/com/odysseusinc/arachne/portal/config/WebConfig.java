@@ -41,34 +41,6 @@ import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 @Configuration
 public class WebConfig extends WebMvcConfigurerAdapter {
 
-    @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-
-        registry.addResourceHandler("public/**").addResourceLocations("classpath:/public/");
-    }
-
-    @Override
-    public void addViewControllers(ViewControllerRegistry registry) {
-
-        registry.addViewController("/analysis-execution/analyses/**").setViewName("index");
-        registry.addViewController("/analysis-execution/submissions/**").setViewName("index");
-        registry.addViewController("/auth/login**").setViewName("index");
-        registry.addViewController("/auth/register**").setViewName("index");
-        registry.addViewController("/auth/remind-password**").setViewName("index");
-        registry.addViewController("/auth/reset-password**").setViewName("index");
-        registry.addViewController("/data-catalog**").setViewName("index");
-        registry.addViewController("/data-catalog/data-sources/**").setViewName("index");
-        registry.addViewController("/dashboard**").setViewName("index");
-        registry.addViewController("/expert-finder**").setViewName("index");
-        registry.addViewController("/expert-finder/list**").setViewName("index");
-        registry.addViewController("/expert-finder/profile/**").setViewName("index");
-        registry.addViewController("/study-manager**").setViewName("index");
-        registry.addViewController("/study-manager/studies/**").setViewName("index");
-        registry.addViewController("/insights-library/**").setViewName("index");
-        registry.addViewController("/admin-settings/**").setViewName("index");
-        registry.addViewController("/insights-library/insights/**").setViewName("index");
-    }
-
     @Bean
     public MessageSource messageSource() {
 
