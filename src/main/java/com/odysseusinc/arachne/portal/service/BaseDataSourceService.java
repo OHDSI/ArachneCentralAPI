@@ -71,8 +71,6 @@ public interface BaseDataSourceService<T extends DataSource> {
 
     List<T> getAllNotDeletedIsNotVirtualUnsecured();
 
-    T findByUuid(String uuid) throws NotExistException;
-
     T findByUuidUnsecured(String uuid) throws NotExistException;
 
     T findById(Long dataSourceId);
