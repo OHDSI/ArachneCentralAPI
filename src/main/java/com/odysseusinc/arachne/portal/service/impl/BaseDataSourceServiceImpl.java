@@ -212,15 +212,6 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
         return dataSourceRepository.getByDataNodeVirtualAndDeletedIsNull(false);
     }
 
-    @PreAuthorize("hasPermission(#uuid, 'DataSource', "
-            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_DATASOURCE)")
-    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
-    @Override
-    public DS findByUuid(String uuid) throws NotExistException {
-
-        return findByUuidUnsecured(uuid);
-    }
-
     @Override
     public DS findByUuidUnsecured(String uuid) throws NotExistException {
 
