@@ -700,12 +700,7 @@ public abstract class BaseStudyServiceImpl<
         final DataNode dataNode = studyHelper.getVirtualDataNode(study.getTitle(), dataSourceName);
         final DataNode registeredDataNode = baseDataNodeService.register(dataNode);
 
-        final List<User> dataOwners = userService.findUsersByIdsIn(dataOwnerIds);
-        final Set<DataNodeUser> dataNodeUsers = studyHelper.usersToDataNodeAdmins(dataOwners, registeredDataNode);
-        registeredDataNode.setDataNodeUsers(dataNodeUsers);
-        final Authentication savedAuth = studyHelper.loginByNode(registeredDataNode);
-        baseDataNodeService.relinkAllUsersToDataNode(registeredDataNode, dataNodeUsers);
-        SecurityContextHolder.getContext().setAuthentication(savedAuth);
+        updateDataNodeOwners(dataOwnerIds, registeredDataNode);
 
         final DS dataSource = studyHelper.getVirtualDataSource(registeredDataNode, dataSourceName);
         dataSource.setHealthStatus(CommonHealthStatus.GREEN);
@@ -713,6 +708,35 @@ public abstract class BaseStudyServiceImpl<
         final DS registeredDataSource = dataSourceService.createOrRestoreDataSource(dataSource);
         addDataSource(createdBy, studyId, registeredDataSource.getId());
         return registeredDataSource;
+    }
+
+    @Override
+    @PreAuthorize("hasPermission(#studyId, 'Study', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
+    public DS getStudyDataSource(User user, Long studyId, Long dataSourceId) {
+
+        final StudyDataSourceLink studyDataSourceLink
+                = studyDataSourceLinkRepository.findByDataSourceIdAndStudyId(dataSourceId, studyId);
+        if (studyDataSourceLink == null) {
+            throw new NotExistException("studyDataSourceLink does not exist.", StudyDataSourceLink.class);
+        }
+        return (DS) studyDataSourceLink.getDataSource();
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasPermission(#studyId, 'DataSource', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).DELETE_DATASOURCE)")
+    public DS updateVirtualDataSource(User user, Long studyId, Long dataSourceId, String name, List<Long> dataOwnerIds) throws IllegalAccessException, IOException, NoSuchFieldException, SolrServerException, ValidationException {
+
+        final DS dataSource = getStudyDataSource(user, studyId, dataSourceId);
+        final DataNode dataNode = dataSource.getDataNode();
+
+        updateDataNodeOwners(dataOwnerIds, dataNode);
+
+        dataSource.setName(name);
+        final DS update = dataSourceService.update(dataSource);
+        return dataSource;
     }
 
     @Override
@@ -851,5 +875,13 @@ public abstract class BaseStudyServiceImpl<
         return studyDataSourceLinkRepository.save(studyDataSourceLink);
     }
 
+    private void updateDataNodeOwners(List<Long> dataOwnerIds, DataNode dataNode) {
+
+        final List<User> dataOwners = userService.findUsersByIdsIn(dataOwnerIds);
+        final Set<DataNodeUser> dataNodeUsers = studyHelper.usersToDataNodeAdmins(dataOwners, dataNode);
+        final Authentication savedAuth = studyHelper.loginByNode(dataNode);
+        baseDataNodeService.relinkAllUsersToDataNode(dataNode, dataNodeUsers);
+        SecurityContextHolder.getContext().setAuthentication(savedAuth);
+    }
 
 }
