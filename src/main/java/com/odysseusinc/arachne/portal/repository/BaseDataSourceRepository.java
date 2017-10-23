@@ -23,8 +23,6 @@
 package com.odysseusinc.arachne.portal.repository;
 
 import com.odysseusinc.arachne.portal.model.DataSource;
-import java.util.List;
-import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
@@ -32,6 +30,9 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
 
 @NoRepositoryBean
 public interface BaseDataSourceRepository<T extends DataSource> extends CrudRepository<T, Long> {
@@ -45,8 +46,6 @@ public interface BaseDataSourceRepository<T extends DataSource> extends CrudRepo
     T findByUuid(String uuid);
 
     Optional<T> findByIdAndDeletedIsNull(Long id);
-
-    Optional<T> findByUuidAndDeletedIsNull(String uuid);
 
     @Query(value = "SELECT *"
             + " FROM data_sources AS ds "
@@ -87,5 +86,5 @@ public interface BaseDataSourceRepository<T extends DataSource> extends CrudRepo
     List<T> getByDataNodeVirtualAndDeletedIsNull(Boolean isVirtual);
 
     @Transactional
-    int deleteByUuidAndDeletedIsNull(String uuid);
+    int deleteByIdAndDeletedIsNull(Long id);
 }

@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,9 +39,6 @@ import com.odysseusinc.arachne.portal.service.BaseUserService;
 import com.odysseusinc.arachne.portal.service.StudyDataSourceService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import io.swagger.annotations.ApiOperation;
-import java.io.IOException;
-import java.security.Principal;
-import javax.validation.Valid;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +48,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+
+import javax.validation.Valid;
+import java.io.IOException;
+import java.security.Principal;
 
 @SuppressWarnings("unused")
 public abstract class BaseDataNodeController
@@ -102,16 +103,16 @@ public abstract class BaseDataNodeController
     protected abstract DN convertRegisterDtoToDataNode(CommonDataNodeRegisterDTO commonDataNodeRegisterDTO);
 
     @ApiOperation("Update data node info")
-    @RequestMapping(value = "/api/v1/data-nodes/{dataNodeUuid}", method = RequestMethod.PUT)
+    @RequestMapping(value = "/api/v1/data-nodes/{dataNodeId}", method = RequestMethod.PUT)
     public JsonResult<CommonDataNodeRegisterResponseDTO> updateDataNode(
-            @PathVariable("dataNodeUuid") String dataNodeUuid,
+            @PathVariable("dataNodeId") Long dataNodeId,
             @RequestBody @Valid CommonDataNodeRegisterDTO commonDataNodeRegisterDTO,
             Principal principal
     ) throws PermissionDeniedException, NotExistException {
 
         final User user = getUser(principal);
         final DN dataNode = convertRegisterDtoToDataNode(commonDataNodeRegisterDTO);
-        dataNode.setSid(dataNodeUuid);
+        dataNode.setId(dataNodeId);
         final DN updatedDataNode = baseDataNodeService.update(dataNode);
         final CommonDataNodeRegisterResponseDTO dataNodeRegisterResponseDTO
                 = conversionService.convert(updatedDataNode, CommonDataNodeRegisterResponseDTO.class);
@@ -121,8 +122,8 @@ public abstract class BaseDataNodeController
     }
 
     @ApiOperation("Register new data source of datanode.")
-    @RequestMapping(value = "/api/v1/data-nodes/{dataNodeUuid}/data-sources", method = RequestMethod.POST)
-    public JsonResult registerDataSource(@PathVariable("dataNodeUuid") String uuid,
+    @RequestMapping(value = "/api/v1/data-nodes/{dataNodeId}/data-sources", method = RequestMethod.POST)
+    public JsonResult registerDataSource(@PathVariable("dataNodeId") Long id,
                                          @RequestBody @Valid C_DS_DTO commonDataSourceDTO
     ) throws FieldException,
             NotExistException,
@@ -131,9 +132,9 @@ public abstract class BaseDataNodeController
             SolrServerException, NoSuchFieldException, IllegalAccessException {
 
         JsonResult<CommonDataSourceDTO> result;
-        DataNode dataNode = baseDataNodeService.getBySid(uuid);
+        DataNode dataNode = baseDataNodeService.getById(id);
         if (dataNode == null) {
-            throw new IllegalArgumentException("Unable to find datanode by UUID " + uuid);
+            throw new IllegalArgumentException("Unable to find datanode by ID " + id);
         }
 
         DS dataSource = convertCommonDataSourceDtoToDataSource(commonDataSourceDTO);
@@ -144,15 +145,26 @@ public abstract class BaseDataNodeController
         return result;
     }
 
+    @RequestMapping(value = "/api/v1/data-nodes/{dataNodeId}", method = RequestMethod.GET)
+    public JsonResult<CommonDataNodeRegisterResponseDTO> getDataNode(@PathVariable("dataNodeId") Long dataNodeId) {
+
+        DataNode dataNode = baseDataNodeService.getById(dataNodeId);
+        if (dataNode == null) {
+            throw new NotExistException(DataNode.class);
+        }
+        CommonDataNodeRegisterResponseDTO dto = conversionService.convert(dataNode, CommonDataNodeRegisterResponseDTO.class);
+        return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, dto);
+    }
+
     protected abstract DS convertCommonDataSourceDtoToDataSource(C_DS_DTO commonDataSourceDTO);
 
     @ApiOperation("Unregister data source of datanode")
-    @RequestMapping(value = "/api/v1/data-nodes/{dataNodeUuid}/data-sources/{dataSourceUuid}", method = RequestMethod.DELETE)
-    public JsonResult unregisterDataSource(@PathVariable("dataNodeUuid") String dataNodeUuid,
-                                           @PathVariable("dataSourceUuid") String dataSourceUuid)
+    @RequestMapping(value = "/api/v1/data-nodes/{dataNodeId}/data-sources/{dataSourceId}", method = RequestMethod.DELETE)
+    public JsonResult unregisterDataSource(@PathVariable("dataNodeId") Long dataNodeId,
+                                           @PathVariable("dataSourceUuid") Long dataSourceId)
             throws PermissionDeniedException, IOException, SolrServerException {
 
-        final DS dataSource = dataSourceService.findByUuid(dataSourceUuid);
+        final DS dataSource = dataSourceService.findById(dataSourceId);
         studyDataSourceService.softDeletingDataSource(dataSource);
         return new JsonResult(JsonResult.ErrorCode.NO_ERROR);
     }

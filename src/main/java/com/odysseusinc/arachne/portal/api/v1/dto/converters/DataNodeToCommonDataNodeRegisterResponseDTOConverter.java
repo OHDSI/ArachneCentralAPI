@@ -24,9 +24,6 @@ package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeRegisterResponseDTO;
 import com.odysseusinc.arachne.portal.model.DataNode;
-import org.springframework.beans.factory.annotation.Autowired;
-import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
-import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -41,6 +38,7 @@ public class DataNodeToCommonDataNodeRegisterResponseDTOConverter
         dataNodeRegisterResponseDTO.setName(source.getName());
         dataNodeRegisterResponseDTO.setDescription(source.getDescription());
         dataNodeRegisterResponseDTO.setToken(source.getToken());
+        dataNodeRegisterResponseDTO.setCentralId(source.getId());
         return dataNodeRegisterResponseDTO;
     }
 }
