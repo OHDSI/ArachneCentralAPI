@@ -32,7 +32,7 @@ import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyViewItem;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.model.statemachine.study.StudyStateMachine;
-import com.odysseusinc.arachne.portal.service.FileService;
+import com.odysseusinc.arachne.portal.service.StudyFileService;
 import com.odysseusinc.arachne.portal.service.StudyService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import io.swagger.annotations.Api;
@@ -48,7 +48,7 @@ public class StudyController extends BaseStudyController<Study, DataSource, Anal
                            BaseAnalysisService<Analysis> analysisService,
                            GenericConversionService conversionService,
                            SimpMessagingTemplate wsTemplate,
-                           FileService fileService,
+                           StudyFileService fileService,
                            StudyStateMachine studyStateMachine) {
 
         super(studyService,
