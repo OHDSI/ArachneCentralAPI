@@ -88,24 +88,6 @@ import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
 import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
 import io.swagger.annotations.ApiOperation;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URISyntaxException;
-import java.security.Principal;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -121,6 +103,26 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.security.Principal;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public abstract class BaseUserController<
         U extends User,
@@ -782,13 +784,15 @@ public abstract class BaseUserController<
     @RequestMapping(value = "/api/v1/user-management/datanodes/{datanodeSid}/users", method = RequestMethod.POST)
     public JsonResult linkUserToDataNode(@PathVariable("datanodeSid") String datanodeSid,
                                          @RequestBody CommonLinkUserToDataNodeDTO linkUserToDataNode
-    ) throws NotExistException, AlreadyExistException {
+    ) throws NotExistException, AlreadyExistException, IOException, NoSuchFieldException, SolrServerException, IllegalAccessException {
 
         final DN datanode = baseDataNodeService.getBySid(datanodeSid);
         Optional.ofNullable(datanode).orElseThrow(() ->
                 new NotExistException(String.format(DATA_NODE_NOT_FOUND_EXCEPTION, datanodeSid),
                         DataNode.class));
         final U user = userService.getByUsername(linkUserToDataNode.getUserName());
+        user.setEnabled(linkUserToDataNode.getEnabled());
+        userService.update(user);
         final Set<DataNodeRole> roles = linkUserToDataNode.getRoles()
                 .stream()
                 .map(role ->
@@ -817,7 +821,7 @@ public abstract class BaseUserController<
 
     @ApiOperation("Relink all Users to DataNode")
     @RequestMapping(value = "/api/v1/user-management/datanodes/{datanodeSid}/users", method = RequestMethod.PUT)
-    public JsonResult relinkAllUsersToDataNode(@PathVariable("datanodeSid") String datanodeSid,
+    public JsonResult<List<CommonUserDTO>> relinkAllUsersToDataNode(@PathVariable("datanodeSid") String datanodeSid,
                                                @RequestBody List<CommonLinkUserToDataNodeDTO> linkUserToDataNodes
     ) throws NotExistException {
 
@@ -825,7 +829,13 @@ public abstract class BaseUserController<
         final Set<DataNodeUser> users = linkUserToDataNodes.stream()
                 .map(link -> {
                             final U user = userService.getByUsername(link.getUserName());
-                            final Set<DataNodeRole> roles = link.getRoles()
+                            user.setEnabled(link.getEnabled());
+                    try {
+                        userService.update(user);
+                    } catch (IllegalAccessException | SolrServerException | NoSuchFieldException | IOException e) {
+                        LOGGER.error("Failed to update user", user, e);
+                    }
+                    final Set<DataNodeRole> roles = link.getRoles()
                                     .stream()
                                     .map(role ->
                                             DataNodeRole.valueOf(
@@ -842,7 +852,10 @@ public abstract class BaseUserController<
                 )
                 .collect(Collectors.toSet());
         baseDataNodeService.relinkAllUsersToDataNode(datanode, users);
-        return new JsonResult(NO_ERROR);
+        List<CommonUserDTO> userDTOs = users.stream()
+                .filter(user -> Objects.nonNull(user.getUser()))
+                .map(user -> conversionService.convert(user.getUser(), CommonUserDTO.class)).collect(Collectors.toList());
+        return new JsonResult<>(NO_ERROR, userDTOs);
     }
 
     private void putAvatarToResponse(HttpServletResponse response, U user) throws IOException {
