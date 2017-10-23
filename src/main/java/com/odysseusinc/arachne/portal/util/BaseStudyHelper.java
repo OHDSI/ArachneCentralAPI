@@ -35,6 +35,15 @@ import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.security.DataNodeAuthenticationToken;
 import com.odysseusinc.arachne.portal.security.Roles;
+import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -46,16 +55,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
-import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 public abstract class BaseStudyHelper<DN extends DataNode, DS extends DataSource> {
 
@@ -104,7 +104,6 @@ public abstract class BaseStudyHelper<DN extends DataNode, DS extends DataSource
         final DS dataSource = createDataSource();
         dataSource.setDataNode(dataNode);
         dataSource.setName(name);
-        dataSource.setUuid(UUID.randomUUID().toString());
         dataSource.setModelType(CDM);
         dataSource.setCreated(new Date());
         dataSource.setCdmVersion(CommonCDMVersionDTO.V4_0);

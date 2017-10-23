@@ -782,13 +782,12 @@ public abstract class BaseUserController<
 
     @ApiOperation("Link U to DataNode")
     @RequestMapping(value = "/api/v1/user-management/datanodes/{datanodeSid}/users", method = RequestMethod.POST)
-    public JsonResult linkUserToDataNode(@PathVariable("datanodeSid") String datanodeSid,
+    public JsonResult linkUserToDataNode(@PathVariable("datanodeSid") Long datanodeId,
                                          @RequestBody CommonLinkUserToDataNodeDTO linkUserToDataNode
     ) throws NotExistException, AlreadyExistException, IOException, NoSuchFieldException, SolrServerException, IllegalAccessException {
 
-        final DN datanode = baseDataNodeService.getBySid(datanodeSid);
-        Optional.ofNullable(datanode).orElseThrow(() ->
-                new NotExistException(String.format(DATA_NODE_NOT_FOUND_EXCEPTION, datanodeSid),
+        final DN datanode = Optional.ofNullable(baseDataNodeService.getById(datanodeId)).orElseThrow(() ->
+                new NotExistException(String.format(DATA_NODE_NOT_FOUND_EXCEPTION, datanodeId),
                         DataNode.class));
         final U user = userService.getByUnverifiedEmail(linkUserToDataNode.getUserName());
         user.setEnabled(linkUserToDataNode.getEnabled());
@@ -806,26 +805,25 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Unlink User to DataNode")
-    @RequestMapping(value = "/api/v1/user-management/datanodes/{datanodeSid}/users", method = RequestMethod.DELETE)
-    public JsonResult unlinkUserToDataNode(@PathVariable("datanodeSid") String datanodeSid,
+    @RequestMapping(value = "/api/v1/user-management/datanodes/{datanodeId}/users", method = RequestMethod.DELETE)
+    public JsonResult unlinkUserToDataNode(@PathVariable("datanodeId") String datanodeId,
                                            @RequestBody CommonLinkUserToDataNodeDTO linkUserToDataNode
     ) throws NotExistException {
 
-        final DN datanode = baseDataNodeService.getBySid(datanodeSid);
-        Optional.ofNullable(datanode).orElseThrow(() ->
-                new NotExistException(String.format(DATA_NODE_NOT_FOUND_EXCEPTION, datanodeSid), DataNode.class));
+        final DN datanode = Optional.ofNullable(baseDataNodeService.getBySid(datanodeId)).orElseThrow(() ->
+                new NotExistException(String.format(DATA_NODE_NOT_FOUND_EXCEPTION, datanodeId), DataNode.class));
         final U user = userService.getByUsername(linkUserToDataNode.getUserName());
         baseDataNodeService.unlinkUserToDataNode(datanode, user);
         return new JsonResult(NO_ERROR);
     }
 
     @ApiOperation("Relink all Users to DataNode")
-    @RequestMapping(value = "/api/v1/user-management/datanodes/{datanodeSid}/users", method = RequestMethod.PUT)
-    public JsonResult<List<CommonUserDTO>> relinkAllUsersToDataNode(@PathVariable("datanodeSid") String datanodeSid,
+    @RequestMapping(value = "/api/v1/user-management/datanodes/{datanodeId}/users", method = RequestMethod.PUT)
+    public JsonResult<List<CommonUserDTO>> relinkAllUsersToDataNode(@PathVariable("datanodeId") Long datanodeId,
                                                @RequestBody List<CommonLinkUserToDataNodeDTO> linkUserToDataNodes
     ) throws NotExistException {
 
-        final DN datanode = baseDataNodeService.getBySid(datanodeSid);
+        final DN datanode = baseDataNodeService.getById(datanodeId);
         final Set<DataNodeUser> users = linkUserToDataNodes.stream()
                 .map(link -> {
                             final U user = userService.getByUnverifiedEmail(link.getUserName());

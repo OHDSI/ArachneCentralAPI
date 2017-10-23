@@ -25,8 +25,6 @@ package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
 import com.odysseusinc.arachne.portal.api.v1.dto.DataNodeDTO;
 import com.odysseusinc.arachne.portal.model.DataNode;
-import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
-import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -36,7 +34,7 @@ public class DataNodeToDataNodeDTOConverter extends BaseConversionServiceAwareCo
     public DataNodeDTO convert(DataNode dataNode) {
 
         final DataNodeDTO dataNodeDTO = new DataNodeDTO();
-        dataNodeDTO.setUuid(dataNode.getSid());
+        dataNodeDTO.setId(dataNode.getId());
         dataNodeDTO.setName(dataNode.getName());
         dataNodeDTO.setDescription(dataNode.getDescription());
         dataNodeDTO.setVirtual(dataNode.getVirtual());

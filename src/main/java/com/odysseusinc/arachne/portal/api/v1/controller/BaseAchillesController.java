@@ -37,14 +37,12 @@ import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.achilles.AchillesFile;
 import com.odysseusinc.arachne.portal.model.achilles.AchillesReport;
 import com.odysseusinc.arachne.portal.model.achilles.Characterization;
-import com.odysseusinc.arachne.portal.repository.BaseDataSourceRepository;
 import com.odysseusinc.arachne.portal.repository.AchillesReportRepository;
+import com.odysseusinc.arachne.portal.repository.BaseDataSourceRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeRepository;
 import com.odysseusinc.arachne.portal.service.AchillesService;
 import com.odysseusinc.arachne.portal.util.ConverterUtils;
 import io.swagger.annotations.ApiOperation;
-import java.io.IOException;
-import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.GenericTypeResolver;
 import org.springframework.core.convert.support.GenericConversionService;
@@ -56,6 +54,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.List;
 
 public abstract class BaseAchillesController<DS extends DataSource> {
     protected final AchillesService<DS> achillesService;
@@ -87,13 +88,13 @@ public abstract class BaseAchillesController<DS extends DataSource> {
     }
 
     @ApiOperation("Store Achilles results for given datasource")
-    @RequestMapping(value = "datanode/datasource/{uuid}", method = RequestMethod.POST)
+    @RequestMapping(value = "datanode/datasource/{id}", method = RequestMethod.POST)
     public JsonResult<CharacterizationDTO> receiveStats(
-            @PathVariable("uuid") String datasourceUuid,
+            @PathVariable("id") Long datasourceId,
             @RequestParam(value = "file") MultipartFile data)
             throws NotExistException, IOException {
 
-        DS dataSource = checkDataSource(datasourceUuid);
+        DS dataSource = checkDataSource(datasourceId);
         Characterization characterization = achillesService.createCharacterization(dataSource, data);
         JsonResult<CharacterizationDTO> result = new JsonResult<>();
         result.setErrorCode(NO_ERROR.getCode());
@@ -102,11 +103,11 @@ public abstract class BaseAchillesController<DS extends DataSource> {
     }
 
     @ApiOperation("List all characterizations for given datasource")
-    @RequestMapping(value = "datasource/{uuid}/list", method = RequestMethod.GET)
-    public JsonResult<List<CharacterizationDTO>> list(@PathVariable("uuid") String datasourceUuid)
+    @RequestMapping(value = "datasource/{id}/list", method = RequestMethod.GET)
+    public JsonResult<List<CharacterizationDTO>> list(@PathVariable("id") Long datasourceId)
             throws NotExistException {
 
-        DS dataSource = checkDataSource(datasourceUuid);
+        DS dataSource = checkDataSource(datasourceId);
         List<Characterization> characterizations = achillesService.getCharacterizations(dataSource);
         JsonResult<List<CharacterizationDTO>> result = new JsonResult<>();
         result.setErrorCode(NO_ERROR.getCode());
@@ -115,26 +116,26 @@ public abstract class BaseAchillesController<DS extends DataSource> {
         return result;
     }
 
-    @RequestMapping(value = "datasource/{uuid}/reports", method = RequestMethod.GET)
+    @RequestMapping(value = "datasource/{id}/reports", method = RequestMethod.GET)
     public JsonResult<List<AchillesReportDTO>> reports(
-            @PathVariable("uuid") String datasourceUuid) throws NotExistException {
+            @PathVariable("id") Long datasourceId) throws NotExistException {
 
-        DS dataSource = checkDataSource(datasourceUuid);
+        DS dataSource = checkDataSource(datasourceId);
         List<AchillesReport> reports = achillesService.getReports(dataSource);
         List<AchillesReportDTO> result = converterUtils.convertList(reports, AchillesReportDTO.class);
         return new JsonResult<>(NO_ERROR, result);
     }
 
     @ApiOperation("List latest characterization for given datasource")
-    @RequestMapping(value = "datasource/{uuid}", method = RequestMethod.GET)
+    @RequestMapping(value = "datasource/{id}", method = RequestMethod.GET)
     public JsonResult<CharacterizationDTO> getLatestCharacterization(
-            @PathVariable("uuid") String datasourceUuid)
+            @PathVariable("id") Long datasourceId)
             throws NotExistException {
 
-        DS dataSource = checkDataSource(datasourceUuid);
+        DS dataSource = checkDataSource(datasourceId);
         Characterization characterization = achillesService.getLatestCharacterization(dataSource)
                 .orElseThrow(() ->
-                        new NotExistException(String.format("Characterization doesn't exist for dataSource: %s", datasourceUuid),
+                        new NotExistException(String.format("Characterization doesn't exist for dataSource: %s", datasourceId),
                                 Characterization.class));
         JsonResult<CharacterizationDTO> result = new JsonResult<>();
         result.setErrorCode(NO_ERROR.getCode());
@@ -144,17 +145,17 @@ public abstract class BaseAchillesController<DS extends DataSource> {
     }
 
     @ApiOperation("Get file contents")
-    @RequestMapping(value = {"datasource/{uuid}/files/{filename:.*}",
-            "datasource/{uuid}/files/{filepath:.*}/{filename:.*}"},
+    @RequestMapping(value = {"datasource/{id}/files/{filename:.*}",
+            "datasource/{id}/files/{filepath:.*}/{filename:.*}"},
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public JsonResult<JsonNode> getFile(@PathVariable("uuid") String datasourceUuid,
+    public JsonResult<JsonNode> getFile(@PathVariable("id") Long datasourceId,
                                         @RequestParam(name = "char", required = false) Long characterizationId,
                                         @PathVariable(value = "filepath", required = false) String path,
                                         @PathVariable("filename") String filename) throws NotExistException, IOException {
 
         final String filepath = StringUtils.isBlank(path) ? filename : path + "/" + filename;
-        DS dataSource = checkDataSource(datasourceUuid);
+        DS dataSource = checkDataSource(datasourceId);
         if (characterizationId == null) {
             characterizationId = achillesService.getLatestCharacterizationId(dataSource);
         }
@@ -176,11 +177,11 @@ public abstract class BaseAchillesController<DS extends DataSource> {
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
-    protected DS checkDataSource(String datasourceUuid) throws NotExistException {
+    protected DS checkDataSource(Long datasourceId) throws NotExistException {
 
-        DS dataSource = dataSourceRepository.findByUuid(datasourceUuid);
+        DS dataSource = dataSourceRepository.findOne(datasourceId);
         if (dataSource == null) {
-            String message = String.format("Datasource with uuid: '%s' not found", datasourceUuid);
+            String message = String.format("Datasource with uuid: '%s' not found", datasourceId);
             throw new NotExistException(message, dataSourceClass);
         }
         return dataSource;
