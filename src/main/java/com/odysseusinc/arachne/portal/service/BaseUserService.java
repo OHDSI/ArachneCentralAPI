@@ -42,21 +42,15 @@ import com.odysseusinc.arachne.portal.model.UserStudy;
 import com.odysseusinc.arachne.portal.model.search.UserSearch;
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.web.multipart.MultipartFile;
-
-import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.Principal;
 import java.util.List;
-import java.util.Optional;
 import javax.validation.constraints.NotNull;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface BaseUserService<U extends User, S extends Skill> {
@@ -69,7 +63,8 @@ public interface BaseUserService<U extends User, S extends Skill> {
 
     U getByUnverifiedEmail(final String email);
 
-    void remove(Long id) throws ValidationException, UserNotFoundException, NotExistException;
+    void remove(Long id)
+            throws ValidationException, UserNotFoundException, NotExistException, IOException, SolrServerException;
 
     U register(@NotNull U user, String registrantToken, String callbackUrl)
             throws NotUniqueException, NotExistException, PasswordValidationException;
