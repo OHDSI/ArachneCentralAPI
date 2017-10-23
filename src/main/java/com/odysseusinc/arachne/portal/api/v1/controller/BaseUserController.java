@@ -790,7 +790,7 @@ public abstract class BaseUserController<
         Optional.ofNullable(datanode).orElseThrow(() ->
                 new NotExistException(String.format(DATA_NODE_NOT_FOUND_EXCEPTION, datanodeSid),
                         DataNode.class));
-        final U user = userService.getByUsername(linkUserToDataNode.getUserName());
+        final U user = userService.getByUnverifiedEmail(linkUserToDataNode.getUserName());
         user.setEnabled(linkUserToDataNode.getEnabled());
         userService.update(user);
         final Set<DataNodeRole> roles = linkUserToDataNode.getRoles()
@@ -828,7 +828,7 @@ public abstract class BaseUserController<
         final DN datanode = baseDataNodeService.getBySid(datanodeSid);
         final Set<DataNodeUser> users = linkUserToDataNodes.stream()
                 .map(link -> {
-                            final U user = userService.getByUsername(link.getUserName());
+                            final U user = userService.getByUnverifiedEmail(link.getUserName());
                             user.setEnabled(link.getEnabled());
                     try {
                         userService.update(user);
