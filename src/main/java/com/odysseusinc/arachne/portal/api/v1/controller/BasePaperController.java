@@ -30,6 +30,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 import com.odysseusinc.arachne.portal.api.v1.dto.BooleanDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.CreatePaperDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.PaperDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.PaperFileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ShortPaperDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdatePaperDTO;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
@@ -37,13 +38,12 @@ import com.odysseusinc.arachne.portal.exception.NotUniqueException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.AbstractPaperFile;
-import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.PaperFileType;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.PaperSearch;
 import com.odysseusinc.arachne.portal.service.BasePaperService;
-import com.odysseusinc.arachne.portal.service.FileService;
+import com.odysseusinc.arachne.portal.service.StudyFileService;
 import io.swagger.annotations.ApiOperation;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -71,10 +71,10 @@ public abstract class BasePaperController
 
     protected BasePaperService<P, PS> paperService;
     protected GenericConversionService conversionService;
-    protected FileService fileService;
+    protected StudyFileService fileService;
 
     @Autowired
-    public BasePaperController(BasePaperService<P, PS> paperService, GenericConversionService conversionService, FileService fileService) {
+    public BasePaperController(BasePaperService<P, PS> paperService, GenericConversionService conversionService, StudyFileService fileService) {
 
         this.paperService = paperService;
         this.conversionService = conversionService;
@@ -175,12 +175,30 @@ public abstract class BasePaperController
 
     @ApiOperation("Get file of the Paper")
     @RequestMapping(value = "/{id}/files/{fileUuid}", method = GET)
-    public void getFile(
+    public PaperFileDTO getFile(
+            @PathVariable("id") Long id,
+            @PathVariable("fileUuid") String uuid,
+            @RequestParam("type") PaperFileType type,
+            @RequestParam(defaultValue = "true") Boolean withContent) throws PermissionDeniedException, IOException {
+
+        final AbstractPaperFile paperFile = paperService.getFile(id, uuid, type);
+        final PaperFileDTO fileDto = conversionService.convert(paperFile, PaperFileDTO.class);
+
+        if (withContent) {
+            final String content = new String(fileService.getAllBytes(paperFile));
+            fileDto.setContent(content);
+        }
+
+        return fileDto;
+    }
+
+    @ApiOperation("Download file of the Paper")
+    @RequestMapping(value = "/{id}/files/{fileUuid}/download", method = GET)
+    public void downloadFile(
             @PathVariable("id") Long id,
             @PathVariable("fileUuid") String uuid,
             @RequestParam("type") PaperFileType type,
             HttpServletResponse response) throws PermissionDeniedException, IOException {
-
 
         final AbstractPaperFile paperFile = paperService.getFile(id, uuid, type);
         final InputStream inputStream = fileService.getFileInputStream(paperFile);

@@ -50,7 +50,7 @@ import com.odysseusinc.arachne.portal.repository.UserStudyGroupedRepository;
 import com.odysseusinc.arachne.portal.repository.UserStudyRepository;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.DataSourceService;
-import com.odysseusinc.arachne.portal.service.FileService;
+import com.odysseusinc.arachne.portal.service.StudyFileService;
 import com.odysseusinc.arachne.portal.service.StudyService;
 import com.odysseusinc.arachne.portal.service.StudyStatusService;
 import com.odysseusinc.arachne.portal.service.StudyTypeService;
@@ -83,7 +83,7 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
         StudySearch,
         StudyViewItem> implements StudyService {
     public StudyServiceImpl(UserStudyExtendedRepository userStudyExtendedRepository,
-                            FileService fileService,
+                            StudyFileService fileService,
                             StudyViewItemRepository userStudyPublicItemRepository,
                             UserStudyGroupedRepository userStudyGroupedRepository,
                             UserStudyRepository userStudyRepository,

@@ -27,9 +27,10 @@ import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataReference;
 import com.odysseusinc.arachne.portal.repository.DataReferenceRepository;
 import com.odysseusinc.arachne.portal.service.DataReferenceService;
-import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class DataReferenceServiceImpl implements DataReferenceService {
@@ -49,7 +50,7 @@ public class DataReferenceServiceImpl implements DataReferenceService {
 
         return dataReferenceRepository.getFirstByGuidAndDataNode(guid, dataNode)
                 .orElseThrow(() -> {
-                    final String message = String.format(NOT_EXIST_EXCEPTION, guid, dataNode.getSid());
+                    final String message = String.format(NOT_EXIST_EXCEPTION, guid, dataNode.getId());
                     return new NotExistException(message, DataReference.class);
                 });
     }

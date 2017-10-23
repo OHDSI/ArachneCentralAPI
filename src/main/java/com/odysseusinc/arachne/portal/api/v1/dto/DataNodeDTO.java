@@ -26,7 +26,7 @@ import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
 import java.util.List;
 
 public class DataNodeDTO {
-    private String uuid;
+    private Long id;
     private String name;
     private String description;
     private Boolean virtual;
@@ -39,14 +39,14 @@ public class DataNodeDTO {
 
     }
 
-    public String getUuid() {
+    public Long getId() {
 
-        return uuid;
+        return id;
     }
 
-    public void setUuid(String uuid) {
+    public void setId(Long id) {
 
-        this.uuid = uuid;
+        this.id = id;
     }
 
     public String getName() {

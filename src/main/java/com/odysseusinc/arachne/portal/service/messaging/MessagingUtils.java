@@ -33,7 +33,7 @@ public class MessagingUtils {
 
         public static String getBaseQueue(DataNode dataNode) {
 
-            return ENTITIES_DATANODE + dataNode.getSid();
+            return ENTITIES_DATANODE + dataNode.getId();
         }
     }
 
@@ -41,7 +41,7 @@ public class MessagingUtils {
 
         public static String getBaseQueue(DataNode dataNode) {
 
-            return ENTITIES_REQUESTS_DATANODE + dataNode.getSid();
+            return ENTITIES_REQUESTS_DATANODE + dataNode.getId();
         }
     }
 }
