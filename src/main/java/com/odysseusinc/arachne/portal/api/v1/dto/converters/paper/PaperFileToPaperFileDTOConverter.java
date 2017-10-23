@@ -49,6 +49,8 @@ public class PaperFileToPaperFileDTOConverter
         paperFileDTO.setAuthor(authorDTO);
         paperFileDTO.setLink(paperFile.getLink());
 
+        paperFileDTO.setInsightId(paperFile.getPaper().getId());
+
         return paperFileDTO;
     }
 }

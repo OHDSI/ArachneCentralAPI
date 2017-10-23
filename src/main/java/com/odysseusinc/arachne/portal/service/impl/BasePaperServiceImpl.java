@@ -46,7 +46,7 @@ import com.odysseusinc.arachne.portal.repository.PaperRepository;
 import com.odysseusinc.arachne.portal.service.BasePaperService;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
-import com.odysseusinc.arachne.portal.service.FileService;
+import com.odysseusinc.arachne.portal.service.StudyFileService;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.solr.common.StringUtils;
 import org.slf4j.Logger;
@@ -94,7 +94,7 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
     @Autowired
     private BaseUserService userService;
     @Autowired
-    private FileService fileService;
+    private StudyFileService fileService;
     @Autowired
     @Qualifier("restTemplate")
     private RestTemplate restTemplate;

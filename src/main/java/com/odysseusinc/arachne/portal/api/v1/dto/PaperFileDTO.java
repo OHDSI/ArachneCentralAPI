@@ -25,6 +25,9 @@ package com.odysseusinc.arachne.portal.api.v1.dto;
 public class PaperFileDTO extends FileDTO {
 
     private String link;
+    private Long insightId;
+    private String content;
+    private Long studyId;
 
     public String getLink() {
 
@@ -34,5 +37,29 @@ public class PaperFileDTO extends FileDTO {
     public void setLink(String link) {
 
         this.link = link;
+    }
+
+    public Long getInsightId() {
+        return insightId;
+    }
+
+    public void setInsightId(Long insightId) {
+        this.insightId = insightId;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public Long getStudyId() {
+        return studyId;
+    }
+
+    public void setStudyId(Long studyId) {
+        this.studyId = studyId;
     }
 }
