@@ -23,7 +23,6 @@
 package com.odysseusinc.arachne.portal.config;
 
 import com.odysseusinc.arachne.portal.exception.SecurityConfigException;
-import com.odysseusinc.arachne.portal.model.UserOrigin;
 import com.odysseusinc.arachne.portal.security.AuthenticationSystemTokenFilter;
 import com.odysseusinc.arachne.portal.security.AuthenticationTokenFilter;
 import com.odysseusinc.arachne.portal.security.DataNodeAuthenticationProvider;
@@ -37,14 +36,9 @@ import edu.vt.middleware.password.QwertySequenceRule;
 import edu.vt.middleware.password.RepeatCharacterRegexRule;
 import edu.vt.middleware.password.Rule;
 import edu.vt.middleware.password.WhitespaceRule;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
@@ -59,6 +53,11 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 @Configuration
 @EnableWebSecurity
@@ -181,6 +180,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/v1/achilles/datanode/datasource/**").hasRole(Roles.ROLE_DATA_NODE)
                 .antMatchers("/api/v1/data-nodes/submissions/**").hasRole(Roles.ROLE_DATA_NODE)
                 .antMatchers("/api/v1/data-nodes/cohorts**").hasRole(Roles.ROLE_DATA_NODE)
+                .antMatchers("/api/v1/data-sources/byuuid/**").hasRole(Roles.ROLE_DATA_NODE)
 
                 .antMatchers("/api/v1/admin/users", "/api/v1/admin/users/**").hasRole("ADMIN")
                 // Next 2 are used by Data node (authed by query param, manually)

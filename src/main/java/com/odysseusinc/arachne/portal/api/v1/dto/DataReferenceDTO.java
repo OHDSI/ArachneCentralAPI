@@ -24,10 +24,12 @@ package com.odysseusinc.arachne.portal.api.v1.dto;
 
 import org.hibernate.validator.constraints.NotEmpty;
 
+import javax.validation.constraints.NotNull;
+
 public class DataReferenceDTO {
 
-    @NotEmpty
-    private String datanodeSid;
+    @NotNull
+    private Long dataNodeId;
     @NotEmpty
     private String entityGuid;
 
@@ -36,20 +38,20 @@ public class DataReferenceDTO {
 
     }
 
-    public DataReferenceDTO(String datanodeSid, String entityGuid) {
+    public DataReferenceDTO(Long datanodeId, String entityGuid) {
 
-        this.datanodeSid = datanodeSid;
+        this.dataNodeId = datanodeId;
         this.entityGuid = entityGuid;
     }
 
-    public String getDatanodeSid() {
+    public Long getDataNodeId() {
 
-        return datanodeSid;
+        return dataNodeId;
     }
 
-    public void setDatanodeSid(String datanodeSid) {
+    public void setDataNodeId(Long dataNodeId) {
 
-        this.datanodeSid = datanodeSid;
+        this.dataNodeId = dataNodeId;
     }
 
     public String getEntityGuid() {

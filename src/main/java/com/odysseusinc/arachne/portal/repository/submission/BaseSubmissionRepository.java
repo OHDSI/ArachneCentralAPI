@@ -23,14 +23,15 @@
 package com.odysseusinc.arachne.portal.repository.submission;
 
 import com.odysseusinc.arachne.portal.model.Submission;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.query.Param;
+
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 @NoRepositoryBean
 public interface BaseSubmissionRepository<T extends Submission> extends JpaRepository<T, Long> {
@@ -66,8 +67,8 @@ public interface BaseSubmissionRepository<T extends Submission> extends JpaRepos
             + "  JOIN data_sources ds ON ds.id = s.data_source_id "
             + "  JOIN datanodes dn ON dn.id = ds.data_node_id "
             + "WHERE UPPER(sh.status) = 'STARTING' "
-            + "  AND dn.sid = :dataNodeUuid ")
-    List<T> findUnprocessedForDataNode(@Param("dataNodeUuid") String dataNodeUuid);
+            + "  AND dn.id = :dataNodeId ")
+    List<T> findUnprocessedForDataNode(@Param("dataNodeId") Long dataNodeId);
 
     @Query(nativeQuery = true, value = "SELECT sub.*\n"
             + "FROM submissions sub\n"
