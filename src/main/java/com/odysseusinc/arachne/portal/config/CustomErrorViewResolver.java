@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,23 +15,29 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: November 18, 2016
+ * Authors: Pavel Grafkin
+ * Created: October 19, 2017
  *
  */
 
-package com.odysseusinc.arachne.portal.repository;
+package com.odysseusinc.arachne.portal.config;
 
-import com.odysseusinc.arachne.portal.model.DataNode;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.boot.autoconfigure.web.ErrorViewResolver;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.servlet.ModelAndView;
 
-import java.util.List;
-import java.util.Optional;
+import javax.servlet.http.HttpServletRequest;
+import java.util.Map;
 
-public interface DataNodeRepository<DN extends DataNode> extends JpaRepository<DN, Long> {
-    DN findBySid(String sid);
+@Configuration
+public class CustomErrorViewResolver implements ErrorViewResolver {
 
-    Optional<DN> findByToken(String token);
+    @Override
+    public ModelAndView resolveErrorView(HttpServletRequest request,
+                                         HttpStatus status, Map<String, Object> model) {
 
-    List<DN> findAllByVirtualIsFalse();
+        return new ModelAndView("index");
+    }
+
 }

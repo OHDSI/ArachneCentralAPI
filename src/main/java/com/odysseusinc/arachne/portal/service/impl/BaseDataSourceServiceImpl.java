@@ -53,7 +53,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Transactional(rollbackFor = Exception.class)
@@ -85,14 +84,6 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
 
         final Boolean virtual = dataSource.getDataNode().getVirtual();
         beforeCreate(dataSource, virtual);
-
-        final DS exist = dataSourceRepository.findByUuid(dataSource.getUuid());
-        final boolean isRestore = exist != null && exist.getDeleted() != null
-                && Objects.equals(exist.getDataNode().getId(), dataSource.getDataNode().getId());
-
-        if (isRestore) {
-            dataSource.setId(exist.getId());
-        }
 
         if (!dataSource.getModelType().equals(CommonModelType.CDM)) {
             dataSource.setCdmVersion(null);
@@ -156,7 +147,7 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
     public DS update(DS dataSource)
             throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
-        DS exist = dataSourceRepository.findByUuidAndDeletedIsNull(dataSource.getUuid())
+        DS exist = dataSourceRepository.findByIdAndDeletedIsNull(dataSource.getId())
                 .orElseThrow(() -> new NotExistException(DataSource.class));
 
         if (dataSource.getName() != null) {
@@ -221,15 +212,6 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
         return dataSourceRepository.getByDataNodeVirtualAndDeletedIsNull(false);
     }
 
-    @PreAuthorize("hasPermission(#uuid, 'DataSource', "
-            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_DATASOURCE)")
-    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
-    @Override
-    public DS findByUuid(String uuid) throws NotExistException {
-
-        return findByUuidUnsecured(uuid);
-    }
-
     @Override
     public DS findByUuidUnsecured(String uuid) throws NotExistException {
 
@@ -257,14 +239,14 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
         return dataSourceRepository.suggest(query, studyId, pageRequest);
     }
 
-    @PreAuthorize("hasPermission(#uuid, 'DataSource', "
+    @PreAuthorize("hasPermission(#id, 'DataSource', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).DELETE_DATASOURCE)")
     @Transactional
     @Override
-    public void delete(String uuid) throws IOException, SolrServerException {
+    public void delete(Long id) throws IOException, SolrServerException {
 
-        log.info("Deleting datasource with uuid={}", uuid);
-        if (dataSourceRepository.deleteByUuidAndDeletedIsNull(uuid) == 0) {
+        log.info("Deleting datasource with id={}", id);
+        if (dataSourceRepository.deleteByIdAndDeletedIsNull(id) == 0) {
             throw new NotExistException(getType());
         }
     }
@@ -321,6 +303,15 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
                 dataSource.getId(),
                 values
         );
+    }
+
+    @Override
+    @PreAuthorize("hasPermission(#dataSourceId, 'DataSource', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_DATASOURCE)")
+    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
+    public DS findById(Long dataSourceId) {
+
+        return dataSourceRepository.findByIdAndDeletedIsNull(dataSourceId).orElseThrow(() -> new NotExistException(getType()));
     }
 
     public abstract List<DS> getAllByUserId(Long userId);

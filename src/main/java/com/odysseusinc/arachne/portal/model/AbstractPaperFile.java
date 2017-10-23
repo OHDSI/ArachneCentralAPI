@@ -34,24 +34,11 @@ import javax.persistence.SequenceGenerator;
 @MappedSuperclass
 public abstract class AbstractPaperFile extends AbstractStudyFile {
 
-    @Id
-    @SequenceGenerator(name = "paper_files_pk_sequence", sequenceName = "paper_files_id_seq", allocationSize = 1)
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "paper_files_pk_sequence")
-    protected Long id;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "paper_id")
     protected Paper paper;
 
-    public Long getId() {
-
-        return id;
-    }
-
-    public void setId(Long id) {
-
-        this.id = id;
-    }
+    public abstract Long getId();
 
     public Paper getPaper() {
 
