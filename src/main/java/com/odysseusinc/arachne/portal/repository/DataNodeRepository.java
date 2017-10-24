@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,14 +23,13 @@
 package com.odysseusinc.arachne.portal.repository;
 
 import com.odysseusinc.arachne.portal.model.DataNode;
+import org.springframework.data.jpa.repository.JpaRepository;
+
 import java.util.List;
 import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface DataNodeRepository<DN extends DataNode> extends JpaRepository<DN, Long> {
     DN findBySid(String sid);
-
-    Optional<DN> findBySidAndToken(String sid, String token);
 
     Optional<DN> findByToken(String token);
 

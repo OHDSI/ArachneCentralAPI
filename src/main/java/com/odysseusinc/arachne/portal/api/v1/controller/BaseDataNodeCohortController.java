@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,12 +30,11 @@ import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.messaging.BaseDataNodeMessageService;
-import io.swagger.annotations.Api;
-import java.util.List;
-import javax.jms.JMSException;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+
+import javax.jms.JMSException;
+import java.util.List;
 
 public abstract class BaseDataNodeCohortController<DN extends DataNode> extends BaseController {
     private final BaseDataNodeService<DN> baseDataNodeService;
@@ -53,14 +52,14 @@ public abstract class BaseDataNodeCohortController<DN extends DataNode> extends 
      * (for Central's UI)
      */
     @RequestMapping(
-            value = "/api/v1/data-nodes/{dataNodeUuid}/cohorts",
+            value = "/api/v1/data-nodes/{dataNodeId}/cohorts",
             method = GET
     )
     public List<CommonCohortShortDTO> listCohorts(
-            @PathVariable("dataNodeUuid") String dataNodeUuid
+            @PathVariable("dataNodeId") Long dataNodeId
     ) throws JMSException, NotExistException {
 
-        DN dataNode = baseDataNodeService.getBySid(dataNodeUuid);
+        DN dataNode = baseDataNodeService.getById(dataNodeId);
         return dataNodeMessageService.getDataList(dataNode, CommonAnalysisType.COHORT);
     }
 
