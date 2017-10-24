@@ -23,15 +23,13 @@
 package com.odysseusinc.arachne.portal.repository.submission;
 
 import com.odysseusinc.arachne.portal.model.Submission;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.query.Param;
-
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
 
 @NoRepositoryBean
 public interface BaseSubmissionRepository<T extends Submission> extends JpaRepository<T, Long> {
@@ -50,16 +48,6 @@ public interface BaseSubmissionRepository<T extends Submission> extends JpaRepos
     T findByIdAndStatusIn(@Param("id") Long id, @Param("status") Collection<String> statuses);
 
     T findByIdAndUpdatePassword(Long id, String updatePassword);
-
-    @Query(nativeQuery = true, value = "SELECT s.* FROM "
-            + "(SELECT h.submission_id, max(h.date) AS status_date FROM submission_status_history h "
-            + "GROUP BY h.submission_id) gh "
-            + "INNER JOIN submission_status_history sh "
-            + "ON sh.submission_id = gh.submission_id AND sh.date = gh.status_date "
-            + "JOIN submissions s ON s.id = sh.submission_id "
-            + "WHERE sh.date < :before AND sh.status IN (:status)")
-    List<T> findByCreatedBeforeAndStatusIn(@Param("before") Date before,
-                                                    @Param("status") Collection<String> statuses);
 
     @Query(nativeQuery = true, value = "SELECT * "
             + "FROM submissions s "
