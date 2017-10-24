@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -118,7 +118,6 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -790,8 +789,6 @@ public abstract class BaseUserController<
                 new NotExistException(String.format(DATA_NODE_NOT_FOUND_EXCEPTION, datanodeId),
                         DataNode.class));
         final U user = userService.getByUnverifiedEmail(linkUserToDataNode.getUserName());
-        user.setEnabled(linkUserToDataNode.getEnabled());
-        userService.update(user);
         final Set<DataNodeRole> roles = linkUserToDataNode.getRoles()
                 .stream()
                 .map(role ->
@@ -820,20 +817,14 @@ public abstract class BaseUserController<
     @ApiOperation("Relink all Users to DataNode")
     @RequestMapping(value = "/api/v1/user-management/datanodes/{datanodeId}/users", method = RequestMethod.PUT)
     public JsonResult<List<CommonUserDTO>> relinkAllUsersToDataNode(@PathVariable("datanodeId") Long datanodeId,
-                                               @RequestBody List<CommonLinkUserToDataNodeDTO> linkUserToDataNodes
+                                                                    @RequestBody List<CommonLinkUserToDataNodeDTO> linkUserToDataNodes
     ) throws NotExistException {
 
         final DN datanode = baseDataNodeService.getById(datanodeId);
         final Set<DataNodeUser> users = linkUserToDataNodes.stream()
                 .map(link -> {
                             final U user = userService.getByUnverifiedEmail(link.getUserName());
-                            user.setEnabled(link.getEnabled());
-                    try {
-                        userService.update(user);
-                    } catch (IllegalAccessException | SolrServerException | NoSuchFieldException | IOException e) {
-                        LOGGER.error("Failed to update user", user, e);
-                    }
-                    final Set<DataNodeRole> roles = link.getRoles()
+                            final Set<DataNodeRole> roles = link.getRoles()
                                     .stream()
                                     .map(role ->
                                             DataNodeRole.valueOf(
@@ -851,8 +842,8 @@ public abstract class BaseUserController<
                 .collect(Collectors.toSet());
         baseDataNodeService.relinkAllUsersToDataNode(datanode, users);
         List<CommonUserDTO> userDTOs = users.stream()
-                .filter(user -> Objects.nonNull(user.getUser()))
-                .map(user -> conversionService.convert(user.getUser(), CommonUserDTO.class)).collect(Collectors.toList());
+                .map(user -> conversionService.convert(user.getUser(), CommonUserDTO.class))
+                .collect(Collectors.toList());
         return new JsonResult<>(NO_ERROR, userDTOs);
     }
 
