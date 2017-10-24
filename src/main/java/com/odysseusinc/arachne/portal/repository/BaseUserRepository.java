@@ -29,8 +29,8 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.query.Param;
@@ -62,8 +62,8 @@ public interface BaseUserRepository<U extends User> extends JpaRepository<U, Lon
             + " AND enabled = TRUE"
             + " LIMIT :limit")
     List<U> suggest(@Param("suggestRequest") String suggestRequest,
-                       @Param("emails") List<String> emails,
-                       @Param("limit") Integer limit);
+                    @Param("emails") List<String> emails,
+                    @Param("limit") Integer limit);
 
     @Query(nativeQuery = true, value = "SELECT * FROM users"
             + " WHERE id NOT IN "
@@ -75,8 +75,8 @@ public interface BaseUserRepository<U extends User> extends JpaRepository<U, Lon
             + " AND enabled = TRUE"
             + " LIMIT :limit")
     List<U> suggestToStudy(@Param("suggestRequest") String suggestRequest,
-                              @Param("studyId") Long studyId,
-                              @Param("limit") Integer limit);
+                           @Param("studyId") Long studyId,
+                           @Param("limit") Integer limit);
 
     @Query(nativeQuery = true, value = "SELECT * FROM users"
             + " WHERE id NOT IN "
@@ -92,8 +92,8 @@ public interface BaseUserRepository<U extends User> extends JpaRepository<U, Lon
             + " AND enabled = TRUE "
             + " LIMIT :limit ")
     List<U> suggestToPaper(@Param("suggestRequest") String suggestRequest,
-                              @Param("paperId") Long paperId,
-                              @Param("limit") Integer limit);
+                           @Param("paperId") Long paperId,
+                           @Param("limit") Integer limit);
 
     @Query(nativeQuery = true, value = "SELECT * FROM users u "
             + " WHERE (lower(u.firstname) SIMILAR TO :suggestRequest OR\n"
@@ -110,8 +110,7 @@ public interface BaseUserRepository<U extends User> extends JpaRepository<U, Lon
 
     U findByUuid(String uuid);
 
-    @Query("SELECT u FROM User u")
-    List<U> getAll();
+    List<U> findAllByEnabledIsTrue();
 
     Page<U> findAllBy(Pageable pageable);
 
