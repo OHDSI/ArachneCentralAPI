@@ -110,8 +110,7 @@ public interface BaseUserRepository<U extends User> extends JpaRepository<U, Lon
 
     U findByUuid(String uuid);
 
-    @Query("SELECT u FROM User u WHERE u.enabled=true")
-    List<U> getAll();
+    List<U> findAllByEnabledIsTrue();
 
     Page<U> findAllBy(Pageable pageable);
 

@@ -468,9 +468,9 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     }
 
     @Override
-    public List<U> getAll() {
+    public List<U> getAllEnabled() {
 
-        return userRepository.getAll();
+        return userRepository.findAllByEnabledIsTrue();
     }
 
     @Override
@@ -788,7 +788,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
             throws IOException, NotExistException, SolrServerException, NoSuchFieldException, IllegalAccessException {
 
         solrService.deleteByQuery(SolrServiceImpl.USER_COLLECTION, "*:*");
-        List<U> userList = getAll();
+        List<U> userList = getAllEnabled();
         for (U user : userList) {
             indexBySolr(user);
         }
