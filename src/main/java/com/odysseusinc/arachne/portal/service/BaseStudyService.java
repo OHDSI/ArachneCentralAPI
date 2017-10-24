@@ -111,7 +111,7 @@ public interface BaseStudyService<
 
     Iterable<T> suggestStudy(String query, User owner, Long id, SuggestSearchRegion region);
 
-    void getStudyAllFiles(Long studyId, String archiveName, OutputStream os) throws IOException;
+    void getAllStudyFilesExceptLinks(Long studyId, String archiveName, OutputStream os) throws IOException;
 
     StudyDataSourceLink getByIdAndStatusPendingAndToken(Long studyDataSourceId, String token) throws NotExistException;
 

@@ -86,7 +86,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.aspectj.apache.bcel.classfile.Code;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.convert.support.GenericConversionService;
@@ -442,7 +441,7 @@ public abstract class BaseStudyController<
         response.setHeader("Content-type", contentType);
         response.setHeader("Content-Disposition",
                 "attachment; filename=" + archiveName);
-        studyService.getStudyAllFiles(studyId, archiveName, response.getOutputStream());
+        studyService.getAllStudyFilesExceptLinks(studyId, archiveName, response.getOutputStream());
         response.flushBuffer();
     }
 
