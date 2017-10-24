@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +24,6 @@ package com.odysseusinc.arachne.portal.repository.submission;
 
 import com.odysseusinc.arachne.portal.model.Submission;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -50,24 +49,14 @@ public interface BaseSubmissionRepository<T extends Submission> extends JpaRepos
 
     T findByIdAndUpdatePassword(Long id, String updatePassword);
 
-    @Query(nativeQuery = true, value = "SELECT s.* FROM "
-            + "(SELECT h.submission_id, max(h.date) AS status_date FROM submission_status_history h "
-            + "GROUP BY h.submission_id) gh "
-            + "INNER JOIN submission_status_history sh "
-            + "ON sh.submission_id = gh.submission_id AND sh.date = gh.status_date "
-            + "JOIN submissions s ON s.id = sh.submission_id "
-            + "WHERE sh.date < :before AND sh.status IN (:status)")
-    List<T> findByCreatedBeforeAndStatusIn(@Param("before") Date before,
-                                                    @Param("status") Collection<String> statuses);
-
     @Query(nativeQuery = true, value = "SELECT * "
             + "FROM submissions s "
             + "  JOIN submission_status_history sh ON s.id = sh.submission_id AND sh.is_last = TRUE "
             + "  JOIN data_sources ds ON ds.id = s.data_source_id "
             + "  JOIN datanodes dn ON dn.id = ds.data_node_id "
             + "WHERE UPPER(sh.status) = 'STARTING' "
-            + "  AND dn.sid = :dataNodeUuid ")
-    List<T> findUnprocessedForDataNode(@Param("dataNodeUuid") String dataNodeUuid);
+            + "  AND dn.id = :dataNodeId ")
+    List<T> findUnprocessedForDataNode(@Param("dataNodeId") Long dataNodeId);
 
     @Query(nativeQuery = true, value = "SELECT sub.*\n"
             + "FROM submissions sub\n"

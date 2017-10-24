@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,11 +41,6 @@ import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.StudyDataSourceService;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
 import com.odysseusinc.arachne.portal.util.ConverterUtils;
-import java.io.IOException;
-import java.security.Principal;
-import java.util.Arrays;
-import java.util.List;
-import javax.validation.Valid;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.core.convert.support.GenericConversionService;
@@ -59,6 +54,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import javax.validation.Valid;
+import java.io.IOException;
+import java.security.Principal;
+import java.util.Arrays;
+import java.util.List;
 
 public abstract class BaseDataSourceController<DS extends DataSource,
         DTO extends CommonBaseDataSourceDTO,
@@ -81,10 +82,10 @@ public abstract class BaseDataSourceController<DS extends DataSource,
         this.studyDataSourceService = studyDataSourceService;
     }
 
-    @RequestMapping(value = "/api/v1/data-sources/{uuid}", method = RequestMethod.PUT)
+    @RequestMapping(value = "/api/v1/data-sources/{id}", method = RequestMethod.PUT)
     public JsonResult<DTO> update(
             Principal principal,
-            @PathVariable("uuid") String dataSourceUuid,
+            @PathVariable("id") Long dataSourceId,
             @RequestBody @Valid DTO commonDataSourceDTO,
             BindingResult bindingResult
     ) throws NotExistException,
@@ -101,9 +102,9 @@ public abstract class BaseDataSourceController<DS extends DataSource,
             result = setValidationErrors(bindingResult);
         } else {
             User user = getUser(principal);
-            final DS exist = dataSourceService.findByUuid(dataSourceUuid);
+            final DS exist = dataSourceService.findById(dataSourceId);
             DS dataSource = convertDTOToDataSource(commonDataSourceDTO);
-            dataSource.setUuid(dataSourceUuid);
+            dataSource.setId(dataSourceId);
             dataSource.setDataNode(exist.getDataNode());
             dataSource = dataSourceService.update(dataSource);
             result = new JsonResult<>(NO_ERROR);
@@ -147,19 +148,28 @@ public abstract class BaseDataSourceController<DS extends DataSource,
         return new JsonResult<>(NO_ERROR, conversionService.convert(searchResult, getSearchResultClass()));
     }
 
-    @RequestMapping(value = "/api/v1/data-sources/{uuid}", method = RequestMethod.GET)
-    public JsonResult<DTO> get(@PathVariable("uuid") String dataSourceUuid) throws NotExistException {
+    @RequestMapping(value = "/api/v1/data-sources/byuuid/{uuid}", method = RequestMethod.GET)
+    public JsonResult<DTO> getByUuid(@PathVariable("uuid") String dataSourceUuid) throws NotExistException {
 
         JsonResult<DTO> result = new JsonResult<>(NO_ERROR);
-        DS dataSource = dataSourceService.findByUuid(dataSourceUuid);
+        DS dataSource = dataSourceService.findByUuidUnsecured(dataSourceUuid);
         result.setResult(convertDataSourceToDTO(dataSource));
         return result;
     }
 
-    @RequestMapping(value = "/api/v1/data-sources/{uuid}", method = RequestMethod.DELETE)
-    public void deleteDataSource(@PathVariable("uuid") String uuid) throws IOException, SolrServerException {
+    @RequestMapping(value = "/api/v1/data-sources/{id}", method = RequestMethod.GET)
+    public JsonResult<DTO> get(@PathVariable("id") Long dataSourceId) throws NotExistException {
 
-        final DS dataSource = dataSourceService.findByUuid(uuid);
+        JsonResult<DTO> result = new JsonResult<>(NO_ERROR);
+        DS dataSource = dataSourceService.findById(dataSourceId);
+        result.setResult(convertDataSourceToDTO(dataSource));
+        return result;
+    }
+
+    @RequestMapping(value = "/api/v1/data-sources/{id}", method = RequestMethod.DELETE)
+    public void deleteDataSource(@PathVariable("id") Long id) throws IOException, SolrServerException {
+
+        final DS dataSource = dataSourceService.findById(id);
         studyDataSourceService.softDeletingDataSource(dataSource);
     }
 
@@ -179,10 +189,10 @@ public abstract class BaseDataSourceController<DS extends DataSource,
 
     protected abstract DS convertDTOToDataSource(DTO dto);
 
-    @RequestMapping(value = "/api/v1/data-sources/{uuid}/complete", method = RequestMethod.GET)
-    public JsonResult<DS_DTO> getWhole(@PathVariable("uuid") String dataSourceUuid) throws NotExistException {
+    @RequestMapping(value = "/api/v1/data-sources/{id}/complete", method = RequestMethod.GET)
+    public JsonResult<DS_DTO> getWhole(@PathVariable("id") Long dataSourceUuid) throws NotExistException {
 
-        DS dataSource = dataSourceService.findByUuid(dataSourceUuid);
+        DS dataSource = dataSourceService.findById(dataSourceUuid);
         return new JsonResult<>(NO_ERROR, conversionService.convert(dataSource, getDataSourceDTOClass()));
     }
 }

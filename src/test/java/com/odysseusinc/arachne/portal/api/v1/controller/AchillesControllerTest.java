@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,10 +41,6 @@ import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 import com.odysseusinc.arachne.portal.model.achilles.AchillesFile;
 import com.odysseusinc.arachne.portal.repository.AchillesFileRepository;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.Arrays;
-import java.util.List;
 import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
@@ -63,6 +59,11 @@ import org.springframework.test.context.support.DependencyInjectionTestExecution
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Arrays;
+import java.util.List;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -109,9 +110,9 @@ public class AchillesControllerTest {
             "visit_treemap.json");
     private MockMvc mvc;
 
-    private static final String RESTRICTED_DS = "22cfa8db-e777-43da-93c8-fcb96af9130f";
-    private static final String PUBLIC_DS = "cccf1696-4b8c-11e7-a919-92ebcb67fe33";
-    private static final String PRIVATE_DS = "d13a5b49-72ac-4e4b-b82d-2c2a4c94acf5";
+    private static final String RESTRICTED_DS = "2";
+    private static final String PUBLIC_DS = "1";
+    private static final String PRIVATE_DS = "3";
 
 
     @Before

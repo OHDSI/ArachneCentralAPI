@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,7 +50,7 @@ import com.odysseusinc.arachne.portal.repository.UserStudyGroupedRepository;
 import com.odysseusinc.arachne.portal.repository.UserStudyRepository;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.DataSourceService;
-import com.odysseusinc.arachne.portal.service.FileService;
+import com.odysseusinc.arachne.portal.service.StudyFileService;
 import com.odysseusinc.arachne.portal.service.StudyService;
 import com.odysseusinc.arachne.portal.service.StudyStatusService;
 import com.odysseusinc.arachne.portal.service.StudyTypeService;
@@ -83,7 +83,7 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
         StudySearch,
         StudyViewItem> implements StudyService {
     public StudyServiceImpl(UserStudyExtendedRepository userStudyExtendedRepository,
-                            FileService fileService,
+                            StudyFileService fileService,
                             StudyViewItemRepository userStudyPublicItemRepository,
                             UserStudyGroupedRepository userStudyGroupedRepository,
                             UserStudyRepository userStudyRepository,
@@ -270,8 +270,8 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
     @Override
     @PreAuthorize("hasPermission(#studyId, 'Study', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
-    public void getStudyAllFiles(Long studyId, String archiveName, OutputStream os) throws IOException {
+    public void getAllStudyFilesExceptLinks(Long studyId, String archiveName, OutputStream os) throws IOException {
 
-        super.getStudyAllFiles(studyId, archiveName, os);
+        super.getAllStudyFilesExceptLinks(studyId, archiveName, os);
     }
 }

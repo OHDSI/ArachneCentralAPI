@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,6 +48,8 @@ public class PaperFileToPaperFileDTOConverter
         final UserInfoDTO authorDTO = conversionService.convert(paperFile.getAuthor(), UserInfoDTO.class);
         paperFileDTO.setAuthor(authorDTO);
         paperFileDTO.setLink(paperFile.getLink());
+
+        paperFileDTO.setInsightId(paperFile.getPaper().getId());
 
         return paperFileDTO;
     }

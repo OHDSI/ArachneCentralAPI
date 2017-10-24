@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,7 +57,6 @@ import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.StateProvince;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserLink;
-import com.odysseusinc.arachne.portal.model.UserOrigin;
 import com.odysseusinc.arachne.portal.model.UserPublication;
 import com.odysseusinc.arachne.portal.model.UserRegistrant;
 import com.odysseusinc.arachne.portal.model.UserStudy;
@@ -87,6 +86,28 @@ import edu.vt.middleware.password.Password;
 import edu.vt.middleware.password.PasswordData;
 import edu.vt.middleware.password.PasswordValidator;
 import edu.vt.middleware.password.RuleResult;
+import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Paths;
+import java.security.Principal;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.imageio.ImageIO;
+import javax.transaction.Transactional;
+import javax.validation.constraints.NotNull;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -110,28 +131,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
-
-import javax.imageio.ImageIO;
-import javax.validation.constraints.NotNull;
-import java.awt.geom.AffineTransform;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Paths;
-import java.security.Principal;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 
 public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF extends SolrField> implements BaseUserService<U, S> {
@@ -236,7 +235,8 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     }
 
     @Override
-    public void remove(Long id) throws ValidationException, UserNotFoundException, NotExistException {
+    @Transactional(rollbackOn = Exception.class)
+    public void remove(Long id) throws ValidationException, UserNotFoundException, NotExistException, IOException, SolrServerException {
 
         if (id == null) {
             throw new ValidationException("remove user: id must be not null");
@@ -245,6 +245,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         if (user == null) {
             throw new UserNotFoundException("removeUser", "remove user: user not found");
         }
+        solrService.deleteByQuery(SolrServiceImpl.USER_COLLECTION, "id:" + user.getId());
         userRepository.delete(user);
     }
 
@@ -403,8 +404,12 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
             forUpdate.setContactEmail(user.getContactEmail());
         }
         U savedUser = initUserCollections(userRepository.save(forUpdate));
-        indexBySolr(savedUser);
 
+        if (user.getEnabled()) {
+            indexBySolr(savedUser);
+        } else {
+            solrService.deleteByQuery(SolrServiceImpl.USER_COLLECTION, "id:" + user.getId());
+        }
         return savedUser;
     }
 
@@ -463,9 +468,9 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     }
 
     @Override
-    public List<U> getAll() {
+    public List<U> getAllEnabled() {
 
-        return userRepository.getAll();
+        return userRepository.findAllByEnabledIsTrue();
     }
 
     @Override
@@ -783,7 +788,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
             throws IOException, NotExistException, SolrServerException, NoSuchFieldException, IllegalAccessException {
 
         solrService.deleteByQuery(SolrServiceImpl.USER_COLLECTION, "*:*");
-        List<U> userList = getAll();
+        List<U> userList = getAllEnabled();
         for (U user : userList) {
             indexBySolr(user);
         }

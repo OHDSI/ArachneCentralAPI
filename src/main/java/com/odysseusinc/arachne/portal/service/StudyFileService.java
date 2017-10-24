@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,15 +24,24 @@ package com.odysseusinc.arachne.portal.service;
 
 import com.odysseusinc.arachne.portal.model.AbstractStudyFile;
 import com.odysseusinc.arachne.portal.model.Study;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.List;
+
+import com.odysseusinc.arachne.portal.model.StudyFile;
 import org.springframework.web.multipart.MultipartFile;
 
-public interface FileService {
+public interface StudyFileService {
+
+    byte[] getAllBytes(AbstractStudyFile studyFile) throws IOException;
+
+    Path getPathToFile(AbstractStudyFile studyFile);
+
+    boolean checkIfBase64EncodingNeeded(AbstractStudyFile arachneFile);
 
     void saveFile(MultipartFile file, AbstractStudyFile studyFile) throws IOException;
 

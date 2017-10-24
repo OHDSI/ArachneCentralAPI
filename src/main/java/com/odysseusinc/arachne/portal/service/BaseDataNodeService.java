@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,6 +28,7 @@ import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataNodeRole;
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
 import com.odysseusinc.arachne.portal.model.User;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -41,14 +42,14 @@ public interface BaseDataNodeService<DN extends DataNode> {
 
     List<DN> findAllIsNotVirtual();
 
+    DN getById(Long id) throws NotExistException;
+
     void linkUserToDataNode(DN dataNode, User user, Set<DataNodeRole> dataNodeRole)
             throws NotExistException, AlreadyExistException;
 
     void unlinkUserToDataNode(DN datanode, User user) throws NotExistException;
 
     void relinkAllUsersToDataNode(DN dataNode, Set<DataNodeUser> user) throws NotExistException;
-
-    DN getByUuidAndToken(String uuid, String token) throws NotExistException;
 
     Optional<DN> findByToken(String token);
 

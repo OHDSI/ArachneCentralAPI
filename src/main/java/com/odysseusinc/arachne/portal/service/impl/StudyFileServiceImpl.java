@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,12 +24,13 @@ package com.odysseusinc.arachne.portal.service.impl;
 
 import static java.util.Collections.singletonList;
 
+import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.portal.exception.IORuntimeException;
 import com.odysseusinc.arachne.portal.model.AbstractPaperFile;
 import com.odysseusinc.arachne.portal.model.AbstractStudyFile;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyFile;
-import com.odysseusinc.arachne.portal.service.FileService;
+import com.odysseusinc.arachne.portal.service.StudyFileService;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -44,8 +45,11 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
+import com.odysseusinc.arachne.portal.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,15 +61,16 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.codec.Base64;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
-public class FileServiceImpl implements FileService {
+public class StudyFileServiceImpl implements StudyFileService {
 
-    Logger LOGGER = LoggerFactory.getLogger(FileServiceImpl.class);
+    Logger LOGGER = LoggerFactory.getLogger(StudyFileServiceImpl.class);
 
     @Value("${files.store.path}")
     private String fileStorePath;
@@ -73,7 +78,7 @@ public class FileServiceImpl implements FileService {
     private final RestTemplate restTemplate;
 
     @Autowired
-    public FileServiceImpl(@Qualifier("restTemplate") RestTemplate restTemplate) {
+    public StudyFileServiceImpl(@Qualifier("restTemplate") RestTemplate restTemplate) {
 
         this.restTemplate = restTemplate;
     }
@@ -82,23 +87,53 @@ public class FileServiceImpl implements FileService {
     public InputStream getFileInputStream(AbstractStudyFile studyFile) throws FileNotFoundException {
 
         Objects.requireNonNull(studyFile, "File must not be null");
-        final File contentDirectory = getContentDirectory(studyFile);
-        final File file = contentDirectory.toPath().resolve(studyFile.getUuid()).toFile();
+        final File file = getPathToFile(studyFile).toFile();
         if (!file.exists()) {
             if (!StringUtils.isEmpty(studyFile.getLink())) {
-                HttpHeaders headers = new HttpHeaders();
-                headers.setAccept(singletonList(MediaType.APPLICATION_OCTET_STREAM));
-                HttpEntity<String> entity = new HttpEntity<>(headers);
-                ResponseEntity<byte[]> response = restTemplate.exchange(
-                        studyFile.getLink(),
-                        HttpMethod.GET, entity, byte[].class);
-                if (response.getStatusCode() == HttpStatus.OK) {
-                    return new ByteArrayInputStream(response.getBody());
+                InputStream response = getInputStream(studyFile);
+                if (response != null) {
+                    return response;
                 }
             }
             throw new FileNotFoundException();
         }
         return new FileInputStream(file);
+    }
+
+    @Override
+    public byte[] getAllBytes(AbstractStudyFile studyFile) throws IOException {
+
+        Path pathToFile = getPathToFile(studyFile);
+        return FileUtils.getBytes(pathToFile, checkIfBase64EncodingNeeded(studyFile));
+    }
+
+
+    private InputStream getInputStream(AbstractStudyFile studyFile) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(singletonList(MediaType.APPLICATION_OCTET_STREAM));
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        ResponseEntity<byte[]> response = restTemplate.exchange(
+                studyFile.getLink(),
+                HttpMethod.GET, entity, byte[].class);
+        if (response.getStatusCode() == HttpStatus.OK) {
+            return new ByteArrayInputStream(response.getBody());
+        }
+        return null;
+    }
+
+    @Override
+    public Path getPathToFile(AbstractStudyFile studyFile) {
+
+        final File contentDirectory = getContentDirectory(studyFile);
+        return contentDirectory.toPath().resolve(studyFile.getUuid());
+    }
+
+    @Override
+    public boolean checkIfBase64EncodingNeeded(AbstractStudyFile arachneFile) {
+
+        String contentType = arachneFile.getContentType();
+        return Stream.of(CommonFileUtils.TYPE_IMAGE, CommonFileUtils.TYPE_PDF)
+                .anyMatch(type -> org.apache.commons.lang3.StringUtils.containsIgnoreCase(contentType, type));
     }
 
     @Override
@@ -116,14 +151,13 @@ public class FileServiceImpl implements FileService {
     @Override
     public void delete(AbstractStudyFile studyFile) throws FileNotFoundException {
 
-        final File contentDirectory = getContentDirectory(studyFile);
-        final File file = contentDirectory.toPath().resolve(studyFile.getUuid()).toFile();
+        final File file = getPathToFile(studyFile).toFile();
 
         if (!file.exists()) {
             throw new FileNotFoundException();
         }
         if (!file.delete()) {
-            throw new IORuntimeException("Can't deleteComment file:" + file);
+            throw new IORuntimeException("Can't delete file:" + file);
         }
 
         /*try {
@@ -218,5 +252,4 @@ public class FileServiceImpl implements FileService {
         }
         return dir;
     }
-
 }

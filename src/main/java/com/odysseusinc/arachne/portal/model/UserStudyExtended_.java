@@ -1,5 +1,4 @@
-/**
- *
+/*
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +14,19 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: September 14, 2017
- *
+ * Authors: Anton Gackovka
+ * Created: October 24, 2017
  */
 
-package com.odysseusinc.arachne.portal.service.submission;
+package com.odysseusinc.arachne.portal.model;
 
-import com.odysseusinc.arachne.portal.model.Submission;
+import javax.persistence.metamodel.SingularAttribute;
+import javax.persistence.metamodel.StaticMetamodel;
 
-public interface SubmissionInvalidateService extends BaseSubmissionInvalidateService<Submission> {
-
+@StaticMetamodel(UserStudyExtended.class)
+public class UserStudyExtended_ {
+    public static volatile SingularAttribute<UserStudyExtended, User> user;
+    public static volatile SingularAttribute<UserStudyExtended, Study> study;
+    public static volatile SingularAttribute<UserStudyExtended, Long> id;
+    public static volatile SingularAttribute<UserStudyExtended, ParticipantStatus> status;
 }
