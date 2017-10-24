@@ -105,7 +105,7 @@ public interface BaseUserService<U extends User, S extends Skill> {
 
     List<U> suggestNotAdmin(String query, Integer limit);
 
-    List<U> getAll();
+    List<U> getAllEnabled();
 
     Page<U> getAll(Pageable pageable, UserSearch userSearch);
 
