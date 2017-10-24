@@ -861,11 +861,17 @@ public abstract class BaseStudyServiceImpl<
     @Override
     @PreAuthorize("hasPermission(#studyId, 'Study', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
-    public void getStudyAllFiles(Long studyId, String archiveName, OutputStream os) throws IOException {
+    public void getAllStudyFilesExceptLinks(Long studyId, String archiveName, OutputStream os) throws IOException {
 
         T study = studyRepository.findOne(studyId);
         Path storeFilesPath = fileService.getPath(study);
-        fileService.archiveFiles(os, storeFilesPath, study.getFiles());
+
+        List<StudyFile> files = study.getFiles()
+                .stream()
+                .filter(file -> StringUtils.isEmpty(file.getLink()))
+                .collect(Collectors.toList());
+
+        fileService.archiveFiles(os, storeFilesPath, files);
     }
 
     private StudyDataSourceLink saveStudyDataSourceLinkWithStatus(StudyDataSourceLink studyDataSourceLink,

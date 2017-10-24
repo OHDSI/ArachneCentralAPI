@@ -270,8 +270,8 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
     @Override
     @PreAuthorize("hasPermission(#studyId, 'Study', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
-    public void getStudyAllFiles(Long studyId, String archiveName, OutputStream os) throws IOException {
+    public void getAllStudyFilesExceptLinks(Long studyId, String archiveName, OutputStream os) throws IOException {
 
-        super.getStudyAllFiles(studyId, archiveName, os);
+        super.getAllStudyFilesExceptLinks(studyId, archiveName, os);
     }
 }
