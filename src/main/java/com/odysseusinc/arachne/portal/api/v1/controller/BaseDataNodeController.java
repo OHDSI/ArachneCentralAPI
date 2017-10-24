@@ -149,11 +149,22 @@ public abstract class BaseDataNodeController
     public JsonResult<CommonDataNodeRegisterResponseDTO> getDataNode(@PathVariable("dataNodeId") Long dataNodeId) {
 
         DataNode dataNode = baseDataNodeService.getById(dataNodeId);
+        return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, getDataNode(dataNode));
+    }
+
+    @RequestMapping(value = "/api/v1/data-nodes/byuuid/{dataNodeUuid}", method = RequestMethod.GET)
+    public JsonResult<CommonDataNodeRegisterResponseDTO> getDataNode(@PathVariable("dataNodeUuid") String dataNodeUuid) {
+
+        DataNode dataNode = baseDataNodeService.getBySid(dataNodeUuid);
+        return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, getDataNode(dataNode));
+    }
+
+    protected CommonDataNodeRegisterResponseDTO getDataNode(DataNode dataNode) {
+
         if (dataNode == null) {
             throw new NotExistException(DataNode.class);
         }
-        CommonDataNodeRegisterResponseDTO dto = conversionService.convert(dataNode, CommonDataNodeRegisterResponseDTO.class);
-        return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, dto);
+        return conversionService.convert(dataNode, CommonDataNodeRegisterResponseDTO.class);
     }
 
     protected abstract DS convertCommonDataSourceDtoToDataSource(C_DS_DTO commonDataSourceDTO);
@@ -161,7 +172,7 @@ public abstract class BaseDataNodeController
     @ApiOperation("Unregister data source of datanode")
     @RequestMapping(value = "/api/v1/data-nodes/{dataNodeId}/data-sources/{dataSourceId}", method = RequestMethod.DELETE)
     public JsonResult unregisterDataSource(@PathVariable("dataNodeId") Long dataNodeId,
-                                           @PathVariable("dataSourceUuid") Long dataSourceId)
+                                           @PathVariable("dataSourceId") Long dataSourceId)
             throws PermissionDeniedException, IOException, SolrServerException {
 
         final DS dataSource = dataSourceService.findById(dataSourceId);
