@@ -84,6 +84,7 @@ import edu.vt.middleware.password.Password;
 import edu.vt.middleware.password.PasswordData;
 import edu.vt.middleware.password.PasswordValidator;
 import edu.vt.middleware.password.RuleResult;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -133,7 +134,6 @@ import java.util.stream.Stream;
 public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF extends SolrField> implements BaseUserService<U, S> {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseUserServiceImpl.class);
     private static final String USERS_DIR = "users";
-    private static final String AVATAR_CONTENT_TYPE = "image";
     private static final String AVATAR_FILE_NAME = "avatar.jpg";
     private static final String PASSWORD_NOT_MATCH_EXC = "Old password is incorrect";
     private final MessageSource messageSource;
@@ -608,9 +608,10 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     public void saveAvatar(U user, MultipartFile file)
             throws IOException, WrongFileFormatException, ImageProcessingException, MetadataException {
 
-        String file_ext = file.getContentType().split("/")[1];
-        if (!file.getContentType().split("/")[0].equals(AVATAR_CONTENT_TYPE)) {
-            throw new WrongFileFormatException("file", "only image");
+        String fileExt = FilenameUtils.getExtension(file.getOriginalFilename());
+        BufferedImage img = ImageIO.read(file.getInputStream());
+        if (img == null) {
+            throw new WrongFileFormatException("file", "File format is not supported");
         }
 
         File filesStoreDir = new File(fileStorePath);
@@ -622,10 +623,6 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
             userFilesDir.mkdirs();
         }
         final File avatar = Paths.get(userFilesDir.getPath(), AVATAR_FILE_NAME).toFile();
-        BufferedImage img = ImageIO.read(file.getInputStream());
-        if (img == null) {
-            throw new ImageProcessingException("File format is not supported");
-        }
 
         Metadata metadata = ImageMetadataReader.readMetadata(file.getInputStream());
         ExifIFD0Directory exifIFD0Directory = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
@@ -670,12 +667,12 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         }
 
         for (Scalr.Rotation rotation : rotations) {
-            img = Scalr.rotate(img, rotation, null);
+            img = Scalr.rotate(img, rotation);
         }
         BufferedImage thumbnail = Scalr.resize(img,
                 Math.min(Math.max(img.getHeight(), img.getWidth()), 640),
                 Scalr.OP_ANTIALIAS);
-        ImageIO.write(thumbnail, file_ext, avatar);
+        ImageIO.write(thumbnail, fileExt, avatar);
 
 
     }
