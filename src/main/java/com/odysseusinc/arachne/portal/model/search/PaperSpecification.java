@@ -23,10 +23,14 @@
 package com.odysseusinc.arachne.portal.model.search;
 
 import com.odysseusinc.arachne.portal.model.Paper;
+import com.odysseusinc.arachne.portal.model.Paper_;
+import com.odysseusinc.arachne.portal.model.ParticipantStatus;
 import com.odysseusinc.arachne.portal.model.PublishState;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserStudyExtended;
+import com.odysseusinc.arachne.portal.model.Study_;
+import com.odysseusinc.arachne.portal.model.UserStudyExtended_;
 import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -38,9 +42,12 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
 import javax.validation.constraints.NotNull;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
 
 public class PaperSpecification<T extends Paper> implements Specification<T> {
+
+    private static final String FAVOURITE = "favourite";
 
     protected final User user;
     private final PaperSearch criteria;
@@ -54,13 +61,13 @@ public class PaperSpecification<T extends Paper> implements Specification<T> {
     @Override
     public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 
-        final Path<Long> id = root.get("id");
-        final Path<Study> study = root.get("study");
-        final Path<Long> studyId = study.get("id");
-        final Path<String> studyTitle = study.get("title");
+        final Path<Long> id = root.get(Paper_.id);
+        final Path<Study> study = root.get(Paper_.study);
+        final Path<Long> studyId = study.get(Study_.id);
+        final Path<String> studyTitle = study.get(Study_.title);
 
-        final Path<PublishState> publishState = root.get("publishState");
-        final Path<List<User>> followers = root.get("followers");
+        final Path<PublishState> publishState = root.get(Paper_.publishState);
+        Expression followers = root.get(Paper_.followers);
 
         List<Predicate> predicates = new ArrayList<>();
 
@@ -79,7 +86,7 @@ public class PaperSpecification<T extends Paper> implements Specification<T> {
         }
 
         if (criteria.getQuery() != null) {
-            predicates.add(cb.like(cb.lower(studyTitle), "%" + criteria.getQuery().toLowerCase() + "%"));
+            predicates.add(cb.like(cb.lower(studyTitle), getLowerPostfixPrefixLikeForm(criteria.getQuery().toLowerCase())));
         }
 
         final String sortBy = criteria.getSortBy();
@@ -89,7 +96,7 @@ public class PaperSpecification<T extends Paper> implements Specification<T> {
             Expression<String> path;
 
             switch (sortBy) {
-                case "favourite":
+                case FAVOURITE:
                     path = cb.size(followers).as(String.class);
                     sortAsc = !sortAsc;
                     break;
@@ -115,7 +122,7 @@ public class PaperSpecification<T extends Paper> implements Specification<T> {
 
     protected Predicate getAdditionalPredicates(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder cb, Path<Long> studyId, Path<Long> id) {
 
-        final Path<PublishState> publishState = root.get("publishState");
+        final Path<PublishState> publishState = root.get(Paper_.publishState);
 
         return cb.or(
                 cb.equal(publishState, PublishState.PUBLISHED),
@@ -128,11 +135,35 @@ public class PaperSpecification<T extends Paper> implements Specification<T> {
         final Subquery<UserStudyExtended> userStudyExtendedLinkSubquery = query.subquery(UserStudyExtended.class);
         final Root<UserStudyExtended> userStudyLinkRoot = userStudyExtendedLinkSubquery.from(UserStudyExtended.class);
         userStudyExtendedLinkSubquery.select(userStudyLinkRoot);
-        final Path<User> linkUser = userStudyLinkRoot.get("user");
-        final Path<Study> linkStudy = userStudyLinkRoot.get("study");
-        final Path<Long> linkStudyId = linkStudy.get("id");
+
+        final Path<User> linkUser = userStudyLinkRoot.get(UserStudyExtended_.user);
+        final Path<Study> linkStudy = userStudyLinkRoot.get(UserStudyExtended_.study);
+        final Path<Long> linkStudyId = linkStudy.get(Study_.id);
+        final Path<ParticipantStatus> linkStatus = userStudyLinkRoot.get(UserStudyExtended_.status);
+
         Predicate userStudyPredicate = cb.and(cb.equal(linkUser, user), cb.equal(linkStudyId, studyId));
+        userStudyPredicate = cb.and(userStudyPredicate, cb.notEqual(linkStatus, ParticipantStatus.DELETED));
         userStudyExtendedLinkSubquery.where(userStudyPredicate);
         return userStudyExtendedLinkSubquery;
+    }
+
+    private String lowerForm(String string) {
+
+        return StringUtils.lowerCase(string);
+    }
+
+    private String postfixLikeForm(String string) {
+
+        return string + "%";
+    }
+
+    private String prefixLikeForm(String string) {
+
+        return "%" + string;
+    }
+
+    private String getLowerPostfixPrefixLikeForm(String string) {
+
+        return lowerForm(postfixLikeForm(prefixLikeForm(string)));
     }
 }
