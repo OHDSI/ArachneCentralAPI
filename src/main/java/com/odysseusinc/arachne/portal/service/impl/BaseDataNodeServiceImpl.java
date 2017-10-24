@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,17 +37,19 @@ import com.odysseusinc.arachne.portal.repository.DataNodeRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeStatusRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeUserRepository;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
-import java.sql.Timestamp;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.sql.Timestamp;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 
 public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements BaseDataNodeService<DN> {
 
@@ -88,7 +90,6 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
         if (dataNodeStatus == null) {
             throw new IllegalStateException("Unable to found status 'New' for data node");
         }
-        dataNode.setSid(UUID.randomUUID().toString());
         dataNode.setStatus(dataNodeStatus);
         dataNode.setToken(UUID.randomUUID().toString().replace("-", ""));
         dataNode.setCreated(new Date());
@@ -111,7 +112,7 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_DATANODE)")
     public DN update(DN dataNode) throws NotExistException {
 
-        final DN existsDataNode = getBySid(dataNode.getSid());
+        final DN existsDataNode = getById(dataNode.getId());
         existsDataNode.setName(dataNode.getName());
         existsDataNode.setDescription(dataNode.getDescription());
         existsDataNode.setAtlasVersion(dataNode.getAtlasVersion());
@@ -123,7 +124,7 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
     @PreAuthorize("#dataNode == authentication.principal")
     public DN updateAtlasInfo(DataNode dataNode) throws NotExistException {
 
-        final DN existsDataNode = getBySid(dataNode.getSid());
+        final DN existsDataNode = getById(dataNode.getId());
         existsDataNode.setAtlasVersion(dataNode.getAtlasVersion());
         return null;
     }
@@ -146,6 +147,21 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
             return dataNode;
         } else {
             throw new IllegalArgumentException("unable to find datanode by uuid " + uuid);
+        }
+    }
+
+    @Override
+    public DN getById(Long id) throws NotExistException {
+
+        if (Objects.nonNull(id)) {
+            final DN dataNode = dataNodeRepository.findOne(id);
+            if (dataNode == null) {
+                final String message = String.format(IS_NOT_FOUND_EXCEPTION, id);
+                throw new NotExistException(message, DataNode.class);
+            }
+            return dataNode;
+        } else {
+            throw new IllegalArgumentException("unable to find datanode by null id ");
         }
     }
 
@@ -195,14 +211,6 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
             dataNodeUser.setDataNode(dataNode);
             saveOrUpdateDataNodeUser(dataNode, dataNodeUser);
         });
-    }
-
-    @Override
-    public DN getByUuidAndToken(String uuid, String token) throws NotExistException {
-
-        return dataNodeRepository.findBySidAndToken(uuid, token).orElseThrow(
-                () -> new NotExistException(DATANODE_WITH_TOKEN_NOT_EXIST_EXC, DataNode.class)
-        );
     }
 
     @Override

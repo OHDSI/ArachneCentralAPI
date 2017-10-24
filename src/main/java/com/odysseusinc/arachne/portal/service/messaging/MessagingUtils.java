@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,7 @@ public class MessagingUtils {
 
         public static String getBaseQueue(DataNode dataNode) {
 
-            return ENTITIES_DATANODE + dataNode.getSid();
+            return ENTITIES_DATANODE + dataNode.getId();
         }
     }
 
@@ -41,7 +41,7 @@ public class MessagingUtils {
 
         public static String getBaseQueue(DataNode dataNode) {
 
-            return ENTITIES_REQUESTS_DATANODE + dataNode.getSid();
+            return ENTITIES_REQUESTS_DATANODE + dataNode.getId();
         }
     }
 }

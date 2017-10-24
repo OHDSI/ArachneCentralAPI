@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,7 +35,7 @@ public class DataSourceToCommonDataSourceHealthStatusDTOConverter
     public CommonDataSourceHealthStatusDTO convert(DataSource source) {
 
         final CommonDataSourceHealthStatusDTO dataSourceHealthStatusDTO = new CommonDataSourceHealthStatusDTO();
-        dataSourceHealthStatusDTO.setUuid(source.getUuid());
+        dataSourceHealthStatusDTO.setCentralId(source.getId());
         dataSourceHealthStatusDTO.setDeleted(source.getDeleted() != null);
         dataSourceHealthStatusDTO.setStatus(source.getHealthStatus());
         dataSourceHealthStatusDTO.setReason(source.getHealthStatusDescription());
