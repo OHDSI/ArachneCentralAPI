@@ -41,7 +41,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -101,6 +100,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         }
     }
 
+    @Autowired
+    private HostFilter hostfilter;
+
     @Bean
     public DataNodeAuthenticationProvider dataNodeAuthenticationProvider() {
 
@@ -155,21 +157,31 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public Filter hostFilter() {
+    public HostFilter hostFilter() {
 
-        return new OncePerRequestFilter() {
-            @Override
-            protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        return new HostFilter(portalHostWhiteList);
+    }
 
-                final String host = request.getHeader("Host");
-                if (!portalHostWhiteList.contains(host.split(":")[0])) {
-                    throw new HostNameIsNotInServiceException(host);
-                }
-                portalHost.set("http://" + host);
-                filterChain.doFilter(request, response);
-                // portalHost.remove();
+    public static class HostFilter extends OncePerRequestFilter {
+
+        protected List<String> portalHostWhiteList;
+
+        public HostFilter(List<String> portalHostWhiteList) {
+
+            this.portalHostWhiteList = portalHostWhiteList;
+        }
+
+        @Override
+        protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+
+            final String host = request.getHeader("Host");
+            if (!portalHostWhiteList.contains(host.split(":")[0])) {
+                throw new HostNameIsNotInServiceException(host);
             }
-        };
+            portalHost.set("http://" + host);
+            filterChain.doFilter(request, response);
+            // portalHost.remove();
+        }
     }
 
     @Override
@@ -226,7 +238,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .addFilterBefore(authenticationTokenFilterBean(), UsernamePasswordAuthenticationFilter.class);
         // DataNode authentication
         http.addFilterBefore(authenticationSystemTokenFilter(), AuthenticationTokenFilter.class);
-        http.addFilterBefore(hostFilter(), AuthenticationSystemTokenFilter.class);
+        http.addFilterBefore(hostfilter, AuthenticationSystemTokenFilter.class);
     }
 
 }
