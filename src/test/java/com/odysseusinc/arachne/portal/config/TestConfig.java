@@ -25,6 +25,11 @@ package com.odysseusinc.arachne.portal.config;
 import static org.mockito.Mockito.mock;
 
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
+import java.io.IOException;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -58,5 +63,29 @@ public class TestConfig extends WebMvcConfigurationSupport {
         return mock(SimpMessagingTemplate.class);
     }
 
+    @Primary
+    @Bean
+    public WebSecurityConfig.HostFilter testHostFilter() {
+
+        return new TestHostFilter("localhost:0");
+    }
+
+    public final class TestHostFilter extends WebSecurityConfig.HostFilter {
+
+        private String portalHost;
+
+        public TestHostFilter(String portalHost) {
+
+            super(null);
+            this.portalHost = portalHost;
+        }
+
+        @Override
+        protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+
+            WebSecurityConfig.portalHost.set(portalHost);
+            filterChain.doFilter(request, response);
+        }
+    }
 
 }
