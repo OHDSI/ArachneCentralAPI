@@ -67,7 +67,7 @@ public class PaperSpecification<T extends Paper> implements Specification<T> {
         final Path<String> studyTitle = study.get(Study_.title);
 
         final Path<PublishState> publishState = root.get(Paper_.publishState);
-        Expression followers = root.get(Paper_.followers);
+        Expression<List> followers = root.get(Paper_.followers);
 
         List<Predicate> predicates = new ArrayList<>();
 
