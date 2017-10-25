@@ -37,6 +37,7 @@ import com.drew.metadata.Metadata;
 import com.drew.metadata.MetadataException;
 import com.drew.metadata.exif.ExifIFD0Directory;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchExpertListDTO;
+import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
 import com.odysseusinc.arachne.portal.exception.ArachneSystemRuntimeException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.NotUniqueException;
@@ -84,8 +85,6 @@ import edu.vt.middleware.password.Password;
 import edu.vt.middleware.password.PasswordData;
 import edu.vt.middleware.password.PasswordValidator;
 import edu.vt.middleware.password.RuleResult;
-import org.apache.commons.io.FilenameUtils;
-import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
@@ -107,6 +106,7 @@ import java.util.stream.Stream;
 import javax.imageio.ImageIO;
 import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -160,8 +160,6 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     @Value("${user.enabled.default}")
     private boolean userEnableDefault;
     private Resource defaultAvatar = new ClassPathResource("avatar.png");
-    @Value("${portal.url}")
-    private String portalUrl;
     @Value("${portal.authMethod}")
     protected String userOrigin;
 
@@ -495,7 +493,11 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
 
     private void sendRegistrationEmail(U user, Optional<UserRegistrant> userRegistrant, String callbackUrl) {
 
-        RegistrationMailMessage mail = new RegistrationMailMessage(user, portalUrl, user.getRegistrationCode());
+        RegistrationMailMessage mail = new RegistrationMailMessage(
+                user,
+                WebSecurityConfig.portalHost.get(),
+                user.getRegistrationCode()
+        );
         userRegistrant.ifPresent(registrant ->
                 userRegistrantService.customizeUserRegistrantMailMessage(registrant, callbackUrl, mail));
         arachneMailSender.send(mail);
@@ -747,7 +749,10 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     @Override
     public void sendRemindPasswordEmail(U user, String token, String registrantToken, String callbackUrl) {
 
-        RemindPasswordMailMessage mail = new RemindPasswordMailMessage(user, portalUrl, token);
+        RemindPasswordMailMessage mail = new RemindPasswordMailMessage(
+                user,
+                WebSecurityConfig.portalHost.get(),
+                token);
 
         Optional<UserRegistrant> userRegistrant = userRegistrantService.findByToken(registrantToken);
         userRegistrant.ifPresent(registrant ->
