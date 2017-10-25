@@ -155,7 +155,6 @@ public abstract class BaseAnalysisServiceImpl<
         SU extends AbstractUserStudyListItem> extends CRUDLServiceImpl<A>
         implements BaseAnalysisService<A> {
 
-    public static final String PACKRAT_RUN_SCRIPT = "packrat_run.r";
     public static final String ILLEGAL_SUBMISSION_STATE_EXCEPTION = "Submission must be in EXECUTED or FAILED state before approve result";
     protected static final Logger LOGGER = LoggerFactory.getLogger(BaseAnalysisServiceImpl.class);
     private static final String CREATING_INSIGHT_LOG = "Creating Insight for Submission with id='{}'";
@@ -189,7 +188,6 @@ public abstract class BaseAnalysisServiceImpl<
     protected final ArachneMailSender mailSender;
     protected final SimpMessagingTemplate wsTemplate;
     protected final AnalysisPreprocessorService preprocessorService;
-    protected final Template packratRunnerTemplate;
     protected final StudyStateMachine studyStateMachine;
     @Value("${portal.url}")
     private String portalUrl;
@@ -217,7 +215,6 @@ public abstract class BaseAnalysisServiceImpl<
                                    ArachneMailSender mailSender,
                                    SimpMessagingTemplate wsTemplate,
                                    AnalysisPreprocessorService preprocessorService,
-                                   @Qualifier("packratRunnerTemplate") Template packratRunnerTemplate,
                                    StudyStateMachine studyStateMachine,
                                    BaseStudyService<S, DS, SS, SU> studyService,
                                    AnalysisHelper analysisHelper,
@@ -240,7 +237,6 @@ public abstract class BaseAnalysisServiceImpl<
         this.mailSender = mailSender;
         this.wsTemplate = wsTemplate;
         this.preprocessorService = preprocessorService;
-        this.packratRunnerTemplate = packratRunnerTemplate;
         this.studyStateMachine = studyStateMachine;
         this.studyService = studyService;
         this.analysisHelper = analysisHelper;
@@ -703,31 +699,6 @@ public abstract class BaseAnalysisServiceImpl<
     }
 
     @Override
-    public List<String> getPackratFiles(ArachneFile arachneFile) throws IOException, ArchiveException {
-
-        List<String> result = new ArrayList<>();
-        Path path = getPath(arachneFile);
-        if (!CommonFileUtils.getContentType(arachneFile.getRealName(),
-                path.toAbsolutePath().toString()).equals(CommonFileUtils.TYPE_PACKRAT)) {
-            throw new RuntimeException("Files list can be extracted only from Packrat archieve");
-        }
-
-        try (InputStream inputStream = new ByteArrayInputStream(Files.readAllBytes(path))) {
-            TarArchiveInputStream tarInput = new TarArchiveInputStream(
-                    new GzipCompressorInputStream(inputStream));
-            TarArchiveEntry entry;
-            while (null != (entry = tarInput.getNextTarEntry())) {
-                String currentEntry = entry.getName();
-                if (StringUtils.endsWithIgnoreCase(currentEntry, ".r")) {
-                    result.add(currentEntry);
-                }
-            }
-        }
-
-        return result;
-    }
-
-    @Override
     public byte[] getAllBytes(ArachneFile arachneFile) throws IOException {
 
         Path path = getPath(arachneFile);
@@ -753,7 +724,7 @@ public abstract class BaseAnalysisServiceImpl<
         submissionFileRepository.delete(file);
     }
 
-    private Path getPath(ArachneFile arachneFile) throws FileNotFoundException {
+    protected Path getPath(ArachneFile arachneFile) throws FileNotFoundException {
 
         if (arachneFile == null) {
             throw new FileNotFoundException();

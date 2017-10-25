@@ -73,12 +73,12 @@ public class ImportServiceImpl implements ImportService {
 
     protected List<MultipartFile> getAdditionalFiles() throws IOException {
 
-        Resource packratBundleResource = new ClassPathResource(ESTIMATION_RUNNER_PATH);
+        Resource runner = new ClassPathResource(ESTIMATION_RUNNER_PATH);
         MockMultipartFile estimationRunner = new MockMultipartFile(
                 ESTIMATION_RUNNER_NAME,
                 ESTIMATION_RUNNER_NAME,
                 null,
-                packratBundleResource.getInputStream()
+                runner.getInputStream()
         );
 
         return Collections.singletonList(estimationRunner);
