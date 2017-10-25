@@ -36,6 +36,7 @@ import static com.odysseusinc.arachne.portal.util.DataNodeUtils.isDataNodeOwner;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.ApproveDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdateNotificationDTO;
+import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
 import com.odysseusinc.arachne.portal.exception.NoExecutableFileException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
@@ -68,13 +69,6 @@ import com.odysseusinc.arachne.portal.util.DataNodeUtils;
 import com.odysseusinc.arachne.portal.util.LegacyAnalysisHelper;
 import com.odysseusinc.arachne.portal.util.UUIDGenerator;
 import com.odysseusinc.arachne.portal.util.ZipUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.util.DigestUtils;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -97,6 +91,12 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipOutputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.util.DigestUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends Analysis, DS extends DataSource>
         implements BaseSubmissionService<T, A> {
@@ -122,8 +122,6 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     protected final ResultFileRepository resultFileRepository;
     protected final SubmissionStatusHistoryRepository submissionStatusHistoryRepository;
 
-    @Value("${portal.url}")
-    private String portalUrl;
     @Value("${files.store.path}")
     private String fileStorePath;
 
@@ -226,7 +224,9 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
 
         try {
             for (User owner : dnOwners) {
-                mailSender.send(new InvitationApprovalSubmissionArachneMailMessage(portalUrl, owner, submission));
+                mailSender.send(new InvitationApprovalSubmissionArachneMailMessage(
+                        WebSecurityConfig.portalHost.get(), owner, submission)
+                );
             }
         } catch (Exception ignore) {
             LOGGER.error(ignore.getLocalizedMessage());

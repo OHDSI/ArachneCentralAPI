@@ -41,6 +41,7 @@ import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.ApproveDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.FileContentDTO;
+import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.IORuntimeException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
@@ -92,6 +93,31 @@ import com.odysseusinc.arachne.portal.util.AnalysisHelper;
 import com.odysseusinc.arachne.portal.util.FileUtils;
 import com.odysseusinc.arachne.portal.util.LegacyAnalysisHelper;
 import com.odysseusinc.arachne.portal.util.ZipUtil;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.math.BigInteger;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.zip.ZipOutputStream;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
@@ -120,32 +146,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.math.BigInteger;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.zip.ZipOutputStream;
 
 public abstract class BaseAnalysisServiceImpl<
         A extends Analysis,
@@ -191,8 +191,6 @@ public abstract class BaseAnalysisServiceImpl<
     protected final AnalysisPreprocessorService preprocessorService;
     protected final Template packratRunnerTemplate;
     protected final StudyStateMachine studyStateMachine;
-    @Value("${portal.url}")
-    private String portalUrl;
     @Value("${files.store.path}")
     private String fileStorePath;
     protected final BaseStudyService<S, DS, SS, SU> studyService;
@@ -556,7 +554,10 @@ public abstract class BaseAnalysisServiceImpl<
         analysisUnlockRequest.setAnalysis(analysis);
         final AnalysisUnlockRequest savedUnlockRequest = analysisUnlockRequestRepository.save(analysisUnlockRequest);
         studyService.findLeads((S)savedUnlockRequest.getAnalysis().getStudy()).forEach(lead ->
-                mailSender.send(new UnlockAnalysisRequestMailMessage(portalUrl, lead, savedUnlockRequest)));
+                mailSender.send(new UnlockAnalysisRequestMailMessage(
+                        WebSecurityConfig.portalHost.get(), lead, savedUnlockRequest)
+                )
+        );
         return savedUnlockRequest;
     }
 
@@ -822,7 +823,7 @@ public abstract class BaseAnalysisServiceImpl<
         File splittedFolder = analysisHelper.getSplittedFolder(source.getSubmissionGroup()).toFile();
         List<String> urls = new LinkedList<>();
         for (File file : splittedFolder.listFiles()) {
-            urls.add(portalUrl + "/api/v1/analysis-management/submissions/" + source.getId()
+            urls.add(WebSecurityConfig.portalHost.get() + "/api/v1/analysis-management/submissions/" + source.getId()
                     + "/files?fileName=" + file.getName() + "&updatePassword="
                     + source.getUpdatePassword());
         }
