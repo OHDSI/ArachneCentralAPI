@@ -42,11 +42,6 @@ import com.odysseusinc.arachne.portal.repository.UserStudyExtendedRepository;
 import com.odysseusinc.arachne.portal.repository.UserStudyGroupedRepository;
 import com.odysseusinc.arachne.portal.repository.submission.SubmissionRepository;
 import com.odysseusinc.arachne.portal.util.DataNodeUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -55,6 +50,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends DataSource> implements com.odysseusinc.arachne.portal.service.BaseArachneSecureService<P, DS> {
 
@@ -158,8 +157,7 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends D
         final User standardUser = new User();
         standardUser.setId(user.getId());
         List<ParticipantRole> participantRoles = new ArrayList<>();
-        DataNode dataNodeFromDb = dataNodeRepository.findOne(dataNode.getId());
-        dataNodeUserRepository.findByDataNodeAndUser(dataNodeFromDb, standardUser)
+        dataNodeUserRepository.findByDataNodeAndUser(dataNode, standardUser)
                 .ifPresent(dataNodeUser -> {
                     final Set<DataNodeRole> dataNodeRoles = dataNodeUser.getDataNodeRole();
                     if (dataNodeRoles != null && !dataNodeRoles.isEmpty() && dataNodeRoles.contains(DataNodeRole.ADMIN)) {

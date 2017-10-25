@@ -39,7 +39,6 @@ import com.odysseusinc.arachne.portal.exception.NotUniqueException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
-import com.odysseusinc.arachne.portal.model.ArachneFile;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
 import com.odysseusinc.arachne.portal.model.DataSource;
@@ -95,10 +94,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
-
-import com.odysseusinc.arachne.portal.util.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.hibernate.Hibernate;
@@ -700,7 +696,8 @@ public abstract class BaseStudyServiceImpl<
         final DataNode dataNode = studyHelper.getVirtualDataNode(study.getTitle(), dataSourceName);
         final DataNode registeredDataNode = baseDataNodeService.register(dataNode);
 
-        updateDataNodeOwners(dataOwnerIds, registeredDataNode);
+        final Set<DataNodeUser> dataNodeUsers = updateDataNodeOwners(dataOwnerIds, registeredDataNode);
+        registeredDataNode.setDataNodeUsers(dataNodeUsers);
 
         final DS dataSource = studyHelper.getVirtualDataSource(registeredDataNode, dataSourceName);
         dataSource.setHealthStatus(CommonHealthStatus.GREEN);
@@ -881,13 +878,14 @@ public abstract class BaseStudyServiceImpl<
         return studyDataSourceLinkRepository.save(studyDataSourceLink);
     }
 
-    private void updateDataNodeOwners(List<Long> dataOwnerIds, DataNode dataNode) {
+    private Set<DataNodeUser> updateDataNodeOwners(List<Long> dataOwnerIds, DataNode dataNode) {
 
         final List<User> dataOwners = userService.findUsersByIdsIn(dataOwnerIds);
         final Set<DataNodeUser> dataNodeUsers = studyHelper.usersToDataNodeAdmins(dataOwners, dataNode);
         final Authentication savedAuth = studyHelper.loginByNode(dataNode);
         baseDataNodeService.relinkAllUsersToDataNode(dataNode, dataNodeUsers);
         SecurityContextHolder.getContext().setAuthentication(savedAuth);
+        return dataNodeUsers;
     }
 
 }
