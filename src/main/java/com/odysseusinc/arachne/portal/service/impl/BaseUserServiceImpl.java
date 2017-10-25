@@ -405,7 +405,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         }
         U savedUser = initUserCollections(userRepository.save(forUpdate));
 
-        if (user.getEnabled()) {
+        if (savedUser.getEnabled()) {
             indexBySolr(savedUser);
         } else {
             solrService.deleteByQuery(SolrServiceImpl.USER_COLLECTION, "id:" + user.getId());
