@@ -104,8 +104,6 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
 
     AnalysisFile saveAnalysisFile(AnalysisFile file);
 
-    List<String> getPackratFiles(ArachneFile arachneFile) throws IOException, ArchiveException;
-
     byte[] getAllBytes(ArachneFile arachneFile) throws IOException;
 
     void deleteSubmissionFile(SubmissionFile file);

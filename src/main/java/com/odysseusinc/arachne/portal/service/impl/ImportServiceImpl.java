@@ -29,14 +29,11 @@ import com.odysseusinc.arachne.portal.service.ImportService;
 import com.odysseusinc.arachne.portal.util.ImportedFile;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
-import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.support.GenericConversionService;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.mock.web.MockMultipartFile;
@@ -46,67 +43,44 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class ImportServiceImpl implements ImportService {
 
-    private static final String ESTIMATION_PACKRAT_NAME = "PopulationLevelEffectEstimationAnalysis-v1_0_0.tar.gz";
-    private static final String ESTIMATION_PACKRAT_PATH = "preprocessor/estimation/" + ESTIMATION_PACKRAT_NAME;
-
-    private static final String ESTIMATION_PACKRAT_WRAPPER_NAME = "packratRun.r";
-    private static final String ESTIMATION_PACKRAT_WRAPPER_PATH = "preprocessor/estimation/" + ESTIMATION_PACKRAT_WRAPPER_NAME;
+    private static final String ESTIMATION_RUNNER_NAME = "run_estimation_analysis.R";
+    private static final String ESTIMATION_RUNNER_PATH = "preprocessor/estimation/" + ESTIMATION_RUNNER_NAME;
 
     private final GenericConversionService conversionService;
-
-    private final Map<String, Object> estimationTemplateParams = new HashMap<>();
 
     @Autowired
     public ImportServiceImpl(GenericConversionService conversionService) {
 
         this.conversionService = conversionService;
-        estimationTemplateParams.put("packratPath", "./" + ESTIMATION_PACKRAT_NAME);
     }
 
     @Override
     public List<MultipartFile> processEstimation(List<ImportedFile> importedFiles) throws IOException {
 
         final List<MultipartFile> mpfList = importedFiles.stream()
-                .map(importedFile -> {
-                    ImportedFile file = importedFile;
-                    if (FilenameUtils.getExtension(importedFile.getOriginalFilename()).toLowerCase().equals("r")) {
-                        try {
-                            file = fillEstimationCodePlaceholders(importedFile);
-                        } catch (IOException ex) {
-                            throw new UncheckedIOException(ex);
-                        }
-                    }
-                    return conversionService.convert(file, MockMultipartFile.class);
-                })
+                .map(importedFile -> conversionService.convert(handleFile(importedFile), MockMultipartFile.class))
                 .collect(Collectors.toList());
 
-        Resource packratRunResource = new ClassPathResource(ESTIMATION_PACKRAT_WRAPPER_PATH);
-        mpfList.add(
-                new MockMultipartFile(
-                        ESTIMATION_PACKRAT_WRAPPER_NAME,
-                        ESTIMATION_PACKRAT_WRAPPER_NAME,
-                        null,
-                        packratRunResource.getInputStream()
-                )
-        );
-
-        Resource packratBundleResource = new ClassPathResource(ESTIMATION_PACKRAT_PATH);
-        mpfList.add(
-                new MockMultipartFile(
-                        ESTIMATION_PACKRAT_NAME,
-                        ESTIMATION_PACKRAT_NAME,
-                        null,
-                        packratBundleResource.getInputStream()
-                )
-        );
+        mpfList.addAll(getAdditionalFiles());
 
         return mpfList;
     }
 
-    private ImportedFile fillEstimationCodePlaceholders(ImportedFile importedFile) throws IOException {
+    protected ImportedFile handleFile(ImportedFile file) {
 
-        Template template = loadTemplate(importedFile);
-        String processedContent = template.apply(estimationTemplateParams);
-        return new ImportedFile(importedFile.getFilename(), processedContent.getBytes());
+        return file;
+    }
+
+    protected List<MultipartFile> getAdditionalFiles() throws IOException {
+
+        Resource runner = new ClassPathResource(ESTIMATION_RUNNER_PATH);
+        MockMultipartFile estimationRunner = new MockMultipartFile(
+                ESTIMATION_RUNNER_NAME,
+                ESTIMATION_RUNNER_NAME,
+                null,
+                runner.getInputStream()
+        );
+
+        return Collections.singletonList(estimationRunner);
     }
 }
