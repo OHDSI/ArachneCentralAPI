@@ -38,6 +38,7 @@ import com.odysseusinc.arachne.portal.model.StudyViewItem;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserStudy;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
+import com.odysseusinc.arachne.portal.model.statemachine.study.StudyStateMachine;
 import com.odysseusinc.arachne.portal.repository.FavouriteStudyRepository;
 import com.odysseusinc.arachne.portal.repository.ResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.StudyDataSourceCommentRepository;
@@ -75,7 +76,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
-@SuppressWarnings("unused")
 @Transactional(rollbackFor = Exception.class)
 public class StudyServiceImpl extends BaseStudyServiceImpl<
         Study,
@@ -104,6 +104,7 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
                             BaseDataNodeService baseDataNodeService,
                             JavaMailSender javaMailSender,
                             GenericConversionService conversionService,
+                            StudyStateMachine studyStateMachine,
                             AddDataSourceStrategyFactory<DataSource> addDataSourceStrategyFactory) {
 
         super(userStudyExtendedRepository,
@@ -128,6 +129,7 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
                 baseDataNodeService,
                 javaMailSender,
                 conversionService,
+                studyStateMachine,
                 addDataSourceStrategyFactory);
     }
 

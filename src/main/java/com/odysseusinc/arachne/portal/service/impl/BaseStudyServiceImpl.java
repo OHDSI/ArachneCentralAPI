@@ -58,6 +58,7 @@ import com.odysseusinc.arachne.portal.model.UserStudyExtended;
 import com.odysseusinc.arachne.portal.model.UserStudyGrouped;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.model.search.StudySpecification;
+import com.odysseusinc.arachne.portal.model.statemachine.study.StudyStateMachine;
 import com.odysseusinc.arachne.portal.repository.BaseStudyRepository;
 import com.odysseusinc.arachne.portal.repository.BaseUserStudyLinkRepository;
 import com.odysseusinc.arachne.portal.repository.FavouriteStudyRepository;
@@ -125,7 +126,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
-@SuppressWarnings("unused")
 @Transactional(rollbackFor = Exception.class)
 public abstract class BaseStudyServiceImpl<
         T extends Study,
@@ -165,6 +165,7 @@ public abstract class BaseStudyServiceImpl<
     private final SimpMessagingTemplate wsTemplate;
     protected final GenericConversionService conversionService;
     protected final AddDataSourceStrategyFactory<DS> addDataSourceStrategyFactory;
+    protected final StudyStateMachine studyStateMachine;
     private final Map<String, String[]> studySortPaths = new HashMap<>();
 
     public BaseStudyServiceImpl(UserStudyExtendedRepository userStudyExtendedRepository,
@@ -189,6 +190,7 @@ public abstract class BaseStudyServiceImpl<
                                 BaseDataNodeService dataNodeService,
                                 JavaMailSender javaMailSender,
                                 GenericConversionService conversionService,
+                                StudyStateMachine studyStateMachine,
                                 AddDataSourceStrategyFactory<DS> addDataSourceStrategyFactory) {
 
         this.javaMailSender = javaMailSender;
@@ -212,6 +214,7 @@ public abstract class BaseStudyServiceImpl<
         this.studyStatusService = studyStatusService;
         this.baseDataNodeService = dataNodeService;
         this.conversionService = conversionService;
+        this.studyStateMachine = studyStateMachine;
         this.addDataSourceStrategyFactory = addDataSourceStrategyFactory;
     }
 
@@ -336,7 +339,8 @@ public abstract class BaseStudyServiceImpl<
         if (study.getType() != null && study.getType().getId() != null) {
             forUpdate.setType(studyTypeService.getById(study.getType().getId()));
         }
-        if (study.getStatus() != null && study.getStatus().getId() != null) {
+        if (study.getStatus() != null && study.getStatus().getId() != null
+                && studyStateMachine.canTransit(forUpdate , studyStatusService.getById(study.getStatus().getId()))) {
             forUpdate.setStatus(studyStatusService.getById(study.getStatus().getId()));
         }
         forUpdate.setTitle(study.getTitle() != null ? study.getTitle() : forUpdate.getTitle());

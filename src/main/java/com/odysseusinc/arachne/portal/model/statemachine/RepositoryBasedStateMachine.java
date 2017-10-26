@@ -88,7 +88,7 @@ abstract public class RepositoryBasedStateMachine<O extends HasState<S>, S exten
 
         return this.getTransitionsFrom(object.getState())
                 .stream()
-                .anyMatch(transition -> Objects.equals(transition.getTo(), state));
+                .anyMatch(transition -> Objects.equals(transition.getTo(), state) && transition.getDiscriminator().test(object));
     }
 
     @Override
