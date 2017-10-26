@@ -16,37 +16,13 @@
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
  * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: August 25, 2017
+ * Created: October 24, 2017
  *
  */
 
 package com.odysseusinc.arachne.portal.model.statemachine.study;
 
-import static com.odysseusinc.arachne.portal.model.statemachine.study.StudyStateActions.CREATE_PAPER;
-import static com.odysseusinc.arachne.portal.model.statemachine.study.StudyStateActions.PUBLISH_PAPER;
-
-public enum StudyState {
-
-    INITIATE("Initiate", new StudyStateActions[]{}),
-    ACTIVE("Active", new StudyStateActions[]{ CREATE_PAPER }),
-    COMPLETED("Completed", new StudyStateActions[]{ CREATE_PAPER, PUBLISH_PAPER }),
-    ARCHIVED("Archived", new StudyStateActions[]{ CREATE_PAPER, PUBLISH_PAPER });
-
-    private String stateName;
-    private StudyStateActions[] actions;
-
-    StudyState(String stateName, StudyStateActions[] actions) {
-        this.stateName = stateName;
-        this.actions = actions;
-    }
-
-    public String getStateName() {
-
-        return stateName;
-    }
-
-    public StudyStateActions[] getActions() {
-
-        return actions;
-    }
+public enum StudyStateActions {
+    CREATE_PAPER,
+    PUBLISH_PAPER,
 }

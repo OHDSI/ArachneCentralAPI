@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto;
 
+import com.odysseusinc.arachne.portal.api.v1.dto.dictionary.StudyStatusDTO;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -35,6 +36,7 @@ public class StudyMediumDTO extends StudyShortDTO {
     private List<ParticipantDTO> studyLeads = new ArrayList<>();
     private List<ParticipantExtendedDTO> studyParticipants = new ArrayList<>();
     private List<DataSourceDTO> studyDataSources = new ArrayList<>();
+    private StudyStatusDTO status;
 
     public String getDescription() {
 
@@ -105,4 +107,16 @@ public class StudyMediumDTO extends StudyShortDTO {
 
         this.studyDataSources = studyDataSources;
     }
+
+    public StudyStatusDTO getStatus() {
+
+        return status;
+    }
+
+    public void setStatus(StudyStatusDTO status) {
+
+        this.status = status;
+    }
+
+
 }
