@@ -166,6 +166,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
         protected List<String> portalHostWhiteList;
 
+        @Value("${server.ssl.enabled}")
+        private Boolean httpsEnabled;
+
         public HostFilter(List<String> portalHostWhiteList) {
 
             this.portalHostWhiteList = portalHostWhiteList;
@@ -178,7 +181,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             if (!portalHostWhiteList.contains(host.split(":")[0])) {
                 throw new HostNameIsNotInServiceException(host);
             }
-            portalHost.set("http://" + host);
+            portalHost.set(String.format("http%s://%s", httpsEnabled ? "s" : "", host));
             filterChain.doFilter(request, response);
             // portalHost.remove();
         }
