@@ -35,7 +35,6 @@ import static com.odysseusinc.arachne.portal.service.impl.submission.SubmissionA
 import static com.odysseusinc.arachne.portal.service.impl.submission.SubmissionActionType.PUBLISH;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
-import com.github.jknack.handlebars.Template;
 import com.google.common.base.Objects;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
@@ -105,7 +104,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -119,10 +117,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipOutputStream;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.compress.archivers.ArchiveException;
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -794,7 +788,7 @@ public abstract class BaseAnalysisServiceImpl<
         File splittedFolder = analysisHelper.getSplittedFolder(source.getSubmissionGroup()).toFile();
         List<String> urls = new LinkedList<>();
         for (File file : splittedFolder.listFiles()) {
-            urls.add(WebSecurityConfig.portalHost.get() + "/api/v1/analysis-management/submissions/" + source.getId()
+            urls.add("/api/v1/analysis-management/submissions/" + source.getId()
                     + "/files?fileName=" + file.getName() + "&updatePassword="
                     + source.getUpdatePassword());
         }
