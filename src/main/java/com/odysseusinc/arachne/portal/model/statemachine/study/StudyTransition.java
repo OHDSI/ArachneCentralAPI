@@ -97,11 +97,6 @@ public class StudyTransition implements Transition<Study, StudyStatus> {
     }
 
     @Override
-    public boolean evaluateDiscriminator (Study study){
-        return !this.discriminator.test(study);
-    }
-
-    @Override
     public String toString() {
 
         return "StudyTransition{" +
