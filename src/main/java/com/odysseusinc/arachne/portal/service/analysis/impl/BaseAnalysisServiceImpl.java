@@ -265,12 +265,15 @@ public abstract class BaseAnalysisServiceImpl<
 
     protected void beforeCreate(A analysis) {
 
-        analysis.setStudy(studyService.getById(analysis.getStudy().getId()));
+        S foundStudy = studyService.getById(analysis.getStudy().getId());
+        analysis.setStudy(foundStudy);
         Integer maxOrd = analysisRepository.getMaxOrd(analysis.getStudy().getId());
         analysis.setOrd(maxOrd != null ? maxOrd + 1 : 0);
         Date date = new Date();
         analysis.setCreated(date);
         analysis.setUpdated(date);
+
+        foundStudy.getAnalyses().add(analysis);
     }
 
     protected void afterCreate(A analysis) {
