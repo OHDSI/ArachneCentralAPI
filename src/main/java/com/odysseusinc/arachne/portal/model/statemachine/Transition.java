@@ -55,8 +55,4 @@ public interface Transition<O extends HasState, S extends IsState> {
     default Predicate<O> getDiscriminator() {
         return (object) -> Boolean.FALSE;
     }
-
-    default boolean evaluateDiscriminator (O object) {
-        return getDiscriminator().test(object);
-    }
 }
