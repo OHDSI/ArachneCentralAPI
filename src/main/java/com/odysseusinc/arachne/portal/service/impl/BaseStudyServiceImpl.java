@@ -726,7 +726,7 @@ public abstract class BaseStudyServiceImpl<
 
     @Override
     @Transactional
-    @PreAuthorize("hasPermission(#studyId, 'DataSource', "
+    @PreAuthorize("hasPermission(#dataSourceId, 'DataSource', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).DELETE_DATASOURCE)")
     public DS updateVirtualDataSource(User user, Long studyId, Long dataSourceId, String name, List<Long> dataOwnerIds) throws IllegalAccessException, IOException, NoSuchFieldException, SolrServerException, ValidationException {
 
