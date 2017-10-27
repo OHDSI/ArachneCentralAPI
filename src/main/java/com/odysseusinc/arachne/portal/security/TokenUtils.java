@@ -242,7 +242,7 @@ public class TokenUtils {
         String uuid = getUUIDFromToken(token);
         Date expirationDate = getExpirationDateFromToken(token);
         Date now = new Date();
-        if (expirationDate == null || expirationDate.after(now)) {
+        if ((expirationDate == null || expirationDate.after(now)) && uuid != null) {
             invalidatedTokens.put(uuid, expirationDate);
         }
         //remove old tokens

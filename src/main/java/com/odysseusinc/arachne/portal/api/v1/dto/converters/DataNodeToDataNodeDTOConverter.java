@@ -25,6 +25,10 @@ package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
 import com.odysseusinc.arachne.portal.api.v1.dto.DataNodeDTO;
 import com.odysseusinc.arachne.portal.model.DataNode;
+import com.odysseusinc.arachne.portal.model.User;
+import com.odysseusinc.arachne.portal.model.security.ArachneUser;
+import com.odysseusinc.arachne.portal.util.DataNodeUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -42,6 +46,14 @@ public class DataNodeToDataNodeDTOConverter extends BaseConversionServiceAwareCo
         CommonHealthStatus healthStatus = dataNode.getHealthStatus();
         dataNodeDTO.setHealthStatus(healthStatus);
         dataNodeDTO.setHealthStatusTitle(healthStatus.toString());
+        final Object principal = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal();
+        final Long loggedUserId = ((ArachneUser) principal).getId();
+        final User loggedUser = new User();
+        loggedUser.setId(loggedUserId);
+        dataNodeDTO.setCurrentUserDataOwner(DataNodeUtils.isDataNodeOwner(dataNode, loggedUser));
         return dataNodeDTO;
     }
 }
