@@ -52,4 +52,9 @@
             status="APPROVED"
             created_by="1"
     />
+    <analyses
+            id="1"
+            study_id="1"
+            type="COHORT"
+    />
 </dataset>
