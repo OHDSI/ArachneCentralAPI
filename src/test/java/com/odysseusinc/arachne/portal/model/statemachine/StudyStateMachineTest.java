@@ -56,11 +56,11 @@ public class StudyStateMachineTest {
     @Test
     public void testMoveToState() {
 
-        Study study = createStudy(INITIATE);
+        Study study = createStudy(ACTIVE);
 
-        study = stateMachine.moveToState(study, ACTIVE);
+        study = stateMachine.moveToState(study, COMPLETED);
 
-        assertEquals(ACTIVE, study.getStatus().getName());
+        assertEquals(COMPLETED, study.getStatus().getName());
     }
 
     @Test(expected = IllegalStateMoveException.class)
