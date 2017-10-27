@@ -27,6 +27,7 @@ import com.odysseusinc.arachne.portal.security.AuthenticationSystemTokenFilter;
 import com.odysseusinc.arachne.portal.security.AuthenticationTokenFilter;
 import com.odysseusinc.arachne.portal.security.DataNodeAuthenticationProvider;
 import com.odysseusinc.arachne.portal.security.EntryPointUnauthorizedHandler;
+import com.odysseusinc.arachne.portal.security.HostNameIsNotInServiceException;
 import com.odysseusinc.arachne.portal.security.Roles;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import edu.vt.middleware.password.LengthRule;
@@ -36,9 +37,18 @@ import edu.vt.middleware.password.QwertySequenceRule;
 import edu.vt.middleware.password.RepeatCharacterRegexRule;
 import edu.vt.middleware.password.Rule;
 import edu.vt.middleware.password.WhitespaceRule;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
@@ -53,17 +63,17 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    Logger log = LoggerFactory.getLogger(WebSecurityConfig.class);
+    private final static Logger log = LoggerFactory.getLogger(WebSecurityConfig.class);
+    public static final ThreadLocal<String> portalHost = new ThreadLocal<>();
+
+    @Value("#{'${portal.hostsWhiteList}'.split(',')}")
+    private List<String> portalHostWhiteList;
 
     @Autowired
     protected BaseDataNodeService baseDataNodeService;
@@ -89,6 +99,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             throw new SecurityConfigException(ex.getMessage());
         }
     }
+
+    @Autowired
+    private HostFilter hostfilter;
 
     @Bean
     public DataNodeAuthenticationProvider dataNodeAuthenticationProvider() {
@@ -141,6 +154,37 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     public AuthenticationSystemTokenFilter authenticationSystemTokenFilter() {
 
         return new AuthenticationSystemTokenFilter(baseDataNodeService);
+    }
+
+    @Bean
+    public HostFilter hostFilter() {
+
+        return new HostFilter(portalHostWhiteList);
+    }
+
+    public static class HostFilter extends OncePerRequestFilter {
+
+        protected List<String> portalHostWhiteList;
+
+        @Value("${server.ssl.enabled}")
+        private Boolean httpsEnabled;
+
+        public HostFilter(List<String> portalHostWhiteList) {
+
+            this.portalHostWhiteList = portalHostWhiteList;
+        }
+
+        @Override
+        protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+
+            final String host = request.getHeader("Host");
+            if (!portalHostWhiteList.contains(host.split(":")[0])) {
+                throw new HostNameIsNotInServiceException(host);
+            }
+            portalHost.set(String.format("http%s://%s", httpsEnabled ? "s" : "", host));
+            filterChain.doFilter(request, response);
+            // portalHost.remove();
+        }
     }
 
     @Override
@@ -197,6 +241,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .addFilterBefore(authenticationTokenFilterBean(), UsernamePasswordAuthenticationFilter.class);
         // DataNode authentication
         http.addFilterBefore(authenticationSystemTokenFilter(), AuthenticationTokenFilter.class);
+        http.addFilterBefore(hostfilter, AuthenticationSystemTokenFilter.class);
     }
 
 }

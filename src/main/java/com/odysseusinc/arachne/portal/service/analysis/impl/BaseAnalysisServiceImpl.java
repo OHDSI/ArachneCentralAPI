@@ -35,12 +35,12 @@ import static com.odysseusinc.arachne.portal.service.impl.submission.SubmissionA
 import static com.odysseusinc.arachne.portal.service.impl.submission.SubmissionActionType.PUBLISH;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
-import com.github.jknack.handlebars.Template;
 import com.google.common.base.Objects;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.ApproveDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.FileContentDTO;
+import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.IORuntimeException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
@@ -92,11 +92,31 @@ import com.odysseusinc.arachne.portal.util.AnalysisHelper;
 import com.odysseusinc.arachne.portal.util.FileUtils;
 import com.odysseusinc.arachne.portal.util.LegacyAnalysisHelper;
 import com.odysseusinc.arachne.portal.util.ZipUtil;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.math.BigInteger;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.zip.ZipOutputStream;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.compress.archivers.ArchiveException;
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -121,32 +141,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.math.BigInteger;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.zip.ZipOutputStream;
-
 public abstract class BaseAnalysisServiceImpl<
         A extends Analysis,
         S extends Study,
@@ -155,7 +149,6 @@ public abstract class BaseAnalysisServiceImpl<
         SU extends AbstractUserStudyListItem> extends CRUDLServiceImpl<A>
         implements BaseAnalysisService<A> {
 
-    public static final String PACKRAT_RUN_SCRIPT = "packrat_run.r";
     public static final String ILLEGAL_SUBMISSION_STATE_EXCEPTION = "Submission must be in EXECUTED or FAILED state before approve result";
     protected static final Logger LOGGER = LoggerFactory.getLogger(BaseAnalysisServiceImpl.class);
     private static final String CREATING_INSIGHT_LOG = "Creating Insight for Submission with id='{}'";
@@ -189,10 +182,7 @@ public abstract class BaseAnalysisServiceImpl<
     protected final ArachneMailSender mailSender;
     protected final SimpMessagingTemplate wsTemplate;
     protected final AnalysisPreprocessorService preprocessorService;
-    protected final Template packratRunnerTemplate;
     protected final StudyStateMachine studyStateMachine;
-    @Value("${portal.url}")
-    private String portalUrl;
     @Value("${files.store.path}")
     private String fileStorePath;
     protected final BaseStudyService<S, DS, SS, SU> studyService;
@@ -217,7 +207,6 @@ public abstract class BaseAnalysisServiceImpl<
                                    ArachneMailSender mailSender,
                                    SimpMessagingTemplate wsTemplate,
                                    AnalysisPreprocessorService preprocessorService,
-                                   @Qualifier("packratRunnerTemplate") Template packratRunnerTemplate,
                                    StudyStateMachine studyStateMachine,
                                    BaseStudyService<S, DS, SS, SU> studyService,
                                    AnalysisHelper analysisHelper,
@@ -240,7 +229,6 @@ public abstract class BaseAnalysisServiceImpl<
         this.mailSender = mailSender;
         this.wsTemplate = wsTemplate;
         this.preprocessorService = preprocessorService;
-        this.packratRunnerTemplate = packratRunnerTemplate;
         this.studyStateMachine = studyStateMachine;
         this.studyService = studyService;
         this.analysisHelper = analysisHelper;
@@ -556,7 +544,10 @@ public abstract class BaseAnalysisServiceImpl<
         analysisUnlockRequest.setAnalysis(analysis);
         final AnalysisUnlockRequest savedUnlockRequest = analysisUnlockRequestRepository.save(analysisUnlockRequest);
         studyService.findLeads((S)savedUnlockRequest.getAnalysis().getStudy()).forEach(lead ->
-                mailSender.send(new UnlockAnalysisRequestMailMessage(portalUrl, lead, savedUnlockRequest)));
+                mailSender.send(new UnlockAnalysisRequestMailMessage(
+                        WebSecurityConfig.portalHost.get(), lead, savedUnlockRequest)
+                )
+        );
         return savedUnlockRequest;
     }
 
@@ -703,31 +694,6 @@ public abstract class BaseAnalysisServiceImpl<
     }
 
     @Override
-    public List<String> getPackratFiles(ArachneFile arachneFile) throws IOException, ArchiveException {
-
-        List<String> result = new ArrayList<>();
-        Path path = getPath(arachneFile);
-        if (!CommonFileUtils.getContentType(arachneFile.getRealName(),
-                path.toAbsolutePath().toString()).equals(CommonFileUtils.TYPE_PACKRAT)) {
-            throw new RuntimeException("Files list can be extracted only from Packrat archieve");
-        }
-
-        try (InputStream inputStream = new ByteArrayInputStream(Files.readAllBytes(path))) {
-            TarArchiveInputStream tarInput = new TarArchiveInputStream(
-                    new GzipCompressorInputStream(inputStream));
-            TarArchiveEntry entry;
-            while (null != (entry = tarInput.getNextTarEntry())) {
-                String currentEntry = entry.getName();
-                if (StringUtils.endsWithIgnoreCase(currentEntry, ".r")) {
-                    result.add(currentEntry);
-                }
-            }
-        }
-
-        return result;
-    }
-
-    @Override
     public byte[] getAllBytes(ArachneFile arachneFile) throws IOException {
 
         Path path = getPath(arachneFile);
@@ -753,7 +719,7 @@ public abstract class BaseAnalysisServiceImpl<
         submissionFileRepository.delete(file);
     }
 
-    private Path getPath(ArachneFile arachneFile) throws FileNotFoundException {
+    protected Path getPath(ArachneFile arachneFile) throws FileNotFoundException {
 
         if (arachneFile == null) {
             throw new FileNotFoundException();
@@ -822,7 +788,7 @@ public abstract class BaseAnalysisServiceImpl<
         File splittedFolder = analysisHelper.getSplittedFolder(source.getSubmissionGroup()).toFile();
         List<String> urls = new LinkedList<>();
         for (File file : splittedFolder.listFiles()) {
-            urls.add(portalUrl + "/api/v1/analysis-management/submissions/" + source.getId()
+            urls.add("/api/v1/analysis-management/submissions/" + source.getId()
                     + "/files?fileName=" + file.getName() + "&updatePassword="
                     + source.getUpdatePassword());
         }

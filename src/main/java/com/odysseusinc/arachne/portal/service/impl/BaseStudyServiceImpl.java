@@ -31,6 +31,7 @@ import static java.util.Collections.singletonList;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
+import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.IORuntimeException;
@@ -39,7 +40,6 @@ import com.odysseusinc.arachne.portal.exception.NotUniqueException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
-import com.odysseusinc.arachne.portal.model.ArachneFile;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
 import com.odysseusinc.arachne.portal.model.DataSource;
@@ -96,17 +96,13 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
-
-import com.odysseusinc.arachne.portal.util.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.hibernate.Hibernate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -147,8 +143,6 @@ public abstract class BaseStudyServiceImpl<
     private static final String DATASOURCE_NOT_EXIST_EXCEPTION = "DataSource with id='%s' does not exist";
     private static final String VIRTUAL_DATASOURCE_OWNERS_IS_EMPTY_EXC = "Virtual Data Source must have at least one Data Owner";
 
-    @Value("${portal.url}")
-    private String portalUrl;
     private final JavaMailSender javaMailSender;
     private final UserStudyExtendedRepository userStudyExtendedRepository;
     private final StudyFileService fileService;
@@ -477,7 +471,9 @@ public abstract class BaseStudyServiceImpl<
         studyLink.setToken(UUID.randomUUID().toString().replace("-", ""));
 
         userStudyRepository.save(studyLink);
-        arachneMailSender.send(new InvitationCollaboratorMailSender(portalUrl, participant, studyLink));
+        arachneMailSender.send(
+                new InvitationCollaboratorMailSender(WebSecurityConfig.portalHost.get(), participant, studyLink)
+        );
         return studyLink;
     }
 
@@ -704,7 +700,8 @@ public abstract class BaseStudyServiceImpl<
         final DataNode dataNode = studyHelper.getVirtualDataNode(study.getTitle(), dataSourceName);
         final DataNode registeredDataNode = baseDataNodeService.register(dataNode);
 
-        updateDataNodeOwners(dataOwnerIds, registeredDataNode);
+        final Set<DataNodeUser> dataNodeUsers = updateDataNodeOwners(dataOwnerIds, registeredDataNode);
+        registeredDataNode.setDataNodeUsers(dataNodeUsers);
 
         final DS dataSource = studyHelper.getVirtualDataSource(registeredDataNode, dataSourceName);
         dataSource.setHealthStatus(CommonHealthStatus.GREEN);
@@ -885,13 +882,14 @@ public abstract class BaseStudyServiceImpl<
         return studyDataSourceLinkRepository.save(studyDataSourceLink);
     }
 
-    private void updateDataNodeOwners(List<Long> dataOwnerIds, DataNode dataNode) {
+    private Set<DataNodeUser> updateDataNodeOwners(List<Long> dataOwnerIds, DataNode dataNode) {
 
         final List<User> dataOwners = userService.findUsersByIdsIn(dataOwnerIds);
         final Set<DataNodeUser> dataNodeUsers = studyHelper.usersToDataNodeAdmins(dataOwners, dataNode);
         final Authentication savedAuth = studyHelper.loginByNode(dataNode);
         baseDataNodeService.relinkAllUsersToDataNode(dataNode, dataNodeUsers);
         SecurityContextHolder.getContext().setAuthentication(savedAuth);
+        return dataNodeUsers;
     }
 
 }

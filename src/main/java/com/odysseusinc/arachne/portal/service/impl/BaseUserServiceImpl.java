@@ -36,9 +36,8 @@ import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.MetadataException;
 import com.drew.metadata.exif.ExifIFD0Directory;
-import com.drew.metadata.jpeg.JpegDirectory;
-import com.google.common.io.Files;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchExpertListDTO;
+import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
 import com.odysseusinc.arachne.portal.exception.ArachneSystemRuntimeException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.NotUniqueException;
@@ -86,7 +85,6 @@ import edu.vt.middleware.password.Password;
 import edu.vt.middleware.password.PasswordData;
 import edu.vt.middleware.password.PasswordValidator;
 import edu.vt.middleware.password.RuleResult;
-import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
@@ -108,6 +106,7 @@ import java.util.stream.Stream;
 import javax.imageio.ImageIO;
 import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -136,7 +135,6 @@ import org.springframework.web.multipart.MultipartFile;
 public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF extends SolrField> implements BaseUserService<U, S> {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseUserServiceImpl.class);
     private static final String USERS_DIR = "users";
-    private static final String AVATAR_EXT = "jpg";
     private static final String AVATAR_FILE_NAME = "avatar.jpg";
     private static final String PASSWORD_NOT_MATCH_EXC = "Old password is incorrect";
     private final MessageSource messageSource;
@@ -162,8 +160,6 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     @Value("${user.enabled.default}")
     private boolean userEnableDefault;
     private Resource defaultAvatar = new ClassPathResource("avatar.png");
-    @Value("${portal.url}")
-    private String portalUrl;
     @Value("${portal.authMethod}")
     protected String userOrigin;
 
@@ -405,7 +401,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         }
         U savedUser = initUserCollections(userRepository.save(forUpdate));
 
-        if (user.getEnabled()) {
+        if (savedUser.getEnabled()) {
             indexBySolr(savedUser);
         } else {
             solrService.deleteByQuery(SolrServiceImpl.USER_COLLECTION, "id:" + user.getId());
@@ -497,7 +493,11 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
 
     private void sendRegistrationEmail(U user, Optional<UserRegistrant> userRegistrant, String callbackUrl) {
 
-        RegistrationMailMessage mail = new RegistrationMailMessage(user, portalUrl, user.getRegistrationCode());
+        RegistrationMailMessage mail = new RegistrationMailMessage(
+                user,
+                WebSecurityConfig.portalHost.get(),
+                user.getRegistrationCode()
+        );
         userRegistrant.ifPresent(registrant ->
                 userRegistrantService.customizeUserRegistrantMailMessage(registrant, callbackUrl, mail));
         arachneMailSender.send(mail);
@@ -617,8 +617,10 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     public void saveAvatar(U user, MultipartFile file)
             throws IOException, WrongFileFormatException, ImageProcessingException, MetadataException {
 
-        if (!Files.getFileExtension(file.getOriginalFilename()).equalsIgnoreCase(AVATAR_EXT)) {
-            throw new WrongFileFormatException("file", "only JPG");
+        String fileExt = FilenameUtils.getExtension(file.getOriginalFilename());
+        BufferedImage img = ImageIO.read(file.getInputStream());
+        if (img == null) {
+            throw new WrongFileFormatException("file", "File format is not supported");
         }
 
         File filesStoreDir = new File(fileStorePath);
@@ -629,12 +631,10 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         if (!userFilesDir.exists()) {
             userFilesDir.mkdirs();
         }
-        final File avatar = Paths.get(userFilesDir.getPath(), "avatar.jpg").toFile();
-        BufferedImage img = ImageIO.read(file.getInputStream());
+        final File avatar = Paths.get(userFilesDir.getPath(), AVATAR_FILE_NAME).toFile();
 
         Metadata metadata = ImageMetadataReader.readMetadata(file.getInputStream());
         ExifIFD0Directory exifIFD0Directory = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
-        JpegDirectory jpegDirectory = metadata.getFirstDirectoryOfType(JpegDirectory.class);
 
         int orientation = 1;
         try {
@@ -643,10 +643,6 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
             LOGGER.debug(ignore.getMessage(), ignore);
         }
 
-        int width = jpegDirectory.getImageWidth();
-        int height = jpegDirectory.getImageHeight();
-
-        AffineTransform affineTransform = new AffineTransform();
         List<Scalr.Rotation> rotations = new LinkedList<>();
 
         switch (orientation) {
@@ -680,12 +676,12 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         }
 
         for (Scalr.Rotation rotation : rotations) {
-            img = Scalr.rotate(img, rotation, null);
+            img = Scalr.rotate(img, rotation);
         }
         BufferedImage thumbnail = Scalr.resize(img,
                 Math.min(Math.max(img.getHeight(), img.getWidth()), 640),
                 Scalr.OP_ANTIALIAS);
-        ImageIO.write(thumbnail, "jpg", avatar);
+        ImageIO.write(thumbnail, fileExt, avatar);
 
 
     }
@@ -753,7 +749,10 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     @Override
     public void sendRemindPasswordEmail(U user, String token, String registrantToken, String callbackUrl) {
 
-        RemindPasswordMailMessage mail = new RemindPasswordMailMessage(user, portalUrl, token);
+        RemindPasswordMailMessage mail = new RemindPasswordMailMessage(
+                user,
+                WebSecurityConfig.portalHost.get(),
+                token);
 
         Optional<UserRegistrant> userRegistrant = userRegistrantService.findByToken(registrantToken);
         userRegistrant.ifPresent(registrant ->
