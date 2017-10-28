@@ -786,45 +786,6 @@ public abstract class BaseAnalysisServiceImpl<
         });
     }
 
-    public List<String> getSubmissionFilesURLs(Submission source) throws IOException {
-
-        File splittedFolder = analysisHelper.getSplittedFolder(source.getSubmissionGroup()).toFile();
-        List<String> urls = new LinkedList<>();
-        for (File file : splittedFolder.listFiles()) {
-            urls.add("/api/v1/analysis-management/submissions/" + source.getId()
-                    + "/files?fileName=" + file.getName() + "&updatePassword="
-                    + source.getUpdatePassword());
-        }
-        return urls;
-    }
-
-    private File copySubmissionFileToArchFolder(
-            Submission source,
-            File archiveFolder,
-            SubmissionFile submissionFile,
-            String submissionFileUuid
-    ) throws IOException {
-
-        Path path = analysisHelper.getSubmissionGroupFolder(source.getSubmissionGroup()).resolve(
-                submissionFileUuid);
-        Path filePath = Paths.get(archiveFolder.getAbsolutePath(), submissionFile.getRealName());
-        if (Files.notExists(path)) {
-            Optional<Path> legacyPath = legacyAnalysisHelper.getOldSubmissionFile(submissionFile);
-            legacyPath.ifPresent(p -> {
-                try {
-                    Files.copy(p, filePath, REPLACE_EXISTING);
-                } catch (IOException e) {
-                    LOGGER.error("Failed copy file to archive", e);
-                    throw new IORuntimeException(e.getMessage(), e);
-                }
-            });
-        } else {
-            Files.copy(path, filePath, REPLACE_EXISTING);
-        }
-
-        return filePath.toFile();
-    }
-
     protected SubmissionStatus beforeApproveSubmissionResult(Submission submission, ApproveDTO approveDTO) {
 
         if (approveDTO.getIsApproved() == null) {
