@@ -110,8 +110,6 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
 
     void setIsExecutable(String uuid);
 
-    List<String> getSubmissionFilesURLs(Submission source) throws IOException;
-
     List<SubmissionAction> getSubmissionActions(Submission submission);
 
     void getAnalysisAllFiles(Long analysisId, String archiveName, OutputStream os) throws IOException;
