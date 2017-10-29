@@ -22,12 +22,18 @@
 
 package com.odysseusinc.arachne.portal.config;
 
-import java.util.ArrayList;
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.bind.annotation.RestController;
+import springfox.documentation.RequestHandler;
 import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
@@ -45,27 +51,78 @@ public class SwaggerConfig {
     @Value("${arachne.token.header}")
     private String arachneTokenHeader;
 
+    @Autowired
+    private DocketWrapper docketWrapper;
+
     @Bean
     public Docket api() {
 
-        List<SecurityScheme> securitySchemes = new ArrayList<>();
-        securitySchemes.add(new ApiKey(arachneTokenHeader, "api_key", "header"));
+        return docketWrapper.getDocket();
+    }
 
-        return new Docket(DocumentationType.SWAGGER_2)
+    @Bean
+    public DocketWrapper docketWrapper() {
+
+        return getDocket("Arachne Central",
+                "Arachne Central API",
+                "1.0.0",
+                "",
+                arachneTokenHeader,
+                "com.odysseusinc.arachne.portal.api.v1.controller"
+        );
+    }
+
+    public static DocketWrapper getDocket(
+            String title,
+            String description,
+            String version,
+            String license,
+            String tokenHeader,
+            String... packages) {
+
+        List<SecurityScheme> securitySchemes = Arrays.asList(new ApiKey(tokenHeader, "api_key", "header"));
+
+        final Predicate<RequestHandler> packagePredicate = Stream.of(packages)
+                .map(RequestHandlerSelectors::basePackage)
+                .reduce(Predicates::or)
+                .orElse(x -> false);
+
+        Predicate<RequestHandler> annotationPredicate = RequestHandlerSelectors.withClassAnnotation(RestController.class);
+
+        Predicate<RequestHandler> selectorPredicate = Stream.of(packagePredicate, annotationPredicate)
+                .reduce(Predicates::and)
+                .orElse(x -> true);
+
+        return new DocketWrapper(new Docket(DocumentationType.SWAGGER_2)
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("com.odysseusinc.arachne.portal.api.v1.controller"))
+                .apis(selectorPredicate)
                 .paths(PathSelectors.any())
                 .build()
                 .apiInfo(new ApiInfoBuilder()
-                        .title("Arachne Central")
-                        .license("")
-                        .description("Arachne Central API")
-                        .version("1.0.0")
+                        .title(title)
+                        .license(license)
+                        .description(description)
+                        .version(version)
                         .build()
                 )
                 .securitySchemes(securitySchemes)
                 .pathMapping("/")
-                .useDefaultResponseMessages(false);
+                .useDefaultResponseMessages(false));
+    }
+
+    public static class DocketWrapper {
+
+        private Docket docket;
+
+        public DocketWrapper(Docket docket) {
+
+            this.docket = docket;
+        }
+
+        public Docket getDocket() {
+
+            return docket;
+        }
     }
 
 }

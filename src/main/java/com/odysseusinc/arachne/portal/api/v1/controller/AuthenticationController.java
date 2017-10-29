@@ -27,12 +27,10 @@ import com.odysseusinc.arachne.portal.service.PasswordResetService;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
 import com.odysseusinc.arachne.portal.service.UserService;
 import edu.vt.middleware.password.PasswordValidator;
-import io.swagger.annotations.Api;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.RestController;
 
-@Api
 @RestController
 public class AuthenticationController extends BaseAuthenticationController {
 
