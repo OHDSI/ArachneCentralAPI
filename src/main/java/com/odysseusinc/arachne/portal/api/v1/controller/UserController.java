@@ -43,11 +43,9 @@ import com.odysseusinc.arachne.portal.service.StudyService;
 import com.odysseusinc.arachne.portal.service.UserService;
 import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
 import com.odysseusinc.arachne.portal.service.submission.SubmissionService;
-import io.swagger.annotations.Api;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.web.bind.annotation.RestController;
 
-@Api
 @RestController
 @SuppressWarnings("unused")
 public class UserController extends BaseUserController<User, Study, DataSource, StudySearch, StudyViewItem, DataNode, Paper, PaperSearch, Skill, Analysis, Submission> {

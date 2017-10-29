@@ -35,12 +35,10 @@ import com.odysseusinc.arachne.portal.model.statemachine.study.StudyStateMachine
 import com.odysseusinc.arachne.portal.service.StudyFileService;
 import com.odysseusinc.arachne.portal.service.StudyService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
-import io.swagger.annotations.Api;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.RestController;
 
-@Api
 @SuppressWarnings("unused")
 @RestController
 public class StudyController extends BaseStudyController<Study, DataSource, Analysis, StudyDTO, StudySearch, StudyViewItem, StudyListDTO> {

@@ -31,13 +31,10 @@ import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
 import com.odysseusinc.arachne.portal.service.StudyDataSourceService;
-import com.odysseusinc.arachne.portal.service.UserService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
-import io.swagger.annotations.Api;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.web.bind.annotation.RestController;
 
-@Api
 @RestController
 public class DataNodeController extends BaseDataNodeController<DataSource, CommonDataSourceDTO, DataNode> {
     public DataNodeController(BaseAnalysisService<Analysis> analysisService,
