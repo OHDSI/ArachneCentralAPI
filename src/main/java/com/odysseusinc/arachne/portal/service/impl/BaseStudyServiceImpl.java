@@ -309,6 +309,12 @@ public abstract class BaseStudyServiceImpl<
     @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
     public T getById(Long id) throws NotExistException {
 
+        return getByIdUnsecured(id);
+    }
+
+    @Override
+    public T getByIdUnsecured(Long id) throws NotExistException {
+
         T study = super.getById(id);
         if (study == null) {
             throw new NotExistException(getType());
@@ -316,7 +322,6 @@ public abstract class BaseStudyServiceImpl<
         Hibernate.initialize(study.getParticipants());
         return study;
     }
-
 
     @Override
     @PreAuthorize("hasPermission(#study, "

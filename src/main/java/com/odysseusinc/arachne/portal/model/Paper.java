@@ -36,6 +36,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -64,10 +65,10 @@ public class Paper implements HasArachnePermissions, Breadcrumb {
     @JoinColumn(name = "study_id")
     private Study study;
 
-    @OneToMany(mappedBy = "paper", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "paper", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<PaperProtocolFile> protocols = new ArrayList<>();
 
-    @OneToMany(mappedBy = "paper", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "paper", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<PaperPaperFile> papers = new ArrayList<>();
 
     @ManyToMany
