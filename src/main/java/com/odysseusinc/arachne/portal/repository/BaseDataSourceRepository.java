@@ -62,7 +62,7 @@ public interface BaseDataSourceRepository<T extends DataSource> extends CrudRepo
             + " WHERE "
             + " ds.id NOT IN (SELECT data_source_id FROM studies_data_sources WHERE study_id=:studyId "
             + "            AND lower(status) NOT IN ('deleted', 'declined'))"
-            + " AND lower(ds.name) SIMILAR TO :suggestRequest "
+            + " AND lower(ds.name || ' ' || dn.name) SIMILAR TO :suggestRequest "
             + " AND ds.deleted IS NULL "
             + " AND dn.is_virtual = FALSE \n"
             + " \n--#pageable\n",
@@ -72,7 +72,7 @@ public interface BaseDataSourceRepository<T extends DataSource> extends CrudRepo
                     + " WHERE "
                     + " ds.id NOT IN (SELECT data_source_id FROM studies_data_sources WHERE study_id=:studyId "
                     + "            AND lower(status) NOT IN ('deleted', 'declined'))"
-                    + " AND lower(ds.name) SIMILAR TO :suggestRequest "
+                    + " AND lower(ds.name || ' ' || dn.name) SIMILAR TO :suggestRequest "
                     + " AND ds.deleted IS NULL "
                     + " AND dn.is_virtual = FALSE) as innerSelect"
            )
