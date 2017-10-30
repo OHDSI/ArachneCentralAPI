@@ -76,11 +76,12 @@ public class AnalysisHelper implements AnalysisPaths {
 
         final List<Submission> submissions = new LinkedList<>();
 
-        SubmissionGroup submissionGroup = submissionService.createSubmissionGroup(user, analysis);
         //removes datasourceId duplicates
         Set<Long> datasourceIdSet = new HashSet<>(datasourceIds);
 
         verifyDataSources(analysis, datasourceIdSet);
+
+        SubmissionGroup submissionGroup = submissionService.createSubmissionGroup(user, analysis);
 
         for (Long datasourceId : datasourceIdSet) {
             submissions.add(submissionService.createSubmission(user, analysis, datasourceId, submissionGroup));
