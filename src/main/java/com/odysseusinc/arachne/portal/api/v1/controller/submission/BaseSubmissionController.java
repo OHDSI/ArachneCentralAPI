@@ -116,8 +116,6 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
         }
         Analysis analysis = analysisService.getById(analysisId);
 
-        validateSubmissionCreationDTO(analysis, createSubmissionsDTO);
-
         final List<Submission> submissions = AnalysisHelper.createSubmission(submissionService,
                 createSubmissionsDTO.getDataSources(), user, analysis);
 
@@ -130,24 +128,6 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
         return result;
     }
 
-    protected void validateSubmissionCreationDTO(Analysis analysis, CreateSubmissionsDTO createSubmissionsDTO) throws ValidationException {
-
-        List<Long> dataSourceIds = analysis.getStudy()
-                .getDataSources().stream()
-                .filter(s -> DataSourceStatus.APPROVED.equals(s.getStatus()))
-                .map(s -> s.getDataSource().getId())
-                .collect(Collectors.toList());
-
-        Set<Long> difference = Sets.difference(new HashSet<>(createSubmissionsDTO.getDataSources()), new HashSet<>(dataSourceIds));
-
-        if (difference.size() > 0) {
-            throw new ValidationException(String.format("You cannot submit an Analysis to DataSources with ids %s. They probably are disabled or aren't linked with analysis's study", difference.toString()));
-        }
-
-        if (analysis.getFiles().isEmpty()) {
-            throw new ValidationException("An analysis without any files cannot be submitted");
-        }
-    }
 
     @ApiOperation("Approve submission for execute")
     @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/approve", method = POST)
