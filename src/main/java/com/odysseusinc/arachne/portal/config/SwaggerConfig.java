@@ -22,18 +22,13 @@
 
 package com.odysseusinc.arachne.portal.config;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.odysseusinc.arachne.commons.config.DocketWrapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import springfox.documentation.builders.ApiInfoBuilder;
-import springfox.documentation.builders.PathSelectors;
-import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.service.ApiKey;
-import springfox.documentation.service.SecurityScheme;
-import springfox.documentation.spi.DocumentationType;
+import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
@@ -45,27 +40,26 @@ public class SwaggerConfig {
     @Value("${arachne.token.header}")
     private String arachneTokenHeader;
 
+    @Autowired
+    private DocketWrapper docketWrapper;
+
     @Bean
     public Docket api() {
 
-        List<SecurityScheme> securitySchemes = new ArrayList<>();
-        securitySchemes.add(new ApiKey(arachneTokenHeader, "api_key", "header"));
+        return docketWrapper.getDocket();
+    }
 
-        return new Docket(DocumentationType.SWAGGER_2)
-                .select()
-                .apis(RequestHandlerSelectors.basePackage("com.odysseusinc.arachne.portal.api.v1.controller"))
-                .paths(PathSelectors.any())
-                .build()
-                .apiInfo(new ApiInfoBuilder()
-                        .title("Arachne Central")
-                        .license("")
-                        .description("Arachne Central API")
-                        .version("1.0.0")
-                        .build()
-                )
-                .securitySchemes(securitySchemes)
-                .pathMapping("/")
-                .useDefaultResponseMessages(false);
+    @Bean
+    public DocketWrapper docketWrapper() {
+
+        return new DocketWrapper("Arachne Central",
+                "Arachne Central API",
+                "1.0.0",
+                "",
+                arachneTokenHeader,
+                RestController.class,
+                "com.odysseusinc.arachne.portal.api.v1.controller"
+        );
     }
 
 }

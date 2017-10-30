@@ -30,12 +30,10 @@ import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.search.PaperSearch;
 import com.odysseusinc.arachne.portal.service.BasePaperService;
 import com.odysseusinc.arachne.portal.service.StudyFileService;
-import io.swagger.annotations.Api;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Api
 @RequestMapping(path = "/api/v1/papers")
 @RestController
 public class PaperController extends BasePaperController
