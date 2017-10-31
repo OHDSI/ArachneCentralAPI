@@ -29,6 +29,7 @@ import static com.odysseusinc.arachne.portal.model.ParticipantRole.LEAD_INVESTIG
 import static java.lang.Boolean.TRUE;
 import static java.util.Collections.singletonList;
 
+import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraphUtils;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
@@ -410,10 +411,17 @@ public abstract class BaseStudyServiceImpl<
             throw new IllegalArgumentException("Method arguments must not be null");
         }
         final SU userStudyItem = baseUserStudyLinkRepository
-                .findFirstByUserIdAndStudyId(user.getId(), studyId).orElseThrow(
-                        () -> new NotExistException(UserStudyGrouped.class)
-                );
-        Hibernate.initialize(userStudyItem.getStudy().getParticipants());
+                .findFirstByUserIdAndStudyId(
+                        user.getId(),
+                        studyId,
+                        EntityGraphUtils.fromAttributePaths(
+                                "study",
+                                "study.participants",
+                                "study.participants.user",
+                                "study.participants.dataSource",
+                                "study.participants.comment"
+                        )
+                ).orElseThrow(() -> new NotExistException(UserStudyGrouped.class));
         return userStudyItem;
     }
 
