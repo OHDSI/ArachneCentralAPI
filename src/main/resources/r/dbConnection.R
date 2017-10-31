@@ -7,9 +7,9 @@ pw <- Sys.getenv("DBMS_PASSWORD")
 cdmSchema <- Sys.getenv("DBMS_SCHEMA")
 
 connectionDetails <- createConnectionDetails(dbms=dbms,
-connectionString=connectionString,
-user=user,
-password=pw,
-schema=cdmSchema)
+    connectionString=connectionString,
+    user=user,
+    password=pw,
+    schema=cdmSchema)
 
 conn <- connect(connectionDetails)
