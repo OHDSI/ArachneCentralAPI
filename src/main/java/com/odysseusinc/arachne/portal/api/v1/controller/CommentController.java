@@ -38,6 +38,7 @@ import java.security.Principal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.http.MediaType;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -73,7 +74,7 @@ public class CommentController extends BaseController {
     @ApiOperation(value = "Add new comment")
     @RequestMapping(value = "/api/v1/comments/{topicId}", method = RequestMethod.POST)
     public JsonResult<CommentDTO> addComment(@PathVariable("topicId") Long topicId,
-                                             @RequestBody CommentDTO commentDTO,
+                                             @Validated @RequestBody CommentDTO commentDTO,
                                              Principal principal
     ) throws PermissionDeniedException {
 
