@@ -91,11 +91,12 @@ public abstract class BasePaperController
         handleInputParams(paperSearch);
         final User user = getUser(principal);
         final Page<P> paperPage = paperService.getPapersAccordingToCurrentUser(paperSearch, user);
-        return paperPage.map(paper -> {
+        Page<S_P_DTO> result = paperPage.map(paper -> {
             final S_P_DTO dto = convertPaperToShortPaperDTO(paper);
             dto.setFavourite(paper.getFollowers().contains(user));
             return dto;
         });
+        return result;
     }
 
     protected abstract S_P_DTO convertPaperToShortPaperDTO(P paper);

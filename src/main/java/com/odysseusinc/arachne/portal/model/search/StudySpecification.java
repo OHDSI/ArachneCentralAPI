@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Optional;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Fetch;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
@@ -49,6 +50,7 @@ public class StudySpecification<T extends AbstractUserStudyListItem> implements 
                                  final CriteriaBuilder cb) {
 
         final Path<Study> user = root.get("user");
+        Fetch<Object, Object> study1 = root.fetch("study");
         final Path<Study> study = root.get("study");
         final Path<String> title = study.get("title");
         final Path<StudyStatus> studyStatus = study.get("status");
