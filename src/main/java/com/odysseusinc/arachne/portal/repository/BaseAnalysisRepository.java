@@ -48,8 +48,5 @@ public interface BaseAnalysisRepository<T extends Analysis> extends EntityGraphJ
 
     void deleteByIdIn(List<Long> ids);
 
-//    @EntityGraph(
-//            attributePaths = { "submissions", "submissions.author", "submissions.submissionGroup", "submissions.dataSource" },
-//            type = EntityGraph.EntityGraphType.LOAD)
     T findById(Long id, com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph entityGraph);
 }

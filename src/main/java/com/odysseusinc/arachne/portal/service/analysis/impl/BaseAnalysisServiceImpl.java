@@ -336,7 +336,6 @@ public abstract class BaseAnalysisServiceImpl<
                         "submissions.submissionGroup",
                         "submissions.dataSource")
         );
-//        return super.getById(id);
     }
 
 
