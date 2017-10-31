@@ -35,6 +35,7 @@ import static com.odysseusinc.arachne.portal.service.impl.submission.SubmissionA
 import static com.odysseusinc.arachne.portal.service.impl.submission.SubmissionActionType.PUBLISH;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
+import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraphUtils;
 import com.google.common.base.Objects;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
@@ -327,8 +328,18 @@ public abstract class BaseAnalysisServiceImpl<
     @Override
     public A getById(Long id) throws NotExistException {
 
-        return super.getById(id);
+        return analysisRepository.findById(
+                id,
+                EntityGraphUtils.fromAttributePaths(
+                        "submissions",
+                        "submissions.author",
+                        "submissions.submissionGroup",
+                        "submissions.dataSource")
+        );
+//        return super.getById(id);
     }
+
+
 
     @Override
     public List<A> list(User user, Long studyId) throws PermissionDeniedException, NotExistException {
