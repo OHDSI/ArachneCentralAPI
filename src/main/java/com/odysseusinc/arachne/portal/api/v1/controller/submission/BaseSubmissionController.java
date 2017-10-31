@@ -66,15 +66,18 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import javax.validation.constraints.Size;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
+@Validated
 public abstract class BaseSubmissionController<T extends Submission, A extends Analysis, DTO extends SubmissionDTO>
         extends BaseController {
 
@@ -167,6 +170,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     public JsonResult<Boolean> uploadSubmissionResults(
             Principal principal,
             @RequestParam("submissionId") Long id,
+            @Size(min = 1, message = "Label cannot be empty") @RequestParam String label,
             @RequestParam MultipartFile file
     ) throws IOException, NotExistException, ValidationException {
 

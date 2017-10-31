@@ -51,16 +51,19 @@ import java.io.InputStream;
 import java.security.Principal;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.domain.Page;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
+@Validated
 public abstract class BasePaperController
         <P extends Paper,
         PS extends PaperSearch,
@@ -164,7 +167,7 @@ public abstract class BasePaperController
     public void uploadFile(
             Principal principal,
             @RequestParam(name = "file", required = false) MultipartFile multipartFile,
-            @RequestParam String label,
+            @Size(min = 1, message = "Label cannot be empty") @RequestParam String label,
             @RequestParam(required = false) String link,
             @RequestParam("type") PaperFileType type,
             @PathVariable("id") @NotNull Long id

@@ -43,6 +43,7 @@ import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.exception.WrongFileFormatException;
 import java.io.IOException;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -214,5 +215,15 @@ public class ExceptionHandlingController extends BaseController {
         JsonResult result = new JsonResult(SYSTEM_ERROR);
         result.setErrorMessage(ex.getMessage());
         return result;
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<JsonResult> exceptionHandler(ConstraintViolationException ex) {
+        StringBuilder messages = new StringBuilder();
+        ex.getConstraintViolations().forEach(violation -> messages.append(violation.getMessage() + "\n"));
+        LOGGER.error(messages.toString(), ex);
+        JsonResult result = new JsonResult(VALIDATION_ERROR);
+        result.setErrorMessage(messages.toString());
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 }

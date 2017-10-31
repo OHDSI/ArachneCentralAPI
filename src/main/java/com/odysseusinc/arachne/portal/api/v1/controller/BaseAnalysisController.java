@@ -76,6 +76,7 @@ import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
 import com.odysseusinc.arachne.portal.util.ImportedFile;
 import com.odysseusinc.arachne.portal.util.ZipUtil;
 import io.swagger.annotations.ApiOperation;
+import javax.validation.constraints.Size;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.assertj.core.api.exception.RuntimeIOException;
@@ -92,6 +93,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -120,6 +122,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import java.util.zip.ZipOutputStream;
 
+@Validated
 public abstract class BaseAnalysisController<T extends Analysis,
         D extends AnalysisDTO,
         DN extends DataNode,
@@ -371,7 +374,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
     @RequestMapping(value = "/api/v1/analysis-management/analyses/{analysisId}/upload", method = POST)
     public JsonResult<List<AnalysisFileDTO>> uploadFile(Principal principal,
                                                         @RequestParam(required = false) MultipartFile[] file,
-                                                        @RequestParam String label,
+                                                        @Size(min = 1, message = "Label cannot be empty") @RequestParam String label,
                                                         @RequestParam(required = false) Boolean isExecutable,
                                                         @RequestParam(required = false) String link,
                                                         @PathVariable("analysisId") Long id)
