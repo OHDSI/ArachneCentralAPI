@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal;
 
+import com.cosium.spring.data.jpa.entity.graph.repository.support.EntityGraphJpaRepositoryFactoryBean;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -37,7 +38,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @ComponentScan(basePackages = {"com.odysseusinc.arachne.*"})
 @EnableAutoConfiguration
 @EnableScheduling
-@EnableJpaRepositories(basePackages = {"com.odysseusinc.arachne.*"})
+@EnableJpaRepositories(
+        repositoryFactoryBeanClass = EntityGraphJpaRepositoryFactoryBean.class,
+        basePackages = {"com.odysseusinc.arachne.*"}
+)
 @EnableAspectJAutoProxy
 @EnableJms
 @EntityScan(basePackages = {"com.odysseusinc.arachne.*"})
