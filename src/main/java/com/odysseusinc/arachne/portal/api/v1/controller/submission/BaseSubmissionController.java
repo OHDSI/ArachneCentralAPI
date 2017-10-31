@@ -28,6 +28,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
+import com.google.common.collect.Sets;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisExecutionStatusDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.api.v1.controller.BaseController;
@@ -44,7 +45,10 @@ import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.Analysis;
+import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.DataSourceStatus;
 import com.odysseusinc.arachne.portal.model.ResultFile;
+import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
 import com.odysseusinc.arachne.portal.model.SubmissionStatus;
@@ -60,12 +64,16 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import org.apache.commons.collections.CollectionUtils;
 import javax.validation.constraints.Size;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,9 +104,9 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     @RequestMapping(value = "/api/v1/analysis-management/{analysisId}/submissions", method = POST)
     public JsonResult<List<DTO>> createSubmission(
             Principal principal,
-            @RequestBody CreateSubmissionsDTO createSubmissionsDTO,
+            @RequestBody @Validated CreateSubmissionsDTO createSubmissionsDTO,
             @PathVariable("analysisId") Long analysisId)
-            throws PermissionDeniedException, NotExistException, IOException, NoExecutableFileException {
+            throws PermissionDeniedException, NotExistException, IOException, NoExecutableFileException, ValidationException {
 
         final JsonResult<List<DTO>> result;
         if (principal == null) {
@@ -109,6 +117,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
             throw new PermissionDeniedException();
         }
         Analysis analysis = analysisService.getById(analysisId);
+
         final List<Submission> submissions = AnalysisHelper.createSubmission(submissionService,
                 createSubmissionsDTO.getDataSources(), user, analysis);
 
@@ -120,6 +129,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
         result.setResult(submissionDTOs);
         return result;
     }
+
 
     @ApiOperation("Approve submission for execute")
     @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/approve", method = POST)
