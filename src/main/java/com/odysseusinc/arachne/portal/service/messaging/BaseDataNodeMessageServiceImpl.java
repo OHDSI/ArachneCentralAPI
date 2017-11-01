@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import javax.jms.JMSException;
 import javax.jms.ObjectMessage;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.destination.DestinationResolver;
 
@@ -43,8 +44,8 @@ public abstract class BaseDataNodeMessageServiceImpl<DN extends DataNode> implem
     private final JmsTemplate jmsTemplate;
     private final DestinationResolver destinationResolver;
 
-    private Long waitForResponse = 30000L;
-    private Long messageLifeTime = 30000L;
+    @Value("${datanode.messaging.importTimeout}")
+    private Long messagingTimeout;
 
     public BaseDataNodeMessageServiceImpl(JmsTemplate jmsTemplate) {
 
@@ -54,6 +55,9 @@ public abstract class BaseDataNodeMessageServiceImpl<DN extends DataNode> implem
 
     @Override
     public <T> List<T> getDataList(DN dataNode, CommonAnalysisType analysisType) throws JMSException {
+
+        Long waitForResponse = messagingTimeout;
+        Long messageLifeTime = messagingTimeout;
 
         String baseQueue = MessagingUtils.EntitiesList.getBaseQueue(dataNode);
 
