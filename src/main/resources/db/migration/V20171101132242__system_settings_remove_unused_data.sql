@@ -20,5 +20,5 @@
  *
  */
 
-ALTER TABLE datanodes ALTER COLUMN sid DROP NOT NULL;
-ALTER TABLE data_sources ALTER COLUMN uuid DROP NOT NULL;
+DELETE FROM system_settings
+WHERE name IN ('portal.url', 'zookeper.host', 'zookeper.port');
