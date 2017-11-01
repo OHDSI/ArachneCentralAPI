@@ -45,10 +45,7 @@ public abstract class BaseDataNodeMessageServiceImpl<DN extends DataNode> implem
     private final DestinationResolver destinationResolver;
 
     @Value("${datanode.messaging.importTimeout}")
-    private Long waitForResponse;
-
-    @Value("${datanode.messaging.importTimeout}")
-    private Long messageLifeTime;
+    private Long messagingTimeout;
 
     public BaseDataNodeMessageServiceImpl(JmsTemplate jmsTemplate) {
 
@@ -58,6 +55,9 @@ public abstract class BaseDataNodeMessageServiceImpl<DN extends DataNode> implem
 
     @Override
     public <T> List<T> getDataList(DN dataNode, CommonAnalysisType analysisType) throws JMSException {
+
+        Long waitForResponse = messagingTimeout;
+        Long messageLifeTime = messagingTimeout;
 
         String baseQueue = MessagingUtils.EntitiesList.getBaseQueue(dataNode);
 
