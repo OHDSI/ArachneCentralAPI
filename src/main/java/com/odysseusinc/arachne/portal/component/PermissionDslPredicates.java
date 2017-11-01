@@ -43,8 +43,8 @@ public class PermissionDslPredicates {
     }
 
     public static <T extends AnalysisFile> Predicate<T> analysisFileAuthorIs(ArachneUser user) {
-        return analysisFile -> Objects.nonNull(analysisFile.getAnalysis().getAuthor())
-                && Objects.equals(analysisFile.getAnalysis().getAuthor().getId(), user.getId());
+        return analysisFile -> Objects.nonNull(analysisFile.getAuthor())
+                && Objects.equals(analysisFile.getAuthor().getId(), user.getId());
     }
 
     public static <T extends AnalysisFile> Predicate<T> userIsLeadInvestigator(ArachneUser user) {
