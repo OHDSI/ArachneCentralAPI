@@ -83,6 +83,7 @@ import org.ohdsi.sql.SqlRender;
 import org.ohdsi.sql.SqlTranslate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.domain.Sort;
 import org.springframework.jms.core.JmsTemplate;
@@ -140,6 +141,9 @@ public abstract class BaseAnalysisController<T extends Analysis,
     protected final DestinationResolver destinationResolver;
     protected final ImportService importService;
     protected final BaseSubmissionService<Submission, Analysis> submissionService;
+
+    @Value("${datanode.messaging.importTimeout}")
+    private Long datanodeImportTimeout;
 
     public BaseAnalysisController(BaseAnalysisService analysisService, BaseSubmissionService submissionService, DataReferenceService dataReferenceService, JmsTemplate jmsTemplate, GenericConversionService conversionService, BaseDataNodeService baseDataNodeService, BaseDataSourceService dataSourceService, ImportService importService, SimpMessagingTemplate wsTemplate) {
 
@@ -621,8 +625,8 @@ public abstract class BaseAnalysisController<T extends Analysis,
     protected List<MultipartFile> getEntityFiles(DataReferenceDTO entityReference, DataNode dataNode, CommonAnalysisType entityType)
             throws JMSException, IOException {
 
-        Long waitForResponse = 60000L;
-        Long messageLifeTime = 60000L;
+        Long waitForResponse = datanodeImportTimeout;
+        Long messageLifeTime = datanodeImportTimeout;
         String baseQueue = MessagingUtils.Entities.getBaseQueue(dataNode);
         CommonEntityRequestDTO request = new CommonEntityRequestDTO(entityReference.getEntityGuid(), entityType);
 
