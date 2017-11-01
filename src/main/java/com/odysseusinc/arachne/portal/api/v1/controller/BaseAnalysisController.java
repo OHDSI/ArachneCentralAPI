@@ -49,6 +49,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.FileContentDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.OptionDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdateNotificationDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.UploadFileDTO;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.NotEmptyException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
@@ -76,9 +77,7 @@ import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
 import com.odysseusinc.arachne.portal.util.ImportedFile;
 import com.odysseusinc.arachne.portal.util.ZipUtil;
 import io.swagger.annotations.ApiOperation;
-import javax.validation.constraints.Size;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.assertj.core.api.exception.RuntimeIOException;
 import org.ohdsi.sql.SqlRender;
 import org.ohdsi.sql.SqlTranslate;
@@ -93,7 +92,6 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -122,7 +120,6 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import java.util.zip.ZipOutputStream;
 
-@Validated
 public abstract class BaseAnalysisController<T extends Analysis,
         D extends AnalysisDTO,
         DN extends DataNode,
@@ -332,7 +329,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
                     final String fileName = baseName + "."
                             + dialect.getLabel().replaceAll(" ", "-")
                             + "." + extension;
-                    try(final Reader reader = new StringReader(sql)) {
+                    try (final Reader reader = new StringReader(sql)) {
                         ZipUtil.addZipEntry(zos, fileName, reader);
                     }
                 }
@@ -373,10 +370,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
     @ApiOperation("Upload file to attach to analysis.")
     @RequestMapping(value = "/api/v1/analysis-management/analyses/{analysisId}/upload", method = POST)
     public JsonResult<List<AnalysisFileDTO>> uploadFile(Principal principal,
-                                                        @RequestParam(required = false) MultipartFile[] file,
-                                                        @Size(min = 1, message = "Label cannot be empty") @RequestParam String label,
-                                                        @RequestParam(required = false) Boolean isExecutable,
-                                                        @RequestParam(required = false) String link,
+                                                        @Valid UploadFileDTO uploadFileDTO,
                                                         @PathVariable("analysisId") Long id)
             throws PermissionDeniedException, NotExistException, IOException {
 
@@ -387,14 +381,12 @@ public abstract class BaseAnalysisController<T extends Analysis,
 
         List<AnalysisFileDTO> createdFiles = new ArrayList<>();
 
-        if (ArrayUtils.isNotEmpty(file)) {
-            for (MultipartFile multipartFile : file) {
-                AnalysisFile createdFile = analysisService.saveFile(multipartFile, user, analysis, label, isExecutable, null);
-                createdFiles.add(conversionService.convert(createdFile, AnalysisFileDTO.class));
-            }
+        if (uploadFileDTO.getFile() != null) {
+            AnalysisFile createdFile = analysisService.saveFile(uploadFileDTO.getFile(), user, analysis, uploadFileDTO.getLabel(), uploadFileDTO.getExecutable(), null);
+            createdFiles.add(conversionService.convert(createdFile, AnalysisFileDTO.class));
         } else {
-            if (link != null && !link.isEmpty()) {
-                AnalysisFile createdFile = analysisService.saveFile(link, user, analysis, label, isExecutable);
+            if (uploadFileDTO.getLink() != null && !uploadFileDTO.getLink().isEmpty()) {
+                AnalysisFile createdFile = analysisService.saveFile(uploadFileDTO.getLink(), user, analysis, uploadFileDTO.getLabel(), uploadFileDTO.getExecutable());
                 createdFiles.add(conversionService.convert(createdFile, AnalysisFileDTO.class));
             } else {
                 result.setErrorCode(VALIDATION_ERROR.getCode());

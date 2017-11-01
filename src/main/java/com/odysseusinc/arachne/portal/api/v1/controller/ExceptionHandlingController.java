@@ -43,12 +43,12 @@ import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.exception.WrongFileFormatException;
 import java.io.IOException;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -217,13 +217,15 @@ public class ExceptionHandlingController extends BaseController {
         return result;
     }
 
-    @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<JsonResult> exceptionHandler(ConstraintViolationException ex) {
-        StringBuilder messages = new StringBuilder();
-        ex.getConstraintViolations().forEach(violation -> messages.append(violation.getMessage() + "\n"));
-        LOGGER.error(messages.toString(), ex);
-        JsonResult result = new JsonResult(VALIDATION_ERROR);
-        result.setErrorMessage(messages.toString());
+    @ExceptionHandler(BindException.class)
+    public ResponseEntity<JsonResult> exceptionHandler(BindException ex) {
+
+        LOGGER.warn(ex.getMessage());
+        JsonResult result = new JsonResult<>(VALIDATION_ERROR);
+        result.setErrorMessage("Incorrect data");
+        if (ex.hasErrors()) {
+            ex.getFieldErrors().forEach(er -> result.getValidatorErrors().put(er.getField(), er.getDefaultMessage()));
+        }
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 }

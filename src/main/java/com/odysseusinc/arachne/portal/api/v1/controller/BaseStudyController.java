@@ -48,6 +48,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.StudyListDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdateNotificationDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdateParticipantDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.UploadFileDTO;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
@@ -85,7 +86,6 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,15 +96,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.multipart.MultipartFile;
 
-@Validated
 public abstract class BaseStudyController<
         T extends Study,
         DS extends DataSource,
@@ -368,23 +365,19 @@ public abstract class BaseStudyController<
     @RequestMapping(value = "/api/v1/study-management/studies/{studyId}/upload", method = POST)
     public JsonResult<Boolean> uploadFile(
             Principal principal,
-            @RequestParam(required = false) MultipartFile[] file,
-            @Size(min = 1, message = "Label cannot be empty") @RequestParam String label,
-            @RequestParam(required = false) String link,
+            @Valid UploadFileDTO uploadFileDTO,
             @PathVariable("studyId") @NotNull Long id
     ) throws PermissionDeniedException, NotExistException, IOException {
 
         JsonResult<Boolean> result = null;
         final User user = getUser(principal);
-        if (file != null && file.length > 0) {
-            for (MultipartFile multipartFile : file) {
-                studyService.saveFile(multipartFile, id, label, user);
-                result = new JsonResult<>(NO_ERROR);
-                result.setResult(Boolean.TRUE);
-            }
+        if (uploadFileDTO.getFile() != null) {
+            studyService.saveFile(uploadFileDTO.getFile(), id, uploadFileDTO.getLabel(), user);
+            result = new JsonResult<>(NO_ERROR);
+            result.setResult(Boolean.TRUE);
         } else {
-            if (link != null && !link.isEmpty()) {
-                studyService.saveFile(link, id, label, user);
+            if (uploadFileDTO.getLink() != null && !uploadFileDTO.getLink().isEmpty()) {
+                studyService.saveFile(uploadFileDTO.getLink(), id, uploadFileDTO.getLabel(), user);
                 result = new JsonResult<>(NO_ERROR);
                 result.setResult(Boolean.TRUE);
             } else {

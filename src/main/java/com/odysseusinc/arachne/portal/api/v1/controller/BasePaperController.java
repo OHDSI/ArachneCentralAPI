@@ -33,6 +33,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.PaperDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.PaperFileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ShortPaperDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdatePaperDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.UploadFileDTO;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.NotUniqueException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
@@ -50,6 +51,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.Principal;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import org.apache.commons.io.IOUtils;
@@ -166,14 +168,12 @@ public abstract class BasePaperController
     @RequestMapping(value = "/{id}/files", method = POST)
     public void uploadFile(
             Principal principal,
-            @RequestParam(name = "file", required = false) MultipartFile multipartFile,
-            @Size(min = 1, message = "Label cannot be empty") @RequestParam String label,
-            @RequestParam(required = false) String link,
+            @Valid UploadFileDTO uploadFileDTO,
             @RequestParam("type") PaperFileType type,
             @PathVariable("id") @NotNull Long id
     ) throws PermissionDeniedException, IOException, ValidationException {
 
-        paperService.uploadPaperFile(principal, multipartFile, label, link, type, id);
+        paperService.uploadPaperFile(principal, uploadFileDTO.getFile(), uploadFileDTO.getLabel(), uploadFileDTO.getLink(), type, id);
     }
 
     @ApiOperation("Get file of the Paper")
