@@ -90,6 +90,7 @@ import org.springframework.jms.support.destination.DestinationResolver;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.util.ReflectionUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -385,7 +386,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
             AnalysisFile createdFile = analysisService.saveFile(uploadFileDTO.getFile(), user, analysis, uploadFileDTO.getLabel(), uploadFileDTO.getExecutable(), null);
             createdFiles.add(conversionService.convert(createdFile, AnalysisFileDTO.class));
         } else {
-            if (uploadFileDTO.getLink() != null && !uploadFileDTO.getLink().isEmpty()) {
+            if (StringUtils.hasText(uploadFileDTO.getLink())) {
                 AnalysisFile createdFile = analysisService.saveFile(uploadFileDTO.getLink(), user, analysis, uploadFileDTO.getLabel(), uploadFileDTO.getExecutable());
                 createdFiles.add(conversionService.convert(createdFile, AnalysisFileDTO.class));
             } else {
