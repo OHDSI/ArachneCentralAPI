@@ -173,9 +173,9 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
     @Override
     @PreAuthorize("hasPermission(#analysisId,  'Analysis', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
-    public ResultFile getResultFile(User user, Long analysisId, String uuid) throws PermissionDeniedException {
+    public ResultFile getResultFileAndCheckPermission(User user, Long analysisId, String uuid) throws PermissionDeniedException {
 
-        return super.getResultFile(user, analysisId, uuid);
+        return super.getResultFileAndCheckPermission(user, analysisId, uuid);
     }
 
     @Override

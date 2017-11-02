@@ -557,6 +557,12 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     }
 
     @Override
+    public SubmissionStatusHistoryElement getSubmissionStatusHistoryElementById(Long id) {
+
+        return submissionStatusHistoryRepository.findOne(id);
+    }
+
+    @Override
     public void deleteSubmissions(List<T> submissions) {
 
         submissionRepository.delete(submissions);
@@ -581,9 +587,9 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     }
 
     @Override
-    public ResultFile getResultFile(User user, Long analysisId, String uuid) throws PermissionDeniedException {
+    public ResultFile getResultFileAndCheckPermission(User user, Long analysisId, String uuid) throws PermissionDeniedException {
 
-        ResultFile byUuid = resultFileRepository.findByUuid(uuid);
+        ResultFile byUuid = getResultFileByUUID(uuid);
         Submission submission = byUuid.getSubmission();
         if (!(EXECUTED_PUBLISHED.equals(submission.getStatus()) || FAILED_PUBLISHED.equals(submission.getStatus()))) {
             if (user == null || !isDataNodeOwner(submission.getDataSource().getDataNode(), user)) {
@@ -591,6 +597,12 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
             }
         }
         return byUuid;
+    }
+
+    @Override
+    public ResultFile getResultFileByUUID(String uuid) {
+
+        return resultFileRepository.findByUuid(uuid);
     }
 
     @Override
@@ -672,5 +684,9 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         }
     }
 
+    @Override
+    public Integer findPositionInAnalysis(Submission submission) {
 
+        return submissionRepository.findSubmissionPositionInAnalysis(submission.getAnalysis().getId(), submission.getId());
+    }
 }

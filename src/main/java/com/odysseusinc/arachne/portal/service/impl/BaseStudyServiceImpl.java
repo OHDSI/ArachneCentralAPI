@@ -630,6 +630,12 @@ public abstract class BaseStudyServiceImpl<
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
     public StudyFile getStudyFile(Long studyId, String fileName) {
 
+        return getStudyFileUnsecured(studyId, fileName);
+    }
+
+    @Override
+    public StudyFile getStudyFileUnsecured(Long studyId, String fileName) {
+
         return studyFileRepository.findByUuid(fileName);
     }
 

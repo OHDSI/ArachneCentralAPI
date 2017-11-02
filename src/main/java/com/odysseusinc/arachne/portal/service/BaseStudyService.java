@@ -87,6 +87,8 @@ public interface BaseStudyService<
 
     StudyFile getStudyFile(Long studyId, String fileName);
 
+    StudyFile getStudyFileUnsecured(Long studyId, String fileName);
+
     Boolean getDeleteStudyFile(Long studyId, String uuid) throws FileNotFoundException;
 
     List<StudyDataSourceLink> listApprovedDataSources(Long studyId);

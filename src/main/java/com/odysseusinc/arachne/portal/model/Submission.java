@@ -73,7 +73,7 @@ public class Submission implements HasArachnePermissions, Breadcrumb, Invitation
     @ManyToOne(fetch = FetchType.LAZY)
     private User author;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     private DataSource dataSource;
 
     @LazyCollection(LazyCollectionOption.EXTRA)
@@ -106,6 +106,19 @@ public class Submission implements HasArachnePermissions, Breadcrumb, Invitation
 
     @Column
     private String token;
+
+    @Override
+    public boolean equals(Object obj) {
+
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        Submission s = (Submission) obj;
+        return java.util.Objects.equals(id, s.id);
+    }
 
     @Transient
     private Set<ArachnePermission> permissions;
@@ -267,6 +280,7 @@ public class Submission implements HasArachnePermissions, Breadcrumb, Invitation
         this.submissionGroup = submissionGroup;
     }
 
+    //TODO should be moved to service
     @PostLoad
     @PostPersist
     @PostUpdate

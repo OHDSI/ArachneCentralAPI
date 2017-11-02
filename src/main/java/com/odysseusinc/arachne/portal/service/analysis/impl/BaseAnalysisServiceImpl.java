@@ -328,16 +328,18 @@ public abstract class BaseAnalysisServiceImpl<
     @Override
     public A getById(Long id) throws NotExistException {
 
-        return analysisRepository.findById(
-                id,
-                EntityGraphUtils.fromAttributePaths(
-                        "submissions",
-                        "submissions.author",
-                        "submissions.submissionGroup",
-                        "submissions.dataSource")
-        );
-    }
+        return analysisRepository.getOne(id);
 
+//        return analysisRepository.findById(
+//                id,
+//                EntityGraphUtils.fromAttributePaths(
+//                        "submissions",
+//                        "submissions.author",
+//                        "submissions.submissionGroup",
+//                        "submissions.submissionInsight",
+//                        "submissions.dataSource")
+//        );
+    }
 
 
     @Override
@@ -520,6 +522,12 @@ public abstract class BaseAnalysisServiceImpl<
     @PreAuthorize("hasPermission(#analysisId,  'Analysis', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
     public AnalysisFile getAnalysisFile(Long analysisId, String uuid) {
+
+        return getAnalysisFileUnsecured(uuid);
+    }
+
+    @Override
+    public AnalysisFile getAnalysisFileUnsecured(String uuid) {
 
         return analysisFileRepository.findByUuid(uuid);
     }

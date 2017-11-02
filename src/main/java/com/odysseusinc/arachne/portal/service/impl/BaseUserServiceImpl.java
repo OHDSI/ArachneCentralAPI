@@ -326,10 +326,17 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     }
 
     @Override
+    public U getByIdAndInitializeCollections(Long id) {
+
+        return initUserCollections(getById(id));
+    }
+
+    @Override
     public U getById(Long id) {
 
-        return initUserCollections(userRepository.findOne(id));
+        return userRepository.findOne(id);
     }
+
 
     @Override
     public List<U> getAllByIDs(List<Long> ids) {
@@ -573,11 +580,6 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     private U initUserCollections(U user) {
 
         if (user != null) {
-            try {
-                user.setProfessionalType(professionalTypeService.getById(user.getProfessionalType().getId()));
-            } catch (NotExistException ex) {
-                LOGGER.error(ex.getMessage(), ex);
-            }
             user.setRoles(roleRepository.findByUser(user.getId()));
             user.setLinks(userLinkService.findByUser(user));
             user.setPublications(userPublicationService.findByUser(user));

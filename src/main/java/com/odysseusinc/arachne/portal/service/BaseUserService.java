@@ -83,6 +83,8 @@ public interface BaseUserService<U extends User, S extends Skill> {
 
     void sendRemindPasswordEmail(U user, String token, String registrantToken, String callbackUrl);
 
+    U getByIdAndInitializeCollections(Long id);
+
     U getById(Long id);
 
     List<U> getAllByIDs(List<Long> ids);

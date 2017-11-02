@@ -77,6 +77,8 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
 
     AnalysisFile getAnalysisFile(Long analysisId, String uuid);
 
+    AnalysisFile getAnalysisFileUnsecured(String uuid);
+
     void lockAnalysisFiles(Long analysisId, Boolean locked) throws NotExistException;
 
     AnalysisUnlockRequest sendAnalysisUnlockRequest(
