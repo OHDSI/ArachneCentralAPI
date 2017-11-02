@@ -36,8 +36,6 @@ import io.swagger.annotations.ApiOperation;
 import java.security.Principal;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.StreamSupport;
 import javax.validation.Valid;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.validation.BindingResult;
@@ -134,17 +132,12 @@ public abstract class BaseSkillController<S extends Skill, U extends User> {
     @RequestMapping(value = "/api/v1/user-management/skills", method = RequestMethod.GET)
     public JsonResult<List<SkillDTO>> list(Principal principal) {
 
-        U user = userService.getByEmail(principal.getName());
-        Set<Skill> userSkills = user.getSkills();
+        Long userId = userService.getByEmail(principal.getName()).getId();
         JsonResult<List<SkillDTO>> result;
-        Iterable<S> skills = skillService.list();
+        List<S> skills = skillService.getAllExpectOfUserSkills(userId);
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
         List<SkillDTO> skillDTOs = new LinkedList<>();
-        for (S skill : skills) {
-            if (!userSkills.contains(skill)) {
-                skillDTOs.add(conversionService.convert(skill, SkillDTO.class));
-            }
-        }
+        skills.forEach(skill -> skillDTOs.add(conversionService.convert(skill, SkillDTO.class)));
         result.setResult(skillDTOs);
         return result;
     }
