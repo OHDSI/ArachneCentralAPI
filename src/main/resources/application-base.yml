@@ -1,0 +1,109 @@
+# suppress inspection "SpringBootApplicationProperties" for whole file
+server:
+  ssl:
+    enabled: true
+    key-store: classpath:keystore.jks
+    key-store-password: odysseus
+    key-password: odysseus
+    keyAlias: arachne
+logging:
+  level: info
+spring:
+  jpa:
+    database: POSTGRESQL
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        ddl-auto: none
+        connection:
+          CharSet: utf8
+          characterEncoding: utf8
+          useUnicode: true
+    show-sql: false
+  datasource:
+    url: jdbc:postgresql://localhost:5434/arachne_portal
+    username: ohdsi
+    password: ENC(0Lpfvg9UPAyaaZpSIqwaDg==)
+    driver-class-name: org.postgresql.Driver
+    max-active: 400
+    connection-test-query: select 1
+  cache:
+    jcache:
+      config: classpath:ehcache.xml
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: odysseusinc.notifier
+    properties:
+      mail:
+        smtp.auth: true
+        starttls:
+          enable: true
+          required: true
+  mvc:
+    view:
+      prefix: /
+      suffix: .html
+  thymeleaf:
+    enabled: false
+  http:
+    multipart:
+      max-file-size: 128MB
+      max-request-size: 128MB
+  activemq:
+    broker-url: vm://localhost?broker.persistent=true
+    packages:
+      trust-all: true
+build:
+  number: @build.number@
+  id: @build.id@
+flyway:
+  datasource:
+    driverClassName: org.postgresql.Driver
+    url: ${spring.datasource.url}
+    username: ${spring.datasource.username}
+    password: ${spring.datasource.password}
+  baseline-on-migrate: true
+  placeholderReplacement: false
+  out-of-order: true
+arachne:
+  token:
+    secret: sssshhhh!
+    header: Arachne-Auth-Token
+    expiration: 604800
+  systemToken:
+    header: Arachne-System-Token
+  resetPasswordToken:
+    expiresMinutes: 60
+  solrServerUrl: http://localhost:8983/solr
+  mail:
+    notifier: odysseusinc.notifier@gmail.com
+swagger:
+ enable: true
+
+project:
+  version: @project.version@
+
+files:
+  store:
+    path: /var/arachne/files
+  stdout:
+    name: stdout.txt
+
+analisis:
+  file:
+    maxsize: 1048576
+user:
+  enabled:
+    default: true
+
+# Available methods:
+# NATIVE
+portal:
+  authMethod: NATIVE
+  hostsWhiteList: community.arachnenetwork.com
+
+jasypt:
+  encryptor:
+    password:
+#logging.level.org.hibernate.SQL=DEBUG
