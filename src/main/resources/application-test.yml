@@ -1,0 +1,23 @@
+server:
+  ssl:
+    enabled: false
+logging:
+  level: debug
+portal:
+  hostsWhiteList: testcommunity.arachnenetwork.com
+healthcheck:
+  journal:
+    purgeInterval: 3600000
+datanode:
+  healthcheck:
+    journal:
+      lifetime: 12000000
+      calcInterval: 6000000
+datasource:
+  healthcheck:
+    journal:
+      lifetime: 6000000
+      calcInterval: 3000000
+submission:
+  invalidate:
+    cron: 0 0 */1 * * ?
