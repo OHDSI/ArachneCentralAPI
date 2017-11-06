@@ -328,8 +328,6 @@ public abstract class BaseAnalysisServiceImpl<
     @Override
     public A getById(Long id) throws NotExistException {
 
-//        return analysisRepository.getOne(id);
-
         return analysisRepository.findById(
                 id,
                 EntityGraphUtils.fromAttributePaths(

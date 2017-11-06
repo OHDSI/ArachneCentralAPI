@@ -228,7 +228,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     @Override
     public U getByUnverifiedEmail(final String email) {
 
-        return userRepository.findByEmail(email, EntityGraphUtils.fromAttributePaths("roles"));
+        return userRepository.findByEmail(email, EntityGraphUtils.fromAttributePaths("roles", "professionalType"));
     }
 
     @Override
