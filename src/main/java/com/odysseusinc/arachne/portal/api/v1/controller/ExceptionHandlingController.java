@@ -48,7 +48,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -215,17 +214,5 @@ public class ExceptionHandlingController extends BaseController {
         JsonResult result = new JsonResult(SYSTEM_ERROR);
         result.setErrorMessage(ex.getMessage());
         return result;
-    }
-
-    @ExceptionHandler(BindException.class)
-    public ResponseEntity<JsonResult> exceptionHandler(BindException ex) {
-
-        LOGGER.warn(ex.getMessage());
-        JsonResult result = new JsonResult<>(VALIDATION_ERROR);
-        result.setErrorMessage("Incorrect data");
-        if (ex.hasErrors()) {
-            ex.getFieldErrors().forEach(er -> result.getValidatorErrors().put(er.getField(), er.getDefaultMessage()));
-        }
-        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 }

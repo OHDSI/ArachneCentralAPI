@@ -207,7 +207,7 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
                 dataNodeUserRepository.delete(existingDataNodeUser);
             }
         });
-        dataNodeUsers.stream().filter(user -> Objects.nonNull(user.getUser())).forEach(dataNodeUser -> {
+        dataNodeUsers.forEach(dataNodeUser -> {
             dataNodeUser.setDataNode(dataNode);
             saveOrUpdateDataNodeUser(dataNode, dataNodeUser);
         });

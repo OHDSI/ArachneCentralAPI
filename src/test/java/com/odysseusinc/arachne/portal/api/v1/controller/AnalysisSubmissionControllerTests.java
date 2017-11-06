@@ -347,7 +347,6 @@ public class AnalysisSubmissionControllerTests extends BaseControllerTest {
                         .file(multipartFile)
                         .contentType(MULTIPART_FORM_DATA)
                         .param("submissionId", "1")
-                        .param("label", multipartFile.getName())
 
         ).andExpect(NO_ERROR_CODE);
     }

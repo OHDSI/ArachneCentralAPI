@@ -48,7 +48,6 @@ import com.odysseusinc.arachne.portal.api.v1.dto.StudyListDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdateNotificationDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdateParticipantDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.UploadFileDTO;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
@@ -95,13 +94,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 public abstract class BaseStudyController<
         T extends Study,
@@ -366,19 +365,23 @@ public abstract class BaseStudyController<
     @RequestMapping(value = "/api/v1/study-management/studies/{studyId}/upload", method = POST)
     public JsonResult<Boolean> uploadFile(
             Principal principal,
-            @Valid UploadFileDTO uploadFileDTO,
+            @RequestParam(required = false) MultipartFile[] file,
+            @RequestParam String label,
+            @RequestParam(required = false) String link,
             @PathVariable("studyId") @NotNull Long id
     ) throws PermissionDeniedException, NotExistException, IOException {
 
         JsonResult<Boolean> result = null;
         final User user = getUser(principal);
-        if (uploadFileDTO.getFile() != null) {
-            studyService.saveFile(uploadFileDTO.getFile(), id, uploadFileDTO.getLabel(), user);
-            result = new JsonResult<>(NO_ERROR);
-            result.setResult(Boolean.TRUE);
+        if (file != null && file.length > 0) {
+            for (MultipartFile multipartFile : file) {
+                studyService.saveFile(multipartFile, id, label, user);
+                result = new JsonResult<>(NO_ERROR);
+                result.setResult(Boolean.TRUE);
+            }
         } else {
-            if (StringUtils.hasText(uploadFileDTO.getLink())) {
-                studyService.saveFile(uploadFileDTO.getLink(), id, uploadFileDTO.getLabel(), user);
+            if (link != null && !link.isEmpty()) {
+                studyService.saveFile(link, id, label, user);
                 result = new JsonResult<>(NO_ERROR);
                 result.setResult(Boolean.TRUE);
             } else {

@@ -34,13 +34,6 @@ public interface SkillRepository<S extends Skill> extends JpaRepository<S, Long>
     List<S> findByName(String name);
 
     @Query(nativeQuery = true,
-            value = "SELECT * FROM skills  WHERE lower(name) SIMILAR TO :suggestRequest LIMIT :limit")
+            value = "select * from skills  where lower(name) similar to :suggestRequest limit :limit")
     List<S> suggest(@Param("suggestRequest") String suggestRequest, @Param("limit") Integer limit);
-
-    @Query("SELECT skill FROM Skill skill " +
-            "WHERE skill.id NOT IN" +
-            "      (SELECT skill.id FROM User u" +
-            "       JOIN u.skills skill" +
-            "      WHERE u.id=:userId)")
-    List<S> getAllExpectOfUserSkills(@Param("userId") Long userId);
 }
