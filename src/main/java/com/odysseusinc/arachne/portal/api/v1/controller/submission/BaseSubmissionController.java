@@ -28,7 +28,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
-import com.google.common.collect.Sets;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisExecutionStatusDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.api.v1.controller.BaseController;
@@ -40,15 +39,13 @@ import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionFileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionStatusHistoryElementDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdateSubmissionsDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.UploadFileDTO;
 import com.odysseusinc.arachne.portal.exception.NoExecutableFileException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.Analysis;
-import com.odysseusinc.arachne.portal.model.DataSource;
-import com.odysseusinc.arachne.portal.model.DataSourceStatus;
 import com.odysseusinc.arachne.portal.model.ResultFile;
-import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
 import com.odysseusinc.arachne.portal.model.SubmissionStatus;
@@ -64,16 +61,12 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.security.Principal;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -82,7 +75,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.multipart.MultipartFile;
 
 public abstract class BaseSubmissionController<T extends Submission, A extends Analysis, DTO extends SubmissionDTO>
         extends BaseController {
@@ -178,18 +170,18 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     public JsonResult<Boolean> uploadSubmissionResults(
             Principal principal,
             @RequestParam("submissionId") Long id,
-            @RequestParam MultipartFile file
+            @Valid UploadFileDTO uploadFileDTO
     ) throws IOException, NotExistException, ValidationException {
 
         LOGGER.info("uploading result files for submission with id='{}'", id);
 
         JsonResult.ErrorCode errorCode;
         Boolean hasResult;
-        if (file == null) {
+        if (uploadFileDTO.getFile() == null) {
             errorCode = JsonResult.ErrorCode.VALIDATION_ERROR;
             hasResult = false;
         } else {
-            submissionService.uploadResultsByDataOwner(id, file);
+            submissionService.uploadResultsByDataOwner(id, uploadFileDTO.getFile());
             errorCode = JsonResult.ErrorCode.NO_ERROR;
             hasResult = true;
         }
