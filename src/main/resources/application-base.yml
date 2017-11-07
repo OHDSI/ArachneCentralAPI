@@ -102,7 +102,9 @@ user:
 portal:
   authMethod: NATIVE
   hostsWhiteList: community.arachnenetwork.com
-
+datanode:
+  messaging:
+    importTimeout: 60000
 jasypt:
   encryptor:
     password:
