@@ -29,11 +29,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class DataNodeCohortController extends BaseDataNodeCohortController<DataNode> {
+public class DataNodeCommonAnalysisController extends BaseDataNodeCommonAnalysisController<DataNode> {
 
     @Autowired
-    public DataNodeCohortController(DataNodeService dataNodeService,
-                                    DataNodeMessageService dataNodeMessageService) {
+    public DataNodeCommonAnalysisController(DataNodeService dataNodeService,
+                                            DataNodeMessageService dataNodeMessageService) {
 
         super(dataNodeService, dataNodeMessageService);
     }
