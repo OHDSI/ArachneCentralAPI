@@ -27,6 +27,8 @@ import com.odysseusinc.arachne.portal.model.DataNodeRole;
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
+
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -40,6 +42,7 @@ public class DataNodeUtils {
 
         return dataNode.getDataNodeUsers()
                 .stream()
+                .filter(u -> Objects.nonNull(u.getUser().getEnabled()) && u.getUser().getEnabled())
                 .filter(u -> u.getDataNodeRole().contains(DataNodeRole.ADMIN))
                 .map(DataNodeUser::getUser)
                 .collect(Collectors.toSet());
@@ -48,6 +51,7 @@ public class DataNodeUtils {
     public static boolean isDataNodeOwner(DataNode datanode, User user) {
 
         return datanode.getDataNodeUsers().stream()
+                .filter(u -> Objects.nonNull(u.getUser().getEnabled()) && u.getUser().getEnabled())
                 .filter(dataNodeUser -> dataNodeUser.getDataNodeRole().contains(DataNodeRole.ADMIN))
                 .anyMatch(UserPredicates.dataNodeUserEquals(user));
     }
@@ -62,6 +66,7 @@ public class DataNodeUtils {
     public static boolean isDataNodeUser(DataNode dataNode, User user) {
 
         return dataNode.getDataNodeUsers().stream()
+                .filter(u -> Objects.nonNull(u.getUser().getEnabled()) && u.getUser().getEnabled())
                 .anyMatch(UserPredicates.dataNodeUserEquals(user));
     }
 
@@ -70,6 +75,7 @@ public class DataNodeUtils {
         return currentUser != null
                 && dataNode.getDataNodeUsers()
                 .stream()
+                .filter(u -> Objects.nonNull(u.getUser().getEnabled()) && u.getUser().getEnabled())
                 .anyMatch(UserPredicates.dataNodeUserEquals(currentUser));
     }
 
