@@ -1,0 +1,33 @@
+{
+  "title": "ConceptQuartile",
+  "type": "object",
+  "properties": {
+    "category": {
+      "type": "string"
+    },
+    "conceptId": {
+      "type": "long"
+    },
+    "maxValue": {
+      "type": "integer"
+    },
+    "p75Value": {
+      "type": "integer"
+    },
+    "p10Value": {
+      "type": "integer"
+    },
+    "medianValue": {
+      "type": "integer"
+    },
+    "p25Value": {
+      "type": "integer"
+    },
+    "minValue": {
+      "type": "integer"
+    },
+    "p90Value": {
+      "type": "integer"
+    }
+  }
+}

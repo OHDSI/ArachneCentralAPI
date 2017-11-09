@@ -78,8 +78,7 @@ run_cohort_characterization <- function(
 }
 
 
-getCohortSpecificSummary <- function(connection, resultsDatabaseSchema, cohortId) {
-  
+getCohortSpecificSummary <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId) {
   queryMap <- list()
   
   # 1805, 1806
@@ -95,10 +94,46 @@ getCohortSpecificSummary <- function(connection, resultsDatabaseSchema, cohortId
     "targetType"=fromJSON("./definitions/types/PrevalenceRecord.json"),
     "mappings"=fromJSON("./definitions/mappings/ResultSetToPrevalenceRecord.json")$mappings
   )
-  
+
+  # 1814
+  queryMap$prevalenceByYearGenderSex <- list(
+    "sqlPath"="cohortresults-sql/cohortSpecific/prevalenceByYearGenderSex.sql",
+    "targetType"=fromJSON("./definitions/types/PrevalenceByYearGenderSex.json"),
+    "mappings"=fromJSON("./definitions/mappings/ResultSetToPrevalenceByYearGenderSex.json")$mappings
+  )
+
+  # 1801
+  queryMap$ageAtIndexDistribution <- list(
+    "sqlPath"="cohortresults-sql/cohortSpecific/ageAtIndexDistribution.sql",
+    "targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
+    "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
+  )
+
+  # 1803
+  queryMap$distributionOfAgeAtCohortStartByCohortStartYear <- list(
+    "sqlPath"="cohortresults-sql/cohortSpecific/distributionOfAgeAtCohortStartByCohortStartYear.sql",
+    "targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
+    "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
+  )
+
+  # 1802
+  queryMap$distributionOfAgeAtCohortStartByGender <- list(
+    "sqlPath"="cohortresults-sql/cohortSpecific/distributionOfAgeAtCohortStartByGender.sql",
+    "targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
+    "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
+  )
+
+  # 1804
+  queryMap$personsInCohortFromCohortStartToEnd <- list(
+    "sqlPath"="cohortresults-sql/cohortSpecific/personsInCohortFromCohortStartToEnd.sql",
+    "targetType"=fromJSON("./definitions/types/PersonsInCohortFromCohortStartToEnd.json"),
+    "mappings"=fromJSON("./definitions/mappings/ResultSetToPersonsInCohortFromCohortStartToEnd.json")$mappings
+  )
+
   sqlReplacements <- list(
     "ohdsi_database_schema"=resultsDatabaseSchema,
-    "cohortDefinitionId"=cohortId
+    "cohortDefinitionId"=cohortId,
+    "cdm_database_schema" = cdmDatabaseSchema
   )
   
   return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements));
@@ -186,7 +221,7 @@ connectionDetails <- createConnectionDetails(dbms="postgresql",
                                              user="ohdsi",
                                              password="ohdsi")
 connection <- connect(connectionDetails)
-res <- getCohortSpecificSummary(connection, resultsDatabaseSchema = "results", cohortId = 1231231)
+res <- getCohortSpecificSummary(connection, resultsDatabaseSchema = "results", cdmDatabaseSchema = "public", cohortId = 1231231)
 dir.create("output")
 writeToFile("output/cohortspecific.json", res)
 

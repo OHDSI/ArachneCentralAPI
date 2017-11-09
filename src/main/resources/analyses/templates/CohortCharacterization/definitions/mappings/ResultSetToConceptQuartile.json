@@ -1,0 +1,40 @@
+{
+  "mappings": [
+    {
+      "source": "CATEGORY",
+      "target": "category"
+    },
+    {
+      "source": "CONCEPT_ID",
+      "target": "conceptId"
+    },
+    {
+      "source": "MAX_VALUE",
+      "target": "maxValue"
+    },
+    {
+      "source": "P75_VALUE",
+      "target": "p75Value"
+    },
+    {
+      "source": "P10_VALUE",
+      "target": "p10Value"
+    },
+    {
+      "source": "MEDIAN_VALUE",
+      "target": "medianValue"
+    },
+    {
+      "source": "P25_VALUE",
+      "target": "p25Value"
+    },
+    {
+      "source": "MIN_VALUE",
+      "target": "minValue"
+    },
+    {
+      "source": "P90_VALUE",
+      "target": "p90Value"
+    }
+  ]
+}

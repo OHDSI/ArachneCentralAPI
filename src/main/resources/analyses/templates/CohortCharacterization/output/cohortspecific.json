@@ -692,5 +692,617 @@
       "yPrevalence1000Pp": 4.9348,
       "numPersons": 221
     }
+  ],
+  "prevalenceByYearGenderSex": [
+    {
+      "trellisName": "70-79",
+      "seriesName": "MALE",
+      "yPrevalence1000Pp": 107.6923,
+      "xCalendarYear": 2007,
+      "numPersons": 7
+    },
+    {
+      "trellisName": "80-89",
+      "seriesName": "MALE",
+      "yPrevalence1000Pp": 162.7907,
+      "xCalendarYear": 2007,
+      "numPersons": 7
+    },
+    {
+      "trellisName": "70-79",
+      "seriesName": "FEMALE",
+      "yPrevalence1000Pp": 177.2152,
+      "xCalendarYear": 2007,
+      "numPersons": 14
+    },
+    {
+      "trellisName": "80-89",
+      "seriesName": "FEMALE",
+      "yPrevalence1000Pp": 133.3333,
+      "xCalendarYear": 2007,
+      "numPersons": 12
+    },
+    {
+      "trellisName": "20-29",
+      "seriesName": "MALE",
+      "yPrevalence1000Pp": 715.3558,
+      "xCalendarYear": 2008,
+      "numPersons": 191
+    },
+    {
+      "trellisName": "30-39",
+      "seriesName": "MALE",
+      "yPrevalence1000Pp": 749.6724,
+      "xCalendarYear": 2008,
+      "numPersons": 572
+    },
+    {
+      "trellisName": "40-49",
+      "seriesName": "MALE",
+      "yPrevalence1000Pp": 731.5436,
+      "xCalendarYear": 2008,
+      "numPersons": 1090
+    },
+    {
+      "trellisName": "50-59",
+      "seriesName": "MALE",
+      "yPrevalence1000Pp": 754.6939,
+      "xCalendarYear": 2008,
+      "numPersons": 1849
+    },
+    {
+      "trellisName": "60-69",
+      "seriesName": "MALE",
+      "yPrevalence1000Pp": 723.5154,
+      "xCalendarYear": 2008,
+      "numPersons": 6372
+    },
+    {
+      "trellisName": "70-79",
+      "seriesName": "MALE",
+      "yPrevalence1000Pp": 755.6244,
+      "xCalendarYear": 2008,
+      "numPersons": 9270
+    },
+    {
+      "trellisName": "80-89",
+      "seriesName": "MALE",
+      "yPrevalence1000Pp": 785.4656,
+      "xCalendarYear": 2008,
+      "numPersons": 5188
+    },
+    {
+      "trellisName": "90-99",
+      "seriesName": "MALE",
+      "yPrevalence1000Pp": 799.115,
+      "xCalendarYear": 2008,
+      "numPersons": 903
+    },
+    {
+      "trellisName": "20-29",
+      "seriesName": "FEMALE",
+      "yPrevalence1000Pp": 724.8062,
+      "xCalendarYear": 2008,
+      "numPersons": 187
+    },
+    {
+      "trellisName": "30-39",
+      "seriesName": "FEMALE",
+      "yPrevalence1000Pp": 761.0242,
+      "xCalendarYear": 2008,
+      "numPersons": 535
+    },
+    {
+      "trellisName": "40-49",
+      "seriesName": "FEMALE",
+      "yPrevalence1000Pp": 767.0103,
+      "xCalendarYear": 2008,
+      "numPersons": 1116
+    },
+    {
+      "trellisName": "50-59",
+      "seriesName": "FEMALE",
+      "yPrevalence1000Pp": 773.0526,
+      "xCalendarYear": 2008,
+      "numPersons": 1836
+    },
+    {
+      "trellisName": "60-69",
+      "seriesName": "FEMALE",
+      "yPrevalence1000Pp": 746.6173,
+      "xCalendarYear": 2008,
+      "numPersons": 7670
+    },
+    {
+      "trellisName": "70-79",
+      "seriesName": "FEMALE",
+      "yPrevalence1000Pp": 761.8496,
+      "xCalendarYear": 2008,
+      "numPersons": 11846
+    },
+    {
+      "trellisName": "80-89",
+      "seriesName": "FEMALE",
+      "yPrevalence1000Pp": 790.4372,
+      "xCalendarYear": 2008,
+      "numPersons": 8679
+    },
+    {
+      "trellisName": "90-99",
+      "seriesName": "FEMALE",
+      "yPrevalence1000Pp": 808.4405,
+      "xCalendarYear": 2008,
+      "numPersons": 2452
+    },
+    {
+      "trellisName": "20-29",
+      "seriesName": "MALE",
+      "yPrevalence1000Pp": 241.2281,
+      "xCalendarYear": 2009,
+      "numPersons": 55
+    },
+    {
+      "trellisName": "30-39",
+      "seriesName": "MALE",
+      "yPrevalence1000Pp": 198.0609,
+      "xCalendarYear": 2009,
+      "numPersons": 143
+    },
+    {
+      "trellisName": "40-49",
+      "seriesName": "MALE",
+      "yPrevalence1000Pp": 215.0313,
+      "xCalendarYear": 2009,
+      "numPersons": 309
+    },
+    {
+      "trellisName": "50-59",
+      "seriesName": "MALE",
+      "yPrevalence1000Pp": 202.563,
+      "xCalendarYear": 2009,
+      "numPersons": 490
+    },
+    {
+      "trellisName": "60-69",
+      "seriesName": "MALE",
+      "yPrevalence1000Pp": 226.7859,
+      "xCalendarYear": 2009,
+      "numPersons": 1800
+    },
+    {
+      "trellisName": "70-79",
+      "seriesName": "MALE",
+      "yPrevalence1000Pp": 198.7655,
+      "xCalendarYear": 2009,
+      "numPersons": 2544
+    },
+    {
+      "trellisName": "80-89",
+      "seriesName": "MALE",
+      "yPrevalence1000Pp": 168.9967,
+      "xCalendarYear": 2009,
+      "numPersons": 1233
+    },
+    {
+      "trellisName": "90-99",
+      "seriesName": "MALE",
+      "yPrevalence1000Pp": 176.5105,
+      "xCalendarYear": 2009,
+      "numPersons": 260
+    },
+    {
+      "trellisName": "100-109",
+      "seriesName": "MALE",
+      "yPrevalence1000Pp": 220,
+      "xCalendarYear": 2009,
+      "numPersons": 22
+    },
+    {
+      "trellisName": "20-29",
+      "seriesName": "FEMALE",
+      "yPrevalence1000Pp": 217.3913,
+      "xCalendarYear": 2009,
+      "numPersons": 45
+    },
+    {
+      "trellisName": "30-39",
+      "seriesName": "FEMALE",
+      "yPrevalence1000Pp": 193.3622,
+      "xCalendarYear": 2009,
+      "numPersons": 134
+    },
+    {
+      "trellisName": "40-49",
+      "seriesName": "FEMALE",
+      "yPrevalence1000Pp": 196.4413,
+      "xCalendarYear": 2009,
+      "numPersons": 276
+    },
+    {
+      "trellisName": "50-59",
+      "seriesName": "FEMALE",
+      "yPrevalence1000Pp": 194.4086,
+      "xCalendarYear": 2009,
+      "numPersons": 452
+    },
+    {
+      "trellisName": "60-69",
+      "seriesName": "FEMALE",
+      "yPrevalence1000Pp": 208.6331,
+      "xCalendarYear": 2009,
+      "numPersons": 1885
+    },
+    {
+      "trellisName": "70-79",
+      "seriesName": "FEMALE",
+      "yPrevalence1000Pp": 191.9268,
+      "xCalendarYear": 2009,
+      "numPersons": 3062
+    },
+    {
+      "trellisName": "80-89",
+      "seriesName": "FEMALE",
+      "yPrevalence1000Pp": 163.6253,
+      "xCalendarYear": 2009,
+      "numPersons": 1883
+    },
+    {
+      "trellisName": "90-99",
+      "seriesName": "FEMALE",
+      "yPrevalence1000Pp": 153.7829,
+      "xCalendarYear": 2009,
+      "numPersons": 561
+    },
+    {
+      "trellisName": "100-109",
+      "seriesName": "FEMALE",
+      "yPrevalence1000Pp": 150.1597,
+      "xCalendarYear": 2009,
+      "numPersons": 47
+    },
+    {
+      "trellisName": "20-29",
+      "seriesName": "MALE",
+      "yPrevalence1000Pp": 76.0234,
+      "xCalendarYear": 2010,
+      "numPersons": 13
+    },
+    {
+      "trellisName": "30-39",
+      "seriesName": "MALE",
+      "yPrevalence1000Pp": 74.8899,
+      "xCalendarYear": 2010,
+      "numPersons": 51
+    },
+    {
+      "trellisName": "40-49",
+      "seriesName": "MALE",
+      "yPrevalence1000Pp": 75.4573,
+      "xCalendarYear": 2010,
+      "numPersons": 99
+    },
+    {
+      "trellisName": "50-59",
+      "seriesName": "MALE",
+      "yPrevalence1000Pp": 79.9652,
+      "xCalendarYear": 2010,
+      "numPersons": 184
+    },
+    {
+      "trellisName": "60-69",
+      "seriesName": "MALE",
+      "yPrevalence1000Pp": 89.2535,
+      "xCalendarYear": 2010,
+      "numPersons": 593
+    },
+    {
+      "trellisName": "70-79",
+      "seriesName": "MALE",
+      "yPrevalence1000Pp": 79.5803,
+      "xCalendarYear": 2010,
+      "numPersons": 1039
+    },
+    {
+      "trellisName": "80-89",
+      "seriesName": "MALE",
+      "yPrevalence1000Pp": 57.9264,
+      "xCalendarYear": 2010,
+      "numPersons": 452
+    },
+    {
+      "trellisName": "90-99",
+      "seriesName": "MALE",
+      "yPrevalence1000Pp": 47.5138,
+      "xCalendarYear": 2010,
+      "numPersons": 86
+    },
+    {
+      "trellisName": "20-29",
+      "seriesName": "FEMALE",
+      "yPrevalence1000Pp": 38.2166,
+      "xCalendarYear": 2010,
+      "numPersons": 6
+    },
+    {
+      "trellisName": "30-39",
+      "seriesName": "FEMALE",
+      "yPrevalence1000Pp": 81.1639,
+      "xCalendarYear": 2010,
+      "numPersons": 53
+    },
+    {
+      "trellisName": "40-49",
+      "seriesName": "FEMALE",
+      "yPrevalence1000Pp": 64.5914,
+      "xCalendarYear": 2010,
+      "numPersons": 83
+    },
+    {
+      "trellisName": "50-59",
+      "seriesName": "FEMALE",
+      "yPrevalence1000Pp": 56.2869,
+      "xCalendarYear": 2010,
+      "numPersons": 124
+    },
+    {
+      "trellisName": "60-69",
+      "seriesName": "FEMALE",
+      "yPrevalence1000Pp": 78.0534,
+      "xCalendarYear": 2010,
+      "numPersons": 579
+    },
+    {
+      "trellisName": "70-79",
+      "seriesName": "FEMALE",
+      "yPrevalence1000Pp": 68.6857,
+      "xCalendarYear": 2010,
+      "numPersons": 1109
+    },
+    {
+      "trellisName": "80-89",
+      "seriesName": "FEMALE",
+      "yPrevalence1000Pp": 55.7007,
+      "xCalendarYear": 2010,
+      "numPersons": 661
+    },
+    {
+      "trellisName": "90-99",
+      "seriesName": "FEMALE",
+      "yPrevalence1000Pp": 49.1843,
+      "xCalendarYear": 2010,
+      "numPersons": 205
+    },
+    {
+      "trellisName": "100-109",
+      "seriesName": "FEMALE",
+      "yPrevalence1000Pp": 39.8671,
+      "xCalendarYear": 2010,
+      "numPersons": 24
+    }
+  ],
+  "ageAtIndexDistribution": [
+    {
+      "category": "Age at Index",
+      "conceptId": 0,
+      "maxValue": 101,
+      "p75Value": 81,
+      "p10Value": 56,
+      "medianValue": 73,
+      "p25Value": 67,
+      "minValue": 25,
+      "p90Value": 87
+    }
+  ],
+  "distributionOfAgeAtCohortStartByCohortStartYear": [],
+  "distributionOfAgeAtCohortStartByGender": [
+    {
+      "category": "MALE",
+      "conceptId": 0,
+      "maxValue": 101,
+      "p75Value": 79,
+      "p10Value": 54,
+      "medianValue": 72,
+      "p25Value": 66,
+      "minValue": 25,
+      "p90Value": 85
+    },
+    {
+      "category": "FEMALE",
+      "conceptId": 0,
+      "maxValue": 101,
+      "p75Value": 82,
+      "p10Value": 58,
+      "medianValue": 74,
+      "p25Value": 68,
+      "minValue": 25,
+      "p90Value": 88
+    }
+  ],
+  "personsInCohortFromCohortStartToEnd": [
+    {
+      "monthYear": 0,
+      "percentValue": 0.0113,
+      "countValue": 909
+    },
+    {
+      "monthYear": 1,
+      "percentValue": 0.0062,
+      "countValue": 496
+    },
+    {
+      "monthYear": 10,
+      "percentValue": 0.0109,
+      "countValue": 876
+    },
+    {
+      "monthYear": 11,
+      "percentValue": 0.0118,
+      "countValue": 949
+    },
+    {
+      "monthYear": 12,
+      "percentValue": 0.0125,
+      "countValue": 1006
+    },
+    {
+      "monthYear": 13,
+      "percentValue": 0.013,
+      "countValue": 1048
+    },
+    {
+      "monthYear": 14,
+      "percentValue": 0.0148,
+      "countValue": 1188
+    },
+    {
+      "monthYear": 15,
+      "percentValue": 0.0148,
+      "countValue": 1186
+    },
+    {
+      "monthYear": 16,
+      "percentValue": 0.0166,
+      "countValue": 1335
+    },
+    {
+      "monthYear": 17,
+      "percentValue": 0.0166,
+      "countValue": 1331
+    },
+    {
+      "monthYear": 18,
+      "percentValue": 0.0188,
+      "countValue": 1514
+    },
+    {
+      "monthYear": 19,
+      "percentValue": 0.0211,
+      "countValue": 1699
+    },
+    {
+      "monthYear": 2,
+      "percentValue": 0.0064,
+      "countValue": 512
+    },
+    {
+      "monthYear": 20,
+      "percentValue": 0.0223,
+      "countValue": 1792
+    },
+    {
+      "monthYear": 21,
+      "percentValue": 0.0275,
+      "countValue": 2212
+    },
+    {
+      "monthYear": 22,
+      "percentValue": 0.0281,
+      "countValue": 2260
+    },
+    {
+      "monthYear": 23,
+      "percentValue": 0.0335,
+      "countValue": 2692
+    },
+    {
+      "monthYear": 24,
+      "percentValue": 0.0373,
+      "countValue": 2996
+    },
+    {
+      "monthYear": 25,
+      "percentValue": 0.0418,
+      "countValue": 3360
+    },
+    {
+      "monthYear": 26,
+      "percentValue": 0.0475,
+      "countValue": 3815
+    },
+    {
+      "monthYear": 27,
+      "percentValue": 0.0525,
+      "countValue": 4219
+    },
+    {
+      "monthYear": 28,
+      "percentValue": 0.0602,
+      "countValue": 4838
+    },
+    {
+      "monthYear": 29,
+      "percentValue": 0.0656,
+      "countValue": 5272
+    },
+    {
+      "monthYear": 3,
+      "percentValue": 0.0076,
+      "countValue": 615
+    },
+    {
+      "monthYear": 30,
+      "percentValue": 0.0691,
+      "countValue": 5552
+    },
+    {
+      "monthYear": 31,
+      "percentValue": 0.0703,
+      "countValue": 5650
+    },
+    {
+      "monthYear": 32,
+      "percentValue": 0.0693,
+      "countValue": 5570
+    },
+    {
+      "monthYear": 33,
+      "percentValue": 0.061,
+      "countValue": 4904
+    },
+    {
+      "monthYear": 34,
+      "percentValue": 0.0457,
+      "countValue": 3677
+    },
+    {
+      "monthYear": 35,
+      "percentValue": 0.0263,
+      "countValue": 2114
+    },
+    {
+      "monthYear": 36,
+      "percentValue": 0.0041,
+      "countValue": 327
+    },
+    {
+      "monthYear": 4,
+      "percentValue": 0.0081,
+      "countValue": 652
+    },
+    {
+      "monthYear": 5,
+      "percentValue": 0.0079,
+      "countValue": 632
+    },
+    {
+      "monthYear": 6,
+      "percentValue": 0.0093,
+      "countValue": 750
+    },
+    {
+      "monthYear": 7,
+      "percentValue": 0.0094,
+      "countValue": 753
+    },
+    {
+      "monthYear": 8,
+      "percentValue": 0.0102,
+      "countValue": 816
+    },
+    {
+      "monthYear": 9,
+      "percentValue": 0.0109,
+      "countValue": 873
+    }
   ]
 }

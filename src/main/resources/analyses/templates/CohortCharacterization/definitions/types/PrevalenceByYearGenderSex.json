@@ -1,0 +1,21 @@
+{
+  "title": "PrevalenceByYearGenderSex",
+  "type": "object",
+  "properties": {
+    "trellisName": {
+      "type": "string"
+    },
+    "seriesName": {
+      "type": "string"
+    },
+    "yPrevalence1000Pp": {
+      "type": "double"
+    },
+    "xCalendarYear": {
+      "type": "integer"
+    },
+    "numPersons": {
+      "type": "integer"
+    }
+  }
+}
