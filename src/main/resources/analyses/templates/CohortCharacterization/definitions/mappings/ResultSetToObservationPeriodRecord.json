@@ -1,0 +1,20 @@
+{
+  "mappings": [
+    {
+      "source": "COHORT_DEFINITION_ID",
+      "target": "cohortDefinitionId"
+    },
+    {
+      "source": "PCT_PERSONS",
+      "target": "pctPersons"
+    },
+    {
+      "source": "COUNT_VALUE",
+      "target": "countValue"
+    },
+    {
+      "source": "DURATION",
+      "target": "duration"
+    }
+  ]
+}

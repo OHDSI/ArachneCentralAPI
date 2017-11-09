@@ -1,0 +1,21 @@
+{
+  "title": "PrevalenceRecord",
+  "type": "object",
+  "properties": {
+    "xCalendarMonth": {
+      "type": "integer"
+    },
+    "conceptId": {
+      "type": "long"
+    },
+    "conceptName": {
+      "type": "string"
+    },
+    "yPrevalence1000Pp": {
+      "type": "double"
+    },
+    "numPersons": {
+      "type": "integer"
+    }
+  }
+}

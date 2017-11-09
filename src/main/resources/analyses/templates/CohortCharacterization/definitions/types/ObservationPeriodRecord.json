@@ -1,0 +1,18 @@
+{
+  "title": "ObservationPeriodRecord",
+  "type": "object",
+  "properties": {
+    "cohortDefinitionId": {
+      "type": "integer"
+    },
+    "pctPersons": {
+      "type": "double"
+    },
+    "countValue": {
+      "type": "integer"
+    },
+    "duration": {
+      "type": "integer"
+    }
+  }
+}

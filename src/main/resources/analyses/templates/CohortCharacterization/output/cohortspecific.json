@@ -1,0 +1,696 @@
+{
+  "personsByDurationFromStartToEnd": [
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.6505,
+      "countValue": 52294,
+      "duration": 690
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.0001,
+      "countValue": 10,
+      "duration": -1080
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.0933,
+      "countValue": 7503,
+      "duration": -540
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.8184,
+      "countValue": 65794,
+      "duration": 480
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.9525,
+      "countValue": 76574,
+      "duration": 150
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.0282,
+      "countValue": 2268,
+      "duration": -780
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.8901,
+      "countValue": 71557,
+      "duration": 330
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.8646,
+      "countValue": 69503,
+      "duration": 390
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.1333,
+      "countValue": 10719,
+      "duration": -450
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.798,
+      "countValue": 64152,
+      "duration": -30
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.783,
+      "countValue": 62949,
+      "duration": 540
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.4113,
+      "countValue": 33066,
+      "duration": 840
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.5816,
+      "countValue": 46758,
+      "duration": -90
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.2064,
+      "countValue": 16592,
+      "duration": 930
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.1056,
+      "countValue": 8487,
+      "duration": -510
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.0232,
+      "countValue": 1864,
+      "duration": -810
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.0401,
+      "countValue": 3227,
+      "duration": -720
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.9887,
+      "countValue": 79481,
+      "duration": 0
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.0079,
+      "countValue": 638,
+      "duration": -930
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.0029,
+      "countValue": 236,
+      "duration": -990
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.9762,
+      "countValue": 78473,
+      "duration": 60
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.265,
+      "countValue": 21302,
+      "duration": -270
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.0631,
+      "countValue": 5073,
+      "duration": -630
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.835,
+      "countValue": 67129,
+      "duration": 450
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.0821,
+      "countValue": 6597,
+      "duration": -570
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.211,
+      "countValue": 16960,
+      "duration": -330
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.5031,
+      "countValue": 40448,
+      "duration": -120
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.1371,
+      "countValue": 11022,
+      "duration": 960
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.8019,
+      "countValue": 64463,
+      "duration": 510
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.5714,
+      "countValue": 45938,
+      "duration": 750
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.0146,
+      "countValue": 1176,
+      "duration": -870
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.9825,
+      "countValue": 78985,
+      "duration": 30
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.2767,
+      "countValue": 22242,
+      "duration": 900
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.1682,
+      "countValue": 13522,
+      "duration": -390
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.8776,
+      "countValue": 70551,
+      "duration": 360
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.4382,
+      "countValue": 35225,
+      "duration": -150
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.005,
+      "countValue": 402,
+      "duration": -960
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.2364,
+      "countValue": 19006,
+      "duration": -300
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.1881,
+      "countValue": 15123,
+      "duration": -360
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.034,
+      "countValue": 2732,
+      "duration": -750
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.6785,
+      "countValue": 54542,
+      "duration": -60
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.047,
+      "countValue": 3781,
+      "duration": -690
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.0548,
+      "countValue": 4402,
+      "duration": -660
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.0725,
+      "countValue": 5831,
+      "duration": -600
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.9432,
+      "countValue": 75824,
+      "duration": 180
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.1186,
+      "countValue": 9534,
+      "duration": -480
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.0007,
+      "countValue": 60,
+      "duration": -1050
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.8498,
+      "countValue": 68315,
+      "duration": 420
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.7619,
+      "countValue": 61250,
+      "duration": 570
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.7121,
+      "countValue": 57246,
+      "duration": 630
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.3376,
+      "countValue": 27136,
+      "duration": -210
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.3457,
+      "countValue": 27794,
+      "duration": 870
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.9019,
+      "countValue": 72506,
+      "duration": 300
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.7396,
+      "countValue": 59458,
+      "duration": 600
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.6132,
+      "countValue": 49298,
+      "duration": 720
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.0041,
+      "countValue": 327,
+      "duration": 1050
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.9128,
+      "countValue": 73382,
+      "duration": 270
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.4715,
+      "countValue": 37904,
+      "duration": 810
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.1492,
+      "countValue": 11998,
+      "duration": -420
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.0304,
+      "countValue": 2441,
+      "duration": 1020
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.2984,
+      "countValue": 23986,
+      "duration": -240
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.3836,
+      "countValue": 30834,
+      "duration": -180
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.684,
+      "countValue": 54986,
+      "duration": 660
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.0017,
+      "countValue": 140,
+      "duration": -1020
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.9604,
+      "countValue": 77206,
+      "duration": 120
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.0111,
+      "countValue": 896,
+      "duration": -900
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.0761,
+      "countValue": 6118,
+      "duration": 990
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.524,
+      "countValue": 42123,
+      "duration": 780
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.9237,
+      "countValue": 74255,
+      "duration": 240
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.9338,
+      "countValue": 75071,
+      "duration": 210
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.9685,
+      "countValue": 77858,
+      "duration": 90
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0.0188,
+      "countValue": 1511,
+      "duration": -840
+    },
+    {
+      "cohortDefinitionId": 1231231,
+      "pctPersons": 0,
+      "countValue": 0,
+      "duration": 1080
+    }
+  ],
+  "prevalenceByMonth": [
+    {
+      "xCalendarMonth": 200712,
+      "conceptId": 0,
+      "conceptName": "",
+      "yPrevalence1000Pp": 136.4562,
+      "numPersons": 67
+    },
+    {
+      "xCalendarMonth": 200801,
+      "conceptId": 0,
+      "conceptName": "",
+      "yPrevalence1000Pp": 146.2134,
+      "numPersons": 5682
+    },
+    {
+      "xCalendarMonth": 200802,
+      "conceptId": 0,
+      "conceptName": "",
+      "yPrevalence1000Pp": 135.8211,
+      "numPersons": 7396
+    },
+    {
+      "xCalendarMonth": 200803,
+      "conceptId": 0,
+      "conceptName": "",
+      "yPrevalence1000Pp": 126.2414,
+      "numPersons": 8377
+    },
+    {
+      "xCalendarMonth": 200804,
+      "conceptId": 0,
+      "conceptName": "",
+      "yPrevalence1000Pp": 103.6062,
+      "numPersons": 7398
+    },
+    {
+      "xCalendarMonth": 200805,
+      "conceptId": 0,
+      "conceptName": "",
+      "yPrevalence1000Pp": 87.2361,
+      "numPersons": 6391
+    },
+    {
+      "xCalendarMonth": 200806,
+      "conceptId": 0,
+      "conceptName": "",
+      "yPrevalence1000Pp": 70.2541,
+      "numPersons": 5234
+    },
+    {
+      "xCalendarMonth": 200807,
+      "conceptId": 0,
+      "conceptName": "",
+      "yPrevalence1000Pp": 62.2443,
+      "numPersons": 4701
+    },
+    {
+      "xCalendarMonth": 200808,
+      "conceptId": 0,
+      "conceptName": "",
+      "yPrevalence1000Pp": 50.907,
+      "numPersons": 3887
+    },
+    {
+      "xCalendarMonth": 200809,
+      "conceptId": 0,
+      "conceptName": "",
+      "yPrevalence1000Pp": 41.2427,
+      "numPersons": 3174
+    },
+    {
+      "xCalendarMonth": 200810,
+      "conceptId": 0,
+      "conceptName": "",
+      "yPrevalence1000Pp": 36.4385,
+      "numPersons": 2821
+    },
+    {
+      "xCalendarMonth": 200811,
+      "conceptId": 0,
+      "conceptName": "",
+      "yPrevalence1000Pp": 31.8206,
+      "numPersons": 2473
+    },
+    {
+      "xCalendarMonth": 200812,
+      "conceptId": 0,
+      "conceptName": "",
+      "yPrevalence1000Pp": 28.5124,
+      "numPersons": 2222
+    },
+    {
+      "xCalendarMonth": 200901,
+      "conceptId": 0,
+      "conceptName": "",
+      "yPrevalence1000Pp": 26.5196,
+      "numPersons": 2072
+    },
+    {
+      "xCalendarMonth": 200902,
+      "conceptId": 0,
+      "conceptName": "",
+      "yPrevalence1000Pp": 20.9564,
+      "numPersons": 1639
+    },
+    {
+      "xCalendarMonth": 200903,
+      "conceptId": 0,
+      "conceptName": "",
+      "yPrevalence1000Pp": 20.9554,
+      "numPersons": 1641
+    },
+    {
+      "xCalendarMonth": 200904,
+      "conceptId": 0,
+      "conceptName": "",
+      "yPrevalence1000Pp": 18.0282,
+      "numPersons": 1413
+    },
+    {
+      "xCalendarMonth": 200905,
+      "conceptId": 0,
+      "conceptName": "",
+      "yPrevalence1000Pp": 17.6798,
+      "numPersons": 1387
+    },
+    {
+      "xCalendarMonth": 200906,
+      "conceptId": 0,
+      "conceptName": "",
+      "yPrevalence1000Pp": 15.4765,
+      "numPersons": 1215
+    },
+    {
+      "xCalendarMonth": 200907,
+      "conceptId": 0,
+      "conceptName": "",
+      "yPrevalence1000Pp": 14.7561,
+      "numPersons": 1159
+    },
+    {
+      "xCalendarMonth": 200908,
+      "conceptId": 0,
+      "conceptName": "",
+      "yPrevalence1000Pp": 14.4874,
+      "numPersons": 1138
+    },
+    {
+      "xCalendarMonth": 200909,
+      "conceptId": 0,
+      "conceptName": "",
+      "yPrevalence1000Pp": 11.9023,
+      "numPersons": 935
+    },
+    {
+      "xCalendarMonth": 200910,
+      "conceptId": 0,
+      "conceptName": "",
+      "yPrevalence1000Pp": 11.931,
+      "numPersons": 937
+    },
+    {
+      "xCalendarMonth": 200911,
+      "conceptId": 0,
+      "conceptName": "",
+      "yPrevalence1000Pp": 10.5271,
+      "numPersons": 826
+    },
+    {
+      "xCalendarMonth": 200912,
+      "conceptId": 0,
+      "conceptName": "",
+      "yPrevalence1000Pp": 10.7075,
+      "numPersons": 839
+    },
+    {
+      "xCalendarMonth": 201001,
+      "conceptId": 0,
+      "conceptName": "",
+      "yPrevalence1000Pp": 8.8114,
+      "numPersons": 689
+    },
+    {
+      "xCalendarMonth": 201002,
+      "conceptId": 0,
+      "conceptName": "",
+      "yPrevalence1000Pp": 8.0153,
+      "numPersons": 624
+    },
+    {
+      "xCalendarMonth": 201003,
+      "conceptId": 0,
+      "conceptName": "",
+      "yPrevalence1000Pp": 8.6341,
+      "numPersons": 668
+    },
+    {
+      "xCalendarMonth": 201004,
+      "conceptId": 0,
+      "conceptName": "",
+      "yPrevalence1000Pp": 7.277,
+      "numPersons": 557
+    },
+    {
+      "xCalendarMonth": 201005,
+      "conceptId": 0,
+      "conceptName": "",
+      "yPrevalence1000Pp": 7.3586,
+      "numPersons": 554
+    },
+    {
+      "xCalendarMonth": 201006,
+      "conceptId": 0,
+      "conceptName": "",
+      "yPrevalence1000Pp": 6.2123,
+      "numPersons": 455
+    },
+    {
+      "xCalendarMonth": 201007,
+      "conceptId": 0,
+      "conceptName": "",
+      "yPrevalence1000Pp": 6.4618,
+      "numPersons": 455
+    },
+    {
+      "xCalendarMonth": 201008,
+      "conceptId": 0,
+      "conceptName": "",
+      "yPrevalence1000Pp": 5.8528,
+      "numPersons": 388
+    },
+    {
+      "xCalendarMonth": 201009,
+      "conceptId": 0,
+      "conceptName": "",
+      "yPrevalence1000Pp": 5.4012,
+      "numPersons": 328
+    },
+    {
+      "xCalendarMonth": 201010,
+      "conceptId": 0,
+      "conceptName": "",
+      "yPrevalence1000Pp": 4.606,
+      "numPersons": 248
+    },
+    {
+      "xCalendarMonth": 201011,
+      "conceptId": 0,
+      "conceptName": "",
+      "yPrevalence1000Pp": 4.9348,
+      "numPersons": 221
+    }
+  ]
+}
