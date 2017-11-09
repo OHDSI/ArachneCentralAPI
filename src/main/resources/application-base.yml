@@ -6,6 +6,9 @@ server:
     key-store-password: odysseus
     key-password: odysseus
     keyAlias: arachne
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain,application/javascript,text/css
 logging:
   level: info
 spring:
