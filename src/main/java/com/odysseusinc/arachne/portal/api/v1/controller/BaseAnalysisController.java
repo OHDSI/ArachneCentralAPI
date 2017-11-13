@@ -48,6 +48,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.DataReferenceDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.FileContentDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.OptionDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightUpdateDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdateNotificationDTO;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.NotEmptyException;
@@ -467,7 +468,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
     @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/insight", method = PUT)
     public JsonResult<SubmissionInsightDTO> updateSubmissionInsight(
             @PathVariable("submissionId") Long submissionId,
-            @RequestBody @Valid SubmissionInsightDTO insightDTO
+            @RequestBody SubmissionInsightUpdateDTO insightDTO
     ) throws NotExistException {
 
         final SubmissionInsight insight = conversionService.convert(insightDTO, SubmissionInsight.class);

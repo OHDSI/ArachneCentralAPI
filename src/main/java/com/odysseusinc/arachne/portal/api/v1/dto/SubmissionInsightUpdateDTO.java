@@ -20,11 +20,30 @@
  *
  */
 
-package com.odysseusinc.arachne.portal.api.v1.dto.converters;
+package com.odysseusinc.arachne.portal.api.v1.dto;
 
-import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightDTO;
-import org.springframework.stereotype.Component;
+public class SubmissionInsightUpdateDTO extends SubmissionInsightCoreDTO {
 
-@Component
-public class SubmissionInsightDTOToSubmissionInsightConverter
-        extends BaseSubmissionInsightDTOToSubmissionInsightConverter<SubmissionInsightDTO> {}
+    private String name;
+    private String description;
+
+    public String getName() {
+
+        return name;
+    }
+
+    public void setName(String name) {
+
+        this.name = name;
+    }
+
+    public String getDescription() {
+
+        return description;
+    }
+
+    public void setDescription(String description) {
+
+        this.description = description;
+    }
+}

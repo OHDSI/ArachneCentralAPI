@@ -15,16 +15,18 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: May 03, 2017
+ * Authors: Pavel Grafkin
+ * Created: November 11, 2017
  *
  */
 
-package com.odysseusinc.arachne.portal.api.v1.dto.converters;
+package com.odysseusinc.arachne.portal.api.v1.dto;
 
-import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightDTO;
-import org.springframework.stereotype.Component;
+public abstract class SubmissionInsightCoreDTO {
 
-@Component
-public class SubmissionInsightDTOToSubmissionInsightConverter
-        extends BaseSubmissionInsightDTOToSubmissionInsightConverter<SubmissionInsightDTO> {}
+    public abstract String getName();
+    public abstract void setName(String name);
+
+    public abstract String getDescription();
+    public abstract void setDescription(String description);
+}
