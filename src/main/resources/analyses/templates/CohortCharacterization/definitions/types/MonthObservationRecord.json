@@ -1,0 +1,15 @@
+{
+  "title": "MonthObservationRecord",
+  "type": "object",
+  "properties": {
+    "monthYear": {
+      "type": "integer"
+    },
+    "percentValue": {
+      "type": "double"
+    },
+    "countValue": {
+      "type": "long"
+    }
+  }
+}

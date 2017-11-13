@@ -1,0 +1,12 @@
+{
+  "title": "PrevalenceByMonth",
+  "type": "object",
+  "properties": {
+    "yPrevalence1000Pp": {
+      "type": "double"
+    },
+    "xCalendarMonth": {
+      "type": "integer"
+    }
+  }
+}

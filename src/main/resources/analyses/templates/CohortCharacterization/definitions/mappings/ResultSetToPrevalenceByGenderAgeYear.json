@@ -1,0 +1,20 @@
+{
+  "mappings": [
+    {
+      "source": "TRELLIS_NAME",
+      "target": "trellisName"
+    },
+    {
+      "source": "SERIES_NAME",
+      "target": "seriesName"
+    },
+    {
+      "source": "Y_PREVALENCE_1000PP",
+      "target": "yPrevalence1000Pp"
+    },
+    {
+      "source": "X_CALENDAR_YEAR",
+      "target": "xCalendarYear"
+    }
+  ]
+}

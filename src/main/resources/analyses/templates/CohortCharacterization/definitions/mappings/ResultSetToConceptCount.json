@@ -1,0 +1,16 @@
+{
+  "mappings": [
+    {
+      "source": "CONCEPT_ID",
+      "target": "conceptId"
+    },
+    {
+      "source": "CONCEPT_NAME",
+      "target": "conceptName"
+    },
+    {
+      "source": "COUNT_VALUE",
+      "target": "conceptValue"
+    }
+  ]
+}

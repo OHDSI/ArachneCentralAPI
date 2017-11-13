@@ -1,0 +1,16 @@
+{
+  "title": "AgeAtFirst",
+  "type": "object",
+  "properties": {
+
+    "countValue": {
+      "type": "long"
+    },
+    "intervalIndex": {
+      "type": "integer"
+    },
+    "percentValue": {
+      "type": "double"
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "mappings": [
+    {
+      "source": "COUNT_VALUE",
+      "target": "countValue"
+    },
+    {
+      "source": "INTERVAL_INDEX",
+      "target": "intervalIndex"
+    },
+    {
+      "source": "PERCENT_VALUE",
+      "target": "percentValue"
+    }
+  ]
+}
