@@ -318,7 +318,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
                                                MultipartFile file)
             throws IOException {
 
-        analysisService.saveFile(file, user, analysis, file.getName(), false, dataReference);
+        analysisService.saveFile(file, user, analysis, file.getName(), detectExecutable(analysisType, file), dataReference);
         if (analysisType.equals(CommonAnalysisType.COHORT)) {
             String statement = org.apache.commons.io.IOUtils.toString(file.getInputStream(), "UTF-8");
             String renderedSql = SqlRender.renderSql(statement, null, null);
@@ -344,6 +344,11 @@ public abstract class BaseAnalysisController<T extends Analysis,
                     out.toByteArray());
             analysisService.saveFile(sqlArchive, user, analysis, fileName, false, dataReference);
         }
+    }
+
+    protected boolean detectExecutable(CommonAnalysisType type, MultipartFile file) {
+
+        return false;
     }
 
     @ApiOperation("update common entity in analysis")
