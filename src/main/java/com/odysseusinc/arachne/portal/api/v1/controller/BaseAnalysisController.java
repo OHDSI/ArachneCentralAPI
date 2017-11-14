@@ -352,18 +352,28 @@ public abstract class BaseAnalysisController<T extends Analysis,
                                                    @PathVariable("fileUuid") String fileUuid,
                                                    @RequestParam(value = "type", required = false,
                                                            defaultValue = "COHORT") CommonAnalysisType analysisType,
-                                                   Principal principal) throws IOException, JMSException {
+                                                   Principal principal) throws IOException, JMSException, PermissionDeniedException {
 
+        final User user = getUser(principal);
         final AnalysisFile analysisFile = analysisService.getAnalysisFile(analysisId, fileUuid);
+        T analysis = (T) analysisFile.getAnalysis();
         final DataReference dataReference = analysisFile.getDataReference();
         final DataReferenceDTO entityReference = new DataReferenceDTO(
                 dataReference.getDataNode().getId(), dataReference.getGuid());
+
         final List<MultipartFile> entityFiles = getEntityFiles(entityReference, dataReference.getDataNode(), analysisType);
+
+        analysisService.findAnalysisFilesByDataReference(analysis, dataReference).forEach(
+                af -> {
+                    analysisService.deleteAnalysisFile(analysis, af);
+                    analysis.getFiles().remove(af);
+                }
+        );
+
         entityFiles.forEach(entityFile -> {
 
             try {
-                analysisService.updateFile(fileUuid, entityFile, analysisId,
-                        ANALISYS_MIMETYPE_MAP.containsValue(entityFile.getContentType()));
+                doAddCommonEntityToAnalysis(analysis, dataReference, user, analysisType, entityFile);
             } catch (IOException e) {
                 LOGGER.error("Failed to update file", e);
                 throw new RuntimeIOException(e.getMessage(), e);

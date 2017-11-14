@@ -31,4 +31,6 @@ public interface AnalysisFileRepository extends CrudRepository<AnalysisFile, Lon
     AnalysisFile findByUuid(String uuid);
 
     List<AnalysisFile> findAllByAnalysisIdAndRealName(Long analysisId, String name);
+
+    List<AnalysisFile> findAllByAnalysisIdAndDataReferenceId(Long analysisId, Long dataReferenceId);
 }
