@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +24,7 @@ package com.odysseusinc.arachne.portal.api.v1.controller;
 
 import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.NO_ERROR;
 import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.PERMISSION_DENIED;
+import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.VALIDATION_ERROR;
 import static java.lang.Boolean.TRUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -32,6 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.springtestdbunit.DbUnitTestExecutionListener;
 import com.github.springtestdbunit.annotation.DbUnitConfiguration;
+import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.PortalStarter;
 import java.io.UnsupportedEncodingException;
 import org.json.JSONArray;
@@ -91,6 +93,7 @@ public class BaseControllerTest {
 
     MockMvc mvc;
     final static ResultMatcher NO_ERROR_CODE = jsonPath("$.errorCode").value(NO_ERROR.getCode());
+    final static ResultMatcher VALIDATION_ERROR_CODE = jsonPath("$.errorCode").value(VALIDATION_ERROR.getCode());
     final static ResultMatcher PERMISSION_DENIED_CODE = jsonPath("$.errorCode").value(PERMISSION_DENIED.getCode());
     final static ResultMatcher OK_STATUS = status().isOk();
     final static ResultMatcher TRUE_RESULT = jsonPath("$.result").value(TRUE);

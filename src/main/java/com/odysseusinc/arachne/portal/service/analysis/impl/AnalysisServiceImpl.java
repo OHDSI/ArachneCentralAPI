@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,7 +49,7 @@ import com.odysseusinc.arachne.portal.repository.SubmissionResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionStatusHistoryRepository;
 import com.odysseusinc.arachne.portal.repository.submission.SubmissionRepository;
 import com.odysseusinc.arachne.portal.service.CommentService;
-import com.odysseusinc.arachne.portal.service.FileService;
+import com.odysseusinc.arachne.portal.service.StudyFileService;
 import com.odysseusinc.arachne.portal.service.StudyService;
 import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
 import com.odysseusinc.arachne.portal.service.impl.AnalysisPreprocessorService;
@@ -98,11 +98,10 @@ public class AnalysisServiceImpl extends BaseAnalysisServiceImpl<Analysis, Study
                                ArachneMailSender mailSender,
                                SimpMessagingTemplate wsTemplate,
                                AnalysisPreprocessorService preprocessorService,
-                               @Qualifier("packratRunnerTemplate") Template packratRunnerTemplate,
                                StudyStateMachine studyStateMachine,
                                StudyService studyService,
                                AnalysisHelper analysisHelper,
-                               FileService fileService) {
+                               StudyFileService fileService) {
 
         super(conversionService,
                 analysisRepository,
@@ -121,7 +120,6 @@ public class AnalysisServiceImpl extends BaseAnalysisServiceImpl<Analysis, Study
                 mailSender,
                 wsTemplate,
                 preprocessorService,
-                packratRunnerTemplate,
                 studyStateMachine,
                 studyService,
                 analysisHelper,

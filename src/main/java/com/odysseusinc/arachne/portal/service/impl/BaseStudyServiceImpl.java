@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,6 +31,7 @@ import static java.util.Collections.singletonList;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
+import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.IORuntimeException;
@@ -57,6 +58,7 @@ import com.odysseusinc.arachne.portal.model.UserStudyExtended;
 import com.odysseusinc.arachne.portal.model.UserStudyGrouped;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.model.search.StudySpecification;
+import com.odysseusinc.arachne.portal.model.statemachine.study.StudyStateMachine;
 import com.odysseusinc.arachne.portal.repository.BaseStudyRepository;
 import com.odysseusinc.arachne.portal.repository.BaseUserStudyLinkRepository;
 import com.odysseusinc.arachne.portal.repository.FavouriteStudyRepository;
@@ -71,7 +73,7 @@ import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
-import com.odysseusinc.arachne.portal.service.FileService;
+import com.odysseusinc.arachne.portal.service.StudyFileService;
 import com.odysseusinc.arachne.portal.service.StudyStatusService;
 import com.odysseusinc.arachne.portal.service.StudyTypeService;
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
@@ -89,19 +91,18 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.hibernate.Hibernate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -125,7 +126,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
-@SuppressWarnings("unused")
 @Transactional(rollbackFor = Exception.class)
 public abstract class BaseStudyServiceImpl<
         T extends Study,
@@ -143,11 +143,9 @@ public abstract class BaseStudyServiceImpl<
     private static final String DATASOURCE_NOT_EXIST_EXCEPTION = "DataSource with id='%s' does not exist";
     private static final String VIRTUAL_DATASOURCE_OWNERS_IS_EMPTY_EXC = "Virtual Data Source must have at least one Data Owner";
 
-    @Value("${portal.url}")
-    private String portalUrl;
     private final JavaMailSender javaMailSender;
     private final UserStudyExtendedRepository userStudyExtendedRepository;
-    private final FileService fileService;
+    private final StudyFileService fileService;
     private final BaseUserStudyLinkRepository<SU> baseUserStudyLinkRepository;
     private final UserStudyRepository userStudyRepository;
     private final BaseStudyRepository<T> studyRepository;
@@ -167,10 +165,11 @@ public abstract class BaseStudyServiceImpl<
     private final SimpMessagingTemplate wsTemplate;
     protected final GenericConversionService conversionService;
     protected final AddDataSourceStrategyFactory<DS> addDataSourceStrategyFactory;
+    protected final StudyStateMachine studyStateMachine;
     private final Map<String, String[]> studySortPaths = new HashMap<>();
 
     public BaseStudyServiceImpl(UserStudyExtendedRepository userStudyExtendedRepository,
-                                FileService fileService,
+                                StudyFileService fileService,
                                 BaseUserStudyLinkRepository<SU> baseUserStudyLinkRepository,
                                 UserStudyGroupedRepository userStudyGroupedRepository,
                                 UserStudyRepository userStudyRepository,
@@ -191,6 +190,7 @@ public abstract class BaseStudyServiceImpl<
                                 BaseDataNodeService dataNodeService,
                                 JavaMailSender javaMailSender,
                                 GenericConversionService conversionService,
+                                StudyStateMachine studyStateMachine,
                                 AddDataSourceStrategyFactory<DS> addDataSourceStrategyFactory) {
 
         this.javaMailSender = javaMailSender;
@@ -214,6 +214,7 @@ public abstract class BaseStudyServiceImpl<
         this.studyStatusService = studyStatusService;
         this.baseDataNodeService = dataNodeService;
         this.conversionService = conversionService;
+        this.studyStateMachine = studyStateMachine;
         this.addDataSourceStrategyFactory = addDataSourceStrategyFactory;
     }
 
@@ -338,7 +339,8 @@ public abstract class BaseStudyServiceImpl<
         if (study.getType() != null && study.getType().getId() != null) {
             forUpdate.setType(studyTypeService.getById(study.getType().getId()));
         }
-        if (study.getStatus() != null && study.getStatus().getId() != null) {
+        if (study.getStatus() != null && study.getStatus().getId() != null
+                && studyStateMachine.canTransit(forUpdate , studyStatusService.getById(study.getStatus().getId()))) {
             forUpdate.setStatus(studyStatusService.getById(study.getStatus().getId()));
         }
         forUpdate.setTitle(study.getTitle() != null ? study.getTitle() : forUpdate.getTitle());
@@ -469,7 +471,9 @@ public abstract class BaseStudyServiceImpl<
         studyLink.setToken(UUID.randomUUID().toString().replace("-", ""));
 
         userStudyRepository.save(studyLink);
-        arachneMailSender.send(new InvitationCollaboratorMailSender(portalUrl, participant, studyLink));
+        arachneMailSender.send(
+                new InvitationCollaboratorMailSender(WebSecurityConfig.portalHost.get(), participant, studyLink)
+        );
         return studyLink;
     }
 
@@ -622,8 +626,10 @@ public abstract class BaseStudyServiceImpl<
     public Boolean getDeleteStudyFile(Long studyId, String uuid) throws FileNotFoundException {
 
         StudyFile studyFile = studyFileRepository.findByUuid(uuid);
+        if (!Objects.equals(studyFile.getContentType(), "link") && studyFile.getLink() == null) {
+            fileService.delete(studyFile);
+        }
         studyFileRepository.delete(studyFile);
-        fileService.delete(studyFile);
         return true;
     }
 
@@ -694,12 +700,8 @@ public abstract class BaseStudyServiceImpl<
         final DataNode dataNode = studyHelper.getVirtualDataNode(study.getTitle(), dataSourceName);
         final DataNode registeredDataNode = baseDataNodeService.register(dataNode);
 
-        final List<User> dataOwners = userService.findUsersByIdsIn(dataOwnerIds);
-        final Set<DataNodeUser> dataNodeUsers = studyHelper.usersToDataNodeAdmins(dataOwners, registeredDataNode);
+        final Set<DataNodeUser> dataNodeUsers = updateDataNodeOwners(dataOwnerIds, registeredDataNode);
         registeredDataNode.setDataNodeUsers(dataNodeUsers);
-        final Authentication savedAuth = studyHelper.loginByNode(registeredDataNode);
-        baseDataNodeService.relinkAllUsersToDataNode(registeredDataNode, dataNodeUsers);
-        SecurityContextHolder.getContext().setAuthentication(savedAuth);
 
         final DS dataSource = studyHelper.getVirtualDataSource(registeredDataNode, dataSourceName);
         dataSource.setHealthStatus(CommonHealthStatus.GREEN);
@@ -707,6 +709,35 @@ public abstract class BaseStudyServiceImpl<
         final DS registeredDataSource = dataSourceService.createOrRestoreDataSource(dataSource);
         addDataSource(createdBy, studyId, registeredDataSource.getId());
         return registeredDataSource;
+    }
+
+    @Override
+    @PreAuthorize("hasPermission(#studyId, 'Study', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
+    public DS getStudyDataSource(User user, Long studyId, Long dataSourceId) {
+
+        final StudyDataSourceLink studyDataSourceLink
+                = studyDataSourceLinkRepository.findByDataSourceIdAndStudyId(dataSourceId, studyId);
+        if (studyDataSourceLink == null) {
+            throw new NotExistException("studyDataSourceLink does not exist.", StudyDataSourceLink.class);
+        }
+        return (DS) studyDataSourceLink.getDataSource();
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasPermission(#dataSourceId, 'DataSource', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).DELETE_DATASOURCE)")
+    public DS updateVirtualDataSource(User user, Long studyId, Long dataSourceId, String name, List<Long> dataOwnerIds) throws IllegalAccessException, IOException, NoSuchFieldException, SolrServerException, ValidationException {
+
+        final DS dataSource = getStudyDataSource(user, studyId, dataSourceId);
+        final DataNode dataNode = dataSource.getDataNode();
+
+        updateDataNodeOwners(dataOwnerIds, dataNode);
+
+        dataSource.setName(name);
+        final DS update = dataSourceService.update(dataSource);
+        return dataSource;
     }
 
     @Override
@@ -831,11 +862,17 @@ public abstract class BaseStudyServiceImpl<
     @Override
     @PreAuthorize("hasPermission(#studyId, 'Study', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
-    public void getStudyAllFiles(Long studyId, String archiveName, OutputStream os) throws IOException {
+    public void getAllStudyFilesExceptLinks(Long studyId, String archiveName, OutputStream os) throws IOException {
 
         T study = studyRepository.findOne(studyId);
         Path storeFilesPath = fileService.getPath(study);
-        fileService.archiveFiles(os, storeFilesPath, study.getFiles());
+
+        List<StudyFile> files = study.getFiles()
+                .stream()
+                .filter(file -> StringUtils.isEmpty(file.getLink()))
+                .collect(Collectors.toList());
+
+        fileService.archiveFiles(os, storeFilesPath, files);
     }
 
     private StudyDataSourceLink saveStudyDataSourceLinkWithStatus(StudyDataSourceLink studyDataSourceLink,
@@ -845,5 +882,14 @@ public abstract class BaseStudyServiceImpl<
         return studyDataSourceLinkRepository.save(studyDataSourceLink);
     }
 
+    private Set<DataNodeUser> updateDataNodeOwners(List<Long> dataOwnerIds, DataNode dataNode) {
+
+        final List<User> dataOwners = userService.findUsersByIdsIn(dataOwnerIds);
+        final Set<DataNodeUser> dataNodeUsers = studyHelper.usersToDataNodeAdmins(dataOwners, dataNode);
+        final Authentication savedAuth = studyHelper.loginByNode(dataNode);
+        baseDataNodeService.relinkAllUsersToDataNode(dataNode, dataNodeUsers);
+        SecurityContextHolder.getContext().setAuthentication(savedAuth);
+        return dataNodeUsers;
+    }
 
 }

@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,8 +25,10 @@ package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
 import com.odysseusinc.arachne.portal.api.v1.dto.DataNodeDTO;
 import com.odysseusinc.arachne.portal.model.DataNode;
-import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
-import org.springframework.core.convert.support.GenericConversionService;
+import com.odysseusinc.arachne.portal.model.User;
+import com.odysseusinc.arachne.portal.model.security.ArachneUser;
+import com.odysseusinc.arachne.portal.util.DataNodeUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -36,7 +38,7 @@ public class DataNodeToDataNodeDTOConverter extends BaseConversionServiceAwareCo
     public DataNodeDTO convert(DataNode dataNode) {
 
         final DataNodeDTO dataNodeDTO = new DataNodeDTO();
-        dataNodeDTO.setUuid(dataNode.getSid());
+        dataNodeDTO.setId(dataNode.getId());
         dataNodeDTO.setName(dataNode.getName());
         dataNodeDTO.setDescription(dataNode.getDescription());
         dataNodeDTO.setVirtual(dataNode.getVirtual());
@@ -44,6 +46,14 @@ public class DataNodeToDataNodeDTOConverter extends BaseConversionServiceAwareCo
         CommonHealthStatus healthStatus = dataNode.getHealthStatus();
         dataNodeDTO.setHealthStatus(healthStatus);
         dataNodeDTO.setHealthStatusTitle(healthStatus.toString());
+        final Object principal = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal();
+        final Long loggedUserId = ((ArachneUser) principal).getId();
+        final User loggedUser = new User();
+        loggedUser.setId(loggedUserId);
+        dataNodeDTO.setCurrentUserDataOwner(DataNodeUtils.isDataNodeOwner(dataNode, loggedUser));
         return dataNodeDTO;
     }
 }

@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,15 +22,16 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import org.hibernate.validator.constraints.NotEmpty;
 
 public class CommentDTO {
 
     private Long id;
     private Date date;
+    @NotEmpty
     private String comment;
     private List<CommentDTO> comments = new LinkedList<>();
     private UserInfoDTO author;

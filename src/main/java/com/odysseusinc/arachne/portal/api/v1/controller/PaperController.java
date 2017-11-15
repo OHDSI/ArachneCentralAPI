@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,13 +29,11 @@ import com.odysseusinc.arachne.portal.api.v1.dto.UpdatePaperDTO;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.search.PaperSearch;
 import com.odysseusinc.arachne.portal.service.BasePaperService;
-import com.odysseusinc.arachne.portal.service.FileService;
-import io.swagger.annotations.Api;
+import com.odysseusinc.arachne.portal.service.StudyFileService;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Api
 @RequestMapping(path = "/api/v1/papers")
 @RestController
 public class PaperController extends BasePaperController
@@ -49,7 +47,7 @@ public class PaperController extends BasePaperController
     public PaperController(
             BasePaperService<Paper, PaperSearch> paperService,
             GenericConversionService conversionService,
-            FileService fileService) {
+            StudyFileService fileService) {
 
         super(paperService, conversionService, fileService);
     }

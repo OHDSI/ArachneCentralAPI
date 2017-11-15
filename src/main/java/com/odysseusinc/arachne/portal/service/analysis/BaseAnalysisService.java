@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -75,6 +75,8 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
 
     Path getAnalysisFile(AnalysisFile analysisFile) throws FileNotFoundException;
 
+    List<AnalysisFile> findAnalysisFilesByDataReference(T analysis, DataReference dataReference);
+
     AnalysisFile getAnalysisFile(Long analysisId, String uuid);
 
     void lockAnalysisFiles(Long analysisId, Boolean locked) throws NotExistException;
@@ -104,15 +106,11 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
 
     AnalysisFile saveAnalysisFile(AnalysisFile file);
 
-    List<String> getPackratFiles(ArachneFile arachneFile) throws IOException, ArchiveException;
-
     byte[] getAllBytes(ArachneFile arachneFile) throws IOException;
 
     void deleteSubmissionFile(SubmissionFile file);
 
     void setIsExecutable(String uuid);
-
-    List<String> getSubmissionFilesURLs(Submission source) throws IOException;
 
     List<SubmissionAction> getSubmissionActions(Submission submission);
 

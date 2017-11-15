@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,11 +22,15 @@
 
 package com.odysseusinc.arachne.portal.util;
 
+import com.google.common.collect.Sets;
+import com.odysseusinc.arachne.portal.api.v1.dto.CreateSubmissionsDTO;
 import com.odysseusinc.arachne.portal.exception.ConverterRuntimeException;
 import com.odysseusinc.arachne.portal.exception.IORuntimeException;
 import com.odysseusinc.arachne.portal.exception.NoExecutableFileException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
+import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.Analysis;
+import com.odysseusinc.arachne.portal.model.DataSourceStatus;
 import com.odysseusinc.arachne.portal.model.ResultFile;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
@@ -68,24 +72,37 @@ public class AnalysisHelper implements AnalysisPaths {
     public static List<Submission> createSubmission(BaseSubmissionService submissionService,
                                                     List<Long> datasourceIds, User user,
                                                     Analysis analysis)
-            throws IOException, NotExistException, NoExecutableFileException {
+            throws IOException, NotExistException, NoExecutableFileException, ValidationException {
 
         final List<Submission> submissions = new LinkedList<>();
 
-        SubmissionGroup submissionGroup = submissionService.createSubmissionGroup(user, analysis);
         //removes datasourceId duplicates
         Set<Long> datasourceIdSet = new HashSet<>(datasourceIds);
-        final Set<Long> connectedToStudyDSIds = analysis.getStudy().getDataSources()
-                .stream()
-                .map(studyDataSourceLink -> studyDataSourceLink.getDataSource().getId())
-                .collect(Collectors.toSet());
+
+        verifyDataSources(analysis, datasourceIdSet);
+
+        SubmissionGroup submissionGroup = submissionService.createSubmissionGroup(user, analysis);
+
         for (Long datasourceId : datasourceIdSet) {
-            if (connectedToStudyDSIds.contains(datasourceId)) {
-                submissions.add(submissionService.createSubmission(user, analysis, datasourceId, submissionGroup));
-            }
+            submissions.add(submissionService.createSubmission(user, analysis, datasourceId, submissionGroup));
         }
 
         return submissions;
+    }
+
+    private static void verifyDataSources(Analysis analysis, Set<Long> datasourceIds) throws ValidationException {
+
+        List<Long> dataSourceIds = analysis.getStudy()
+                .getDataSources().stream()
+                .filter(s -> DataSourceStatus.APPROVED.equals(s.getStatus()))
+                .map(s -> s.getDataSource().getId())
+                .collect(Collectors.toList());
+
+        Set<Long> difference = Sets.difference(datasourceIds, new HashSet<>(dataSourceIds));
+
+        if (difference.size() > 0) {
+            throw new ValidationException(String.format("You cannot submit an Analysis to DataSources with ids %s. They probably are disabled or aren't linked with analysis's study", difference.toString()));
+        }
     }
 
     public String getStoreFilesPath() {

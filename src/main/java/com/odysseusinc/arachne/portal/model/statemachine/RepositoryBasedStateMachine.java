@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -88,7 +88,7 @@ abstract public class RepositoryBasedStateMachine<O extends HasState<S>, S exten
 
         return this.getTransitionsFrom(object.getState())
                 .stream()
-                .anyMatch(transition -> Objects.equals(transition.getTo(), state));
+                .anyMatch(transition -> Objects.equals(transition.getTo(), state) && !transition.getDiscriminator().test(object));
     }
 
     @Override

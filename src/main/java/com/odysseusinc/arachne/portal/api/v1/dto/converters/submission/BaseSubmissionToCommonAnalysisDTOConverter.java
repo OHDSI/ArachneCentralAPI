@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -64,8 +64,6 @@ public abstract class BaseSubmissionToCommonAnalysisDTOConverter<T extends Submi
         dto.setDataSourceSid(source.getDataSource().getUuid());
         for (SubmissionFile submissionFile : source.getSubmissionGroup().getFiles()) {
             if (submissionFile.getExecutable() && StringUtils.isEmpty(dto.getExecutableFileName())) {
-                // it is supposed that all usual files and packrat files have entry point
-                // usual files have same entry point and realFileName
                 dto.setExecutableFileName(submissionFile.getRealName());
                 dto.setInnerExecutableFilename(submissionFile.getEntryPoint());
             }

@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -62,7 +62,7 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends D
     protected final UserStudyGroupedRepository userStudyGroupedRepository;
     protected final AnalysisRepository analysisRepository;
     protected final SubmissionRepository submissionRepository;
-    protected final DataNodeRepository dataNodeRepository;
+    protected final DataNodeRepository<DataNode> dataNodeRepository;
     protected final DataNodeUserRepository dataNodeUserRepository;
     protected final UserStudyExtendedRepository userStudyExtendedRepository;
 
@@ -157,8 +157,7 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends D
         final User standardUser = new User();
         standardUser.setId(user.getId());
         List<ParticipantRole> participantRoles = new ArrayList<>();
-        DataNode dataNodeFromDb = dataNodeRepository.findBySid(dataNode.getSid());
-        dataNodeUserRepository.findByDataNodeAndUser(dataNodeFromDb, standardUser)
+        dataNodeUserRepository.findByDataNodeAndUser(dataNode, standardUser)
                 .ifPresent(dataNodeUser -> {
                     final Set<DataNodeRole> dataNodeRoles = dataNodeUser.getDataNodeRole();
                     if (dataNodeRoles != null && !dataNodeRoles.isEmpty() && dataNodeRoles.contains(DataNodeRole.ADMIN)) {

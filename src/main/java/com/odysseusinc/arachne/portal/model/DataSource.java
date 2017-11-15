@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,9 +28,10 @@ import com.odysseusinc.arachne.commons.api.v1.dto.CommonModelType;
 import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
-import java.io.Serializable;
-import java.util.Date;
-import java.util.Set;
+import org.hibernate.annotations.DiscriminatorFormula;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.validator.constraints.NotBlank;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -47,9 +48,9 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
-import org.hibernate.annotations.DiscriminatorFormula;
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.validator.constraints.NotBlank;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Set;
 
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
@@ -68,7 +69,6 @@ public class DataSource implements Serializable, HasArachnePermissions {
             message = "Must be valid UUID.",
             regexp = "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     )
-    @NotBlank
     @Column(name = "uuid", nullable = false, unique = true)
     protected String uuid;
     @SolrFieldAnno(query = true)

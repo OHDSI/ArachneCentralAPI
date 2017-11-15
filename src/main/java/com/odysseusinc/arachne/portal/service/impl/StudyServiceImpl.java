@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,6 +38,7 @@ import com.odysseusinc.arachne.portal.model.StudyViewItem;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserStudy;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
+import com.odysseusinc.arachne.portal.model.statemachine.study.StudyStateMachine;
 import com.odysseusinc.arachne.portal.repository.FavouriteStudyRepository;
 import com.odysseusinc.arachne.portal.repository.ResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.StudyDataSourceCommentRepository;
@@ -50,7 +51,7 @@ import com.odysseusinc.arachne.portal.repository.UserStudyGroupedRepository;
 import com.odysseusinc.arachne.portal.repository.UserStudyRepository;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.DataSourceService;
-import com.odysseusinc.arachne.portal.service.FileService;
+import com.odysseusinc.arachne.portal.service.StudyFileService;
 import com.odysseusinc.arachne.portal.service.StudyService;
 import com.odysseusinc.arachne.portal.service.StudyStatusService;
 import com.odysseusinc.arachne.portal.service.StudyTypeService;
@@ -75,7 +76,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
-@SuppressWarnings("unused")
 @Transactional(rollbackFor = Exception.class)
 public class StudyServiceImpl extends BaseStudyServiceImpl<
         Study,
@@ -83,7 +83,7 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
         StudySearch,
         StudyViewItem> implements StudyService {
     public StudyServiceImpl(UserStudyExtendedRepository userStudyExtendedRepository,
-                            FileService fileService,
+                            StudyFileService fileService,
                             StudyViewItemRepository userStudyPublicItemRepository,
                             UserStudyGroupedRepository userStudyGroupedRepository,
                             UserStudyRepository userStudyRepository,
@@ -104,6 +104,7 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
                             BaseDataNodeService baseDataNodeService,
                             JavaMailSender javaMailSender,
                             GenericConversionService conversionService,
+                            StudyStateMachine studyStateMachine,
                             AddDataSourceStrategyFactory<DataSource> addDataSourceStrategyFactory) {
 
         super(userStudyExtendedRepository,
@@ -128,6 +129,7 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
                 baseDataNodeService,
                 javaMailSender,
                 conversionService,
+                studyStateMachine,
                 addDataSourceStrategyFactory);
     }
 
@@ -270,8 +272,8 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
     @Override
     @PreAuthorize("hasPermission(#studyId, 'Study', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
-    public void getStudyAllFiles(Long studyId, String archiveName, OutputStream os) throws IOException {
+    public void getAllStudyFilesExceptLinks(Long studyId, String archiveName, OutputStream os) throws IOException {
 
-        super.getStudyAllFiles(studyId, archiveName, os);
+        super.getAllStudyFilesExceptLinks(studyId, archiveName, os);
     }
 }

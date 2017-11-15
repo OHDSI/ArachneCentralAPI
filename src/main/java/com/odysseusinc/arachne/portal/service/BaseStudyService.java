@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,9 +29,7 @@ import com.odysseusinc.arachne.portal.exception.NotUniqueException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
-import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.DataSource;
-import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
@@ -39,7 +37,6 @@ import com.odysseusinc.arachne.portal.model.StudyFile;
 import com.odysseusinc.arachne.portal.model.SuggestSearchRegion;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserStudy;
-import com.odysseusinc.arachne.portal.model.search.PaperSearch;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -100,6 +97,11 @@ public interface BaseStudyService<
             IOException, ValidationException, FieldException, IllegalAccessException,
             SolrServerException;
 
+    DS getStudyDataSource(User user, Long studyId, Long dataSourceId);
+
+    DS updateVirtualDataSource(User user, Long studyId, Long dataSourceId, String name, List<Long> dataOwnerIds)
+            throws IllegalAccessException, IOException, NoSuchFieldException, SolrServerException, ValidationException;
+
     void removeDataSource(Long id, Long dataSourceId) throws NotExistException;
 
     void removeDataSourceUnsecured(Long studyId, Long dataSourceId);
@@ -109,7 +111,7 @@ public interface BaseStudyService<
 
     Iterable<T> suggestStudy(String query, User owner, Long id, SuggestSearchRegion region);
 
-    void getStudyAllFiles(Long studyId, String archiveName, OutputStream os) throws IOException;
+    void getAllStudyFilesExceptLinks(Long studyId, String archiveName, OutputStream os) throws IOException;
 
     StudyDataSourceLink getByIdAndStatusPendingAndToken(Long studyDataSourceId, String token) throws NotExistException;
 

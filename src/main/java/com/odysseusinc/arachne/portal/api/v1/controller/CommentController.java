@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,19 +33,18 @@ import com.odysseusinc.arachne.portal.model.Comment;
 import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.service.CommentService;
-import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import java.security.Principal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.http.MediaType;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-@Api
 @RestController
 public class CommentController extends BaseController {
 
@@ -75,7 +74,7 @@ public class CommentController extends BaseController {
     @ApiOperation(value = "Add new comment")
     @RequestMapping(value = "/api/v1/comments/{topicId}", method = RequestMethod.POST)
     public JsonResult<CommentDTO> addComment(@PathVariable("topicId") Long topicId,
-                                             @RequestBody CommentDTO commentDTO,
+                                             @Validated @RequestBody CommentDTO commentDTO,
                                              Principal principal
     ) throws PermissionDeniedException {
 

@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,4 +31,6 @@ public interface AnalysisFileRepository extends CrudRepository<AnalysisFile, Lon
     AnalysisFile findByUuid(String uuid);
 
     List<AnalysisFile> findAllByAnalysisIdAndRealName(Long analysisId, String name);
+
+    List<AnalysisFile> findAllByAnalysisIdAndDataReferenceId(Long analysisId, Long dataReferenceId);
 }

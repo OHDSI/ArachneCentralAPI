@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,10 +24,12 @@ package com.odysseusinc.arachne.portal.api.v1.dto;
 
 import java.util.Date;
 import java.util.List;
+import org.hibernate.validator.constraints.NotBlank;
 
-public class SubmissionInsightDTO {
+public class SubmissionInsightDTO extends SubmissionInsightCoreDTO {
 
     private Date created;
+    @NotBlank
     private String name;
     private String description;
     private List<Commentable> codeFiles;

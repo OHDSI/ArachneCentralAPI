@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -56,11 +56,11 @@ public class StudyStateMachineTest {
     @Test
     public void testMoveToState() {
 
-        Study study = createStudy(INITIATE);
+        Study study = createStudy(ACTIVE);
 
-        study = stateMachine.moveToState(study, ACTIVE);
+        study = stateMachine.moveToState(study, COMPLETED);
 
-        assertEquals(ACTIVE, study.getStatus().getName());
+        assertEquals(COMPLETED, study.getStatus().getName());
     }
 
     @Test(expected = IllegalStateMoveException.class)

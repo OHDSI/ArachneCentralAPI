@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.model.statemachine.study;
 
+import com.odysseusinc.arachne.portal.model.PublishState;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyStatus;
 import com.odysseusinc.arachne.portal.model.statemachine.ObjectRepository;
@@ -44,6 +45,7 @@ public class StudyStateMachine extends RepositoryBasedStateMachine<Study, StudyS
     private final String ARCHIVED = StudyState.ARCHIVED.getStateName();
 
     public StudyStateMachine(ObjectRepository<Study> objectRepository, StateRepository<StudyStatus> statusRepository) {
+
         super(objectRepository, statusRepository);
     }
 
@@ -88,7 +90,8 @@ public class StudyStateMachine extends RepositoryBasedStateMachine<Study, StudyS
                         .from(getStateByName(COMPLETED))
                         .to(getStateByName(ACTIVE))
                         .description("Paper already published")
-                        .discriminator((study) -> study.getPaper() != null)
+                        .discriminator((study) -> study.getPaper() != null
+                                && study.getPaper().getPublishState() == PublishState.PUBLISHED)
                         .build());
 
         createTransition(

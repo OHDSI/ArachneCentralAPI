@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,28 +23,31 @@
 package com.odysseusinc.arachne.portal.api.v1.dto;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
+import java.util.List;
 
 public class DataNodeDTO {
-    private String uuid;
+    private Long id;
     private String name;
     private String description;
     private Boolean virtual;
     private String atlasVerion;
     private CommonHealthStatus healthStatus;
     private String healthStatusTitle;
+    private List<ShortUserDTO> dataOwners;
+    private Boolean currentUserDataOwner;
 
     public DataNodeDTO() {
 
     }
 
-    public String getUuid() {
+    public Long getId() {
 
-        return uuid;
+        return id;
     }
 
-    public void setUuid(String uuid) {
+    public void setId(Long id) {
 
-        this.uuid = uuid;
+        this.id = id;
     }
 
     public String getName() {
@@ -105,5 +108,25 @@ public class DataNodeDTO {
     public void setHealthStatusTitle(String healthStatusTitle) {
 
         this.healthStatusTitle = healthStatusTitle;
+    }
+
+    public List<ShortUserDTO> getDataOwners() {
+
+        return dataOwners;
+    }
+
+    public void setDataOwners(List<ShortUserDTO> dataOwners) {
+
+        this.dataOwners = dataOwners;
+    }
+
+    public Boolean getCurrentUserDataOwner() {
+
+        return currentUserDataOwner;
+    }
+
+    public void setCurrentUserDataOwner(Boolean currentUserDataOwner) {
+
+        this.currentUserDataOwner = currentUserDataOwner;
     }
 }

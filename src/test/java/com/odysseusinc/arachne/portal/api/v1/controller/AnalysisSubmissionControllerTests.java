@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -118,7 +118,7 @@ public class AnalysisSubmissionControllerTests extends BaseControllerTest {
     public void testCreateSubmissionWithNotConnectedDS() throws Exception {
 
         sendRequest(STUDY_ID, ANALYSIS_ID, NOT_STUDY_DATASOURCE_ID)
-                .andExpect(NO_ERROR_CODE);
+                .andExpect(VALIDATION_ERROR_CODE);
     }
 
     @Test

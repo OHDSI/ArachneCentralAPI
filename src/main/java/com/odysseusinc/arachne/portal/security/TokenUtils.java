@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -242,7 +242,7 @@ public class TokenUtils {
         String uuid = getUUIDFromToken(token);
         Date expirationDate = getExpirationDateFromToken(token);
         Date now = new Date();
-        if (expirationDate == null || expirationDate.after(now)) {
+        if ((expirationDate == null || expirationDate.after(now)) && uuid != null) {
             invalidatedTokens.put(uuid, expirationDate);
         }
         //remove old tokens

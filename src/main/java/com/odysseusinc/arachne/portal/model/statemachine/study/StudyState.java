@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,21 +22,31 @@
 
 package com.odysseusinc.arachne.portal.model.statemachine.study;
 
+import static com.odysseusinc.arachne.portal.model.statemachine.study.StudyStateActions.CREATE_PAPER;
+import static com.odysseusinc.arachne.portal.model.statemachine.study.StudyStateActions.PUBLISH_PAPER;
+
 public enum StudyState {
 
-    INITIATE("Initiate"),
-    ACTIVE("Active"),
-    COMPLETED("Completed"),
-    ARCHIVED("Archived");
+    INITIATE("Initiate", new StudyStateActions[]{}),
+    ACTIVE("Active", new StudyStateActions[]{ CREATE_PAPER }),
+    COMPLETED("Completed", new StudyStateActions[]{ CREATE_PAPER, PUBLISH_PAPER }),
+    ARCHIVED("Archived", new StudyStateActions[]{ CREATE_PAPER, PUBLISH_PAPER });
 
     private String stateName;
+    private StudyStateActions[] actions;
 
-    StudyState(String stateName) {
+    StudyState(String stateName, StudyStateActions[] actions) {
         this.stateName = stateName;
+        this.actions = actions;
     }
 
     public String getStateName() {
 
         return stateName;
+    }
+
+    public StudyStateActions[] getActions() {
+
+        return actions;
     }
 }

@@ -48,6 +48,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.DataReferenceDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.FileContentDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.OptionDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightUpdateDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdateNotificationDTO;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.NotEmptyException;
@@ -83,6 +84,7 @@ import org.ohdsi.sql.SqlRender;
 import org.ohdsi.sql.SqlTranslate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.domain.Sort;
 import org.springframework.jms.core.JmsTemplate;
@@ -127,7 +129,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
     protected static final Map<CommonAnalysisType, String> ANALISYS_MIMETYPE_MAP = new HashMap<>();
     private static final Logger LOGGER = LoggerFactory.getLogger(AnalysisController.class);
     private static final String ENTITY_IS_NOT_AVAILABLE
-            = "'%s' with guid='%s' from DataNode with sid='%s' is not available";
+            = "'%s' with guid='%s' from DataNode with id='%d' is not available";
     private static final String DEFAULT_EXTENSION = ".txt";
     private static final String DEFAULT_MIMETYPE = "plain/text";
     protected final BaseDataSourceService dataSourceService;
@@ -140,6 +142,9 @@ public abstract class BaseAnalysisController<T extends Analysis,
     protected final DestinationResolver destinationResolver;
     protected final ImportService importService;
     protected final BaseSubmissionService<Submission, Analysis> submissionService;
+
+    @Value("${datanode.messaging.importTimeout}")
+    private Long datanodeImportTimeout;
 
     public BaseAnalysisController(BaseAnalysisService analysisService, BaseSubmissionService submissionService, DataReferenceService dataReferenceService, JmsTemplate jmsTemplate, GenericConversionService conversionService, BaseDataNodeService baseDataNodeService, BaseDataSourceService dataSourceService, ImportService importService, SimpMessagingTemplate wsTemplate) {
 
@@ -292,7 +297,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
             throws NotExistException, JMSException, IOException, PermissionDeniedException {
 
         final User user = getUser(principal);
-        final DataNode dataNode = dataNodeService.getBySid(entityReference.getDatanodeSid());
+        final DataNode dataNode = dataNodeService.getById(entityReference.getDataNodeId());
         final T analysis = analysisService.getById(analysisId);
         final DataReference dataReference = dataReferenceService.addOrUpdate(entityReference.getEntityGuid(), dataNode);
         final List<MultipartFile> entityFiles = getEntityFiles(entityReference, dataNode, analysisType);
@@ -313,7 +318,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
                                                MultipartFile file)
             throws IOException {
 
-        analysisService.saveFile(file, user, analysis, file.getName(), false, dataReference);
+        analysisService.saveFile(file, user, analysis, file.getName(), detectExecutable(analysisType, file), dataReference);
         if (analysisType.equals(CommonAnalysisType.COHORT)) {
             String statement = org.apache.commons.io.IOUtils.toString(file.getInputStream(), "UTF-8");
             String renderedSql = SqlRender.renderSql(statement, null, null);
@@ -341,24 +346,39 @@ public abstract class BaseAnalysisController<T extends Analysis,
         }
     }
 
+    protected boolean detectExecutable(CommonAnalysisType type, MultipartFile file) {
+
+        return false;
+    }
+
     @ApiOperation("update common entity in analysis")
     @RequestMapping(value = "/api/v1/analysis-management/analyses/{analysisId}/entities/{fileUuid}", method = PUT)
     public JsonResult updateCommonEntityInAnalysis(@PathVariable("analysisId") Long analysisId,
                                                    @PathVariable("fileUuid") String fileUuid,
                                                    @RequestParam(value = "type", required = false,
                                                            defaultValue = "COHORT") CommonAnalysisType analysisType,
-                                                   Principal principal) throws IOException, JMSException {
+                                                   Principal principal) throws IOException, JMSException, PermissionDeniedException {
 
+        final User user = getUser(principal);
         final AnalysisFile analysisFile = analysisService.getAnalysisFile(analysisId, fileUuid);
+        T analysis = (T) analysisFile.getAnalysis();
         final DataReference dataReference = analysisFile.getDataReference();
         final DataReferenceDTO entityReference = new DataReferenceDTO(
-                dataReference.getDataNode().getSid(), dataReference.getGuid());
+                dataReference.getDataNode().getId(), dataReference.getGuid());
+
         final List<MultipartFile> entityFiles = getEntityFiles(entityReference, dataReference.getDataNode(), analysisType);
+
+        analysisService.findAnalysisFilesByDataReference(analysis, dataReference).forEach(
+                af -> {
+                    analysisService.deleteAnalysisFile(analysis, af);
+                    analysis.getFiles().remove(af);
+                }
+        );
+
         entityFiles.forEach(entityFile -> {
 
             try {
-                analysisService.updateFile(fileUuid, entityFile, analysisId,
-                        ANALISYS_MIMETYPE_MAP.containsValue(entityFile.getContentType()));
+                doAddCommonEntityToAnalysis(analysis, dataReference, user, analysisType, entityFile);
             } catch (IOException e) {
                 LOGGER.error("Failed to update file", e);
                 throw new RuntimeIOException(e.getMessage(), e);
@@ -463,7 +483,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
     @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/insight", method = PUT)
     public JsonResult<SubmissionInsightDTO> updateSubmissionInsight(
             @PathVariable("submissionId") Long submissionId,
-            @RequestBody @Valid SubmissionInsightDTO insightDTO
+            @RequestBody SubmissionInsightUpdateDTO insightDTO
     ) throws NotExistException {
 
         final SubmissionInsight insight = conversionService.convert(insightDTO, SubmissionInsight.class);
@@ -621,8 +641,8 @@ public abstract class BaseAnalysisController<T extends Analysis,
     protected List<MultipartFile> getEntityFiles(DataReferenceDTO entityReference, DataNode dataNode, CommonAnalysisType entityType)
             throws JMSException, IOException {
 
-        Long waitForResponse = 60000L;
-        Long messageLifeTime = 60000L;
+        Long waitForResponse = datanodeImportTimeout;
+        Long messageLifeTime = datanodeImportTimeout;
         String baseQueue = MessagingUtils.Entities.getBaseQueue(dataNode);
         CommonEntityRequestDTO request = new CommonEntityRequestDTO(entityReference.getEntityGuid(), entityType);
 
@@ -641,7 +661,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
             String message = String.format(ENTITY_IS_NOT_AVAILABLE,
                     entityType.getTitle(),
                     entityReference.getEntityGuid(),
-                    entityReference.getDatanodeSid());
+                    entityReference.getDataNodeId());
             throw new ServiceNotAvailableException(message);
         }
         List<MultipartFile> files = new LinkedList<>();

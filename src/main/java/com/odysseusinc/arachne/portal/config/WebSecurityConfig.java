@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,11 +23,11 @@
 package com.odysseusinc.arachne.portal.config;
 
 import com.odysseusinc.arachne.portal.exception.SecurityConfigException;
-import com.odysseusinc.arachne.portal.model.UserOrigin;
 import com.odysseusinc.arachne.portal.security.AuthenticationSystemTokenFilter;
 import com.odysseusinc.arachne.portal.security.AuthenticationTokenFilter;
 import com.odysseusinc.arachne.portal.security.DataNodeAuthenticationProvider;
 import com.odysseusinc.arachne.portal.security.EntryPointUnauthorizedHandler;
+import com.odysseusinc.arachne.portal.security.HostNameIsNotInServiceException;
 import com.odysseusinc.arachne.portal.security.Roles;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import edu.vt.middleware.password.LengthRule;
@@ -41,6 +41,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,12 +63,17 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    Logger log = LoggerFactory.getLogger(WebSecurityConfig.class);
+    private final static Logger log = LoggerFactory.getLogger(WebSecurityConfig.class);
+    public static final ThreadLocal<String> portalHost = new ThreadLocal<>();
+
+    @Value("#{'${portal.hostsWhiteList}'.split(',')}")
+    private List<String> portalHostWhiteList;
 
     @Autowired
     protected BaseDataNodeService baseDataNodeService;
@@ -90,6 +99,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             throw new SecurityConfigException(ex.getMessage());
         }
     }
+
+    @Autowired
+    private HostFilter hostfilter;
 
     @Bean
     public DataNodeAuthenticationProvider dataNodeAuthenticationProvider() {
@@ -144,6 +156,37 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         return new AuthenticationSystemTokenFilter(baseDataNodeService);
     }
 
+    @Bean
+    public HostFilter hostFilter() {
+
+        return new HostFilter(portalHostWhiteList);
+    }
+
+    public static class HostFilter extends OncePerRequestFilter {
+
+        protected List<String> portalHostWhiteList;
+
+        @Value("${server.ssl.enabled}")
+        private Boolean httpsEnabled;
+
+        public HostFilter(List<String> portalHostWhiteList) {
+
+            this.portalHostWhiteList = portalHostWhiteList;
+        }
+
+        @Override
+        protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+
+            final String host = request.getHeader("Host");
+            if (!portalHostWhiteList.contains(host.split(":")[0])) {
+                throw new HostNameIsNotInServiceException(host);
+            }
+            portalHost.set(String.format("http%s://%s", httpsEnabled ? "s" : "", host));
+            filterChain.doFilter(request, response);
+            // portalHost.remove();
+        }
+    }
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
@@ -181,6 +224,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/v1/achilles/datanode/datasource/**").hasRole(Roles.ROLE_DATA_NODE)
                 .antMatchers("/api/v1/data-nodes/submissions/**").hasRole(Roles.ROLE_DATA_NODE)
                 .antMatchers("/api/v1/data-nodes/cohorts**").hasRole(Roles.ROLE_DATA_NODE)
+                .antMatchers("/api/v1/data-sources/byuuid/**").hasRole(Roles.ROLE_DATA_NODE)
 
                 .antMatchers("/api/v1/admin/users", "/api/v1/admin/users/**").hasRole("ADMIN")
                 // Next 2 are used by Data node (authed by query param, manually)
@@ -197,6 +241,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .addFilterBefore(authenticationTokenFilterBean(), UsernamePasswordAuthenticationFilter.class);
         // DataNode authentication
         http.addFilterBefore(authenticationSystemTokenFilter(), AuthenticationTokenFilter.class);
+        http.addFilterBefore(hostfilter, AuthenticationSystemTokenFilter.class);
     }
 
 }

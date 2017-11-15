@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,14 +27,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.odysseusinc.arachne.portal.api.v1.dto.DTO;
 import javax.validation.constraints.NotNull;
 
-/**
- * Created by AKrutov on 19.10.2016.
- */
 public class StudyStatusDTO extends DTO {
 
     @NotNull
     private Long id;
     private String name;
+    private String[] availableActions;
 
     @JsonCreator
     public StudyStatusDTO(
@@ -63,5 +61,15 @@ public class StudyStatusDTO extends DTO {
     public void setName(String name) {
 
         this.name = name;
+    }
+
+    public String[] getAvailableActions() {
+
+        return availableActions;
+    }
+
+    public void setAvailableActions(String[] availableActions) {
+
+        this.availableActions = availableActions;
     }
 }

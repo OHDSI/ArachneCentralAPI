@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,21 +23,8 @@
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightDTO;
-import com.odysseusinc.arachne.portal.model.SubmissionInsight;
-import org.springframework.beans.factory.annotation.Autowired;
-import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
-import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.stereotype.Component;
 
 @Component
-public class SubmissionInsightDTOToSubmissionInsightConverter extends BaseConversionServiceAwareConverter<SubmissionInsightDTO, SubmissionInsight> {
-
-    @Override
-    public SubmissionInsight convert(SubmissionInsightDTO source) {
-
-        final SubmissionInsight submissionInsight = new SubmissionInsight();
-        submissionInsight.setName(source.getName());
-        submissionInsight.setDescription(source.getDescription());
-        return submissionInsight;
-    }
-}
+public class SubmissionInsightDTOToSubmissionInsightConverter
+        extends BaseSubmissionInsightDTOToSubmissionInsightConverter<SubmissionInsightDTO> {}

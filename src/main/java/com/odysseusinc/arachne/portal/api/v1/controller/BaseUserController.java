@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -136,7 +136,7 @@ public abstract class BaseUserController<
         SB extends Submission> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseUserController.class);
-    private static final String JPEG_CONTENT_TYPE = "image/jpeg";
+    private static final String AVATAR_CONTENT_TYPE = "image/*";
     private static final String DATA_NODE_NOT_FOUND_EXCEPTION = "dataNode %s not found";
 
     protected final TokenUtils tokenUtils;
@@ -780,13 +780,12 @@ public abstract class BaseUserController<
 
     @ApiOperation("Link U to DataNode")
     @RequestMapping(value = "/api/v1/user-management/datanodes/{datanodeSid}/users", method = RequestMethod.POST)
-    public JsonResult linkUserToDataNode(@PathVariable("datanodeSid") String datanodeSid,
+    public JsonResult linkUserToDataNode(@PathVariable("datanodeSid") Long datanodeId,
                                          @RequestBody CommonLinkUserToDataNodeDTO linkUserToDataNode
     ) throws NotExistException, AlreadyExistException {
 
-        final DN datanode = baseDataNodeService.getBySid(datanodeSid);
-        Optional.ofNullable(datanode).orElseThrow(() ->
-                new NotExistException(String.format(DATA_NODE_NOT_FOUND_EXCEPTION, datanodeSid),
+        final DN datanode = Optional.ofNullable(baseDataNodeService.getById(datanodeId)).orElseThrow(() ->
+                new NotExistException(String.format(DATA_NODE_NOT_FOUND_EXCEPTION, datanodeId),
                         DataNode.class));
         final U user = userService.getByUsername(linkUserToDataNode.getUserName());
         final Set<DataNodeRole> roles = linkUserToDataNode.getRoles()
@@ -802,26 +801,25 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Unlink User to DataNode")
-    @RequestMapping(value = "/api/v1/user-management/datanodes/{datanodeSid}/users", method = RequestMethod.DELETE)
-    public JsonResult unlinkUserToDataNode(@PathVariable("datanodeSid") String datanodeSid,
+    @RequestMapping(value = "/api/v1/user-management/datanodes/{datanodeId}/users", method = RequestMethod.DELETE)
+    public JsonResult unlinkUserToDataNode(@PathVariable("datanodeId") String datanodeId,
                                            @RequestBody CommonLinkUserToDataNodeDTO linkUserToDataNode
     ) throws NotExistException {
 
-        final DN datanode = baseDataNodeService.getBySid(datanodeSid);
-        Optional.ofNullable(datanode).orElseThrow(() ->
-                new NotExistException(String.format(DATA_NODE_NOT_FOUND_EXCEPTION, datanodeSid), DataNode.class));
+        final DN datanode = Optional.ofNullable(baseDataNodeService.getBySid(datanodeId)).orElseThrow(() ->
+                new NotExistException(String.format(DATA_NODE_NOT_FOUND_EXCEPTION, datanodeId), DataNode.class));
         final U user = userService.getByUsername(linkUserToDataNode.getUserName());
         baseDataNodeService.unlinkUserToDataNode(datanode, user);
         return new JsonResult(NO_ERROR);
     }
 
     @ApiOperation("Relink all Users to DataNode")
-    @RequestMapping(value = "/api/v1/user-management/datanodes/{datanodeSid}/users", method = RequestMethod.PUT)
-    public JsonResult relinkAllUsersToDataNode(@PathVariable("datanodeSid") String datanodeSid,
+    @RequestMapping(value = "/api/v1/user-management/datanodes/{datanodeId}/users", method = RequestMethod.PUT)
+    public JsonResult relinkAllUsersToDataNode(@PathVariable("datanodeId") Long datanodeId,
                                                @RequestBody List<CommonLinkUserToDataNodeDTO> linkUserToDataNodes
     ) throws NotExistException {
 
-        final DN datanode = baseDataNodeService.getBySid(datanodeSid);
+        final DN datanode = baseDataNodeService.getById(datanodeId);
         final Set<DataNodeUser> users = linkUserToDataNodes.stream()
                 .map(link -> {
                             final U user = userService.getByUsername(link.getUserName());
@@ -848,12 +846,12 @@ public abstract class BaseUserController<
     private void putAvatarToResponse(HttpServletResponse response, U user) throws IOException {
 
         try (final InputStream is = userService.getUserAvatar(user)) {
-            response.setContentType("image/jpeg");
-            response.setHeader("Content-type", JPEG_CONTENT_TYPE);
+            response.setContentType(AVATAR_CONTENT_TYPE);
+            response.setHeader("Content-type", AVATAR_CONTENT_TYPE);
             response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
             response.setHeader("Pragma", "no-cache");
             response.setHeader("Expires", "0");
-            response.setHeader("Content-Disposition", "attachment; filename=avatar.jpg");
+            response.setHeader("Content-Disposition", "attachment; filename=avatar");
             org.apache.commons.io.IOUtils.copy(is, response.getOutputStream());
             response.flushBuffer();
         }
@@ -873,7 +871,8 @@ public abstract class BaseUserController<
 
     @ApiOperation("Remove user")
     @RequestMapping(value = "/api/v1/admin/users/{id}", method = DELETE)
-    public Map<String, Boolean> delete(@PathVariable("id") Long userId) throws ValidationException {
+    public Map<String, Boolean> delete(@PathVariable("id") Long userId)
+            throws ValidationException, IOException, SolrServerException {
 
         userService.remove(userId);
         return Collections.singletonMap("result", true);

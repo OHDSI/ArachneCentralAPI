@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,7 +41,9 @@ import com.odysseusinc.arachne.portal.api.v1.dto.CreateVirtualDataSourceDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.DataSourceDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.EntityLinkDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.MoveAnalysisDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.ShortUserDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.StudyDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.StudyFileContentDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.StudyListDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdateNotificationDTO;
@@ -56,7 +58,6 @@ import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.DataSource;
-import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
@@ -65,12 +66,11 @@ import com.odysseusinc.arachne.portal.model.SubmissionInsight;
 import com.odysseusinc.arachne.portal.model.SuggestSearchRegion;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserStudy;
-import com.odysseusinc.arachne.portal.model.search.PaperSearch;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.model.statemachine.study.StudyStateMachine;
 import com.odysseusinc.arachne.portal.model.statemachine.study.StudyTransition;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
-import com.odysseusinc.arachne.portal.service.FileService;
+import com.odysseusinc.arachne.portal.service.StudyFileService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import io.swagger.annotations.ApiOperation;
 import java.io.FileNotFoundException;
@@ -81,6 +81,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -111,7 +112,7 @@ public abstract class BaseStudyController<
         SL extends StudyListDTO> extends BaseController {
 
     private static final Logger LOG = LoggerFactory.getLogger(StudyController.class);
-    private final FileService fileService;
+    private final StudyFileService fileService;
     private final StudyStateMachine studyStateMachine;
     protected BaseStudyService<T, DS, SS, SU> studyService;
     protected GenericConversionService conversionService;
@@ -122,7 +123,7 @@ public abstract class BaseStudyController<
                                BaseAnalysisService<A> analysisService,
                                GenericConversionService conversionService,
                                SimpMessagingTemplate wsTemplate,
-                               FileService fileService,
+                               StudyFileService fileService,
                                StudyStateMachine studyStateMachine) {
 
         this.studyService = studyService;
@@ -393,7 +394,26 @@ public abstract class BaseStudyController<
 
     @ApiOperation("Get file of the study.")
     @RequestMapping(value = "/api/v1/study-management/studies/{studyId}/files/{fileUuid}", method = GET)
-    public void getFile(
+    public StudyFileContentDTO getFile(
+            @PathVariable("studyId") Long studyId,
+            @PathVariable("fileUuid") String uuid,
+            @RequestParam(defaultValue = "true") Boolean withContent
+    ) throws PermissionDeniedException, NotExistException, IOException {
+
+        StudyFile studyFile = studyService.getStudyFile(studyId, uuid);
+        StudyFileContentDTO studyFileDTO = conversionService.convert(studyFile, StudyFileContentDTO.class);
+
+        if (withContent) {
+            final String content = new String(fileService.getAllBytes(studyFile));
+            studyFileDTO.setContent(content);
+        }
+
+        return studyFileDTO;
+    }
+
+    @ApiOperation("Download file of the study.")
+    @RequestMapping(value = "/api/v1/study-management/studies/{studyId}/files/{fileUuid}/download", method = GET)
+    public void downloadFile(
             @PathVariable("studyId") Long studyId,
             @PathVariable("fileUuid") String uuid,
             HttpServletResponse response) throws PermissionDeniedException, NotExistException, IOException {
@@ -407,9 +427,9 @@ public abstract class BaseStudyController<
         response.flushBuffer();
     }
 
-    @ApiOperation("Get all files of the study.")
-    @RequestMapping(value = "/api/v1/study-management/studies/{studyId}/files/all", method = GET)
-    public void getAllFiles(
+    @ApiOperation("Download all files of the study.")
+    @RequestMapping(value = "/api/v1/study-management/studies/{studyId}/files/all/download", method = GET)
+    public void downloadAllFiles(
             @PathVariable("studyId") Long studyId,
             HttpServletResponse response) throws PermissionDeniedException, NotExistException, IOException {
 
@@ -421,7 +441,7 @@ public abstract class BaseStudyController<
         response.setHeader("Content-type", contentType);
         response.setHeader("Content-Disposition",
                 "attachment; filename=" + archiveName);
-        studyService.getStudyAllFiles(studyId, archiveName, response.getOutputStream());
+        studyService.getAllStudyFilesExceptLinks(studyId, archiveName, response.getOutputStream());
         response.flushBuffer();
     }
 
@@ -476,6 +496,47 @@ public abstract class BaseStudyController<
         );
         final DataSourceDTO registeredDataSourceDTO = conversionService.convert(dataSource, DataSourceDTO.class);
         return new JsonResult<>(NO_ERROR, registeredDataSourceDTO);
+    }
+
+    @ApiOperation("Get data source linked to study")
+    @RequestMapping(value = "/api/v1/study-management/studies/{studyId}/data-sources/{dataSourceId}", method = GET)
+    public DataSourceDTO getDataSource(
+            Principal principal,
+            @PathVariable("studyId") Long studyId,
+            @PathVariable("dataSourceId") Long dataSourceId) throws PermissionDeniedException {
+
+        final User createdBy = getUser(principal);
+        final DS dataSource = studyService.getStudyDataSource(createdBy, studyId, dataSourceId);
+        final DataSourceDTO dataSourceDTO = conversionService.convert(dataSource, DataSourceDTO.class);
+        final List<ShortUserDTO> userDTOs = dataSource.getDataNode().getDataNodeUsers().stream()
+                .map(dnu -> {
+                    final User user = dnu.getUser();
+                    final ShortUserDTO userDTO = new ShortUserDTO();
+                    userDTO.setId(user.getId());
+                    userDTO.setFirstname(user.getFirstname());
+                    userDTO.setLastname(user.getLastname());
+                    return userDTO;
+                })
+                .distinct()
+                .collect(Collectors.toList());
+        dataSourceDTO.getDataNode().setDataOwners(userDTOs);
+        return dataSourceDTO;
+    }
+
+    @ApiOperation("Update data source linked to study")
+    @RequestMapping(value = "/api/v1/study-management/studies/{studyId}/data-sources/{dataSourceId}", method = PUT)
+    public JsonResult<DataSourceDTO> updateDataSource(
+            Principal principal,
+            @PathVariable("studyId") Long studyId,
+            @PathVariable("dataSourceId") Long dataSourceId,
+            @RequestBody @Valid CreateVirtualDataSourceDTO dataSourceDTO
+    ) throws PermissionDeniedException, ValidationException, IOException, NoSuchFieldException, SolrServerException, IllegalAccessException {
+
+        final User user = getUser(principal);
+        DataSource dataSource = studyService.updateVirtualDataSource(
+                user, studyId, dataSourceId, dataSourceDTO.getName(), dataSourceDTO.getDataOwnersIds()
+        );
+        return new JsonResult<>(NO_ERROR, conversionService.convert(dataSource, DataSourceDTO.class));
     }
 
     @ApiOperation("Add data source to the study.")

@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,6 +39,8 @@ import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.PaperSearch;
 import com.odysseusinc.arachne.portal.model.search.PaperSpecification;
+import com.odysseusinc.arachne.portal.model.statemachine.study.StudyState;
+import com.odysseusinc.arachne.portal.model.statemachine.study.StudyStateActions;
 import com.odysseusinc.arachne.portal.repository.PaperFavouritesRepository;
 import com.odysseusinc.arachne.portal.repository.PaperPaperFileRepository;
 import com.odysseusinc.arachne.portal.repository.PaperProtocolFileRepository;
@@ -46,7 +48,8 @@ import com.odysseusinc.arachne.portal.repository.PaperRepository;
 import com.odysseusinc.arachne.portal.service.BasePaperService;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
-import com.odysseusinc.arachne.portal.service.FileService;
+import com.odysseusinc.arachne.portal.service.StudyFileService;
+import java.util.Arrays;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.solr.common.StringUtils;
 import org.slf4j.Logger;
@@ -94,7 +97,7 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
     @Autowired
     private BaseUserService userService;
     @Autowired
-    private FileService fileService;
+    private StudyFileService fileService;
     @Autowired
     @Qualifier("restTemplate")
     private RestTemplate restTemplate;
@@ -163,7 +166,7 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
         final P exists = getPaperByIdOrThrow(paper.getId());
 
         final PublishState publishState = paper.getPublishState();
-        if (publishState != null) {
+        if (publishState != null && validatePublishStateTransition(publishState, exists)) {
             exists.setPublishState(publishState);
             exists.setPublishedDate(publishState == PublishState.PUBLISHED ? new Date() : null);
         }
@@ -414,6 +417,13 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
         }
 
         paperRepository.delete(papers);
+    }
+
+    private boolean validatePublishStateTransition(PublishState state ,P exists) {
+
+        return !state.equals(PublishState.PUBLISHED)
+                || Arrays.asList(StudyState.valueOf(exists.getStudy().getState().getName().toUpperCase())
+                    .getActions()).contains(StudyStateActions.PUBLISH_PAPER);
     }
 
 }

@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +25,8 @@ package com.odysseusinc.arachne.portal.api.v1.dto.converters.dictionary;
 import com.odysseusinc.arachne.portal.api.v1.dto.dictionary.StudyStatusDTO;
 import com.odysseusinc.arachne.portal.model.StudyStatus;
 import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
+import com.odysseusinc.arachne.portal.model.statemachine.study.StudyState;
+import java.util.Arrays;
 import org.springframework.stereotype.Component;
 
 
@@ -36,6 +38,12 @@ public class StudyStatusToStudyStatusDTOConverter extends BaseConversionServiceA
     public StudyStatusDTO convert(StudyStatus source) {
 
         StudyStatusDTO dto = new StudyStatusDTO(source.getId(), source.getName());
+
+        Arrays.asList(StudyState.values()).stream()
+                .filter(ss -> ss.getStateName().equals(source.getName()))
+                .findFirst()
+                .ifPresent(ss -> dto.setAvailableActions(Arrays.stream(ss.getActions()).map(sa -> sa.name()).toArray(String[]::new)));
+
         return dto;
     }
 }

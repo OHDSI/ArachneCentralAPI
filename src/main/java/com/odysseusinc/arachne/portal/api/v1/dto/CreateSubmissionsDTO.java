@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,8 +23,10 @@
 package com.odysseusinc.arachne.portal.api.v1.dto;
 
 import java.util.List;
+import javax.validation.constraints.Size;
 
 public class CreateSubmissionsDTO {
+    @Size(min = 1)
     private List<Long> dataSources; //list of id of datasource
 
     public List<Long> getDataSources() {
