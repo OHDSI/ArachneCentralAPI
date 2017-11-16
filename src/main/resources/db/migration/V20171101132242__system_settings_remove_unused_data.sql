@@ -16,18 +16,9 @@
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
  * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: September 18, 2017
+ * Created: September 28, 2017
  *
  */
 
-package com.odysseusinc.arachne.portal.service;
-
-import com.odysseusinc.arachne.portal.model.Skill;
-import java.util.List;
-
-public interface BaseSkillService<S extends Skill> extends CRUDLService<S> {
-
-    List<S> suggestSkill(String query, Integer limit);
-
-    List<S> getAllExpectOfUserSkills(Long userId);
-}
+DELETE FROM system_settings
+WHERE name IN ('portal.url', 'zookeper.host', 'zookeper.port');

@@ -29,10 +29,11 @@ import com.odysseusinc.arachne.portal.exception.NotUniqueException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.Skill;
+import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.service.BaseSkillService;
-import com.odysseusinc.arachne.portal.service.impl.BaseSkillServiceImpl;
-import io.swagger.annotations.Api;
+import com.odysseusinc.arachne.portal.service.BaseUserService;
 import io.swagger.annotations.ApiOperation;
+import java.security.Principal;
 import java.util.LinkedList;
 import java.util.List;
 import javax.validation.Valid;
@@ -44,17 +45,18 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 
-public abstract class BaseSkillController<S extends Skill> {
+public abstract class BaseSkillController<S extends Skill, U extends User> {
 
     protected final BaseSkillService<S> skillService;
     protected final GenericConversionService conversionService;
+    protected final BaseUserService<U, S> userService;
 
-    public BaseSkillController(BaseSkillService<S> skillService, GenericConversionService conversionService) {
+    public BaseSkillController(BaseSkillService<S> skillService, GenericConversionService conversionService, BaseUserService<U, S> userService) {
 
         this.skillService = skillService;
         this.conversionService = conversionService;
+        this.userService = userService;
     }
 
     @ApiOperation("Register new skill.")
@@ -128,15 +130,14 @@ public abstract class BaseSkillController<S extends Skill> {
 
     @ApiOperation("List of skills.")
     @RequestMapping(value = "/api/v1/user-management/skills", method = RequestMethod.GET)
-    public JsonResult<List<SkillDTO>> list() {
+    public JsonResult<List<SkillDTO>> list(Principal principal) {
 
+        Long userId = userService.getByEmail(principal.getName()).getId();
         JsonResult<List<SkillDTO>> result;
-        Iterable<S> skills = skillService.list();
+        List<S> skills = skillService.getAllExpectOfUserSkills(userId);
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
         List<SkillDTO> skillDTOs = new LinkedList<>();
-        for (S skill : skills) {
-            skillDTOs.add(conversionService.convert(skill, SkillDTO.class));
-        }
+        skills.forEach(skill -> skillDTOs.add(conversionService.convert(skill, SkillDTO.class)));
         result.setResult(skillDTOs);
         return result;
     }
@@ -149,7 +150,7 @@ public abstract class BaseSkillController<S extends Skill> {
     ) {
 
         JsonResult<List<SkillDTO>> result;
-        Iterable<S> skills = skillService.suggestSkill(query,limit);
+        Iterable<S> skills = skillService.suggestSkill(query, limit);
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
         List<SkillDTO> skillDTOs = new LinkedList<>();
         for (S skill : skills) {
