@@ -48,6 +48,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.DataReferenceDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.FileContentDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.OptionDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightUpdateDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdateNotificationDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UploadFileDTO;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
@@ -318,7 +319,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
                                                MultipartFile file)
             throws IOException {
 
-        analysisService.saveFile(file, user, analysis, file.getName(), false, dataReference);
+        analysisService.saveFile(file, user, analysis, file.getName(), detectExecutable(analysisType, file), dataReference);
         if (analysisType.equals(CommonAnalysisType.COHORT)) {
             String statement = org.apache.commons.io.IOUtils.toString(file.getInputStream(), "UTF-8");
             String renderedSql = SqlRender.renderSql(statement, null, null);
@@ -346,24 +347,39 @@ public abstract class BaseAnalysisController<T extends Analysis,
         }
     }
 
+    protected boolean detectExecutable(CommonAnalysisType type, MultipartFile file) {
+
+        return false;
+    }
+
     @ApiOperation("update common entity in analysis")
     @RequestMapping(value = "/api/v1/analysis-management/analyses/{analysisId}/entities/{fileUuid}", method = PUT)
     public JsonResult updateCommonEntityInAnalysis(@PathVariable("analysisId") Long analysisId,
                                                    @PathVariable("fileUuid") String fileUuid,
                                                    @RequestParam(value = "type", required = false,
                                                            defaultValue = "COHORT") CommonAnalysisType analysisType,
-                                                   Principal principal) throws IOException, JMSException {
+                                                   Principal principal) throws IOException, JMSException, PermissionDeniedException {
 
+        final User user = getUser(principal);
         final AnalysisFile analysisFile = analysisService.getAnalysisFile(analysisId, fileUuid);
+        T analysis = (T) analysisFile.getAnalysis();
         final DataReference dataReference = analysisFile.getDataReference();
         final DataReferenceDTO entityReference = new DataReferenceDTO(
                 dataReference.getDataNode().getId(), dataReference.getGuid());
+
         final List<MultipartFile> entityFiles = getEntityFiles(entityReference, dataReference.getDataNode(), analysisType);
+
+        analysisService.findAnalysisFilesByDataReference(analysis, dataReference).forEach(
+                af -> {
+                    analysisService.deleteAnalysisFile(analysis, af);
+                    analysis.getFiles().remove(af);
+                }
+        );
+
         entityFiles.forEach(entityFile -> {
 
             try {
-                analysisService.updateFile(fileUuid, entityFile, analysisId,
-                        ANALISYS_MIMETYPE_MAP.containsValue(entityFile.getContentType()));
+                doAddCommonEntityToAnalysis(analysis, dataReference, user, analysisType, entityFile);
             } catch (IOException e) {
                 LOGGER.error("Failed to update file", e);
                 throw new RuntimeIOException(e.getMessage(), e);
@@ -463,7 +479,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
     @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/insight", method = PUT)
     public JsonResult<SubmissionInsightDTO> updateSubmissionInsight(
             @PathVariable("submissionId") Long submissionId,
-            @RequestBody @Valid SubmissionInsightDTO insightDTO
+            @RequestBody SubmissionInsightUpdateDTO insightDTO
     ) throws NotExistException {
 
         final SubmissionInsight insight = conversionService.convert(insightDTO, SubmissionInsight.class);

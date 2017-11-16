@@ -26,7 +26,7 @@ import java.util.Date;
 import java.util.List;
 import org.hibernate.validator.constraints.NotBlank;
 
-public class SubmissionInsightDTO {
+public class SubmissionInsightDTO extends SubmissionInsightCoreDTO {
 
     private Date created;
     @NotBlank
