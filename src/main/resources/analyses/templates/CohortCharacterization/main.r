@@ -29,41 +29,45 @@ run_cohort_characterization <- function(
   # Setup variables
   
   cohortTable <- "cohort"
-  cohortId <- sample(1:10^8, 1)
-  
-  print("Calculating cohort")
-  
-  sql <- readSql(cohortDefinitionSqlPath)
-  sql <- renderSql(sql,
-                   cdm_database_schema = cdmDatabaseSchema,
-                   target_database_schema = resultsDatabaseSchema,
-                   target_cohort_table = cohortTable,
-                   target_cohort_id = cohortId)$sql
-  sql <- translateSql(sql, targetDialect = connectionDetails$dbms)$sql
-  executeSql(connection, sql)
-  
-  print("Creating Heracles results tables (if not exist)")
-  
-  heraclesTablesSql <- readSql("createHeraclesTables.sql")
-  heraclesTablesSql <- renderSql(heraclesTablesSql,
-                                 results_schema=resultsDatabaseSchema)$sql
-  heraclesTablesSql <- translateSql(heraclesTablesSql, targetDialect = connectionDetails$dbms)$sql
-  executeSql(connection, heraclesTablesSql)
-  
-  print("Running Cohort Characterization")
-  
-  heraclesAnalyses <- readSql("runHeraclesAnalyses.sql")
-  heraclesAnalyses <- renderSql(heraclesAnalyses,
-                                CDM_schema=cdmDatabaseSchema,
-                                results_schema=resultsDatabaseSchema,
-                                cohort_table=cohortTable,
-                                source_name=connectionString,
-                                runHERACLESHeel = TRUE,
-                                CDM_version=5,
-                                cohort_definition_id=cohortId)$sql
-  heraclesAnalyses <- translateSql(heraclesAnalyses, targetDialect = connectionDetails$dbms)$sql
-  executeSql(connection, heraclesAnalyses)
-  
+  #cohortId <- sample(1:10^8, 1)
+
+  cohortId <- 1231666 #1231231
+
+  #print("Calculating cohort")
+  #
+  #sql <- readSql(cohortDefinitionSqlPath)
+  #sql <- renderSql(sql,
+  #                 cdm_database_schema = cdmDatabaseSchema,
+  #                 target_database_schema = resultsDatabaseSchema,
+  #                 target_cohort_table = cohortTable,
+  #                 target_cohort_id = cohortId)$sql
+  #sql <- translateSql(sql, targetDialect = connectionDetails$dbms)$sql
+  #executeSql(connection, sql)
+  #
+  #print("Creating Heracles results tables (if not exist)")
+  #
+  #heraclesTablesSql <- readSql("createHeraclesTables.sql")
+  #heraclesTablesSql <- renderSql(heraclesTablesSql,
+  #                               results_schema=resultsDatabaseSchema)$sql
+  #heraclesTablesSql <- translateSql(heraclesTablesSql, targetDialect = connectionDetails$dbms)$sql
+  #executeSql(connection, heraclesTablesSql)
+  #
+  #print("Running Cohort Characterization")
+  #
+  #heraclesAnalyses <- readSql("runHeraclesAnalyses.sql")
+  #heraclesAnalyses <- renderSql(heraclesAnalyses,
+  #                              CDM_schema=cdmDatabaseSchema,
+  #                              results_schema=resultsDatabaseSchema,
+  #                              cohort_table=cohortTable,
+  #                              source_name=connectionString,
+  #                              runHERACLESHeel = TRUE,
+  #                              CDM_version=5,
+  #                              cohort_definition_id=cohortId)$sql
+  #heraclesAnalyses <- translateSql(heraclesAnalyses, targetDialect = connectionDetails$dbms)$sql
+  #executeSql(connection, heraclesAnalyses)
+
+  writeAllResults(dbms, connectionString, cdmDatabaseSchema, resultsDatabaseSchema,  user, password, cohortId)
+
   # Save results
   
   # 
@@ -240,7 +244,7 @@ getCohortObservationPeriod <- function(connection, resultsDatabaseSchema, cdmDat
           "mappings"=fromJSON("./definitions/mappings/ResultSetToMonthObservationRecord.json")$mappings
   )
 
-  queryMap$observedByMonth <- list(
+  queryMap$periodPerPerson <- list(
          "sqlPath"="cohortresults-sql/observationperiod/periodsperperson.sql",
           "targetType"=fromJSON("./definitions/types/ConceptCount.json"),
           "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptCount.json")$mappings
@@ -366,8 +370,8 @@ getDashboard <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, c
 getDrugEraTreemap <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId) {
     queryMap <- list()
 
-    queryMap$drugEraTreemap <- list(
-        "sqlPath"="cohortresults-sql/drugera/sqlDrugEraTreemap.sql"
+    queryMap$drugeras <- list(
+         "sqlPath"="cohortresults-sql/drugera/sqlDrugEraTreemap.sql"
         # "targetType"=fromJSON("./definitions/types/HierarchicalConceptEra.json"),
         # HierarchicalConceptEraMapper
         # "mappings"=fromJSON("./definitions/mappings/ResultSetToHierarchicalConceptEra.json")$mappings
@@ -379,13 +383,49 @@ getDrugEraTreemap <- function(connection, resultsDatabaseSchema, cdmDatabaseSche
         "cdm_database_schema" = cdmDatabaseSchema
     )
 
+    return (queryCohortAnalysesResults2(queryMap, connection, sqlReplacements, FALSE));
+}
+
+getDrugEraDrilldown <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId, conceptId) {
+    queryMap <- list()
+
+    queryMap$ageAtFirstExposure <- list(
+        "sqlPath"="cohortresults-sql/drugera/byConcept/sqlAgeAtFirstExposure.sql"
+        # "targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
+        # "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
+    )
+
+    queryMap$lengthOfEra <- list(
+        "sqlPath"="cohortresults-sql/drugera/byConcept/sqlLengthOfEra.sql"
+        # "targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
+        # "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
+    )
+    queryMap$prevalenceByGenderAgeYear <- list(
+        "sqlPath"="cohortresults-sql/drugera/byConcept/sqlPrevalenceByGenderAgeYear.sql"
+        # "targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
+        # "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
+    )
+
+    queryMap$prevalenceByMonth <- list(
+        "sqlPath"="cohortresults-sql/drugera/byConcept/sqlPrevalenceByMonth.sql"
+        # "targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
+        # "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
+    )
+
+    sqlReplacements <- list(
+        "ohdsi_database_schema"=resultsDatabaseSchema,
+        "cohortDefinitionId"=cohortId,
+        "cdm_database_schema"=cdmDatabaseSchema,
+        "conceptId"=conceptId
+    )
+
     return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
 }
 
-getDrugTreemap <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId) {
+getDrugExposuresTreemap <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId) {
     queryMap <- list()
 
-    queryMap$drugEraTreemap <- list(
+    queryMap$drugexposures <- list(
         "sqlPath"="cohortresults-sql/drug/sqlDrugTreemap.sql"
         # "targetType"=fromJSON("./definitions/types/HierarchicalConceptEra.json"),
         # HierarchicalConceptEraMapper
@@ -398,13 +438,78 @@ getDrugTreemap <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema,
         "cdm_database_schema" = cdmDatabaseSchema
     )
 
+    return (queryCohortAnalysesResults2(queryMap, connection, sqlReplacements, FALSE));
+}
+
+getDrugExposuresDrilldown <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId, conceptId) {
+    queryMap <- list()
+
+    queryMap$ageAtFirstExposure <- list(
+        "sqlPath"="cohortresults-sql/drug/byConcept/sqlAgeAtFirstExposure.sql"
+        # "targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
+        # "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
+    )
+
+    queryMap$daysSupplyDistribution <- list(
+        "sqlPath"="cohortresults-sql/drug/byConcept/sqlDaysSupplyDistribution.sql"
+        # "targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
+        # "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
+    )
+    queryMap$drugsByType <- list(
+        "sqlPath"="cohortresults-sql/drug/byConcept/sqlDrugsByType.sql"
+        # "targetType"=fromJSON("./definitions/types/ConceptCount.json"),
+        # "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptCount.json")$mappings
+    )
+
+    queryMap$drugsByType <- list(
+          "sqlPath"="cohortresults-sql/drug/byConcept/sqlDrugsByType.sql"
+          # "targetType"=fromJSON("./definitions/types/ConceptCount.json"),
+          # "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptCount.json")$mappings
+     )
+
+     queryMap$prevalenceByGenderAgeYear <- list(
+              "sqlPath"="cohortresults-sql/drug/byConcept/sqlPrevalenceByGenderAgeYear.sql"
+              # "targetType"=fromJSON("./definitions/types/ConceptDecile.json"),
+              # "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptDecile.json")$mappings
+      )
+     queryMap$prevalenceByMonth <- list(
+              "sqlPath"="cohortresults-sql/drug/byConcept/sqlPrevalenceByMonth.sql"
+              # "targetType"=fromJSON("./definitions/types/PrevalanceConcept.json"),
+              # "mappings"=fromJSON("./definitions/mappings/ResultSetToPrevalanceConcept.json")$mappings
+      )
+
+     queryMap$prevalenceByMonth <- list(
+              "sqlPath"="cohortresults-sql/drug/byConcept/sqlPrevalenceByMonth.sql"
+              # "targetType"=fromJSON("./definitions/types/PrevalanceConcept.json"),
+              # "mappings"=fromJSON("./definitions/mappings/ResultSetToPrevalanceConcept.json")$mappings
+      )
+
+     queryMap$quantityDistribution <- list(
+              "sqlPath"="cohortresults-sql/drug/byConcept/sqlQuantityDistribution.sql"
+              # "targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
+              # "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
+      )
+
+     queryMap$refillsDistribution <- list(
+              "sqlPath"="cohortresults-sql/drug/byConcept/sqlRefillsDistribution.sql"
+              # "targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
+              # "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
+      )
+
+    sqlReplacements <- list(
+        "ohdsi_database_schema"=resultsDatabaseSchema,
+        "cohortDefinitionId"=cohortId,
+        "cdm_database_schema"=cdmDatabaseSchema,
+        "conceptId"=conceptId
+    )
+
     return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
 }
 
 getProcedureTreemap <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId) {
     queryMap <- list()
 
-    queryMap$procedureTreemap <- list(
+    queryMap$procedures <- list(
         "sqlPath"="cohortresults-sql/procedure/sqlProcedureTreemap.sql"
         # "targetType"=fromJSON("./definitions/types/HierarchicalConcept.json"),
         # "mappings"=fromJSON("./definitions/mappings/ResultSetToHierarchicalConcept.json")$mappings
@@ -459,7 +564,7 @@ getProcedureDrilldown <- function(connection, resultsDatabaseSchema, cdmDatabase
 getVisitTreemap <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId) {
     queryMap <- list()
 
-    queryMap$visitTreemap <- list(
+    queryMap$visits <- list(
         "sqlPath"="cohortresults-sql/visit/sqlVisitTreemap.sql"
         # "targetType"=fromJSON("./definitions/types/HierarchicalConcept.json"),
         # "mappings"=fromJSON("./definitions/mappings/ResultSetToHierarchicalConcept.json")$mappings
@@ -510,6 +615,189 @@ getVisitDrilldown <- function(connection, resultsDatabaseSchema, cdmDatabaseSche
 
     return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
 }
+
+getConditionTreemap <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId) {
+    queryMap <- list()
+
+    queryMap$conditions <- list(
+        "sqlPath"="cohortresults-sql/condition/sqlConditionTreemap.sql"
+        # "targetType"=fromJSON("./definitions/types/HierarchicalConcept.json"),
+        # "mappings"=fromJSON("./definitions/mappings/ResultSetToHierarchicalConcept.json")$mappings
+    )
+
+    sqlReplacements <- list(
+        "ohdsi_database_schema"=resultsDatabaseSchema,
+        "cohortDefinitionId"=cohortId,
+        "cdm_database_schema" = cdmDatabaseSchema
+    )
+
+    return (queryCohortAnalysesResults2(queryMap, connection, sqlReplacements, FALSE));
+}
+
+getConditionDrilldown <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId, conceptId) {
+    queryMap <- list()
+    #getCohortSpecificTreemapResults
+
+    queryMap$ageAtFirstDiagnosis <- list(
+        "sqlPath"="cohortresults-sql/condition/byConcept/sqlAgeAtFirstDiagnosis.sql"
+        # "targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
+        # "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
+    )
+
+     queryMap$sqlConditionsByType <- list(
+      "sqlPath"="cohortresults-sql/condition/byConcept/sqlConditionsByType.sql"
+      # "targetType"=fromJSON("./definitions/types/ConceptConditionCount.json"),
+      # "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptConditionCount.json")$mappings
+     )
+
+     queryMap$prevalenceByGenderAgeYear <- list(
+         "sqlPath"="cohortresults-sql/condition/byConcept/sqlPrevalenceByGenderAgeYear.sql"
+        # "targetType"=fromJSON("./definitions/types/ConceptDecile.json"),
+        # "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptDecile.json")$mappings
+     )
+
+     queryMap$prevalenceByMonth <- list(
+         "sqlPath"="cohortresults-sql/condition/byConcept/sqlPrevalenceByMonth.sql"
+        # "targetType"=fromJSON("./definitions/types/PrevalanceConcept.json"),
+        # "mappings"=fromJSON("./definitions/mappings/ResultSetToPrevalanceConcept.json")$mappings
+     )
+
+    sqlReplacements <- list(
+        "ohdsi_database_schema"=resultsDatabaseSchema,
+        "cohortDefinitionId"=cohortId,
+        "cdm_database_schema" = cdmDatabaseSchema,
+        "conceptId" = conceptId
+    )
+
+    return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
+}
+
+getConditionEraTreemap <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId) {
+    queryMap <- list()
+
+    queryMap$conditioneras <- list(
+        "sqlPath"="cohortresults-sql/conditionera/sqlConditionEraTreemap.sql"
+        # "targetType"=fromJSON("./definitions/types/HierarchicalConcept.json"),
+        # "mappings"=fromJSON("./definitions/mappings/ResultSetToHierarchicalConcept.json")$mappings
+    )
+
+    sqlReplacements <- list(
+        "ohdsi_database_schema"=resultsDatabaseSchema,
+        "cohortDefinitionId"=cohortId,
+        "cdm_database_schema" = cdmDatabaseSchema
+    )
+
+    return (queryCohortAnalysesResults2(queryMap, connection, sqlReplacements, FALSE));
+}
+
+getConditionEraDrilldown <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId, conceptId) {
+    queryMap <- list()
+    #getCohortSpecificTreemapResults
+
+    queryMap$ageAtFirstDiagnosis <- list(
+        "sqlPath"="cohortresults-sql/conditionera/byConcept/sqlAgeAtFirstDiagnosis.sql"
+        # "targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
+        # "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
+    )
+
+    queryMap$lengthOfEra <- list(
+      "sqlPath"="cohortresults-sql/conditionera/byConcept/sqlLengthOfEra.sql"
+      # "targetType"=fromJSON("./definitions/types/ConceptConditionCount.json"),
+      # "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptConditionCount.json")$mappings
+    )
+
+    queryMap$prevalenceByGenderAgeYear <- list(
+        "sqlPath"="cohortresults-sql/conditionera/byConcept/sqlPrevalenceByGenderAgeYear.sql"
+        # "targetType"=fromJSON("./definitions/types/ConceptDecile.json"),
+        # "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptDecile.json")$mappings
+    )
+
+    queryMap$prevalenceByMonth <- list(
+        "sqlPath"="cohortresults-sql/conditionera/byConcept/sqlPrevalenceByMonth.sql"
+        # "targetType"=fromJSON("./definitions/types/PrevalanceConcept.json"),
+        # "mappings"=fromJSON("./definitions/mappings/ResultSetToPrevalanceConcept.json")$mappings
+    )
+
+    sqlReplacements <- list(
+        "ohdsi_database_schema"=resultsDatabaseSchema,
+        "cohortDefinitionId"=cohortId,
+        "cdm_database_schema" = cdmDatabaseSchema,
+        "conceptId" = conceptId
+    )
+
+    return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
+}
+
+
+getObservationTreemap <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId) {
+    queryMap <- list()
+
+    queryMap$observations <- list(
+        "sqlPath"="cohortresults-sql/observation/sqlObservationTreemap.sql"
+        # "targetType"=fromJSON("./definitions/types/HierarchicalConcept.json"),
+        # "mappings"=fromJSON("./definitions/mappings/ResultSetToHierarchicalConcept.json")$mappings
+    )
+
+    sqlReplacements <- list(
+        "ohdsi_database_schema"=resultsDatabaseSchema,
+        "cohortDefinitionId"=cohortId,
+        "cdm_database_schema" = cdmDatabaseSchema
+    )
+
+    return (queryCohortAnalysesResults2(queryMap, connection, sqlReplacements, FALSE));
+}
+
+getObservationDrilldown <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId, conceptId) {
+    queryMap <- list()
+    #getCohortSpecificTreemapResults
+
+    queryMap$ageAtFirstOccurrence <- list(
+        "sqlPath"="cohortresults-sql/observation/byConcept/sqlAgeAtFirstOccurrence.sql"
+        # "targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
+        # "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
+    )
+
+    queryMap$observationValueDistribution <- list(
+      "sqlPath"="cohortresults-sql/observation/byConcept/sqlObservationValueDistribution.sql"
+      # "targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
+      # "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
+    )
+
+    queryMap$observationsByType <- list(
+        "sqlPath"="cohortresults-sql/observation/byConcept/sqlObservationsByType.sql"
+        # "targetType"=fromJSON("./definitions/types/ConceptObservationCount.json"),
+        # "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptObservationCount.json")$mappings
+    )
+
+    queryMap$recordsByUnit <- list(
+        "sqlPath"="cohortresults-sql/observation/byConcept/sqlRecordsByUnit.sql"
+        # "targetType"=fromJSON("./definitions/types/ConceptObservationCount.json"),
+        # "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptObservationCount.json")$mappings
+    )
+
+    queryMap$prevalenceByGenderAgeYear <- list(
+        "sqlPath"="cohortresults-sql/observation/byConcept/sqlPrevalenceByGenderAgeYear.sql"
+        # "targetType"=fromJSON("./definitions/types/ConceptDecile.json"),
+        # "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptDecile.json")$mappings
+    )
+
+   queryMap$prevalenceByMonth <- list(
+            "sqlPath"="cohortresults-sql/observation/byConcept/sqlPrevalenceByMonth.sql"
+            # "targetType"=fromJSON("./definitions/types/PrevalanceConceptName.json"),
+            # "mappings"=fromJSON("./definitions/mappings/ResultSetToPrevalanceConceptName.json")$mappings
+   )
+
+
+    sqlReplacements <- list(
+        "ohdsi_database_schema"=resultsDatabaseSchema,
+        "cohortDefinitionId"=cohortId,
+        "cdm_database_schema" = cdmDatabaseSchema,
+        "conceptId" = conceptId
+    )
+
+    return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
+}
+
 
 writeToFile <- function(filename, content) {
   file.create(filename)
@@ -593,16 +881,16 @@ queryCohortAnalysesResults2 <- function(queryMap, connection, sqlReplacements, c
   return(result)
 }
 
-queryDrilldownResults <- function(result, connection, cohortId) {
+queryProcedureResults <- function(result, connection, cohortId) {
 
-  #dir.create("../output/procedure")
+  dir.create("../output/procedures")
 
   for (key in names(result)) {
     query <- result[[key]]
 
     for (conceptId in query$CONCEPT_ID  ) {
 
-        namef<-paste("../output/procedure/",  ".json", sep=toString(conceptId))
+        namef<-paste("../output/procedures/",  ".json", sep=toString(conceptId))
         res <- getProcedureDrilldown(connection, resultsDatabaseSchema = "results", cdmDatabaseSchema = "public", cohortId, conceptId)
         writeToFile(namef, res)
     }
@@ -611,80 +899,174 @@ queryDrilldownResults <- function(result, connection, cohortId) {
 
 queryVisitResults <- function(result, connection, cohortId) {
 
-  dir.create("../output/visit")
+  dir.create("../output/visits")
 
   for (key in names(result)) {
     query <- result[[key]]
 
     for (conceptId in query$CONCEPT_ID) {
 
-        namef<-paste("../output/visit/",  ".json", sep=toString(conceptId))
+        namef<-paste("../output/visits/",  ".json", sep=toString(conceptId))
         res <- getVisitDrilldown(connection, resultsDatabaseSchema = "results", cdmDatabaseSchema = "public", cohortId, conceptId)
         writeToFile(namef, res)
     }
   }
 }
 
+queryConditionResults <- function(result, connection, cohortId) {
+
+  dir.create("../output/conditions")
+
+  for (key in names(result)) {
+    query <- result[[key]]
+
+    for (conceptId in query$CONCEPT_ID) {
+
+        namef<-paste("../output/conditions/",  ".json", sep=toString(conceptId))
+        res <- getConditionDrilldown(connection, resultsDatabaseSchema = "results", cdmDatabaseSchema = "public", cohortId, conceptId)
+        writeToFile(namef, res)
+    }
+  }
+}
+
+queryConditionEraResults <- function(result, connection, cohortId) {
+
+  dir.create("../output/conditioneras")
+
+  for (key in names(result)) {
+    query <- result[[key]]
+
+    for (conceptId in query$CONCEPT_ID) {
+
+        namef<-paste("../output/conditioneras/",  ".json", sep=toString(conceptId))
+        res <- getConditionEraDrilldown(connection, resultsDatabaseSchema = "results", cdmDatabaseSchema = "public", cohortId, conceptId)
+        writeToFile(namef, res)
+    }
+  }
+}
+
+queryDrugExposuresResults <- function(result, connection, cohortId) {
+
+   dir.create("../output/drugexposures")
+
+   for (key in names(result)) {
+       query <- result[[key]]
+       for (conceptId in query$CONCEPT_ID) {
+
+           namef<-paste("../output/drugexposures/",  ".json", sep=toString(conceptId))
+           res <- getDrugExposuresDrilldown(connection, resultsDatabaseSchema = "results", cdmDatabaseSchema = "public", cohortId, conceptId)
+           writeToFile(namef, res)
+       }
+   }
+}
+
+queryDrugEraResults <- function(result, connection, cohortId) {
+
+   dir.create("../output/drugeras")
+
+   for (key in names(result)) {
+       query <- result[[key]]
+       for (conceptId in query$CONCEPT_ID) {
+
+           namef<-paste("../output/drugeras/",  ".json", sep=toString(conceptId))
+           res <- getDrugEraDrilldown(connection, resultsDatabaseSchema = "results", cdmDatabaseSchema = "public", cohortId, conceptId)
+           writeToFile(namef, res)
+       }
+   }
+}
+
+queryObservationResults <- function(result, connection, cohortId) {
+
+   dir.create("../output/observations")
+
+   for (key in names(result)) {
+       query <- result[[key]]
+       for (conceptId in query$CONCEPT_ID) {
+
+           namef<-paste("../output/observations/",  ".json", sep=toString(conceptId))
+           res <- getObservationDrilldown(connection, resultsDatabaseSchema = "results", cdmDatabaseSchema = "public", cohortId, conceptId)
+           writeToFile(namef, res)
+       }
+   }
+}
+
+writeAllResults <- function(dbms, connectionString, cdmDatabaseSchema, resultsDatabaseSchema, user, password, cohortId) {
+
 library(DatabaseConnector)
 library(SqlRender)
 library(jsonlite)
 library(dplyr)
 
-connectionDetails <- createConnectionDetails(dbms="postgresql",
-                                             connectionString="jdbc:postgresql://odysseusovh02.odysseusinc.com:5432/cdm_v500_synpuf_v101_110k",
-                                             user="ohdsi",
-                                             password="ohdsi")
+connectionDetails <- createConnectionDetails(dbms=dbms,
+                                             connectionString=connectionString,
+                                             user=user,
+                                             password=password)
 connection <- connect(connectionDetails)
-#res <- getCohortSpecificSummary(connection, resultsDatabaseSchema = "results", cdmDatabaseSchema = "public", cohortId = 1231231)
-#dir.create("../output")
-#writeToFile("../output/cohortspecific.json", res)
+dir.create("../output")
 
-#res <- getDeathSummary(connection, resultsDatabaseSchema = "results", cdmDatabaseSchema = "public", cohortId = 1231231)
+res <- getCohortSpecificSummary(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId)
+writeToFile("../output/cohortspecific.json", res)
+
+#res <- getDeathSummary(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId)
 #writeToFile("../output/death.json", res)
 
-#res <- getCohortObservationPeriod(connection, resultsDatabaseSchema = "results", cdmDatabaseSchema = "public", cohortId = 1231231)
+#res <- getCohortObservationPeriod(connection, resultsDatabaseSchema, cdmDatabaseSchema , cohortId)
 #writeToFile("../output/cohortobservationperiod.json", res)
 
-#res <- getPersonSummary(connection, resultsDatabaseSchema = "results", cdmDatabaseSchema = "public", cohortId = 1231231)
+#res <- getPersonSummary(connection, resultsDatabaseSchema, cdmDatabaseSchema , cohortId)
 #writeToFile("../output/person.json", res)
 
-#res <- getDataDensity(connection, resultsDatabaseSchema = "results", cdmDatabaseSchema = "public", cohortId = 1231231)
+#res <- getDataDensity(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId)
 #writeToFile("../output/datadensity.json", res)
 
-#res <- getDashboard(connection, resultsDatabaseSchema = "results", cdmDatabaseSchema = "public", cohortId = 1231231)
+#res <- getDashboard(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId)
 #writeToFile("../output/dashboard.json", res)
 
-#res <- getConditionResults(connection, resultsDatabaseSchema = "results", cdmDatabaseSchema = "public", cohortId = 1231231)
+#res <- getConditionResults(connection, resultsDatabaseSchema, cdmDatabaseSchema , cohortId)
 #writeToFile("../output/conditionresults.json", res)
 
-#res <- getConditionTreemap(connection, resultsDatabaseSchema = "results", cdmDatabaseSchema = "public", cohortId = 1231231)
+#res <- getConditionTreemap(connection, resultsDatabaseSchema, cdmDatabaseSchema , cohortId)
 #writeToFile("../output/conditiontreemap.json", res)
 
-#res <- getDrugEraTreemap(connection, resultsDatabaseSchema = "results", cdmDatabaseSchema = "public", cohortId = 1231231)
-#writeToFile("../output/drugera.json", res)
+res <- getDrugEraTreemap(connection, resultsDatabaseSchema, cdmDatabaseSchema , cohortId)
+writeToFile("../output/drugeratreemap.json",  toJSON(res, pretty = TRUE, auto_unbox = TRUE))
+#queryDrugEraResults(res, connection, cohortId)
 
-#res <- getDrugTreemap(connection, resultsDatabaseSchema = "results", cdmDatabaseSchema = "public", cohortId = 1231231)
-#writeToFile("../output/drug.json", res)
+#res <- getDrugExposuresTreemap(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId)
+#writeToFile("../output/drugexposurestreemap.json",  toJSON(res, pretty = TRUE, auto_unbox = TRUE))
+#queryDrugExposuresResults(res, connection, cohortId)
 
-#res <- getProcedureTreemap(connection, resultsDatabaseSchema = "results", cdmDatabaseSchema = "public", cohortId = 1231231)
+#res <- getProcedureTreemap(connection, resultsDatabaseSchema , cdmDatabaseSchema, cohortId)
 #writeToFile("../output/proceduretreemap.json", toJSON(res, pretty = TRUE, auto_unbox = TRUE))
+#queryProcedureResults(res, connection, cohortId)
 
-#queryDrilldownResults(res, connection, cohortId = 1231231)
+#res <- getVisitTreemap(connection, resultsDatabaseSchema , cdmDatabaseSchema, cohortId)
+#writeToFile("../output/visittreemap.json", toJSON(res, pretty = TRUE, auto_unbox = TRUE))
+#queryVisitResults(res, connection, cohortId)
 
-res <- getVisitTreemap(connection, resultsDatabaseSchema = "results", cdmDatabaseSchema = "public", cohortId = 1231231)
-writeToFile("../output/visittreemap.json", toJSON(res, pretty = TRUE, auto_unbox = TRUE))
+#res <- getConditionTreemap(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId)
+#writeToFile("../output/conditiontreemap.json", toJSON(res, pretty = TRUE, auto_unbox = TRUE))
+#queryConditionResults(res, connection, cohortId)
 
-queryVisitResults(res, connection, cohortId = 1231231)
+#res <- getConditionEraTreemap(connection, resultsDatabaseSchema , cdmDatabaseSchema, cohortId)
+#writeToFile("../output/conditioneratreemap.json", toJSON(res, pretty = TRUE, auto_unbox = TRUE))
+#queryConditionEraResults(res, connection, cohortId)
 
-# workDir <- getwd();
+res <- getObservationTreemap(connection, resultsDatabaseSchema , cdmDatabaseSchema, cohortId)
+writeToFile("../output/observationstreemap.json", toJSON(res, pretty = TRUE, auto_unbox = TRUE))
+queryObservationResults(res, connection, cohortId)
 
-# run_cohort_characterization(
-#   file.path(workDir, "cohort.sql"),
-#   file.path(workDir, "output"),
-#   "postgresql",
-#   "jdbc:postgresql://odysseusovh02.odysseusinc.com:5432/cdm_v500_synpuf_v101_110k",
-#   "ohdsi",
-#   "ohdsi",
-#   "public",
-#   "results"
-# )
+}
+
+ workDir <- getwd();
+
+ run_cohort_characterization(
+   file.path(workDir, "cohort_with_drug_era.sql"),
+   file.path(workDir, "output"),
+   "postgresql",
+   "jdbc:postgresql://odysseusovh02.odysseusinc.com:5432/cdm_v500_synpuf_v101_110k",
+   "ohdsi",
+   "ohdsi",
+   "public",
+   "results"
+ )
