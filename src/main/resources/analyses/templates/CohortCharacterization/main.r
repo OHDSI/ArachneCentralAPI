@@ -141,7 +141,7 @@ getCohortSpecificSummary <- function(connection, resultsDatabaseSchema, cdmDatab
     "cdm_database_schema" = cdmDatabaseSchema
   )
   
-  return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
+  return (queryJsonCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
 }
 
 getDeathSummary <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId) {
@@ -177,7 +177,7 @@ getDeathSummary <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema
     "cdm_database_schema" = cdmDatabaseSchema
   )
 
-  return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
+  return (queryJsonCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
 }
 
 
@@ -256,7 +256,7 @@ getCohortObservationPeriod <- function(connection, resultsDatabaseSchema, cdmDat
     "cdm_database_schema" = cdmDatabaseSchema
     )
 
-    return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
+    return (queryJsonCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
 }
 
 getPersonSummary <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId) {
@@ -298,7 +298,7 @@ getPersonSummary <- function(connection, resultsDatabaseSchema, cdmDatabaseSchem
     "cdm_database_schema" = cdmDatabaseSchema
     )
 
-    return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
+    return (queryJsonCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
 }
 
 getDataDensity <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId) {
@@ -328,7 +328,7 @@ getDataDensity <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema,
         "cdm_database_schema" = cdmDatabaseSchema
     )
 
-    return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
+    return (queryJsonCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
 }
 
 getDashboard <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId) {
@@ -364,7 +364,7 @@ getDashboard <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, c
         "cdm_database_schema" = cdmDatabaseSchema
     )
 
-    return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
+    return (queryJsonCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
 }
 
 getDrugEraTreemap <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId) {
@@ -383,7 +383,7 @@ getDrugEraTreemap <- function(connection, resultsDatabaseSchema, cdmDatabaseSche
         "cdm_database_schema" = cdmDatabaseSchema
     )
 
-    return (queryCohortAnalysesResults2(queryMap, connection, sqlReplacements, FALSE));
+    return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
 }
 
 getDrugEraDrilldown <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId, conceptId) {
@@ -419,7 +419,7 @@ getDrugEraDrilldown <- function(connection, resultsDatabaseSchema, cdmDatabaseSc
         "conceptId"=conceptId
     )
 
-    return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
+    return (queryJsonCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
 }
 
 getDrugExposuresTreemap <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId) {
@@ -438,7 +438,7 @@ getDrugExposuresTreemap <- function(connection, resultsDatabaseSchema, cdmDataba
         "cdm_database_schema" = cdmDatabaseSchema
     )
 
-    return (queryCohortAnalysesResults2(queryMap, connection, sqlReplacements, FALSE));
+    return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
 }
 
 getDrugExposuresDrilldown <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId, conceptId) {
@@ -503,7 +503,7 @@ getDrugExposuresDrilldown <- function(connection, resultsDatabaseSchema, cdmData
         "conceptId"=conceptId
     )
 
-    return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
+    return (queryJsonCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
 }
 
 getProcedureTreemap <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId) {
@@ -521,7 +521,7 @@ getProcedureTreemap <- function(connection, resultsDatabaseSchema, cdmDatabaseSc
         "cdm_database_schema" = cdmDatabaseSchema
     )
 
-    return (queryCohortAnalysesResults2(queryMap, connection, sqlReplacements, FALSE));
+    return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
 }
 
 getProcedureDrilldown <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId, conceptId) {
@@ -558,7 +558,7 @@ getProcedureDrilldown <- function(connection, resultsDatabaseSchema, cdmDatabase
         "conceptId"=conceptId
     )
 
-    return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
+    return (queryJsonCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
 }
 
 getVisitTreemap <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId) {
@@ -576,7 +576,7 @@ getVisitTreemap <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema
         "cdm_database_schema" = cdmDatabaseSchema
     )
 
-    return (queryCohortAnalysesResults2(queryMap, connection, sqlReplacements, FALSE));
+    return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
 }
 
 getVisitDrilldown <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId, conceptId) {
@@ -613,7 +613,7 @@ getVisitDrilldown <- function(connection, resultsDatabaseSchema, cdmDatabaseSche
         "conceptId"=conceptId
     )
 
-    return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
+    return (queryJsonCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
 }
 
 getConditionTreemap <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId) {
@@ -631,7 +631,7 @@ getConditionTreemap <- function(connection, resultsDatabaseSchema, cdmDatabaseSc
         "cdm_database_schema" = cdmDatabaseSchema
     )
 
-    return (queryCohortAnalysesResults2(queryMap, connection, sqlReplacements, FALSE));
+    return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
 }
 
 getConditionDrilldown <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId, conceptId) {
@@ -669,7 +669,7 @@ getConditionDrilldown <- function(connection, resultsDatabaseSchema, cdmDatabase
         "conceptId" = conceptId
     )
 
-    return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
+    return (queryJsonCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
 }
 
 getConditionEraTreemap <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId) {
@@ -687,7 +687,7 @@ getConditionEraTreemap <- function(connection, resultsDatabaseSchema, cdmDatabas
         "cdm_database_schema" = cdmDatabaseSchema
     )
 
-    return (queryCohortAnalysesResults2(queryMap, connection, sqlReplacements, FALSE));
+    return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
 }
 
 getConditionEraDrilldown <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId, conceptId) {
@@ -725,7 +725,7 @@ getConditionEraDrilldown <- function(connection, resultsDatabaseSchema, cdmDatab
         "conceptId" = conceptId
     )
 
-    return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
+    return (queryJsonCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
 }
 
 
@@ -744,7 +744,7 @@ getObservationTreemap <- function(connection, resultsDatabaseSchema, cdmDatabase
         "cdm_database_schema" = cdmDatabaseSchema
     )
 
-    return (queryCohortAnalysesResults2(queryMap, connection, sqlReplacements, FALSE));
+    return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
 }
 
 getObservationDrilldown <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId, conceptId) {
@@ -795,7 +795,7 @@ getObservationDrilldown <- function(connection, resultsDatabaseSchema, cdmDataba
         "conceptId" = conceptId
     )
 
-    return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
+    return (queryJsonCohortAnalysesResults(queryMap, connection, sqlReplacements, FALSE));
 }
 
 
@@ -848,15 +848,15 @@ convertDataframe <- function(dataframe, toType, mappings) {
   return(do.call("data.frame", result))
 }
 
-queryCohortAnalysesResults <- function(queryMap, connection, sqlReplacements, convert) {
+queryJsonCohortAnalysesResults <- function(queryMap, connection, sqlReplacements, convert) {
 
-  result <- queryCohortAnalysesResults2(queryMap, connection, sqlReplacements, convert)
+  result <- queryCohortAnalysesResults(queryMap, connection, sqlReplacements, convert)
 
   json <- toJSON(result, pretty = TRUE, auto_unbox = TRUE)
   return(json)
 }
 
-queryCohortAnalysesResults2 <- function(queryMap, connection, sqlReplacements, convert) {
+queryCohortAnalysesResults <- function(queryMap, connection, sqlReplacements, convert) {
   dbms <- attributes(connection)$dbms
   result <- list()
 
@@ -883,7 +883,7 @@ queryCohortAnalysesResults2 <- function(queryMap, connection, sqlReplacements, c
 
 queryProcedureResults <- function(result, connection, cohortId) {
 
-  dir.create("../output/procedures")
+  dir.create("../output_1231666/procedures")
 
   for (key in names(result)) {
     query <- result[[key]]
@@ -899,7 +899,7 @@ queryProcedureResults <- function(result, connection, cohortId) {
 
 queryVisitResults <- function(result, connection, cohortId) {
 
-  dir.create("../output/visits")
+  dir.create("../output_1231666/visits")
 
   for (key in names(result)) {
     query <- result[[key]]
@@ -915,14 +915,14 @@ queryVisitResults <- function(result, connection, cohortId) {
 
 queryConditionResults <- function(result, connection, cohortId) {
 
-  dir.create("../output/conditions")
+  dir.create("../output_1231666/conditions")
 
   for (key in names(result)) {
     query <- result[[key]]
 
     for (conceptId in query$CONCEPT_ID) {
 
-        namef<-paste("../output/conditions/",  ".json", sep=toString(conceptId))
+        namef<-paste("../output_1231666/conditions/",  ".json", sep=toString(conceptId))
         res <- getConditionDrilldown(connection, resultsDatabaseSchema = "results", cdmDatabaseSchema = "public", cohortId, conceptId)
         writeToFile(namef, res)
     }
@@ -931,7 +931,7 @@ queryConditionResults <- function(result, connection, cohortId) {
 
 queryConditionEraResults <- function(result, connection, cohortId) {
 
-  dir.create("../output/conditioneras")
+  dir.create("../output_1231666/conditioneras")
 
   for (key in names(result)) {
     query <- result[[key]]
@@ -947,7 +947,7 @@ queryConditionEraResults <- function(result, connection, cohortId) {
 
 queryDrugExposuresResults <- function(result, connection, cohortId) {
 
-   dir.create("../output/drugexposures")
+   dir.create("../output_1231666/drugexposures")
 
    for (key in names(result)) {
        query <- result[[key]]
@@ -962,7 +962,7 @@ queryDrugExposuresResults <- function(result, connection, cohortId) {
 
 queryDrugEraResults <- function(result, connection, cohortId) {
 
-   dir.create("../output/drugeras")
+   dir.create("../output_1231666/drugeras")
 
    for (key in names(result)) {
        query <- result[[key]]
@@ -977,7 +977,7 @@ queryDrugEraResults <- function(result, connection, cohortId) {
 
 queryObservationResults <- function(result, connection, cohortId) {
 
-   dir.create("../output/observations")
+   dir.create("../output_1231666/observations")
 
    for (key in names(result)) {
        query <- result[[key]]
@@ -1002,59 +1002,57 @@ connectionDetails <- createConnectionDetails(dbms=dbms,
                                              user=user,
                                              password=password)
 connection <- connect(connectionDetails)
-dir.create("../output")
+dir.create("../output_1231666")
 
-res <- getCohortSpecificSummary(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId)
-writeToFile("../output/cohortspecific.json", res)
+#res <- getCohortSpecificSummary(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId)
+#writeToFile("../output_1231666/cohortspecific.json", res)
 
 #res <- getDeathSummary(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId)
-#writeToFile("../output/death.json", res)
+#writeToFile("../output_1231666/death.json", res)
 
 #res <- getCohortObservationPeriod(connection, resultsDatabaseSchema, cdmDatabaseSchema , cohortId)
-#writeToFile("../output/cohortobservationperiod.json", res)
+#writeToFile("../output_1231666/cohortobservationperiod.json", res)
 
 #res <- getPersonSummary(connection, resultsDatabaseSchema, cdmDatabaseSchema , cohortId)
-#writeToFile("../output/person.json", res)
+#writeToFile("../output_1231666/person.json", res)
 
 #res <- getDataDensity(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId)
-#writeToFile("../output/datadensity.json", res)
+#writeToFile("../output_1231666/datadensity.json", res)
 
 #res <- getDashboard(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId)
-#writeToFile("../output/dashboard.json", res)
+#writeToFile("../output_1231666/dashboard.json", res)
 
+## todo
 #res <- getConditionResults(connection, resultsDatabaseSchema, cdmDatabaseSchema , cohortId)
-#writeToFile("../output/conditionresults.json", res)
+#writeToFile("../output_1231666/conditionresults.json", res)
 
-#res <- getConditionTreemap(connection, resultsDatabaseSchema, cdmDatabaseSchema , cohortId)
-#writeToFile("../output/conditiontreemap.json", res)
+res <- getConditionTreemap(connection, resultsDatabaseSchema, cdmDatabaseSchema , cohortId)
+writeToFile("../output_1231666/conditiontreemap.json", toJSON(res, pretty = TRUE, auto_unbox = TRUE))
+queryConditionResults(res, connection, cohortId)
 
 res <- getDrugEraTreemap(connection, resultsDatabaseSchema, cdmDatabaseSchema , cohortId)
-writeToFile("../output/drugeratreemap.json",  toJSON(res, pretty = TRUE, auto_unbox = TRUE))
-#queryDrugEraResults(res, connection, cohortId)
+writeToFile("../output_1231666/drugeratreemap.json", toJSON(res, pretty = TRUE, auto_unbox = TRUE))
+queryDrugEraResults(res, connection, cohortId)
 
-#res <- getDrugExposuresTreemap(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId)
-#writeToFile("../output/drugexposurestreemap.json",  toJSON(res, pretty = TRUE, auto_unbox = TRUE))
-#queryDrugExposuresResults(res, connection, cohortId)
+res <- getDrugExposuresTreemap(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId)
+writeToFile("../output_1231666/drugexposurestreemap.json", toJSON(res, pretty = TRUE, auto_unbox = TRUE))
+queryDrugExposuresResults(res, connection, cohortId)
 
-#res <- getProcedureTreemap(connection, resultsDatabaseSchema , cdmDatabaseSchema, cohortId)
-#writeToFile("../output/proceduretreemap.json", toJSON(res, pretty = TRUE, auto_unbox = TRUE))
-#queryProcedureResults(res, connection, cohortId)
+res <- getProcedureTreemap(connection, resultsDatabaseSchema , cdmDatabaseSchema, cohortId)
+writeToFile("../output_1231666/proceduretreemap.json", toJSON(res, pretty = TRUE, auto_unbox = TRUE))
+queryProcedureResults(res, connection, cohortId)
 
 #res <- getVisitTreemap(connection, resultsDatabaseSchema , cdmDatabaseSchema, cohortId)
-#writeToFile("../output/visittreemap.json", toJSON(res, pretty = TRUE, auto_unbox = TRUE))
+#writeToFile("../output_1231666/visittreemap.json", toJSON(res, pretty = TRUE, auto_unbox = TRUE))
 #queryVisitResults(res, connection, cohortId)
 
-#res <- getConditionTreemap(connection, resultsDatabaseSchema, cdmDatabaseSchema, cohortId)
-#writeToFile("../output/conditiontreemap.json", toJSON(res, pretty = TRUE, auto_unbox = TRUE))
-#queryConditionResults(res, connection, cohortId)
-
 #res <- getConditionEraTreemap(connection, resultsDatabaseSchema , cdmDatabaseSchema, cohortId)
-#writeToFile("../output/conditioneratreemap.json", toJSON(res, pretty = TRUE, auto_unbox = TRUE))
+#writeToFile("../output_1231666/conditioneratreemap.json", toJSON(res, pretty = TRUE, auto_unbox = TRUE))
 #queryConditionEraResults(res, connection, cohortId)
 
-res <- getObservationTreemap(connection, resultsDatabaseSchema , cdmDatabaseSchema, cohortId)
-writeToFile("../output/observationstreemap.json", toJSON(res, pretty = TRUE, auto_unbox = TRUE))
-queryObservationResults(res, connection, cohortId)
+#res <- getObservationTreemap(connection, resultsDatabaseSchema , cdmDatabaseSchema, cohortId)
+#writeToFile("../output_1231666/observationstreemap.json", toJSON(res, pretty = TRUE, auto_unbox = TRUE))
+#queryObservationResults(res, connection, cohortId)
 
 }
 
