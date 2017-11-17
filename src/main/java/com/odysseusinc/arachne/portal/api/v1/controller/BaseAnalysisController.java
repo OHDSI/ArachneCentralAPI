@@ -51,6 +51,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.OptionDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightUpdateDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdateNotificationDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.UploadFileDTO;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.NotEmptyException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
@@ -79,7 +80,6 @@ import com.odysseusinc.arachne.portal.util.ImportedFile;
 import com.odysseusinc.arachne.portal.util.ZipUtil;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.assertj.core.api.exception.RuntimeIOException;
 import org.ohdsi.sql.SqlRender;
 import org.ohdsi.sql.SqlTranslate;
@@ -93,6 +93,7 @@ import org.springframework.jms.support.destination.DestinationResolver;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.util.ReflectionUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -404,10 +405,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
     @ApiOperation("Upload file to attach to analysis.")
     @RequestMapping(value = "/api/v1/analysis-management/analyses/{analysisId}/upload", method = POST)
     public JsonResult<List<AnalysisFileDTO>> uploadFile(Principal principal,
-                                                        @RequestParam(required = false) MultipartFile[] file,
-                                                        @RequestParam String label,
-                                                        @RequestParam(required = false) Boolean isExecutable,
-                                                        @RequestParam(required = false) String link,
+                                                        @Valid UploadFileDTO uploadFileDTO,
                                                         @PathVariable("analysisId") Long id)
             throws PermissionDeniedException, NotExistException, IOException {
 
@@ -418,14 +416,12 @@ public abstract class BaseAnalysisController<T extends Analysis,
 
         List<AnalysisFileDTO> createdFiles = new ArrayList<>();
 
-        if (ArrayUtils.isNotEmpty(file)) {
-            for (MultipartFile multipartFile : file) {
-                AnalysisFile createdFile = analysisService.saveFile(multipartFile, user, analysis, label, isExecutable, null);
-                createdFiles.add(conversionService.convert(createdFile, AnalysisFileDTO.class));
-            }
+        if (uploadFileDTO.getFile() != null) {
+            AnalysisFile createdFile = analysisService.saveFile(uploadFileDTO.getFile(), user, analysis, uploadFileDTO.getLabel(), uploadFileDTO.getExecutable(), null);
+            createdFiles.add(conversionService.convert(createdFile, AnalysisFileDTO.class));
         } else {
-            if (link != null && !link.isEmpty()) {
-                AnalysisFile createdFile = analysisService.saveFile(link, user, analysis, label, isExecutable);
+            if (StringUtils.hasText(uploadFileDTO.getLink())) {
+                AnalysisFile createdFile = analysisService.saveFile(uploadFileDTO.getLink(), user, analysis, uploadFileDTO.getLabel(), uploadFileDTO.getExecutable());
                 createdFiles.add(conversionService.convert(createdFile, AnalysisFileDTO.class));
             } else {
                 result.setErrorCode(VALIDATION_ERROR.getCode());
