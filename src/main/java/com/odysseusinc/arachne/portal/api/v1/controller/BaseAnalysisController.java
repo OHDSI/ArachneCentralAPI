@@ -35,6 +35,7 @@ import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonEntityRequestDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.commons.service.messaging.ProducerConsumerTemplate;
+import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.execution_engine_common.api.v1.dto.DBMSType;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisContentFileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisCreateDTO;
@@ -302,46 +303,68 @@ public abstract class BaseAnalysisController<T extends Analysis,
         final T analysis = analysisService.getById(analysisId);
         final DataReference dataReference = dataReferenceService.addOrUpdate(entityReference.getEntityGuid(), dataNode);
         final List<MultipartFile> entityFiles = getEntityFiles(entityReference, dataNode, analysisType);
-        entityFiles.forEach(entityFile -> {
-
-            try {
-                doAddCommonEntityToAnalysis(analysis, dataReference, user, analysisType, entityFile);
-            } catch (IOException e) {
-                LOGGER.error("Failed to save file", e);
-                throw new RuntimeIOException(e.getMessage(), e);
-            }
-        });
+        doAddCommonEntityToAnalysis(analysis, dataReference, user, analysisType, entityFiles);
         return new JsonResult(NO_ERROR);
     }
 
     protected void doAddCommonEntityToAnalysis(T analysis, DataReference dataReference, User user,
                                                CommonAnalysisType analysisType,
-                                               MultipartFile file)
-            throws IOException {
+                                               List<MultipartFile> files) throws IOException {
 
-        analysisService.saveFile(file, user, analysis, file.getName(), detectExecutable(analysisType, file), dataReference);
+        files.stream()
+                .filter(f -> !CommonAnalysisType.COHORT.equals(analysisType) || !f.getName().endsWith(CommonFileUtils.OHDSI_JSON_EXT))
+                .forEach(f -> {
+                            try {
+                                analysisService.saveFile(f, user, analysis, f.getName(), detectExecutable(analysisType, f), dataReference);
+                            } catch (IOException e) {
+                                LOGGER.error("Failed to save file", e);
+                            }
+                        }
+                );
         if (analysisType.equals(CommonAnalysisType.COHORT)) {
-            String statement = org.apache.commons.io.IOUtils.toString(file.getInputStream(), "UTF-8");
-            String renderedSql = SqlRender.renderSql(statement, null, null);
-            DBMSType[] dbTypes = new DBMSType[]{DBMSType.POSTGRESQL, DBMSType.ORACLE, DBMSType.MS_SQL_SERVER,
-                    DBMSType.REDSHIFT, DBMSType.PDW};
-            String baseName = FilenameUtils.getBaseName(file.getOriginalFilename());
-            String extension = FilenameUtils.getExtension(file.getOriginalFilename());
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            try (final ZipOutputStream zos = new ZipOutputStream(out)) {
-                for (final DBMSType dialect : dbTypes) {
-                    final String sql = SqlTranslate.translateSql(renderedSql, DBMSType.MS_SQL_SERVER.getOhdsiDB(),
-                            dialect.getOhdsiDB());
-                    final String fileName = baseName + "."
-                            + dialect.getLabel().replaceAll(" ", "-")
-                            + "." + extension;
-                    try (final Reader reader = new StringReader(sql)) {
-                        ZipUtil.addZipEntry(zos, fileName, reader);
-                    }
-                }
+            final ByteArrayOutputStream out = new ByteArrayOutputStream();
+            class StringContainer {
+                String value = CommonAnalysisType.COHORT.getTitle();
             }
-            String fileName = baseName.replaceAll("\\.ohdsi", "") + ".zip";
-            MultipartFile sqlArchive = new MockMultipartFile(fileName, fileName, "application/zip",
+            final StringContainer generatedFileName = new StringContainer();
+            try (final ZipOutputStream zos = new ZipOutputStream(out)) {
+                files.forEach(file -> {
+                    try {
+                        if (file.getName().endsWith(CommonFileUtils.OHDSI_SQL_EXT)) {
+                            String statement = org.apache.commons.io.IOUtils.toString(file.getInputStream(), "UTF-8");
+                            String renderedSql = SqlRender.renderSql(statement, null, null);
+                            DBMSType[] dbTypes = new DBMSType[]{DBMSType.POSTGRESQL, DBMSType.ORACLE, DBMSType.MS_SQL_SERVER,
+                                    DBMSType.REDSHIFT, DBMSType.PDW};
+                            String baseName = FilenameUtils.getBaseName(file.getOriginalFilename());
+                            String extension = FilenameUtils.getExtension(file.getOriginalFilename());
+                            for (final DBMSType dialect : dbTypes) {
+                                final String sql = SqlTranslate.translateSql(renderedSql, DBMSType.MS_SQL_SERVER.getOhdsiDB(),
+                                        dialect.getOhdsiDB());
+                                final String fileName = baseName + "."
+                                        + dialect.getLabel().replaceAll(" ", "-")
+                                        + "." + extension;
+                                try (final Reader reader = new StringReader(sql)) {
+                                    ZipUtil.addZipEntry(zos, fileName, reader);
+                                }
+                            }
+                            final String shortBaseName = baseName.replaceAll("\\.ohdsi", "");
+                            if (!generatedFileName.value.contains(shortBaseName)) {
+                                generatedFileName.value += "_" + shortBaseName;
+                            }
+                        } else {
+                            try (final Reader reader = new StringReader(org.apache.commons.io.IOUtils.toString(file.getInputStream(), "UTF-8"))) {
+                                String fileName = file.getName();
+                                ZipUtil.addZipEntry(zos, fileName, reader);
+                            }
+                        }
+                    } catch (IOException e) {
+                        LOGGER.error("Failed to add file to archive", e);
+                        throw new RuntimeIOException(e.getMessage(), e);
+                    }
+                });
+            }
+            String fileName = generatedFileName.value + ".zip";
+            final MultipartFile sqlArchive = new MockMultipartFile(fileName, fileName, "application/zip",
                     out.toByteArray());
             analysisService.saveFile(sqlArchive, user, analysis, fileName, false, dataReference);
         }
@@ -375,16 +398,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
                     analysis.getFiles().remove(af);
                 }
         );
-
-        entityFiles.forEach(entityFile -> {
-
-            try {
-                doAddCommonEntityToAnalysis(analysis, dataReference, user, analysisType, entityFile);
-            } catch (IOException e) {
-                LOGGER.error("Failed to update file", e);
-                throw new RuntimeIOException(e.getMessage(), e);
-            }
-        });
+        doAddCommonEntityToAnalysis(analysis, dataReference, user, analysisType, entityFiles);
         return new JsonResult(NO_ERROR);
     }
 
