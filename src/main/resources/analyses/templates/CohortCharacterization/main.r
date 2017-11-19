@@ -310,7 +310,7 @@ getDataCompleteness <- function(connection, resultsDatabaseSchema, cdmDatabaseSc
         # "mappings"=fromJSON("./definitions/mappings/ResultSetToSeriesPerPerson.json")$mappings
     )
 
-    return (queryJsonCohortAnalysesResults(queryMap, connection, sqlReplacements, mapping));
+    return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, mapping));
 }
 
 getDashboard <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, sqlReplacements, mapping, cohortId) {
@@ -792,6 +792,39 @@ convertDataframe <- function(dataframe, toType, mappings) {
   return(do.call("data.frame", result))
 }
 
+convertDataCompletenessData <- function(inputData){
+
+  analysisMap <- list()
+  elements<- list
+  key<- list
+  analysisId<- list
+  resultRoot<- list()
+
+  ind <- 0
+
+  for (key in names(inputData)) {
+    elements <- inputData[[key]]
+     for (element in elements$ANALYSIS_ID) {
+       analysisMap[[paste("" , element, sep="")]] <- list(analysis_id = element, str = elements$STRATUM_1[ind])
+       ind <- ind+1
+     }
+  }
+
+  resultList <- list()
+
+  resultList[[1]] <- list(covariance = "0~10", genderP = analysisMap[["2001"]]$str, raceP = analysisMap[["2011"]]$str,  ethP = analysisMap[["2021"]]$str)
+  resultList[[2]] <- list(covariance = "10~20", genderP = analysisMap[["2002"]]$str, raceP = analysisMap[["2012"]]$str,  ethP = analysisMap[["2022"]]$str)
+  resultList[[3]] <- list(covariance = "20~30", genderP = analysisMap[["2003"]]$str, raceP = analysisMap[["2013"]]$str,  ethP = analysisMap[["2023"]]$str)
+  resultList[[4]] <- list(covariance = "30~40", genderP = analysisMap[["2004"]]$str, raceP = analysisMap[["2014"]]$str,  ethP = analysisMap[["2024"]]$str)
+  resultList[[5]] <- list(covariance = "40~50", genderP = analysisMap[["2005"]]$str, raceP = analysisMap[["2015"]]$str,  ethP = analysisMap[["2025"]]$str)
+  resultList[[6]] <- list(covariance = "50~60", genderP = analysisMap[["2006"]]$str, raceP = analysisMap[["2016"]]$str,  ethP = analysisMap[["2026"]]$str)
+  resultList[[7]] <- list(covariance = "60+", genderP = analysisMap[["2007"]]$str, raceP = analysisMap[["2017"]]$str,  ethP = analysisMap[["2027"]]$str)
+
+  resultRoot[["recordsPerPerson"]] <- resultList
+
+  return(resultRoot);
+}
+
 queryJsonCohortAnalysesResults <- function(queryMap, connection, sqlReplacements, mapping) {
 
   result <- queryCohortAnalysesResults(queryMap, connection, sqlReplacements, mapping)
@@ -910,8 +943,8 @@ writeAllResults <- function(dbms, connectionString, cdmDatabaseSchema, resultsDa
   #res <- getDataDensity(connection, resultsDatabaseSchema, cdmDatabaseSchema, sqlReplacements, FALSE, cohortId)
   #writeToFile(paste(outputDirName, "datadensity.json", sep ="/"), res)
 
-  #res <- getDataCompleteness(connection, resultsDatabaseSchema, cdmDatabaseSchema, sqlReplacements, FALSE, cohortId)
-  #writeToFile(paste(outputDirName, "datacompleteness.json", sep ="/"), output_result)
+  res <- getDataCompleteness(connection, resultsDatabaseSchema, cdmDatabaseSchema, sqlReplacements, FALSE, cohortId)
+  writeToFile(paste(outputDirName, "datacompleteness.json", sep ="/"), toJSON(convertDataCompletenessData(res), pretty = TRUE, auto_unbox = TRUE))
 
   #res <- getDashboard(connection, resultsDatabaseSchema, cdmDatabaseSchema, sqlReplacements, FALSE, cohortId)
   #writeToFile(paste(outputDirName, "dashboard.json", sep ="/"), res)
@@ -931,24 +964,24 @@ writeAllResults <- function(dbms, connectionString, cdmDatabaseSchema, resultsDa
   #processReport(connection, resultsDatabaseSchema, cdmDatabaseSchema, outputDirName, sqlReplacements, "Visit", cohortId)
   #processReport(connection, resultsDatabaseSchema, cdmDatabaseSchema, outputDirName, sqlReplacements, "ConditionEra", cohortId)
 
-  ## todo:: do not use - without data + no in atlas ui
+  ## todo:: do not use - without data + no in atlas report ui
   #processReport(connection, resultsDatabaseSchema, cdmDatabaseSchema, outputDirName, sqlReplacements, "Observation", cohortId)
   #processReport(connection, resultsDatabaseSchema, cdmDatabaseSchema, outputDirName, sqlReplacements, "Measurement", cohortId)
 
   #res <- getConditionsByIndexTreemap(connection, resultsDatabaseSchema, cdmDatabaseSchema, sqlReplacements, FALSE, cohortId)
- # writeToFile(paste(outputDirName, "conditionsbyindextreemap.json", sep ="/"),  toJSON(res, pretty = TRUE, auto_unbox = TRUE))
+  #writeToFile(paste(outputDirName, "conditionsbyindextreemap.json", sep ="/"),  toJSON(res, pretty = TRUE, auto_unbox = TRUE))
 
   sqlReplacements$minCovariatePersonCount <- 10;
   sqlReplacements$minIntervalPersonCount <- 10;
 
- # do.call("getDrillDownResults", list(res, connection, resultsDatabaseSchema, cdmDatabaseSchema, outputDirName, sqlReplacements, "ConditionByIndex", FALSE, cohortId))
+  # do.call("getDrillDownResults", list(res, connection, resultsDatabaseSchema, cdmDatabaseSchema, outputDirName, sqlReplacements, "ConditionByIndex", FALSE, cohortId))
 
   #
   #res <- getProceduresByIndexTreemap(connection, resultsDatabaseSchema, cdmDatabaseSchema, sqlReplacements, FALSE, cohortId)
   #writeToFile(paste(outputDirName, "proceduresbyindextreemap.json", sep ="/"),  toJSON(res, pretty = TRUE, auto_unbox = TRUE))
   #do.call("getDrillDownResults", list(res, connection, resultsDatabaseSchema, cdmDatabaseSchema, outputDirName, sqlReplacements, "ProcedureByIndex", FALSE, cohortId))
 
-# no data
+  # no data
   #res <- getDrugsByIndexTreemap(connection, resultsDatabaseSchema, cdmDatabaseSchema, sqlReplacements, FALSE, cohortId)
   #writeToFile(paste(outputDirName, "drugsbyindextreemap.json", sep ="/"),  toJSON(res, pretty = TRUE, auto_unbox = TRUE))
   #do.call("getDrillDownResults", list(res, connection, resultsDatabaseSchema, cdmDatabaseSchema, outputDirName, sqlReplacements, "ProcedureByIndex", FALSE, cohortId))
@@ -960,7 +993,7 @@ writeAllResults <- function(dbms, connectionString, cdmDatabaseSchema, resultsDa
 
  run_cohort_characterization(
    file.path(workDir, "cohort_with_data_compl.sql"),
-   file.path(workDir, "output"),
+   file.path(workDir, "output_test_1231688"),
    "postgresql",
    "jdbc:postgresql://localhost/omop_cdm_v5",
    "ohdsi",
