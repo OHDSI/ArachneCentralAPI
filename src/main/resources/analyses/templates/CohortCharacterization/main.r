@@ -1,9 +1,9 @@
 # /definitions/types - using http://json-schema.org notation
 # /definitions/mappings - using notation of Java's mapstruct library
 
-  # Solves issue with Windows x64 (https://stackoverflow.com/questions/7019912/using-the-rjava-package-on-win7-64-bit-with-r)
-  if (Sys.getenv("JAVA_HOME")!="")
-    Sys.setenv(JAVA_HOME="")
+# Solves issue with Windows x64 (https://stackoverflow.com/questions/7019912/using-the-rjava-package-on-win7-64-bit-with-r)
+if (Sys.getenv("JAVA_HOME")!="")
+  Sys.setenv(JAVA_HOME="")
 
 library(DatabaseConnector)
 library(SqlRender)
@@ -33,53 +33,40 @@ run_cohort_characterization <- function(
 
   cohortId <-1231231 # 1231688 #1231231
 
-  #print("Calculating cohort")
-  #
-  #sql <- readSql(cohortDefinitionSqlPath)
-  #sql <- renderSql(sql,
-  #                 cdm_database_schema = cdmDatabaseSchema,
-  #                 target_database_schema = resultsDatabaseSchema,
-  #                 target_cohort_table = cohortTable,
-  #                 target_cohort_id = cohortId)$sql
-  #sql <- translateSql(sql, targetDialect = connectionDetails$dbms)$sql
-  #executeSql(connection, sql)
-  #
-  #print("Creating Heracles results tables (if not exist)")
-  #
-  #heraclesTablesSql <- readSql("createHeraclesTables.sql")
-  #heraclesTablesSql <- renderSql(heraclesTablesSql,
-  #                               results_schema=resultsDatabaseSchema)$sql
-  #heraclesTablesSql <- translateSql(heraclesTablesSql, targetDialect = connectionDetails$dbms)$sql
-  #executeSql(connection, heraclesTablesSql)
-  #
-  #print("Running Cohort Characterization")
-  #
-  #heraclesAnalyses <- readSql("runHeraclesAnalyses.sql")
-  #heraclesAnalyses <- renderSql(heraclesAnalyses,
-  #                              CDM_schema=cdmDatabaseSchema,
-  #                              results_schema=resultsDatabaseSchema,
-  #                              cohort_table=cohortTable,
-  #                              source_name=connectionString,
-  #                              runHERACLESHeel = TRUE,
-  #                              CDM_version=5,
-  #                              cohort_definition_id=cohortId)$sql
-  #heraclesAnalyses <- translateSql(heraclesAnalyses, targetDialect = connectionDetails$dbms)$sql
-  #executeSql(connection, heraclesAnalyses)
+  print("Calculating cohort")
+
+  sql <- readSql(cohortDefinitionSqlPath)
+  sql <- renderSql(sql,
+                   cdm_database_schema = cdmDatabaseSchema,
+                   target_database_schema = resultsDatabaseSchema,
+                   target_cohort_table = cohortTable,
+                   target_cohort_id = cohortId)$sql
+  sql <- translateSql(sql, targetDialect = connectionDetails$dbms)$sql
+  executeSql(connection, sql)
+
+  print("Creating Heracles results tables (if not exist)")
+
+  heraclesTablesSql <- readSql("createHeraclesTables.sql")
+  heraclesTablesSql <- renderSql(heraclesTablesSql,
+                                 results_schema=resultsDatabaseSchema)$sql
+  heraclesTablesSql <- translateSql(heraclesTablesSql, targetDialect = connectionDetails$dbms)$sql
+  executeSql(connection, heraclesTablesSql)
+
+  print("Running Cohort Characterization")
+
+  heraclesAnalyses <- readSql("runHeraclesAnalyses.sql")
+  heraclesAnalyses <- renderSql(heraclesAnalyses,
+                                CDM_schema=cdmDatabaseSchema,
+                                results_schema=resultsDatabaseSchema,
+                                cohort_table=cohortTable,
+                                source_name=connectionString,
+                                runHERACLESHeel = TRUE,
+                                CDM_version=5,
+                                cohort_definition_id=cohortId)$sql
+  heraclesAnalyses <- translateSql(heraclesAnalyses, targetDialect = connectionDetails$dbms)$sql
+  executeSql(connection, heraclesAnalyses)
 
   writeAllResults(dbms, connectionString, cdmDatabaseSchema, resultsDatabaseSchema,  user, password, cohortId)
-
-  # Save results
-  
-  # 
-  
-  # findByCohortDefinitionIdAndSourceIdAndVisualizationKey
-  
-  # Need db-independent way to convert everything JSONs
-  
-  # public CohortSpecificSummary CohortResultsAnalysisRunner.getCohortSpecificSummary
-  
-  # Clean up
-  # ?
 }
 
 
@@ -203,145 +190,144 @@ getCohortObservationPeriod <- function(connection, resultsDatabaseSchema, cdmDat
   )
 
   queryMap$ageByGender <- list(
-      "sqlPath"="cohortresults-sql/observationperiod/agebygender.sql",
-      "targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
-      "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
+    "sqlPath"="cohortresults-sql/observationperiod/agebygender.sql",
+    "targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
+    "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
   )
 
   queryMap$observationLengthByGender <- list(
-            "sqlPath"="cohortresults-sql/observationperiod/observationlengthbygender.sql",
-             "targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
-             "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
+    "sqlPath"="cohortresults-sql/observationperiod/observationlengthbygender.sql",
+    "targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
+    "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
   )
 
   queryMap$observationLengthByAge <- list(
-       "sqlPath"="cohortresults-sql/observationperiod/observationlengthbyage.sql",
-        "targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
-        "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
+    "sqlPath"="cohortresults-sql/observationperiod/observationlengthbyage.sql",
+    "targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
+    "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
   )
 
   queryMap$cumulativeDuration <- list(
-        "sqlPath"="cohortresults-sql/observationperiod/cumulativeduration.sql",
-         "targetType"=fromJSON("./definitions/types/CumulativeObservationRecord.json"),
-         "mappings"=fromJSON("./definitions/mappings/ResultSetToCumulativeObservationRecord.json")$mappings
+    "sqlPath"="cohortresults-sql/observationperiod/cumulativeduration.sql",
+     "targetType"=fromJSON("./definitions/types/CumulativeObservationRecord.json"),
+     "mappings"=fromJSON("./definitions/mappings/ResultSetToCumulativeObservationRecord.json")$mappings
   )
 
   queryMap$observedByMonth <- list(
-         "sqlPath"="cohortresults-sql/observationperiod/observedbymonth.sql",
-          "targetType"=fromJSON("./definitions/types/MonthObservationRecord.json"),
-          "mappings"=fromJSON("./definitions/mappings/ResultSetToMonthObservationRecord.json")$mappings
+    "sqlPath"="cohortresults-sql/observationperiod/observedbymonth.sql",
+    "targetType"=fromJSON("./definitions/types/MonthObservationRecord.json"),
+    "mappings"=fromJSON("./definitions/mappings/ResultSetToMonthObservationRecord.json")$mappings
   )
 
   queryMap$periodPerPerson <- list(
-         "sqlPath"="cohortresults-sql/observationperiod/periodsperperson.sql",
-          "targetType"=fromJSON("./definitions/types/ConceptCount.json"),
-          "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptCount.json")$mappings
+    "sqlPath"="cohortresults-sql/observationperiod/periodsperperson.sql",
+     "targetType"=fromJSON("./definitions/types/ConceptCount.json"),
+     "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptCount.json")$mappings
   )
 
   return (queryJsonCohortAnalysesResults(queryMap, connection, sqlReplacements, mapping));
 }
 
 getPersonSummary <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, sqlReplacements, mapping, cohortId) {
-    queryMap <- list()
+  queryMap <- list()
 
-    queryMap$yearOfBirthData <- list(
+  queryMap$yearOfBirthData <- list(
     "sqlPath"="cohortresults-sql/person/yearofbirth_data.sql"
-    # "targetType"=fromJSON("./definitions/types/YearOfBirthData.json"),
-    # "mappings"=fromJSON("./definitions/mappings/ResultSetToYearOfBirthData.json")$mappings
-    )
+     #"targetType"=fromJSON("./definitions/types/YearOfBirthData.json"),
+     #"mappings"=fromJSON("./definitions/mappings/ResultSetToYearOfBirthData.json")$mappings
+  )
 
-    queryMap$yearOfBirthStats <- list(
+  queryMap$yearOfBirthStats <- list(
     "sqlPath"="cohortresults-sql/person/yearofbirth_stats.sql"
-    # "targetType"=fromJSON("./definitions/types/YearOfBirthStats.json"),
-    # "mappings"=fromJSON("./definitions/mappings/ResultSetToYearOfBirthStats.json")$mappings
-    )
+    #"targetType"=fromJSON("./definitions/types/YearOfBirthStats.json"),
+    #"mappings"=fromJSON("./definitions/mappings/ResultSetToYearOfBirthStats.json")$mappings
+  )
 
-    queryMap$gender <- list(
-    "sqlPath"="cohortresults-sql/person/gender.sql"
-    # "targetType"=fromJSON("./definitions/types/Gender.json"),
-    # "mappings"=fromJSON("./definitions/mappings/ResultSetToGender.json")$mappings
-    )
+  queryMap$gender <- list(
+  "sqlPath"="cohortresults-sql/person/gender.sql"
+  # "targetType"=fromJSON("./definitions/types/Gender.json"),
+  # "mappings"=fromJSON("./definitions/mappings/ResultSetToGender.json")$mappings
+  )
 
-    queryMap$race <- list(
+  queryMap$race <- list(
     "sqlPath"="cohortresults-sql/person/race.sql"
-    # "targetType"=fromJSON("./definitions/types/Race.json"),
-    # "mappings"=fromJSON("./definitions/mappings/ResultSetToRace.json")$mappings
-    )
+    #"targetType"=fromJSON("./definitions/types/Race.json"),
+    #"mappings"=fromJSON("./definitions/mappings/ResultSetToRace.json")$mappings
+  )
 
-    queryMap$ethnicity <- list(
+  queryMap$ethnicity <- list(
     "sqlPath"="cohortresults-sql/person/ethnicity.sql"
-    # "targetType"=fromJSON("./definitions/types/Ethnicity.json"),
-    # "mappings"=fromJSON("./definitions/mappings/ResultSetToEthnicity.json")$mappings
-    )
+    #"targetType"=fromJSON("./definitions/types/Ethnicity.json"),
+    #"mappings"=fromJSON("./definitions/mappings/ResultSetToEthnicity.json")$mappings
+  )
 
-    return (queryJsonCohortAnalysesResults(queryMap, connection, sqlReplacements, mapping));
+  return (queryJsonCohortAnalysesResults(queryMap, connection, sqlReplacements, mapping));
 }
 
 
 getDataCompleteness <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, sqlReplacements, mapping, cohortId) {
-    queryMap <- list()
+  queryMap <- list()
 
-    queryMap$recordsPerPerson <- list(
-        "sqlPath"="cohortresults-sql/datacompleteness/getCohortDataCompleteness.sql"
-        # "targetType"=fromJSON("./definitions/types/SeriesPerPerson.json"),
-        # "mappings"=fromJSON("./definitions/mappings/ResultSetToSeriesPerPerson.json")$mappings
-    )
+  queryMap$recordsPerPerson <- list(
+    "sqlPath"="cohortresults-sql/datacompleteness/getCohortDataCompleteness.sql"
+     #"targetType"=fromJSON("./definitions/types/SeriesPerPerson.json"),
+     #"mappings"=fromJSON("./definitions/mappings/ResultSetToSeriesPerPerson.json")$mappings
+  )
 
-    return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, mapping));
+  return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, mapping));
 }
 
 getDashboard <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, sqlReplacements, mapping, cohortId) {
-    queryMap <- list()
+  queryMap <- list()
 
-    queryMap$ageAtDeath <- list(
-        "sqlPath"="cohortresults-sql/observationperiod/ageatfirst.sql"
-    # "targetType"=fromJSON("./definitions/types/Ageatfirst.json"),
-    # "mappings"=fromJSON("./definitions/mappings/ResultSetToAgeatfirst.json")$mappings
-    )
+  queryMap$ageAtDeath <- list(
+    "sqlPath"="cohortresults-sql/observationperiod/ageatfirst.sql"
+    #"targetType"=fromJSON("./definitions/types/Ageatfirst.json"),
+    #"mappings"=fromJSON("./definitions/mappings/ResultSetToAgeatfirst.json")$mappings
+  )
 
-    queryMap$gender <- list(
-        "sqlPath"="cohortresults-sql/person/gender.sql"
-      # "targetType"=fromJSON("./definitions/types/Gender.json"),
-      # "mappings"=fromJSON("./definitions/mappings/ResultSetToGender.json")$mappings
-    )
+  queryMap$gender <- list(
+    "sqlPath"="cohortresults-sql/person/gender.sql"
+    #"targetType"=fromJSON("./definitions/types/Gender.json"),
+    #"mappings"=fromJSON("./definitions/mappings/ResultSetToGender.json")$mappings
+  )
 
-    queryMap$cumulativeDuration <- list(
-        "sqlPath"="cohortresults-sql/observationperiod/cumulativeduration.sql"
-        # "targetType"=fromJSON("./definitions/types/CumulativeDuration.json"),
-        # "mappings"=fromJSON("./definitions/mappings/ResultSetToCumulativeDuration.json")$mappings
-    )
+  queryMap$cumulativeDuration <- list(
+    "sqlPath"="cohortresults-sql/observationperiod/cumulativeduration.sql"
+    #"targetType"=fromJSON("./definitions/types/CumulativeDuration.json"),
+    #"mappings"=fromJSON("./definitions/mappings/ResultSetToCumulativeDuration.json")$mappings
+  )
 
-     queryMap$observedByMonth <- list(
-         "sqlPath"="cohortresults-sql/observationperiod/observedbymonth.sql"
-         # "targetType"=fromJSON("./definitions/types/ObservedByMonth.json"),
-         # "mappings"=fromJSON("./definitions/mappings/ResultSetToObservedByMonth.json")$mappings
-     )
+  queryMap$observedByMonth <- list(
+    "sqlPath"="cohortresults-sql/observationperiod/observedbymonth.sql"
+     #"targetType"=fromJSON("./definitions/types/ObservedByMonth.json"),
+     #"mappings"=fromJSON("./definitions/mappings/ResultSetToObservedByMonth.json")$mappings
+  )
 
-    return (queryJsonCohortAnalysesResults(queryMap, connection, sqlReplacements, mapping));
+ return (queryJsonCohortAnalysesResults(queryMap, connection, sqlReplacements, mapping));
 }
 
 getConditionsByIndexTreemap <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, sqlReplacements, mapping, cohortId) {
-    queryMap <- list()
+  queryMap <- list()
 
-    queryMap$conditionOccurrencePrevalenceOfCondition <- list(
-        "sqlPath"="cohortresults-sql/cohortSpecific/conditionOccurrencePrevalenceOfCondition.sql"
-    # "targetType"=fromJSON("./definitions/types/Ageatfirst.json"),
-    # "mappings"=fromJSON("./definitions/mappings/ResultSetToAgeatfirst.json")$mappings
-   )
+  queryMap$conditionOccurrencePrevalenceOfCondition <- list(
+     "sqlPath"="cohortresults-sql/cohortSpecific/conditionOccurrencePrevalenceOfCondition.sql"
+     #"targetType"=fromJSON("./definitions/types/Ageatfirst.json"),
+     #"mappings"=fromJSON("./definitions/mappings/ResultSetToAgeatfirst.json")$mappings
+  )
 
-    return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, mapping));
+  return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, mapping));
 }
 
 getProceduresByIndexTreemap <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, sqlReplacements, mapping, cohortId) {
-    queryMap <- list()
+  queryMap <- list()
 
-     queryMap$procedureOccurrencePrevalenceOfDrug <- list(
-         "sqlPath"="cohortresults-sql/cohortSpecific/procedureOccurrencePrevalenceOfDrug.sql"
-      # "targetType"=fromJSON("./definitions/types/Gender.json"),
-       # "mappings"=fromJSON("./definitions/mappings/ResultSetToGender.json")$mappings
-    )
-
-    return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, mapping));
+  queryMap$procedureOccurrencePrevalenceOfDrug <- list(
+    "sqlPath"="cohortresults-sql/cohortSpecific/procedureOccurrencePrevalenceOfDrug.sql"
+    #"targetType"=fromJSON("./definitions/types/Gender.json"),
+    #"mappings"=fromJSON("./definitions/mappings/ResultSetToGender.json")$mappings
+  )
+  return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, mapping));
 }
 
 getDrugsByIndexTreemap <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, sqlReplacements, mapping, cohortId) {
@@ -852,12 +838,12 @@ writeAllResults <- function(dbms, connectionString, cdmDatabaseSchema, resultsDa
  workDir <- getwd();
 
  run_cohort_characterization(
-   file.path(workDir, "cohort_with_data_compl.sql"),
+   file.path(workDir, "cohort.sql"),
    file.path(workDir, "output"),
    "postgresql",
-   "jdbc:postgresql://localhost/omop_cdm_v5",
+   "jdbc:postgresql://odysseusovh02.odysseusinc.com:5432/cdm_v500_synpuf_v101_110k",
    "ohdsi",
    "ohdsi",
    "public",
-   "public"
+   "results"
  )
