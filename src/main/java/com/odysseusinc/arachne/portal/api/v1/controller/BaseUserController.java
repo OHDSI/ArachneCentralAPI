@@ -837,11 +837,11 @@ public abstract class BaseUserController<
 
     @ApiOperation("Unlink User to DataNode")
     @RequestMapping(value = "/api/v1/user-management/datanodes/{datanodeId}/users", method = RequestMethod.DELETE)
-    public JsonResult unlinkUserToDataNode(@PathVariable("datanodeId") String datanodeId,
+    public JsonResult unlinkUserToDataNode(@PathVariable("datanodeId") Long datanodeId,
                                            @RequestBody CommonLinkUserToDataNodeDTO linkUserToDataNode
     ) throws NotExistException {
 
-        final DN datanode = Optional.ofNullable(baseDataNodeService.getBySid(datanodeId)).orElseThrow(() ->
+        final DN datanode = Optional.ofNullable(baseDataNodeService.getById(datanodeId)).orElseThrow(() ->
                 new NotExistException(String.format(DATA_NODE_NOT_FOUND_EXCEPTION, datanodeId), DataNode.class));
         final U user = userService.getByUsername(linkUserToDataNode.getUserName());
         baseDataNodeService.unlinkUserToDataNode(datanode, user);
