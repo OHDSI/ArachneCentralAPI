@@ -29,9 +29,9 @@ run_cohort_characterization <- function(
   # Setup variables
   
   cohortTable <- "cohort"
-  #cohortId <- sample(1:10^8, 1)
+  cohortId <- sample(1:10^8, 1)
 
-  cohortId <-1231231 # 1231688 #1231231
+  #cohortId <-1231688 # 1231688 #1231231
 
   print("Calculating cohort")
 
@@ -797,8 +797,8 @@ writeAllResults <- function(dbms, connectionString, cdmDatabaseSchema, resultsDa
   res <- getPersonSummary(connection, resultsDatabaseSchema, cdmDatabaseSchema, sqlReplacements, FALSE, cohortId)
   writeToFile(paste(outputDirName, "person.json", sep ="/"), res)
 
-  res <- getDataCompleteness(connection, resultsDatabaseSchema, cdmDatabaseSchema, sqlReplacements, FALSE, cohortId)
-  writeToFile(paste(outputDirName, "datacompleteness.json", sep ="/"), toJSON(convertDataCompletenessData(res), pretty = TRUE, auto_unbox = TRUE))
+  es <- getDataCompleteness(connection, resultsDatabaseSchema, cdmDatabaseSchema, sqlReplacements, FALSE, cohortId)
+  riteToFile(paste(outputDirName, "datacompleteness.json", sep ="/"), toJSON(convertDataCompletenessData(res), pretty = TRUE, auto_unbox = TRUE))
 
   res <- getDashboard(connection, resultsDatabaseSchema, cdmDatabaseSchema, sqlReplacements, FALSE, cohortId)
   writeToFile(paste(outputDirName, "dashboard.json", sep ="/"), res)
@@ -806,32 +806,32 @@ writeAllResults <- function(dbms, connectionString, cdmDatabaseSchema, resultsDa
   res <- getHeraclesHeel(connection, resultsDatabaseSchema, cdmDatabaseSchema, sqlReplacements, FALSE, cohortId)
   writeToFile(paste(outputDirName, "heraclesheel.json", sep ="/"), res)
 
-  #processReport(connection, resultsDatabaseSchema, cdmDatabaseSchema, outputDirName, sqlReplacements, "Condition", cohortId)
-  #processReport(connection, resultsDatabaseSchema, cdmDatabaseSchema, outputDirName, sqlReplacements, "DrugEra", cohortId)
+  processReport(connection, resultsDatabaseSchema, cdmDatabaseSchema, outputDirName, sqlReplacements, "Condition", cohortId)
+  processReport(connection, resultsDatabaseSchema, cdmDatabaseSchema, outputDirName, sqlReplacements, "DrugEra", cohortId)
 
   ##DrugExposures
   res <- do.call("getTreemap", list(connection, outputDirName, sqlReplacements, "Drug", FALSE))
   getDrillDownResults(res, connection, resultsDatabaseSchema, cdmDatabaseSchema, outputDirName, sqlReplacements, "DrugExposure", FALSE, cohortId)
-  #
-  #processReport(connection, resultsDatabaseSchema, cdmDatabaseSchema, outputDirName, sqlReplacements, "Procedure", cohortId)
-  #processReport(connection, resultsDatabaseSchema, cdmDatabaseSchema, outputDirName, sqlReplacements, "Visit", cohortId)
-  #processReport(connection, resultsDatabaseSchema, cdmDatabaseSchema, outputDirName, sqlReplacements, "ConditionEra", cohortId)
+
+  processReport(connection, resultsDatabaseSchema, cdmDatabaseSchema, outputDirName, sqlReplacements, "Procedure", cohortId)
+  processReport(connection, resultsDatabaseSchema, cdmDatabaseSchema, outputDirName, sqlReplacements, "Visit", cohortId)
+  processReport(connection, resultsDatabaseSchema, cdmDatabaseSchema, outputDirName, sqlReplacements, "ConditionEra", cohortId)
 
   sqlReplacements$minCovariatePersonCount <- 10;
   sqlReplacements$minIntervalPersonCount <- 10;
 
-  #res <- getConditionsByIndexTreemap(connection, resultsDatabaseSchema, cdmDatabaseSchema, sqlReplacements, FALSE, cohortId)
-  #writeToFile(paste(outputDirName, "conditionsbyindextreemap.json", sep ="/"),  toJSON(res, pretty = TRUE, auto_unbox = TRUE))
-  #getDrillDownResults(res, connection, resultsDatabaseSchema, cdmDatabaseSchema, outputDirName, sqlReplacements, "ConditionByIndex", FALSE, cohortId)
+  res <- getConditionsByIndexTreemap(connection, resultsDatabaseSchema, cdmDatabaseSchema, sqlReplacements, FALSE, cohortId)
+  writeToFile(paste(outputDirName, "conditionsbyindextreemap.json", sep ="/"),  toJSON(res, pretty = TRUE, auto_unbox = TRUE))
+  getDrillDownResults(res, connection, resultsDatabaseSchema, cdmDatabaseSchema, outputDirName, sqlReplacements, "ConditionByIndex", FALSE, cohortId)
 
-  #res <- getProceduresByIndexTreemap(connection, resultsDatabaseSchema, cdmDatabaseSchema, sqlReplacements, FALSE, cohortId)
-  #writeToFile(paste(outputDirName, "proceduresbyindextreemap.json", sep ="/"),  toJSON(res, pretty = TRUE, auto_unbox = TRUE))
-  #getDrillDownResults(res, connection, resultsDatabaseSchema, cdmDatabaseSchema, outputDirName, sqlReplacements, "ProcedureByIndex", FALSE, cohortId)
+  res <- getProceduresByIndexTreemap(connection, resultsDatabaseSchema, cdmDatabaseSchema, sqlReplacements, FALSE, cohortId)
+  writeToFile(paste(outputDirName, "proceduresbyindextreemap.json", sep ="/"),  toJSON(res, pretty = TRUE, auto_unbox = TRUE))
+  getDrillDownResults(res, connection, resultsDatabaseSchema, cdmDatabaseSchema, outputDirName, sqlReplacements, "ProcedureByIndex", FALSE, cohortId)
 
   # no data
-  #res <- getDrugsByIndexTreemap(connection, resultsDatabaseSchema, cdmDatabaseSchema, sqlReplacements, FALSE, cohortId)
-  #writeToFile(paste(outputDirName, "drugsbyindextreemap.json", sep ="/"),  toJSON(res, pretty = TRUE, auto_unbox = TRUE))
-  #getDrillDownResults(res, connection, resultsDatabaseSchema, cdmDatabaseSchema, outputDirName, sqlReplacements, "ProcedureByIndex", FALSE, cohortId)
+  res <- getDrugsByIndexTreemap(connection, resultsDatabaseSchema, cdmDatabaseSchema, sqlReplacements, FALSE, cohortId)
+  writeToFile(paste(outputDirName, "drugsbyindextreemap.json", sep ="/"),  toJSON(res, pretty = TRUE, auto_unbox = TRUE))
+  getDrillDownResults(res, connection, resultsDatabaseSchema, cdmDatabaseSchema, outputDirName, sqlReplacements, "ProcedureByIndex", FALSE, cohortId)
 
 }
 
