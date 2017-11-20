@@ -375,7 +375,7 @@ public abstract class BaseUserController<
     @RequestMapping(value = "/api/v1/user-management/users/suggest")
     public List<CommonUserDTO> suggest(@RequestParam(value = "target") SuggestionTarget target,
                                        @RequestParam(value = "id", required = false) Long id,
-                                       @RequestParam(value = "emails", required = false) List<String> emails,
+                                       @RequestParam(value = "excludeEmails", required = false) List<String> excludeEmails,
                                        @RequestParam(value = "query") String query,
                                        @RequestParam(value = "limit", defaultValue = "10") Integer limit) {
 
@@ -396,10 +396,10 @@ public abstract class BaseUserController<
                 break;
             }
             case DATANODE: {
-                if (CollectionUtils.isEmpty(emails)) {
+                if (CollectionUtils.isEmpty(excludeEmails)) {
                     throw new javax.validation.ValidationException("Emails for excluding must be specified when SuggestionTarget=DATANODE");
                 }
-                users = userService.suggestUser(query, emails, limit);
+                users = userService.suggestUser(query, excludeEmails, limit);
                 break;
             }
             default: {
