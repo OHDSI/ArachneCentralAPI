@@ -29,7 +29,7 @@ run_cohort_characterization <- function(
   # Setup variables
   
   cohortTable <- "cohort"
-  cohortId <- sample(1:10^8, 1)
+  cohortId <- 17
 
   #cohortId <-1231688 # 1231688 #1231231
 
@@ -305,6 +305,17 @@ getDashboard <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, s
   )
 
  return (queryJsonCohortAnalysesResults(queryMap, connection, sqlReplacements, mapping));
+}
+
+getEntropy <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, sqlReplacements, mapping, cohortId) {
+  queryMap <- list()
+
+  queryMap$entropy <- list(
+    "sqlPath"="cohortresults-sql/entropy/getEntropy.sql"
+    #"targetType"=fromJSON("./definitions/types/AnalysisResults.json"),
+    #"mappings"=fromJSON("./definitions/mappings/ResultSetToAnalysisResults.json")$mappings
+  )
+  return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, mapping));
 }
 
 getConditionsByIndexTreemap <- function(connection, resultsDatabaseSchema, cdmDatabaseSchema, sqlReplacements, mapping, cohortId) {
@@ -683,6 +694,52 @@ convertDataCompletenessData <- function(inputData){
   return(resultRoot);
 }
 
+convertEntropyData <- function(inputData2031, inputData2032){
+
+  analysisMap <- list()
+  elements<- list
+  key<- list
+  analysisId<- list
+  resultRoot<- list()
+  resultList <- list()
+
+  ind <- 1
+
+
+    for (key in names(inputData2031)) {
+      elements <- inputData2031[[key]]
+      for (element in elements$STRATUM_1) {
+
+        resultList[[ind]] <- list(date = element, entropy = elements$STRATUM_2[ind], insitution = "All sites")
+        ind <- ind+1
+      }
+    }
+
+  ind2 <- 1
+
+  for (key in names(inputData2032)) {
+    elements <- inputData2032[[key]]
+    for (element in elements$STRATUM_1) {
+
+      stratum2 <- elements$STRATUM_2[ind2]
+
+       if (!is.na(stratum2) && trimws(stratum2) != '' ){
+         careSite <- paste(element, stratum2, sep = ":")
+       } else {
+         careSite <- element
+       }
+
+      resultList[[ind]] <- list(insitution = careSite, date = elements$STRATUM_3[ind2], entropy = elements$STRATUM_4[ind2])
+      ind <- ind+1
+      ind2<- ind2+1
+    }
+  }
+
+  resultRoot[["entropy"]] <- resultList
+  return(resultRoot);
+}
+
+
 queryJsonCohortAnalysesResults <- function(queryMap, connection, sqlReplacements, mapping) {
 
   result <- queryCohortAnalysesResults(queryMap, connection, sqlReplacements, mapping)
@@ -798,7 +855,7 @@ writeAllResults <- function(dbms, connectionString, cdmDatabaseSchema, resultsDa
   writeToFile(paste(outputDirName, "person.json", sep ="/"), res)
 
   es <- getDataCompleteness(connection, resultsDatabaseSchema, cdmDatabaseSchema, sqlReplacements, FALSE, cohortId)
-  riteToFile(paste(outputDirName, "datacompleteness.json", sep ="/"), toJSON(convertDataCompletenessData(res), pretty = TRUE, auto_unbox = TRUE))
+  writeToFile(paste(outputDirName, "datacompleteness.json", sep ="/"), toJSON(convertDataCompletenessData(res), pretty = TRUE, auto_unbox = TRUE))
 
   res <- getDashboard(connection, resultsDatabaseSchema, cdmDatabaseSchema, sqlReplacements, FALSE, cohortId)
   writeToFile(paste(outputDirName, "dashboard.json", sep ="/"), res)
@@ -832,6 +889,14 @@ writeAllResults <- function(dbms, connectionString, cdmDatabaseSchema, resultsDa
   res <- getDrugsByIndexTreemap(connection, resultsDatabaseSchema, cdmDatabaseSchema, sqlReplacements, FALSE, cohortId)
   writeToFile(paste(outputDirName, "drugsbyindextreemap.json", sep ="/"),  toJSON(res, pretty = TRUE, auto_unbox = TRUE))
   getDrillDownResults(res, connection, resultsDatabaseSchema, cdmDatabaseSchema, outputDirName, sqlReplacements, "ProcedureByIndex", FALSE, cohortId)
+
+  # entropy report
+  sqlReplacements$entroppAnalysisId <- 2031
+  res2031 <- getEntropy(connection, resultsDatabaseSchema, cdmDatabaseSchema, sqlReplacements, FALSE, cohortId)
+  sqlReplacements$entroppAnalysisId <- 2032
+  res2032 <- getEntropy(connection, resultsDatabaseSchema, cdmDatabaseSchema, sqlReplacements, FALSE, cohortId)
+
+  writeToFile(paste(outputDirName, "entropy.json", sep ="/"), toJSON(convertEntropyData(res2031, res2032), pretty = TRUE, auto_unbox = TRUE))
 
 }
 
