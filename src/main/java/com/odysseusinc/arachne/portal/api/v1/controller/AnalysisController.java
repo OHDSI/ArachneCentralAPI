@@ -34,10 +34,14 @@ import com.odysseusinc.arachne.portal.service.DataReferenceService;
 import com.odysseusinc.arachne.portal.service.ImportService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
+import java.io.IOException;
+import java.util.List;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @SuppressWarnings("unused")
 @RestController
@@ -81,6 +85,13 @@ public class AnalysisController extends BaseAnalysisController<Analysis, Analysi
 
         return AnalysisDTO.class;
     }
+
+    @Override
+    protected void attachPredictionFiles(List<MultipartFile> files) throws IOException {
+
+        files.add(new MockMultipartFile("run_plp_analysis.R", readResource("r/run_plp_analysis.R")));
+    }
+
 }
 
 
