@@ -89,7 +89,8 @@ public class AnalysisController extends BaseAnalysisController<Analysis, Analysi
     @Override
     protected void attachPredictionFiles(List<MultipartFile> files) throws IOException {
 
-        files.add(new MockMultipartFile("run_plp_analysis.R", readResource("r/run_plp_analysis.R")));
+        files.add(new MockMultipartFile("run_plp_analysis.r", "run_plp_analysis.r", null,
+                readResource("r/run_plp_analysis.R")));
     }
 
 }
