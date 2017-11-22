@@ -705,12 +705,11 @@ convertEntropyData <- function(inputData2031, inputData2032){
 
   ind <- 1
 
-
     for (key in names(inputData2031)) {
       elements <- inputData2031[[key]]
       for (element in elements$STRATUM_1) {
 
-        resultList[[ind]] <- list(date = element, entropy = elements$STRATUM_2[ind], insitution = "All sites")
+        resultList[[ind]] <- list(date = as.numeric(as.POSIXct(element, format="%Y-%m-%d")), entropy = as.double(elements$STRATUM_2[ind]), insitution = "All sites")
         ind <- ind+1
       }
     }
@@ -729,7 +728,9 @@ convertEntropyData <- function(inputData2031, inputData2032){
          careSite <- element
        }
 
-      resultList[[ind]] <- list(insitution = careSite, date = elements$STRATUM_3[ind2], entropy = elements$STRATUM_4[ind2])
+      stratum3 <- elements$STRATUM_3[ind2]
+      formatted <- as.numeric(as.POSIXct(stratum3, format="%Y-%m-%d"))
+      resultList[[ind]] <- list(insitution = careSite, date = formatted, entropy = as.double(elements$STRATUM_4[ind2]))
       ind <- ind+1
       ind2<- ind2+1
     }
