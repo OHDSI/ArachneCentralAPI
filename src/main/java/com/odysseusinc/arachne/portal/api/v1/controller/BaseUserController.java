@@ -269,7 +269,7 @@ public abstract class BaseUserController<
     public JsonResult<Boolean> saveUserAvatar(
             Principal principal,
             @RequestParam(name = "file") MultipartFile[] file)
-            throws IOException, WrongFileFormatException, ValidationException, ImageProcessingException, MetadataException {
+            throws IOException, WrongFileFormatException, ValidationException, ImageProcessingException, MetadataException, IllegalAccessException, SolrServerException, NoSuchFieldException {
 
         JsonResult<Boolean> result;
         U user = userService.getByEmail(principal.getName());
