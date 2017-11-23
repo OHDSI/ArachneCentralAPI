@@ -674,24 +674,33 @@ convertDataCompletenessData <- function(inputData){
   for (key in names(inputData)) {
     elements <- inputData[[key]]
      for (element in elements$ANALYSIS_ID) {
-       analysisMap[[paste("" , element, sep="")]] <- list(analysis_id = element, str = elements$STRATUM_1[ind])
+       analysisMap[[paste("" , element, sep="")]] <- list(str = elements$STRATUM_1[ind])
        ind <- ind+1
      }
   }
 
   resultList <- list()
 
-  resultList[[1]] <- list(covariance = "0~10", genderP = analysisMap[["2001"]]$str, raceP = analysisMap[["2011"]]$str,  ethP = analysisMap[["2021"]]$str)
-  resultList[[2]] <- list(covariance = "10~20", genderP = analysisMap[["2002"]]$str, raceP = analysisMap[["2012"]]$str,  ethP = analysisMap[["2022"]]$str)
-  resultList[[3]] <- list(covariance = "20~30", genderP = analysisMap[["2003"]]$str, raceP = analysisMap[["2013"]]$str,  ethP = analysisMap[["2023"]]$str)
-  resultList[[4]] <- list(covariance = "30~40", genderP = analysisMap[["2004"]]$str, raceP = analysisMap[["2014"]]$str,  ethP = analysisMap[["2024"]]$str)
-  resultList[[5]] <- list(covariance = "40~50", genderP = analysisMap[["2005"]]$str, raceP = analysisMap[["2015"]]$str,  ethP = analysisMap[["2025"]]$str)
-  resultList[[6]] <- list(covariance = "50~60", genderP = analysisMap[["2006"]]$str, raceP = analysisMap[["2016"]]$str,  ethP = analysisMap[["2026"]]$str)
-  resultList[[7]] <- list(covariance = "60+", genderP = analysisMap[["2007"]]$str, raceP = analysisMap[["2017"]]$str,  ethP = analysisMap[["2027"]]$str)
+  resultList[[1]] <- list(covariance = "0~10", genderP = getValue(analysisMap, "2001"), raceP = getValue(analysisMap, "2011"),  ethP = getValue(analysisMap, "2021"))
+  resultList[[2]] <- list(covariance = "10~20", genderP = getValue(analysisMap, "2002"), raceP = getValue(analysisMap, "2012"),  ethP = getValue(analysisMap, "2022"))
+  resultList[[3]] <- list(covariance = "20~30", genderP = getValue(analysisMap, "2003"), raceP = getValue(analysisMap, "2013"),  ethP = getValue(analysisMap, "2023"))
+  resultList[[4]] <- list(covariance = "30~40", genderP = getValue(analysisMap, "2004"), raceP = getValue(analysisMap, "2014"),  ethP = getValue(analysisMap, "2024"))
+  resultList[[5]] <- list(covariance = "40~50", genderP = getValue(analysisMap, "2005"), raceP = getValue(analysisMap, "2015"),  ethP = getValue(analysisMap, "2025"))
+  resultList[[6]] <- list(covariance = "50~60", genderP = getValue(analysisMap, "2006"), raceP = getValue(analysisMap, "2016"),  ethP = getValue(analysisMap, "2026"))
+  resultList[[7]] <- list(covariance = "60+", genderP = getValue(analysisMap, "2007"), raceP = getValue(analysisMap, "2017"),  ethP = getValue(analysisMap, "2027"))
 
   resultRoot[["recordsPerPerson"]] <- resultList
 
   return(resultRoot);
+}
+
+getValue <- function(analysisMap, key){
+  val <- analysisMap[[key]]$str
+
+  if (is.null(val)){
+    val <- ''
+  }
+  return (val)
 }
 
 convertEntropyData <- function(inputData2031, inputData2032){
@@ -842,7 +851,7 @@ writeAllResults <- function(dbms, connectionString, cdmDatabaseSchema, resultsDa
 
   outputDirName <- "../output"
   dir.create(outputDirName)
-
+  # todo delete schemas
   res <- getCohortSpecificSummary(connection, resultsDatabaseSchema, cdmDatabaseSchema, sqlReplacements, FALSE, cohortId)
   writeToFile(paste(outputDirName, "cohortspecific.json", sep ="/"), res)
 
