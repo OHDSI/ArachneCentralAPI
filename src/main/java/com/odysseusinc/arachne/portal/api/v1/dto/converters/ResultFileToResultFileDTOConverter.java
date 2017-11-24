@@ -50,10 +50,7 @@ public class ResultFileToResultFileDTOConverter extends BaseConversionServiceAwa
         resultFileDTO.setCreated(source.getCreated());
         resultFileDTO.setSubmissionId(source.getSubmission().getId());
         resultFileDTO.setManuallyUploaded(source.getManuallyUploaded());
-
-        String contentType = CommonFileUtils.getContentType(source.getRealName(), absoluteFilename);
-        resultFileDTO.setDocType(contentType);
-
+        resultFileDTO.setDocType(source.getContentType());
         String mimeType = CommonFileUtils.getMimeType(source.getRealName(), absoluteFilename);
         resultFileDTO.setMimeType(mimeType);
 

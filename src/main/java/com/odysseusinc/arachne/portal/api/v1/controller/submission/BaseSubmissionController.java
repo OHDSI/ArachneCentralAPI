@@ -322,10 +322,12 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/results", method = GET)
     public List<ResultFileDTO> getResultFiles(
             Principal principal,
-            @PathVariable("submissionId") Long submissionId) throws PermissionDeniedException, NotExistException, IOException {
+            @PathVariable("submissionId") Long submissionId,
+            @RequestParam("path") String path
+    ) throws PermissionDeniedException, NotExistException, IOException {
 
         User user = userService.getByEmail(principal.getName());
-        List<ResultFile> resultFileList = submissionService.getResultFiles(user, submissionId);
+        List<ResultFile> resultFileList = submissionService.getResultFiles(user, submissionId, path);
         return resultFileList.stream()
                 .map(rf -> conversionService.convert(rf, ResultFileDTO.class))
                 .collect(Collectors.toList());
