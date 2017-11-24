@@ -35,6 +35,7 @@ import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonEntityRequestDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.commons.service.messaging.ProducerConsumerTemplate;
+import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.execution_engine_common.api.v1.dto.DBMSType;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisContentFileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisCreateDTO;
@@ -48,6 +49,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.DataReferenceDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.FileContentDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.OptionDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightUpdateDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdateNotificationDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UploadFileDTO;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
@@ -77,35 +79,9 @@ import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
 import com.odysseusinc.arachne.portal.util.ImportedFile;
 import com.odysseusinc.arachne.portal.util.ZipUtil;
 import io.swagger.annotations.ApiOperation;
-import org.apache.commons.io.FilenameUtils;
-import org.assertj.core.api.exception.RuntimeIOException;
-import org.ohdsi.sql.SqlRender;
-import org.ohdsi.sql.SqlTranslate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.convert.support.GenericConversionService;
-import org.springframework.data.domain.Sort;
-import org.springframework.jms.core.JmsTemplate;
-import org.springframework.jms.support.destination.DestinationResolver;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.util.ReflectionUtils;
-import org.springframework.util.StringUtils;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.multipart.MultipartFile;
-
-import javax.jms.JMSException;
-import javax.jms.ObjectMessage;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.security.Principal;
@@ -121,6 +97,35 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import java.util.zip.ZipOutputStream;
+import javax.jms.JMSException;
+import javax.jms.ObjectMessage;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.assertj.core.api.exception.RuntimeIOException;
+import org.ohdsi.sql.SqlRender;
+import org.ohdsi.sql.SqlTranslate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.convert.support.GenericConversionService;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Sort;
+import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.support.destination.DestinationResolver;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.util.ReflectionUtils;
+import org.springframework.util.StringUtils;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 public abstract class BaseAnalysisController<T extends Analysis,
         D extends AnalysisDTO,
@@ -301,49 +306,76 @@ public abstract class BaseAnalysisController<T extends Analysis,
         final T analysis = analysisService.getById(analysisId);
         final DataReference dataReference = dataReferenceService.addOrUpdate(entityReference.getEntityGuid(), dataNode);
         final List<MultipartFile> entityFiles = getEntityFiles(entityReference, dataNode, analysisType);
-        entityFiles.forEach(entityFile -> {
-
-            try {
-                doAddCommonEntityToAnalysis(analysis, dataReference, user, analysisType, entityFile);
-            } catch (IOException e) {
-                LOGGER.error("Failed to save file", e);
-                throw new RuntimeIOException(e.getMessage(), e);
-            }
-        });
+        doAddCommonEntityToAnalysis(analysis, dataReference, user, analysisType, entityFiles);
         return new JsonResult(NO_ERROR);
     }
 
     protected void doAddCommonEntityToAnalysis(T analysis, DataReference dataReference, User user,
                                                CommonAnalysisType analysisType,
-                                               MultipartFile file)
-            throws IOException {
+                                               List<MultipartFile> files) throws IOException {
 
-        analysisService.saveFile(file, user, analysis, file.getName(), false, dataReference);
+        files.stream()
+                .filter(f -> !CommonAnalysisType.COHORT.equals(analysisType) || !f.getName().endsWith(CommonFileUtils.OHDSI_JSON_EXT))
+                .forEach(f -> {
+                            try {
+                                analysisService.saveFile(f, user, analysis, f.getName(), detectExecutable(analysisType, f), dataReference);
+                            } catch (IOException e) {
+                                LOGGER.error("Failed to save file", e);
+                            }
+                        }
+                );
         if (analysisType.equals(CommonAnalysisType.COHORT)) {
-            String statement = org.apache.commons.io.IOUtils.toString(file.getInputStream(), "UTF-8");
-            String renderedSql = SqlRender.renderSql(statement, null, null);
-            DBMSType[] dbTypes = new DBMSType[]{DBMSType.POSTGRESQL, DBMSType.ORACLE, DBMSType.MS_SQL_SERVER,
-                    DBMSType.REDSHIFT, DBMSType.PDW};
-            String baseName = FilenameUtils.getBaseName(file.getOriginalFilename());
-            String extension = FilenameUtils.getExtension(file.getOriginalFilename());
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            try (final ZipOutputStream zos = new ZipOutputStream(out)) {
-                for (final DBMSType dialect : dbTypes) {
-                    final String sql = SqlTranslate.translateSql(renderedSql, DBMSType.MS_SQL_SERVER.getOhdsiDB(),
-                            dialect.getOhdsiDB());
-                    final String fileName = baseName + "."
-                            + dialect.getLabel().replaceAll(" ", "-")
-                            + "." + extension;
-                    try (final Reader reader = new StringReader(sql)) {
-                        ZipUtil.addZipEntry(zos, fileName, reader);
-                    }
-                }
+            final ByteArrayOutputStream out = new ByteArrayOutputStream();
+            class StringContainer {
+                String value = CommonAnalysisType.COHORT.getTitle();
             }
-            String fileName = baseName.replaceAll("\\.ohdsi", "") + ".zip";
-            MultipartFile sqlArchive = new MockMultipartFile(fileName, fileName, "application/zip",
+            final StringContainer generatedFileName = new StringContainer();
+            try (final ZipOutputStream zos = new ZipOutputStream(out)) {
+                files.forEach(file -> {
+                    try {
+                        if (file.getName().endsWith(CommonFileUtils.OHDSI_SQL_EXT)) {
+                            String statement = org.apache.commons.io.IOUtils.toString(file.getInputStream(), "UTF-8");
+                            String renderedSql = SqlRender.renderSql(statement, null, null);
+                            DBMSType[] dbTypes = new DBMSType[]{DBMSType.POSTGRESQL, DBMSType.ORACLE, DBMSType.MS_SQL_SERVER,
+                                    DBMSType.REDSHIFT, DBMSType.PDW};
+                            String baseName = FilenameUtils.getBaseName(file.getOriginalFilename());
+                            String extension = FilenameUtils.getExtension(file.getOriginalFilename());
+                            for (final DBMSType dialect : dbTypes) {
+                                final String sql = SqlTranslate.translateSql(renderedSql, DBMSType.MS_SQL_SERVER.getOhdsiDB(),
+                                        dialect.getOhdsiDB());
+                                final String fileName = baseName + "."
+                                        + dialect.getLabel().replaceAll(" ", "-")
+                                        + "." + extension;
+                                try (final Reader reader = new StringReader(sql)) {
+                                    ZipUtil.addZipEntry(zos, fileName, reader);
+                                }
+                            }
+                            final String shortBaseName = baseName.replaceAll("\\.ohdsi", "");
+                            if (!generatedFileName.value.contains(shortBaseName)) {
+                                generatedFileName.value += "_" + shortBaseName;
+                            }
+                        } else {
+                            try (final Reader reader = new StringReader(org.apache.commons.io.IOUtils.toString(file.getInputStream(), "UTF-8"))) {
+                                String fileName = file.getName();
+                                ZipUtil.addZipEntry(zos, fileName, reader);
+                            }
+                        }
+                    } catch (IOException e) {
+                        LOGGER.error("Failed to add file to archive", e);
+                        throw new RuntimeIOException(e.getMessage(), e);
+                    }
+                });
+            }
+            String fileName = generatedFileName.value + ".zip";
+            final MultipartFile sqlArchive = new MockMultipartFile(fileName, fileName, "application/zip",
                     out.toByteArray());
             analysisService.saveFile(sqlArchive, user, analysis, fileName, false, dataReference);
         }
+    }
+
+    protected boolean detectExecutable(CommonAnalysisType type, MultipartFile file) {
+
+        return false;
     }
 
     @ApiOperation("update common entity in analysis")
@@ -352,23 +384,24 @@ public abstract class BaseAnalysisController<T extends Analysis,
                                                    @PathVariable("fileUuid") String fileUuid,
                                                    @RequestParam(value = "type", required = false,
                                                            defaultValue = "COHORT") CommonAnalysisType analysisType,
-                                                   Principal principal) throws IOException, JMSException {
+                                                   Principal principal) throws IOException, JMSException, PermissionDeniedException {
 
+        final User user = getUser(principal);
         final AnalysisFile analysisFile = analysisService.getAnalysisFile(analysisId, fileUuid);
+        T analysis = (T) analysisFile.getAnalysis();
         final DataReference dataReference = analysisFile.getDataReference();
         final DataReferenceDTO entityReference = new DataReferenceDTO(
                 dataReference.getDataNode().getId(), dataReference.getGuid());
-        final List<MultipartFile> entityFiles = getEntityFiles(entityReference, dataReference.getDataNode(), analysisType);
-        entityFiles.forEach(entityFile -> {
 
-            try {
-                analysisService.updateFile(fileUuid, entityFile, analysisId,
-                        ANALISYS_MIMETYPE_MAP.containsValue(entityFile.getContentType()));
-            } catch (IOException e) {
-                LOGGER.error("Failed to update file", e);
-                throw new RuntimeIOException(e.getMessage(), e);
-            }
-        });
+        final List<MultipartFile> entityFiles = getEntityFiles(entityReference, dataReference.getDataNode(), analysisType);
+
+        analysisService.findAnalysisFilesByDataReference(analysis, dataReference).forEach(
+                af -> {
+                    analysisService.deleteAnalysisFile(analysis, af);
+                    analysis.getFiles().remove(af);
+                }
+        );
+        doAddCommonEntityToAnalysis(analysis, dataReference, user, analysisType, entityFiles);
         return new JsonResult(NO_ERROR);
     }
 
@@ -463,7 +496,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
     @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/insight", method = PUT)
     public JsonResult<SubmissionInsightDTO> updateSubmissionInsight(
             @PathVariable("submissionId") Long submissionId,
-            @RequestBody @Valid SubmissionInsightDTO insightDTO
+            @RequestBody SubmissionInsightUpdateDTO insightDTO
     ) throws NotExistException {
 
         final SubmissionInsight insight = conversionService.convert(insightDTO, SubmissionInsight.class);
@@ -653,7 +686,19 @@ public abstract class BaseAnalysisController<T extends Analysis,
                     .map(file -> conversionService.convert(file, MockMultipartFile.class))
                     .collect(Collectors.toList());
         }
+        if (entityType.equals(CommonAnalysisType.PREDICTION)) {
+            attachPredictionFiles(files);
+        }
         return files;
     }
+
+    protected byte[] readResource(final String path) throws IOException {
+        Resource resource = new ClassPathResource(path);
+        try (InputStream in = resource.getInputStream()) {
+            return IOUtils.toByteArray(in);
+        }
+    }
+
+    protected abstract void attachPredictionFiles(List<MultipartFile> files) throws IOException;
 
 }

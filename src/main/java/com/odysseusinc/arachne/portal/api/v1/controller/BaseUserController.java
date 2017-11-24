@@ -139,6 +139,7 @@ public abstract class BaseUserController<
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseUserController.class);
     private static final String AVATAR_CONTENT_TYPE = "image/*";
     private static final String DATA_NODE_NOT_FOUND_EXCEPTION = "dataNode %s not found";
+    private static final String INVITATION_HOME_PAGE ="/study-manager/studies/";
 
     protected final TokenUtils tokenUtils;
     protected final BaseUserService<U, SK> userService;
@@ -268,7 +269,7 @@ public abstract class BaseUserController<
     public JsonResult<Boolean> saveUserAvatar(
             Principal principal,
             @RequestParam(name = "file") MultipartFile[] file)
-            throws IOException, WrongFileFormatException, ValidationException, ImageProcessingException, MetadataException {
+            throws IOException, WrongFileFormatException, ValidationException, ImageProcessingException, MetadataException, IllegalAccessException, SolrServerException, NoSuchFieldException {
 
         JsonResult<Boolean> result;
         U user = userService.getByEmail(principal.getName());
@@ -584,7 +585,7 @@ public abstract class BaseUserController<
 
         InvitationActionWithTokenDTO dto = new InvitationActionWithTokenDTO(id, type, accepted, token);
 
-        String redirectLink = "";
+        String redirectLink;
         U user;
 
         try {
@@ -593,7 +594,7 @@ public abstract class BaseUserController<
         } catch (NotExistException ex) {
             JsonResult result = new JsonResult<>(VALIDATION_ERROR);
             result.setErrorMessage(ex.getMessage());
-            response.sendRedirect(redirectLink);
+            response.sendRedirect(INVITATION_HOME_PAGE);
             return result;
         }
         response.sendRedirect(redirectLink);
@@ -602,7 +603,7 @@ public abstract class BaseUserController<
 
     private String getRedirectLinkFromInvitationDto(InvitationActionWithTokenDTO dto, Long id, String token) {
 
-        String redirectLink = "/study-manager/studies/";
+        String redirectLink = INVITATION_HOME_PAGE;
 
         switch (dto.getType()) {
             case InvitationType.COLLABORATOR: {
