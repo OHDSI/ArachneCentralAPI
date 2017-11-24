@@ -301,6 +301,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
                                                 Principal principal)
             throws NotExistException, JMSException, IOException, PermissionDeniedException {
 
+        // TODO pozhidaeva analysisType = CommonAnalysisType.COHORT_CHARACTERIZATION;
         final User user = getUser(principal);
         final DataNode dataNode = dataNodeService.getById(entityReference.getDataNodeId());
         final T analysis = analysisService.getById(analysisId);
@@ -689,6 +690,9 @@ public abstract class BaseAnalysisController<T extends Analysis,
         if (entityType.equals(CommonAnalysisType.PREDICTION)) {
             attachPredictionFiles(files);
         }
+        if (entityType.equals(CommonAnalysisType.COHORT_CHARACTERIZATION)) {
+            attachCohortCharacterizationFiles(files);
+        }
         return files;
     }
 
@@ -700,5 +704,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
     }
 
     protected abstract void attachPredictionFiles(List<MultipartFile> files) throws IOException;
+
+    protected abstract void attachCohortCharacterizationFiles(List<MultipartFile> files) throws IOException;
 
 }

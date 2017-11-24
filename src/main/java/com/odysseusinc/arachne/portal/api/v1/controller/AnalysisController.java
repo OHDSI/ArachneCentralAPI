@@ -93,6 +93,13 @@ public class AnalysisController extends BaseAnalysisController<Analysis, Analysi
                 readResource("r/run_plp_analysis.R")));
     }
 
+    @Override
+    protected void attachCohortCharacterizationFiles(List<MultipartFile> files) throws IOException {
+
+        files.add(new MockMultipartFile("run_cc_reports.r", "run_cc_reports.r", null,
+                readResource("r/run_cc_reports.R")));
+    }
+
 }
 
 
