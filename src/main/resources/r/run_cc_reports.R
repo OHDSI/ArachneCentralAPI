@@ -942,6 +942,6 @@ writeAllResults <- function(dbms, connectionString, cdmDatabaseSchema, resultsDa
   res <- getDrugsByIndexTreemap(connection, sqlReplacements, FALSE)
   writeToFile(paste(outputDirName, "drugsbyindextreemap.json", sep ="/"),  toJSON(res, pretty = TRUE, auto_unbox = TRUE))
   if (includeDrilldownReports){
-    getDrillDownResults(res, connection, outputDirName, sqlReplacements, "ProcedureByIndex", FALSE)
+    getDrillDownResults(res, connection, outputDirName, sqlReplacements, "DrugByIndex", FALSE)
   }
 }
