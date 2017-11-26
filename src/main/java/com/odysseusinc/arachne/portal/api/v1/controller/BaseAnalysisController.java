@@ -301,7 +301,6 @@ public abstract class BaseAnalysisController<T extends Analysis,
                                                 Principal principal)
             throws NotExistException, JMSException, IOException, PermissionDeniedException {
 
-        // TODO pozhidaeva analysisType = CommonAnalysisType.COHORT_CHARACTERIZATION;
         final User user = getUser(principal);
         final DataNode dataNode = dataNodeService.getById(entityReference.getDataNodeId());
         final T analysis = analysisService.getById(analysisId);
