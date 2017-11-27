@@ -122,7 +122,7 @@ public class AnalysisController extends BaseAnalysisController<Analysis, Analysi
 
         try {
             String relativePath = convertToUnixPath(Paths.get(getClass().getClassLoader().getResource("").toURI())
-                    .relativize(file.toAbsolutePath()).toString());
+                    .relativize(file).toString());
             String name = convertToUnixPath(cohortCharacterizationSql.relativize(file).toString());
             return new MockMultipartFile(name, name, null, readResource(relativePath));
 
