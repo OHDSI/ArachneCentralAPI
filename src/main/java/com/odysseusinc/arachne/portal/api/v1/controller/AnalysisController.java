@@ -109,10 +109,10 @@ public class AnalysisController extends BaseAnalysisController<Analysis, Analysi
         files.add(new MockMultipartFile(RUN_CC_REPORTS_FILE_NAME, RUN_CC_REPORTS_FILE_NAME, null,
                 readResource("r/run_cc_reports.R")));
 
-        final Path cohortCharacterizationSql = Paths.get(getClass().getClassLoader().getResource("sql/cc").toURI());
-        List<MultipartFile> multipartFiles = Files.walk(cohortCharacterizationSql)
+        final Path cohortCharacterizationSqlDir = Paths.get(getClass().getClassLoader().getResource("sql/cc").toURI());
+        List<MultipartFile> multipartFiles = Files.walk(cohortCharacterizationSqlDir)
                 .filter(f -> !f.toFile().isDirectory())
-                .map(f -> convertToMultipartFile(f, cohortCharacterizationSql))
+                .map(f -> convertToMultipartFile(f, cohortCharacterizationSqlDir))
                 .collect(Collectors.toList());
 
         files.addAll(multipartFiles);

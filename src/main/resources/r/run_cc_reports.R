@@ -11,7 +11,8 @@ run_cohort_characterization <- function(
     cdmDatabaseSchema,
     resultsDatabaseSchema,
     cohortTable,
-    includeDrilldownReports
+    includeDrilldownReports,
+    includedReports
 ) {
 
   #Inputs:
@@ -80,7 +81,7 @@ run_cohort_characterization <- function(
 
   print(paste("Printing all results", Sys.time(), sep=" started: "))
 
-  writeAllResults(dbms, connectionString, cdmDatabaseSchema, resultsDatabaseSchema,  user, password, cohortId, outputFolder, includeDrilldownReports)
+  writeAllResults(dbms, connectionString, cdmDatabaseSchema, resultsDatabaseSchema,  user, password, cohortId, outputFolder, includeDrilldownReports, includedReports)
 
   end.time <- Sys.time()
   time.taken <- end.time - start.time
@@ -847,7 +848,7 @@ processReport <- function(connection, outputDirName, sqlReplacements, entityName
   }
 }
 
-writeAllResults <- function(dbms, connectionString, cdmDatabaseSchema, resultsDatabaseSchema, user, password, cohortId, outputDirName, includeDrilldownReports) {
+writeAllResults <- function(dbms, connectionString, cdmDatabaseSchema, resultsDatabaseSchema, user, password, cohortId, outputDirName, includeDrilldownReports, includedReports) {
 
   library(DatabaseConnector)
   library(SqlRender)
@@ -867,81 +868,103 @@ writeAllResults <- function(dbms, connectionString, cdmDatabaseSchema, resultsDa
   )
 
   dir.create(outputDirName)
-
-  print('Printing cohortspecific report')
-  res <- getCohortSpecificSummary(connection, sqlReplacements, FALSE)
-  writeToFile(paste(outputDirName, "cohortspecific.json", sep ="/"), res)
-
-  print('Printing death report')
-  res <- getDeathSummary(connection, sqlReplacements, FALSE)
-  writeToFile(paste(outputDirName, "death.json", sep ="/"), res)
-
-  print('Printing cohortobservationperiod report')
-  res <- getCohortObservationPeriod(connection, sqlReplacements, FALSE)
-  writeToFile(paste(outputDirName, "cohortobservationperiod.json", sep ="/"), res)
-
-  print('Printing person report')
-  res <- getPersonSummary(connection, sqlReplacements, FALSE)
-  writeToFile(paste(outputDirName, "person.json", sep ="/"), res)
-
-  print('Printing datacompleteness report')
-  res <- getDataCompleteness(connection, sqlReplacements, FALSE)
-  writeToFile(paste(outputDirName, "datacompleteness.json", sep ="/"), toJSON(convertDataCompletenessData(res), pretty = TRUE, auto_unbox = TRUE))
-
-  print('Printing dashboard report')
-  res <- getDashboard(connection, sqlReplacements, FALSE)
-  writeToFile(paste(outputDirName, "dashboard.json", sep ="/"), res)
-
-  print('Printing heraclesheel report')
-  res <- getHeraclesHeel(connection, sqlReplacements, FALSE)
-  writeToFile(paste(outputDirName, "heraclesheel.json", sep ="/"), res)
-
-  print('Printing entropy report')
-  sqlReplacements$entroppAnalysisId <- 2031
-  res2031 <- getEntropy(connection, sqlReplacements, FALSE)
-  sqlReplacements$entroppAnalysisId <- 2032
-  res2032 <- getEntropy(connection, sqlReplacements, FALSE)
-  writeToFile(paste(outputDirName, "entropy.json", sep ="/"), toJSON(convertEntropyData(res2031, res2032), pretty = TRUE, auto_unbox = TRUE))
-
-  # treemap reports
-
-  print('Printing condition treemap report')
-  processReport(connection, outputDirName, sqlReplacements, "Condition", includeDrilldownReports)
-  print('Printing drug era treemap report')
-  processReport(connection, outputDirName, sqlReplacements, "DrugEra", includeDrilldownReports)
-
-  print('Printing drug exposures treemap report')
-  res <- do.call("getTreemap", list(connection, outputDirName, sqlReplacements, "Drug", FALSE))
-  writeToFile(paste(outputDirName, "drugtreemap.json", sep ="/"),  toJSON(res, pretty = TRUE, auto_unbox = TRUE))
-  if (includeDrilldownReports){
-    getDrillDownResults(res, connection, outputDirName, sqlReplacements, "DrugExposure", FALSE)
+  if (includedReports.cohortSpecific){
+    print('Printing cohortspecific report')
+    res <- getCohortSpecificSummary(connection, sqlReplacements, FALSE)
+    writeToFile(paste(outputDirName, "cohortspecific.json", sep ="/"), res)
   }
-  print('Printing procedure treemap report')
-  processReport(connection, outputDirName, sqlReplacements, "Procedure", includeDrilldownReports)
-  print('Printing visit treemap report')
-  processReport(connection, outputDirName, sqlReplacements, "Visit", includeDrilldownReports)
-  print('Printing condition era treemap report')
-  processReport(connection, outputDirName, sqlReplacements, "ConditionEra", includeDrilldownReports)
-
+  if (includedReports.death){
+    print('Printing death report')
+    res <- getDeathSummary(connection, sqlReplacements, FALSE)
+    writeToFile(paste(outputDirName, "death.json", sep ="/"), res)
+  }
+  if (includedReports.cohortObservationPeriod){
+    print('Printing cohortobservationperiod report')
+    res <- getCohortObservationPeriod(connection, sqlReplacements, FALSE)
+    writeToFile(paste(outputDirName, "cohortobservationperiod.json", sep ="/"), res)
+  }
+  if (includedReports.person){
+    print('Printing person report')
+    res <- getPersonSummary(connection, sqlReplacements, FALSE)
+    writeToFile(paste(outputDirName, "person.json", sep ="/"), res)
+  }
+  if (includedReports.dataCompleteness){
+    print('Printing datacompleteness report')
+    res <- getDataCompleteness(connection, sqlReplacements, FALSE)
+    writeToFile(paste(outputDirName, "datacompleteness.json", sep ="/"), toJSON(convertDataCompletenessData(res), pretty = TRUE, auto_unbox = TRUE))
+  }
+  if (includedReports.dashboard){
+    print('Printing dashboard report')
+    res <- getDashboard(connection, sqlReplacements, FALSE)
+    writeToFile(paste(outputDirName, "dashboard.json", sep ="/"), res)
+  }
+  if(includedReports.heraclesHeel){
+    print('Printing heraclesheel report')
+    res <- getHeraclesHeel(connection, sqlReplacements, FALSE)
+    writeToFile(paste(outputDirName, "heraclesheel.json", sep ="/"), res)
+  }
+  if(includedReports.entropy){
+    print('Printing entropy report')
+    sqlReplacements$entroppAnalysisId <- 2031
+    res2031 <- getEntropy(connection, sqlReplacements, FALSE)
+    sqlReplacements$entroppAnalysisId <- 2032
+    res2032 <- getEntropy(connection, sqlReplacements, FALSE)
+    writeToFile(paste(outputDirName, "entropy.json", sep ="/"), toJSON(convertEntropyData(res2031, res2032), pretty = TRUE, auto_unbox = TRUE))
+  }
+  # treemap reports
+  if(includedReports.conditionTreemap){
+    print('Printing condition treemap report')
+    processReport(connection, outputDirName, sqlReplacements, "Condition", includeDrilldownReports)
+  }
+  if(includedReports.drugEraTreemap){
+    print('Printing drug era treemap report')
+    processReport(connection, outputDirName, sqlReplacements, "DrugEra", includeDrilldownReports)
+  }
+  if(includedReports.drugEraTreemap){
+    print('Printing drug exposures treemap report')
+    res <- do.call("getTreemap", list(connection, outputDirName, sqlReplacements, "Drug", FALSE))
+    writeToFile(paste(outputDirName, "drugtreemap.json", sep ="/"), toJSON(res, pretty = TRUE, auto_unbox = TRUE))
+    if (includeDrilldownReports){
+      getDrillDownResults(res, connection, outputDirName, sqlReplacements, "DrugExposure", FALSE)
+    }
+  }
+  if(includedReports.procedureTreemap){
+    print('Printing procedure treemap report')
+    processReport(connection, outputDirName, sqlReplacements, "Procedure", includeDrilldownReports)
+  }
+  if(includedReports.visitTreemap){
+    print('Printing visit treemap report')
+    processReport(connection, outputDirName, sqlReplacements, "Visit", includeDrilldownReports)
+  }
+  if(includedReports.conditionEraTreemap){
+    print('Printing condition era treemap report')
+    processReport(connection, outputDirName, sqlReplacements, "ConditionEra", includeDrilldownReports)
+  }
   sqlReplacements$minCovariatePersonCount <- 10;
   sqlReplacements$minIntervalPersonCount <- 10;
 
-  print('Printing conditions by index report')
-  res <- getConditionsByIndexTreemap(connection, sqlReplacements, FALSE)
-  writeToFile(paste(outputDirName, "conditionsbyindextreemap.json", sep ="/"),  toJSON(res, pretty = TRUE, auto_unbox = TRUE))
-  if (includeDrilldownReports){
-    getDrillDownResults(res, connection, outputDirName, sqlReplacements, "ConditionByIndex", FALSE)
+  if(includedReports.conditionsByIndex){
+    print('Printing conditions by index report')
+    res <- getConditionsByIndexTreemap(connection, sqlReplacements, FALSE)
+    writeToFile(paste(outputDirName, "conditionsbyindextreemap.json", sep ="/"), toJSON(res, pretty = TRUE, auto_unbox = TRUE))
+    if (includeDrilldownReports){
+      getDrillDownResults(res, connection, outputDirName, sqlReplacements, "ConditionByIndex", FALSE)
+    }
   }
-  print('Printing procedures by index report')
-  res <- getProceduresByIndexTreemap(connection, sqlReplacements, FALSE)
-  writeToFile(paste(outputDirName, "proceduresbyindextreemap.json", sep ="/"),  toJSON(res, pretty = TRUE, auto_unbox = TRUE))
-  if (includeDrilldownReports){
-    getDrillDownResults(res, connection, outputDirName, sqlReplacements, "ProcedureByIndex", FALSE)
+  if(includedReports.proceduresByIndex){
+    print('Printing procedures by index report')
+    res <- getProceduresByIndexTreemap(connection, sqlReplacements, FALSE)
+    writeToFile(paste(outputDirName, "proceduresbyindextreemap.json", sep ="/"), toJSON(res, pretty = TRUE, auto_unbox = TRUE))
+    if (includeDrilldownReports){
+      getDrillDownResults(res, connection, outputDirName, sqlReplacements, "ProcedureByIndex", FALSE)
+    }
   }
-  print('Printing drugs by index report')
-  res <- getDrugsByIndexTreemap(connection, sqlReplacements, FALSE)
-  writeToFile(paste(outputDirName, "drugsbyindextreemap.json", sep ="/"),  toJSON(res, pretty = TRUE, auto_unbox = TRUE))
-  if (includeDrilldownReports){
-    getDrillDownResults(res, connection, outputDirName, sqlReplacements, "DrugByIndex", FALSE)
+  if(includedReports.drugsByIndex){
+    print('Printing drugs by index report')
+    res <- getDrugsByIndexTreemap(connection, sqlReplacements, FALSE)
+    writeToFile(paste(outputDirName, "drugsbyindextreemap.json", sep ="/"), toJSON(res, pretty = TRUE, auto_unbox = TRUE))
+    if (includeDrilldownReports){
+      getDrillDownResults(res, connection, outputDirName, sqlReplacements, "DrugByIndex", FALSE)
+    }
   }
 }
