@@ -84,6 +84,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
+import java.net.URISyntaxException;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -299,7 +300,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
                                                 @RequestParam(value = "type", required = false,
                                                         defaultValue = "COHORT") CommonAnalysisType analysisType,
                                                 Principal principal)
-            throws NotExistException, JMSException, IOException, PermissionDeniedException {
+            throws NotExistException, JMSException, IOException, PermissionDeniedException, URISyntaxException {
 
         final User user = getUser(principal);
         final DataNode dataNode = dataNodeService.getById(entityReference.getDataNodeId());
@@ -384,7 +385,8 @@ public abstract class BaseAnalysisController<T extends Analysis,
                                                    @PathVariable("fileUuid") String fileUuid,
                                                    @RequestParam(value = "type", required = false,
                                                            defaultValue = "COHORT") CommonAnalysisType analysisType,
-                                                   Principal principal) throws IOException, JMSException, PermissionDeniedException {
+                                                   Principal principal) throws IOException, JMSException,
+            PermissionDeniedException, URISyntaxException {
 
         final User user = getUser(principal);
         final AnalysisFile analysisFile = analysisService.getAnalysisFile(analysisId, fileUuid);
@@ -641,7 +643,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
             @RequestBody FileContentDTO fileContentDTO,
             @PathVariable("analysisId") Long analysisId,
             @PathVariable("fileUuid") String uuid)
-            throws PermissionDeniedException, NotExistException, IOException {
+            throws PermissionDeniedException, NotExistException, IOException, URISyntaxException {
 
         final User user = getUser(principal);
         AnalysisFile analysisFile = analysisService.getAnalysisFile(analysisId, uuid);
@@ -652,7 +654,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
     }
 
     protected List<MultipartFile> getEntityFiles(DataReferenceDTO entityReference, DataNode dataNode, CommonAnalysisType entityType)
-            throws JMSException, IOException {
+            throws JMSException, IOException, URISyntaxException {
 
         Long waitForResponse = datanodeImportTimeout;
         Long messageLifeTime = datanodeImportTimeout;
@@ -704,6 +706,6 @@ public abstract class BaseAnalysisController<T extends Analysis,
 
     protected abstract void attachPredictionFiles(List<MultipartFile> files) throws IOException;
 
-    protected abstract void attachCohortCharacterizationFiles(List<MultipartFile> files) throws IOException;
+    protected abstract void attachCohortCharacterizationFiles(List<MultipartFile> files) throws IOException, URISyntaxException;
 
 }

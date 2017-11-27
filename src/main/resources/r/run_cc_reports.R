@@ -58,7 +58,7 @@ run_cohort_characterization <- function(
 
   print(paste("Creating Heracles results tables (if not exist)", Sys.time(), sep=" started: "))
 
-  heraclesTablesSql <- readSql("createHeraclesTables.sql")
+  heraclesTablesSql <- readSql("heracles-sql/createHeraclesTables.sql")
   heraclesTablesSql <- renderSql(heraclesTablesSql,
                                  results_schema=resultsDatabaseSchema)$sql
   heraclesTablesSql <- translateSql(heraclesTablesSql, targetDialect = connectionDetails$dbms)$sql
@@ -66,7 +66,7 @@ run_cohort_characterization <- function(
 
   print(paste("Running Cohort Characterization", Sys.time(), sep=" started: "))
 
-  heraclesAnalyses <- readSql("runHeraclesAnalyses.sql")
+  heraclesAnalyses <- readSql("heracles-sql/runHeraclesAnalyses.sql")
   heraclesAnalyses <- renderSql(heraclesAnalyses,
                                 CDM_schema=cdmDatabaseSchema,
                                 results_schema=resultsDatabaseSchema,
