@@ -47,6 +47,8 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 public class AnalysisController extends BaseAnalysisController<Analysis, AnalysisDTO, DataNode, AnalysisCreateDTO> {
 
+    public static final String RUN_CC_REPORTS_FILE_NAME = "run_cc_reports.r";
+
     static {
         ANALISYS_MIMETYPE_MAP.put(CommonAnalysisType.COHORT, CommonFileUtils.TYPE_COHORT_SQL);
         ANALISYS_MIMETYPE_MAP.put(CommonAnalysisType.ESTIMATION, CommonFileUtils.TYPE_ESTIMATION);
@@ -96,7 +98,7 @@ public class AnalysisController extends BaseAnalysisController<Analysis, Analysi
     @Override
     protected void attachCohortCharacterizationFiles(List<MultipartFile> files) throws IOException {
 
-        files.add(new MockMultipartFile("run_cc_reports.r", "run_cc_reports.r", null,
+        files.add(new MockMultipartFile(RUN_CC_REPORTS_FILE_NAME, RUN_CC_REPORTS_FILE_NAME, null,
                 readResource("r/run_cc_reports.R")));
     }
 
