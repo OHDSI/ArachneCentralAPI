@@ -26,6 +26,7 @@ run_cohort_characterization <- function(
   # resultsDatabaseSchema - name of results schema
   # cohortTable - name of table with exposure cohort (default value "cohort"),
   # includeDrilldownReports - flag of including drilldown reports in result output
+  # includedReports - flags of including reports in result output
 
   # Outputs:
   # None
@@ -868,42 +869,42 @@ writeAllResults <- function(dbms, connectionString, cdmDatabaseSchema, resultsDa
   )
 
   dir.create(outputDirName)
-  if (includedReports.cohortSpecific){
+  if (includedReports$cohortSpecific){
     print('Printing cohortspecific report')
     res <- getCohortSpecificSummary(connection, sqlReplacements, FALSE)
     writeToFile(paste(outputDirName, "cohortspecific.json", sep ="/"), res)
   }
-  if (includedReports.death){
+  if (includedReports$death){
     print('Printing death report')
     res <- getDeathSummary(connection, sqlReplacements, FALSE)
     writeToFile(paste(outputDirName, "death.json", sep ="/"), res)
   }
-  if (includedReports.cohortObservationPeriod){
+  if (includedReports$cohortObservationPeriod){
     print('Printing cohortobservationperiod report')
     res <- getCohortObservationPeriod(connection, sqlReplacements, FALSE)
     writeToFile(paste(outputDirName, "cohortobservationperiod.json", sep ="/"), res)
   }
-  if (includedReports.person){
+  if (includedReports$person){
     print('Printing person report')
     res <- getPersonSummary(connection, sqlReplacements, FALSE)
     writeToFile(paste(outputDirName, "person.json", sep ="/"), res)
   }
-  if (includedReports.dataCompleteness){
+  if (includedReports$dataCompleteness){
     print('Printing datacompleteness report')
     res <- getDataCompleteness(connection, sqlReplacements, FALSE)
     writeToFile(paste(outputDirName, "datacompleteness.json", sep ="/"), toJSON(convertDataCompletenessData(res), pretty = TRUE, auto_unbox = TRUE))
   }
-  if (includedReports.dashboard){
+  if (includedReports$dashboard){
     print('Printing dashboard report')
     res <- getDashboard(connection, sqlReplacements, FALSE)
     writeToFile(paste(outputDirName, "dashboard.json", sep ="/"), res)
   }
-  if(includedReports.heraclesHeel){
+  if(includedReports$heraclesHeel){
     print('Printing heraclesheel report')
     res <- getHeraclesHeel(connection, sqlReplacements, FALSE)
     writeToFile(paste(outputDirName, "heraclesheel.json", sep ="/"), res)
   }
-  if(includedReports.entropy){
+  if(includedReports$entropy){
     print('Printing entropy report')
     sqlReplacements$entroppAnalysisId <- 2031
     res2031 <- getEntropy(connection, sqlReplacements, FALSE)
@@ -912,15 +913,15 @@ writeAllResults <- function(dbms, connectionString, cdmDatabaseSchema, resultsDa
     writeToFile(paste(outputDirName, "entropy.json", sep ="/"), toJSON(convertEntropyData(res2031, res2032), pretty = TRUE, auto_unbox = TRUE))
   }
   # treemap reports
-  if(includedReports.conditionTreemap){
+  if(includedReports$conditionTreemap){
     print('Printing condition treemap report')
     processReport(connection, outputDirName, sqlReplacements, "Condition", includeDrilldownReports)
   }
-  if(includedReports.drugEraTreemap){
+  if(includedReports$drugEraTreemap){
     print('Printing drug era treemap report')
     processReport(connection, outputDirName, sqlReplacements, "DrugEra", includeDrilldownReports)
   }
-  if(includedReports.drugEraTreemap){
+  if(includedReports$drugEraTreemap){
     print('Printing drug exposures treemap report')
     res <- do.call("getTreemap", list(connection, outputDirName, sqlReplacements, "Drug", FALSE))
     writeToFile(paste(outputDirName, "drugtreemap.json", sep ="/"), toJSON(res, pretty = TRUE, auto_unbox = TRUE))
@@ -928,22 +929,22 @@ writeAllResults <- function(dbms, connectionString, cdmDatabaseSchema, resultsDa
       getDrillDownResults(res, connection, outputDirName, sqlReplacements, "DrugExposure", FALSE)
     }
   }
-  if(includedReports.procedureTreemap){
+  if(includedReports$procedureTreemap){
     print('Printing procedure treemap report')
     processReport(connection, outputDirName, sqlReplacements, "Procedure", includeDrilldownReports)
   }
-  if(includedReports.visitTreemap){
+  if(includedReports$visitTreemap){
     print('Printing visit treemap report')
     processReport(connection, outputDirName, sqlReplacements, "Visit", includeDrilldownReports)
   }
-  if(includedReports.conditionEraTreemap){
+  if(includedReports$conditionEraTreemap){
     print('Printing condition era treemap report')
     processReport(connection, outputDirName, sqlReplacements, "ConditionEra", includeDrilldownReports)
   }
   sqlReplacements$minCovariatePersonCount <- 10;
   sqlReplacements$minIntervalPersonCount <- 10;
 
-  if(includedReports.conditionsByIndex){
+  if(includedReports$conditionsByIndex){
     print('Printing conditions by index report')
     res <- getConditionsByIndexTreemap(connection, sqlReplacements, FALSE)
     writeToFile(paste(outputDirName, "conditionsbyindextreemap.json", sep ="/"), toJSON(res, pretty = TRUE, auto_unbox = TRUE))
@@ -951,7 +952,7 @@ writeAllResults <- function(dbms, connectionString, cdmDatabaseSchema, resultsDa
       getDrillDownResults(res, connection, outputDirName, sqlReplacements, "ConditionByIndex", FALSE)
     }
   }
-  if(includedReports.proceduresByIndex){
+  if(includedReports$proceduresByIndex){
     print('Printing procedures by index report')
     res <- getProceduresByIndexTreemap(connection, sqlReplacements, FALSE)
     writeToFile(paste(outputDirName, "proceduresbyindextreemap.json", sep ="/"), toJSON(res, pretty = TRUE, auto_unbox = TRUE))
@@ -959,7 +960,7 @@ writeAllResults <- function(dbms, connectionString, cdmDatabaseSchema, resultsDa
       getDrillDownResults(res, connection, outputDirName, sqlReplacements, "ProcedureByIndex", FALSE)
     }
   }
-  if(includedReports.drugsByIndex){
+  if(includedReports$drugsByIndex){
     print('Printing drugs by index report')
     res <- getDrugsByIndexTreemap(connection, sqlReplacements, FALSE)
     writeToFile(paste(outputDirName, "drugsbyindextreemap.json", sep ="/"), toJSON(res, pretty = TRUE, auto_unbox = TRUE))
