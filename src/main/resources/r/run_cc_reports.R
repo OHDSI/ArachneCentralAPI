@@ -921,7 +921,7 @@ writeAllResults <- function(dbms, connectionString, cdmDatabaseSchema, resultsDa
     print('Printing drug era treemap report')
     processReport(connection, outputDirName, sqlReplacements, "DrugEra", includeDrilldownReports)
   }
-  if(includedReports$drugEraTreemap){
+  if(includedReports$drugExposuresTreemap){
     print('Printing drug exposures treemap report')
     res <- do.call("getTreemap", list(connection, outputDirName, sqlReplacements, "Drug", FALSE))
     writeToFile(paste(outputDirName, "drugtreemap.json", sep ="/"), toJSON(res, pretty = TRUE, auto_unbox = TRUE))
