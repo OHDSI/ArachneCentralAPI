@@ -22,6 +22,8 @@
 
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
+import static com.odysseusinc.arachne.commons.utils.CommonFileUtils.convertToUnixPath;
+
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisCreateDTO;
@@ -35,7 +37,13 @@ import com.odysseusinc.arachne.portal.service.ImportService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
 import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -46,6 +54,8 @@ import org.springframework.web.multipart.MultipartFile;
 @SuppressWarnings("unused")
 @RestController
 public class AnalysisController extends BaseAnalysisController<Analysis, AnalysisDTO, DataNode, AnalysisCreateDTO> {
+
+    public static final String RUN_CC_REPORTS_FILE_NAME = "run_cc_reports.r";
 
     static {
         ANALISYS_MIMETYPE_MAP.put(CommonAnalysisType.COHORT, CommonFileUtils.TYPE_COHORT_SQL);
@@ -91,6 +101,36 @@ public class AnalysisController extends BaseAnalysisController<Analysis, Analysi
 
         files.add(new MockMultipartFile("run_plp_analysis.r", "run_plp_analysis.r", null,
                 readResource("r/run_plp_analysis.R")));
+    }
+
+    @Override
+    protected void attachCohortCharacterizationFiles(List<MultipartFile> files) throws IOException, URISyntaxException {
+
+        files.add(new MockMultipartFile(RUN_CC_REPORTS_FILE_NAME, RUN_CC_REPORTS_FILE_NAME, null,
+                readResource("r/run_cc_reports.R")));
+
+        final Path cohortCharacterizationSqlDir = Paths.get(getClass().getClassLoader().getResource("sql/cc").toURI());
+        List<MultipartFile> multipartFiles = Files.walk(cohortCharacterizationSqlDir)
+                .filter(f -> !f.toFile().isDirectory())
+                .map(f -> convertToMultipartFile(f, cohortCharacterizationSqlDir))
+                .collect(Collectors.toList());
+
+        files.addAll(multipartFiles);
+    }
+
+    private MultipartFile convertToMultipartFile(Path file, Path cohortCharacterizationSql) {
+
+        try {
+            String relativePath = convertToUnixPath(Paths.get(getClass().getClassLoader().getResource("").toURI())
+                    .relativize(file).toString());
+            String name = convertToUnixPath(cohortCharacterizationSql.relativize(file).toString());
+            return new MockMultipartFile(name, name, null, readResource(relativePath));
+
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }
