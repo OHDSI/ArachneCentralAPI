@@ -92,51 +92,51 @@ getCohortSpecificSummary <- function(connection, sqlReplacements, mapping) {
 
   # 1805, 1806
   queryMap$personsByDurationFromStartToEnd <- list(
-    "sqlPath"="cohortresults-sql/cohortSpecific/observationPeriodTimeRelativeToIndex.sql",
-    "targetType"=fromJSON("./definitions/types/ObservationPeriodRecord.json"),
-    "mappings"=fromJSON("./definitions/mappings/ResultSetToObservationPeriodRecord.json")$mappings
+    "sqlPath"="cohortresults-sql/cohortSpecific/observationPeriodTimeRelativeToIndex.sql"
+    #"targetType"=fromJSON("./definitions/types/ObservationPeriodRecord.json"),
+    #"mappings"=fromJSON("./definitions/mappings/ResultSetToObservationPeriodRecord.json")$mappings
   )
 
   # 1815
   queryMap$prevalenceByMonth <- list(
-    "sqlPath"="cohortresults-sql/cohortSpecific/prevalenceByMonth.sql",
-    "targetType"=fromJSON("./definitions/types/PrevalenceRecord.json"),
-    "mappings"=fromJSON("./definitions/mappings/ResultSetToPrevalenceRecord.json")$mappings
+    "sqlPath"="cohortresults-sql/cohortSpecific/prevalenceByMonth.sql"
+    #"targetType"=fromJSON("./definitions/types/PrevalenceRecord.json"),
+    #"mappings"=fromJSON("./definitions/mappings/ResultSetToPrevalenceRecord.json")$mappings
   )
 
   # 1814
   queryMap$prevalenceByYearGenderSex <- list(
-    "sqlPath"="cohortresults-sql/cohortSpecific/prevalenceByYearGenderSex.sql",
-    "targetType"=fromJSON("./definitions/types/PrevalenceByYearGenderSex.json"),
-    "mappings"=fromJSON("./definitions/mappings/ResultSetToPrevalenceByYearGenderSex.json")$mappings
+    "sqlPath"="cohortresults-sql/cohortSpecific/prevalenceByYearGenderSex.sql"
+    #"targetType"=fromJSON("./definitions/types/PrevalenceByYearGenderSex.json"),
+    #"mappings"=fromJSON("./definitions/mappings/ResultSetToPrevalenceByYearGenderSex.json")$mappings
   )
 
   # 1801
   queryMap$ageAtIndexDistribution <- list(
-    "sqlPath"="cohortresults-sql/cohortSpecific/ageAtIndexDistribution.sql",
-    "targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
-    "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
+    "sqlPath"="cohortresults-sql/cohortSpecific/ageAtIndexDistribution.sql"
+    #"targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
+    #"mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
   )
 
   # 1803
   queryMap$distributionOfAgeAtCohortStartByCohortStartYear <- list(
-    "sqlPath"="cohortresults-sql/cohortSpecific/distributionOfAgeAtCohortStartByCohortStartYear.sql",
-    "targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
-    "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
+    "sqlPath"="cohortresults-sql/cohortSpecific/distributionOfAgeAtCohortStartByCohortStartYear.sql"
+    #"targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
+    #"mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
   )
 
   # 1802
   queryMap$distributionOfAgeAtCohortStartByGender <- list(
-    "sqlPath"="cohortresults-sql/cohortSpecific/distributionOfAgeAtCohortStartByGender.sql",
-    "targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
-    "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
+    "sqlPath"="cohortresults-sql/cohortSpecific/distributionOfAgeAtCohortStartByGender.sql"
+    #"targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
+    #"mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
   )
 
   # 1804
   queryMap$personsInCohortFromCohortStartToEnd <- list(
-    "sqlPath"="cohortresults-sql/cohortSpecific/personsInCohortFromCohortStartToEnd.sql",
-    "targetType"=fromJSON("./definitions/types/PersonsInCohortFromCohortStartToEnd.json"),
-    "mappings"=fromJSON("./definitions/mappings/ResultSetToPersonsInCohortFromCohortStartToEnd.json")$mappings
+    "sqlPath"="cohortresults-sql/cohortSpecific/personsInCohortFromCohortStartToEnd.sql"
+    #"targetType"=fromJSON("./definitions/types/PersonsInCohortFromCohortStartToEnd.json"),
+    #"mappings"=fromJSON("./definitions/mappings/ResultSetToPersonsInCohortFromCohortStartToEnd.json")$mappings
   )
 
   return (queryJsonCohortAnalysesResults(queryMap, connection, sqlReplacements, mapping));
@@ -146,27 +146,27 @@ getDeathSummary <- function(connection, sqlReplacements, mapping) {
   queryMap <- list()
 
   queryMap$ageAtDeath <- list(
-    "sqlPath"="cohortresults-sql/death/sqlAgeAtDeath.sql",
-    "targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
-    "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
+    "sqlPath"="cohortresults-sql/death/sqlAgeAtDeath.sql"
+    #"targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
+    #"mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
   )
 
   queryMap$deathByType <- list(
-    "sqlPath"="cohortresults-sql/death/sqlDeathByType.sql",
-    "targetType"=fromJSON("./definitions/types/ConceptCount.json"),
-    "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptCount.json")$mappings
+    "sqlPath"="cohortresults-sql/death/sqlDeathByType.sql"
+    #"targetType"=fromJSON("./definitions/types/ConceptCount.json"),
+    #"mappings"=fromJSON("./definitions/mappings/ResultSetToConceptCount.json")$mappings
   )
 
   queryMap$prevalenceByGenderAgeYear <- list(
-    "sqlPath"="cohortresults-sql/death/sqlPrevalenceByGenderAgeYear.sql",
-    "targetType"=fromJSON("./definitions/types/PrevalenceByGenderAgeYear.json"),
-    "mappings"=fromJSON("./definitions/mappings/ResultSetToPrevalenceByGenderAgeYear.json")$mappings
+    "sqlPath"="cohortresults-sql/death/sqlPrevalenceByGenderAgeYear.sql"
+    #"targetType"=fromJSON("./definitions/types/PrevalenceByGenderAgeYear.json"),
+    #"mappings"=fromJSON("./definitions/mappings/ResultSetToPrevalenceByGenderAgeYear.json")$mappings
   )
 
   queryMap$prevalenceByMonth <- list(
-    "sqlPath"="cohortresults-sql/death/sqlPrevalenceByMonth.sql",
-    "targetType"=fromJSON("./definitions/types/PrevalenceByMonth.json"),
-    "mappings"=fromJSON("./definitions/mappings/ResultSetToPrevalenceByMonth.json")$mappings
+    "sqlPath"="cohortresults-sql/death/sqlPrevalenceByMonth.sql"
+    #"targetType"=fromJSON("./definitions/types/PrevalenceByMonth.json"),
+    #"mappings"=fromJSON("./definitions/mappings/ResultSetToPrevalenceByMonth.json")$mappings
   )
 
   return (queryJsonCohortAnalysesResults(queryMap, connection, sqlReplacements, mapping));
@@ -177,69 +177,69 @@ getCohortObservationPeriod <- function(connection, sqlReplacements, mapping) {
   queryMap <- list()
 
   queryMap$ageAtFirst <- list(
-    "sqlPath"="cohortresults-sql/observationperiod/ageatfirst.sql",
-    "targetType"=fromJSON("./definitions/types/AgeAtFirst.json"),
-    "mappings"=fromJSON("./definitions/mappings/ResultSetToAgeAtFirst.json")$mappings
+    "sqlPath"="cohortresults-sql/observationperiod/ageatfirst.sql"
+    #"targetType"=fromJSON("./definitions/types/AgeAtFirst.json"),
+    #"mappings"=fromJSON("./definitions/mappings/ResultSetToAgeAtFirst.json")$mappings
   )
 
   queryMap$observationLengthData <- list(
-    "sqlPath"="cohortresults-sql/observationperiod/observationlength_data.sql",
-    "targetType"=fromJSON("./definitions/types/AgeAtFirst.json"),
-    "mappings"=fromJSON("./definitions/mappings/ResultSetToAgeAtFirst.json")$mappings
+    "sqlPath"="cohortresults-sql/observationperiod/observationlength_data.sql"
+    #"targetType"=fromJSON("./definitions/types/AgeAtFirst.json"),
+    #"mappings"=fromJSON("./definitions/mappings/ResultSetToAgeAtFirst.json")$mappings
   )
 
   queryMap$observationLengthStats <- list(
-    "sqlPath"="cohortresults-sql/observationperiod/observationlength_stats.sql",
-    "targetType"=fromJSON("./definitions/types/CohortStatsRecord.json"),
-    "mappings"=fromJSON("./definitions/mappings/ResultSetToCohortStatsRecord.json")$mappings
+    "sqlPath"="cohortresults-sql/observationperiod/observationlength_stats.sql"
+    #"targetType"=fromJSON("./definitions/types/CohortStatsRecord.json"),
+    #"mappings"=fromJSON("./definitions/mappings/ResultSetToCohortStatsRecord.json")$mappings
   )
 
   queryMap$observedByYearStats <- list(
-    "sqlPath"="cohortresults-sql/observationperiod/observedbyyear_stats.sql",
-    "targetType"=fromJSON("./definitions/types/CohortStatsRecord.json"),
-    "mappings"=fromJSON("./definitions/mappings/ResultSetToCohortStatsRecord.json")$mappings
+    "sqlPath"="cohortresults-sql/observationperiod/observedbyyear_stats.sql"
+    #"targetType"=fromJSON("./definitions/types/CohortStatsRecord.json"),
+    #"mappings"=fromJSON("./definitions/mappings/ResultSetToCohortStatsRecord.json")$mappings
   )
 
   queryMap$observedByYearData <- list(
-    "sqlPath"="cohortresults-sql/observationperiod/observedbyyear_data.sql",
-    "targetType"=fromJSON("./definitions/types/AgeAtFirst.json"),
-    "mappings"=fromJSON("./definitions/mappings/ResultSetToAgeAtFirst.json")$mappings
+    "sqlPath"="cohortresults-sql/observationperiod/observedbyyear_data.sql"
+    #"targetType"=fromJSON("./definitions/types/AgeAtFirst.json"),
+    #"mappings"=fromJSON("./definitions/mappings/ResultSetToAgeAtFirst.json")$mappings
   )
 
   queryMap$ageByGender <- list(
-    "sqlPath"="cohortresults-sql/observationperiod/agebygender.sql",
-    "targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
-    "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
+    "sqlPath"="cohortresults-sql/observationperiod/agebygender.sql"
+    #"targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
+    #"mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
   )
 
   queryMap$observationLengthByGender <- list(
-    "sqlPath"="cohortresults-sql/observationperiod/observationlengthbygender.sql",
-    "targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
-    "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
+    "sqlPath"="cohortresults-sql/observationperiod/observationlengthbygender.sql"
+    #"targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
+    #"mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
   )
 
   queryMap$observationLengthByAge <- list(
-    "sqlPath"="cohortresults-sql/observationperiod/observationlengthbyage.sql",
-    "targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
-    "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
+    "sqlPath"="cohortresults-sql/observationperiod/observationlengthbyage.sql"
+    #"targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
+    #"mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
   )
 
   queryMap$cumulativeDuration <- list(
-    "sqlPath"="cohortresults-sql/observationperiod/cumulativeduration.sql",
-    "targetType"=fromJSON("./definitions/types/CumulativeObservationRecord.json"),
-    "mappings"=fromJSON("./definitions/mappings/ResultSetToCumulativeObservationRecord.json")$mappings
+    "sqlPath"="cohortresults-sql/observationperiod/cumulativeduration.sql"
+    #"targetType"=fromJSON("./definitions/types/CumulativeObservationRecord.json"),
+    #"mappings"=fromJSON("./definitions/mappings/ResultSetToCumulativeObservationRecord.json")$mappings
   )
 
   queryMap$observedByMonth <- list(
-    "sqlPath"="cohortresults-sql/observationperiod/observedbymonth.sql",
-    "targetType"=fromJSON("./definitions/types/MonthObservationRecord.json"),
-    "mappings"=fromJSON("./definitions/mappings/ResultSetToMonthObservationRecord.json")$mappings
+    "sqlPath"="cohortresults-sql/observationperiod/observedbymonth.sql"
+    #"targetType"=fromJSON("./definitions/types/MonthObservationRecord.json"),
+    #"mappings"=fromJSON("./definitions/mappings/ResultSetToMonthObservationRecord.json")$mappings
   )
 
   queryMap$periodPerPerson <- list(
-    "sqlPath"="cohortresults-sql/observationperiod/periodsperperson.sql",
-    "targetType"=fromJSON("./definitions/types/ConceptCount.json"),
-    "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptCount.json")$mappings
+    "sqlPath"="cohortresults-sql/observationperiod/periodsperperson.sql"
+    #"targetType"=fromJSON("./definitions/types/ConceptCount.json"),
+    #"mappings"=fromJSON("./definitions/mappings/ResultSetToConceptCount.json")$mappings
   )
 
   return (queryJsonCohortAnalysesResults(queryMap, connection, sqlReplacements, mapping));
