@@ -1,0 +1,16 @@
+{
+  "title": "ConceptStatsRecord",
+  "type": "object",
+  "properties": {
+
+    "intervalSize": {
+      "type": "integer"
+    },
+    "maxValue": {
+      "type": "integer"
+    },
+    "minValue": {
+      "type": "integer"
+    }
+  }
+}

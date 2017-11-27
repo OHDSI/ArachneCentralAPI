@@ -16,21 +16,34 @@
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
  * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: November 26, 2016
+ * Created: May 03, 2017
  *
  */
 
-package com.odysseusinc.arachne.portal.repository;
+package com.odysseusinc.arachne.portal.api.v1.dto;
 
-import com.odysseusinc.arachne.portal.model.AnalysisFile;
-import java.util.List;
-import org.springframework.data.repository.CrudRepository;
+public class SubmissionInsightUpdateDTO extends SubmissionInsightCoreDTO {
 
-public interface AnalysisFileRepository extends CrudRepository<AnalysisFile, Long> {
+    private String name;
+    private String description;
 
-    AnalysisFile findByUuid(String uuid);
+    public String getName() {
 
-    List<AnalysisFile> findAllByAnalysisIdAndRealName(Long analysisId, String name);
+        return name;
+    }
 
-    List<AnalysisFile> findAllByAnalysisIdAndDataReferenceId(Long analysisId, Long dataReferenceId);
+    public void setName(String name) {
+
+        this.name = name;
+    }
+
+    public String getDescription() {
+
+        return description;
+    }
+
+    public void setDescription(String description) {
+
+        this.description = description;
+    }
 }

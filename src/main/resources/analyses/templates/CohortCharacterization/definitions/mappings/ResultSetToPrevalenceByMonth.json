@@ -1,0 +1,12 @@
+{
+  "mappings": [
+    {
+      "source": "Y_PREVALENCE_1000PP",
+      "target": "yPrevalence1000Pp"
+    },
+    {
+      "source": "X_CALENDAR_MONTH",
+      "target": "xCalendarMonth"
+    }
+  ]
+}

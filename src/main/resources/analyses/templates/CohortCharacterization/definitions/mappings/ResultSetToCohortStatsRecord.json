@@ -1,0 +1,16 @@
+{
+  "mappings": [
+    {
+      "source": "INTERVAL_SIZE",
+      "target": "intervalSize"
+    },
+    {
+      "source": "MAX_VALUE",
+      "target": "maxValue"
+    },
+    {
+      "source": "MIN_VALUE",
+      "target": "minValue"
+    }
+  ]
+}

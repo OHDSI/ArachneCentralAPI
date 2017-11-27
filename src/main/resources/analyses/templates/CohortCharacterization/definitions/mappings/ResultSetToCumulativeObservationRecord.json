@@ -1,0 +1,16 @@
+{
+  "mappings": [
+    {
+      "source": "SERIES_NAME",
+      "target": "seriesName"
+    },
+    {
+      "source": "X_LENGTH_OF_OBSERVATION",
+      "target": "xLengthOfObservation"
+    },
+    {
+      "source": "Y_PERCENT_PERSONS",
+      "target": "yPercentPersons"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "title": "CumulativeObservationRecord",
+  "type": "object",
+  "properties": {
+    "seriesName": {
+      "type": "string"
+    },
+    "xLengthOfObservation": {
+      "type": "integer"
+    },
+    "yPercentPersons": {
+      "type": "double"
+    }
+  }
+}

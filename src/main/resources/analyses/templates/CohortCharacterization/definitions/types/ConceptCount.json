@@ -1,0 +1,16 @@
+{
+  "title": "ConceptCount",
+  "type": "object",
+  "properties": {
+
+    "conceptId": {
+      "type": "long"
+    },
+    "conceptName": {
+      "type": "string"
+    },
+    "conceptValue": {
+      "type": "long"
+    }
+  }
+}

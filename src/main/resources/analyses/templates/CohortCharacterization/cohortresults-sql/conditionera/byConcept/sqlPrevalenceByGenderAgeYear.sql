@@ -29,9 +29,9 @@ FROM (
 			AND num.stratum_4 = denom.stratum_3
 	) tmp
 INNER JOIN @cdm_database_schema.concept c1
-	ON num_stratum_1 = CAST(c1.concept_id as VARCHAR)
+		ON num_stratum_1 = cast(c1.concept_id as VARCHAR)
 INNER JOIN @cdm_database_schema.concept c2
-	ON num_stratum_3 = CAST(c2.concept_id as VARCHAR)
+		ON num_stratum_3 = cast(c2.concept_id as VARCHAR)
 WHERE c1.concept_id = @conceptId
 ORDER BY c1.concept_id,	num_stratum_2
 

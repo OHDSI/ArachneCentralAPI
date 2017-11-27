@@ -1,0 +1,16 @@
+{
+  "mappings": [
+    {
+      "source": "MONTH_YEAR",
+      "target": "monthYear"
+    },
+    {
+      "source": "PERCENT_VALUE",
+      "target": "percentValue"
+    },
+    {
+      "source": "COUNT_VALUE",
+      "target": "countValue"
+    }
+  ]
+}
