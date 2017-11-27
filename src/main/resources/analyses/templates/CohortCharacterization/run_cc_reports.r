@@ -1,22 +1,18 @@
 # /definitions/types - using http://json-schema.org notation
 # /definitions/mappings - using notation of Java's mapstruct library
 
-# Solves issue with Windows x64 (https://stackoverflow.com/questions/7019912/using-the-rjava-package-on-win7-64-bit-with-r)
-if (Sys.getenv("JAVA_HOME")!="")
-  Sys.setenv(JAVA_HOME="")
-
 run_cohort_characterization <- function(
-cohortDefinitionSqlPath,
-outputFolder,
-dbms,
-connectionString,
-user,
-password,
-cdmDatabaseSchema,
-resultsDatabaseSchema,
-cohortTable,
-includeDrilldownReports,
-includedReports
+  cohortDefinitionSqlPath,
+  outputFolder,
+  dbms,
+  connectionString,
+  user,
+  password,
+  cdmDatabaseSchema,
+  resultsDatabaseSchema,
+  cohortTable,
+  includeDrilldownReports,
+  includedReports
 ) {
 
     #Inputs:
@@ -30,6 +26,7 @@ includedReports
     # resultsDatabaseSchema - name of results schema
     # cohortTable - name of table with exposure cohort (default value "cohort"),
     # includeDrilldownReports - flag of including drilldown reports in result output
+    # includedReports - flags for definition of included reports
 
     # Outputs:
     # None
