@@ -324,7 +324,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
             Principal principal,
             @PathVariable("submissionId") Long submissionId,
             @RequestParam("path") String path
-    ) throws PermissionDeniedException, NotExistException, IOException {
+    ) throws PermissionDeniedException, IOException {
 
         User user = userService.getByEmail(principal.getName());
         List<ResultFile> resultFileList = submissionService.getResultFiles(user, submissionId, path);
