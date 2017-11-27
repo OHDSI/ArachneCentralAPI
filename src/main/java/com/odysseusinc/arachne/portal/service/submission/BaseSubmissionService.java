@@ -94,7 +94,7 @@ public interface BaseSubmissionService<T extends Submission, A extends Analysis>
 
     @PreAuthorize("hasPermission(#submissionId, 'Submission', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
-    List<ResultFile> getResultFiles(User user, Long submissionId) throws PermissionDeniedException;
+    List<ResultFile> getResultFiles(User user, Long submissionId, String path) throws PermissionDeniedException;
 
     @PreAuthorize("hasPermission(#analysisId,  'Analysis', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")

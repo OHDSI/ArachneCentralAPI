@@ -569,7 +569,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     }
 
     @Override
-    public List<ResultFile> getResultFiles(User user, Long submissionId) throws PermissionDeniedException {
+    public List<ResultFile> getResultFiles(User user, Long submissionId, String path) throws PermissionDeniedException {
 
         Submission submission = submissionRepository.findById(submissionId);
         if (!(EXECUTED_PUBLISHED.equals(submission.getStatus()) || FAILED_PUBLISHED.equals(submission.getStatus()))) {
@@ -577,7 +577,8 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
                 throw new PermissionDeniedException();
             }
         }
-        return submission.getResultFiles();
+        path = path.equals("/") ? "" : path + "/";
+        return resultFileRepository.findBySubmissionAndPath(submission.getId(), path);
     }
 
     @Override
