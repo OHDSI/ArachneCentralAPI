@@ -29,6 +29,7 @@ import com.odysseusinc.arachne.portal.exception.IORuntimeException;
 import com.odysseusinc.arachne.portal.exception.NoExecutableFileException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
+import com.odysseusinc.arachne.portal.model.AbstractResultFile;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.DataSourceStatus;
 import com.odysseusinc.arachne.portal.model.ResultFile;
@@ -128,7 +129,7 @@ public class AnalysisHelper implements AnalysisPaths {
                 .resolve(file.getUuid());
     }
 
-    public Path getResultFile(ResultFile resultFile) {
+    public Path getResultFile(AbstractResultFile resultFile) {
 
         return getResultFolder(resultFile.getSubmission()).resolve(resultFile.getUuid());
     }

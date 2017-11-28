@@ -44,6 +44,7 @@ import com.odysseusinc.arachne.portal.exception.NoExecutableFileException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
+import com.odysseusinc.arachne.portal.model.AbstractResultFile;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.ResultFile;
 import com.odysseusinc.arachne.portal.model.Submission;
@@ -51,6 +52,7 @@ import com.odysseusinc.arachne.portal.model.SubmissionFile;
 import com.odysseusinc.arachne.portal.model.SubmissionStatus;
 import com.odysseusinc.arachne.portal.model.SubmissionStatusHistoryElement;
 import com.odysseusinc.arachne.portal.model.User;
+import com.odysseusinc.arachne.portal.model.search.ResultFileSearch;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
 import com.odysseusinc.arachne.portal.util.AnalysisHelper;
@@ -323,11 +325,17 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     public List<ResultFileDTO> getResultFiles(
             Principal principal,
             @PathVariable("submissionId") Long submissionId,
-            @RequestParam("path") String path
+            @RequestParam(value = "path", required = false, defaultValue = "") String path,
+            @RequestParam(value = "real-name", required = false) String realName
     ) throws PermissionDeniedException, IOException {
 
         User user = userService.getByEmail(principal.getName());
-        List<ResultFile> resultFileList = submissionService.getResultFiles(user, submissionId, path);
+
+        ResultFileSearch resultFileSearch = new ResultFileSearch();
+        resultFileSearch.setPath(path);
+        resultFileSearch.setRealName(realName);
+
+        List<? extends AbstractResultFile> resultFileList = submissionService.getResultFiles(user, submissionId, resultFileSearch);
         return resultFileList.stream()
                 .map(rf -> conversionService.convert(rf, ResultFileDTO.class))
                 .collect(Collectors.toList());

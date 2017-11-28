@@ -22,27 +22,17 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
-import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.ResultFileDTO;
-import com.odysseusinc.arachne.portal.model.ResultFile;
-import com.odysseusinc.arachne.portal.util.AnalysisHelper;
-import org.springframework.beans.factory.annotation.Autowired;
-import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
+import com.odysseusinc.arachne.portal.model.AbstractResultFile;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ResultFileToResultFileDTOConverter extends BaseConversionServiceAwareConverter<ResultFile, ResultFileDTO> {
-
-
-    @Autowired
-    private AnalysisHelper analysisHelper;
-
+public class ResultFileToResultFileDTOConverter extends BaseConversionServiceAwareConverter<AbstractResultFile, ResultFileDTO> {
 
     @Override
-    public ResultFileDTO convert(ResultFile source) {
+    public ResultFileDTO convert(AbstractResultFile source) {
 
         ResultFileDTO resultFileDTO = new ResultFileDTO();
-        String absoluteFilename = analysisHelper.getResultFile(source).toAbsolutePath().toString();
 
         resultFileDTO.setLabel(source.getLabel());
         resultFileDTO.setUuid(source.getUuid());
@@ -51,8 +41,6 @@ public class ResultFileToResultFileDTOConverter extends BaseConversionServiceAwa
         resultFileDTO.setSubmissionId(source.getSubmission().getId());
         resultFileDTO.setManuallyUploaded(source.getManuallyUploaded());
         resultFileDTO.setDocType(source.getContentType());
-        String mimeType = CommonFileUtils.getMimeType(source.getRealName(), absoluteFilename);
-        resultFileDTO.setMimeType(mimeType);
 
         return resultFileDTO;
     }

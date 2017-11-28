@@ -1,5 +1,4 @@
 /*
- *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +14,29 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: December 06, 2016
- *
+ * Authors: Anton Gackovka
+ * Created: October 24, 2017
  */
 
 package com.odysseusinc.arachne.portal.model;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import java.util.Date;
+import javax.persistence.metamodel.SingularAttribute;
+import javax.persistence.metamodel.StaticMetamodel;
 
-@Entity
-@Table(name = "result_files")
-public class ResultFile extends AbstractResultFile {}
+@StaticMetamodel(ArachneFile.class)
+public class ArachneFile_ {
+
+    public static volatile SingularAttribute<ArachneFile, String> uuid;
+    
+    public static volatile SingularAttribute<ArachneFile, String> label;
+
+    public static volatile SingularAttribute<ArachneFile, String> realName;
+
+    public static volatile SingularAttribute<ArachneFile, String> contentType;
+    
+    public static volatile SingularAttribute<ArachneFile, Date> created;
+
+    public static volatile SingularAttribute<ArachneFile, Date> updated;
+    
+}
