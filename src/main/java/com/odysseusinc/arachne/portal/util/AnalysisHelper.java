@@ -23,13 +23,11 @@
 package com.odysseusinc.arachne.portal.util;
 
 import com.google.common.collect.Sets;
-import com.odysseusinc.arachne.portal.api.v1.dto.CreateSubmissionsDTO;
 import com.odysseusinc.arachne.portal.exception.ConverterRuntimeException;
 import com.odysseusinc.arachne.portal.exception.IORuntimeException;
 import com.odysseusinc.arachne.portal.exception.NoExecutableFileException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
-import com.odysseusinc.arachne.portal.model.AbstractResultFile;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.DataSourceStatus;
 import com.odysseusinc.arachne.portal.model.ResultFile;
@@ -129,7 +127,7 @@ public class AnalysisHelper implements AnalysisPaths {
                 .resolve(file.getUuid());
     }
 
-    public Path getResultFile(AbstractResultFile resultFile) {
+    public Path getResultFile(ResultFile resultFile) {
 
         return getResultFolder(resultFile.getSubmission()).resolve(resultFile.getUuid());
     }
