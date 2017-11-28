@@ -1,12 +1,24 @@
 package com.odysseusinc.arachne.portal.model.search;
 
 import com.odysseusinc.arachne.portal.model.Submission;
+import org.apache.commons.lang3.StringUtils;
 
 public class ResultFileSearch {
 
     private Submission submission;
     private String path;
     private String realName;
+
+    private static String getFormattedPath(String path) {
+
+        String formattedPath = path;
+        if (StringUtils.isNotEmpty(path)
+                && !path.equals("/")
+                && !path.endsWith("/")) {
+            formattedPath += "/";
+        }
+        return formattedPath;
+    }
 
     public Submission getSubmission() {
 
@@ -25,7 +37,7 @@ public class ResultFileSearch {
 
     public void setPath(String path) {
 
-        this.path = path;
+        this.path = getFormattedPath(path);
     }
 
     public String getRealName() {
@@ -37,4 +49,6 @@ public class ResultFileSearch {
 
         this.realName = realName;
     }
+
+
 }

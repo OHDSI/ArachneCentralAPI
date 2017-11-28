@@ -1,9 +1,9 @@
 package com.odysseusinc.arachne.portal.model.search;
 
+import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.portal.model.ArachneFile_;
 import com.odysseusinc.arachne.portal.model.ResultEntity;
 import com.odysseusinc.arachne.portal.model.ResultEntity_;
-import com.odysseusinc.arachne.portal.model.ResultFile;
 import com.odysseusinc.arachne.portal.model.AbstractResultFile_;
 import com.odysseusinc.arachne.portal.model.Submission;
 import java.util.ArrayList;
@@ -12,6 +12,7 @@ import javax.persistence.criteria.CompoundSelection;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
@@ -38,10 +39,7 @@ public class ResultEntitySpecification<T extends ResultEntity> implements Specif
         final Path<Submission> submission = root.get(AbstractResultFile_.submission);
         final Path<String> realName = root.get(AbstractResultFile_.realName);
 
-        Expression<String> relativeRealName = cb.substring(
-                root.get(ResultEntity_.realName),
-                criteria.getPath().equals("/") ? 1 : criteria.getPath().length() + 1
-        );
+        Expression<String> relativeRealName = getRelativeRealName(root, cb);
 
         // Where
         predicates.add(cb.equal(submission, criteria.getSubmission()));
@@ -58,10 +56,6 @@ public class ResultEntitySpecification<T extends ResultEntity> implements Specif
             predicates.add(cb.equal(realName, criteria.getRealName()));
         }
 
-        // Order
-
-        // todo
-
         return cb.and(predicates.toArray(new Predicate[predicates.size()]));
     }
 
@@ -77,6 +71,26 @@ public class ResultEntitySpecification<T extends ResultEntity> implements Specif
                 root.get(ArachneFile_.updated),
                 root.get(AbstractResultFile_.submission),
                 root.get(AbstractResultFile_.manuallyUploaded)
+        );
+    }
+
+    public Order getOrderBy(Root<T> root, CriteriaBuilder cb) {
+
+        final Path<String> contentType = root.get(AbstractResultFile_.contentType);
+        Expression<String> relativeRealName = getRelativeRealName(root, cb);
+
+        Expression foldersFirst = cb.selectCase()
+                .when(cb.equal(contentType, CommonFileUtils.TYPE_FOLDER), cb.concat("0", relativeRealName))
+                .otherwise(cb.concat("1", relativeRealName));
+
+        return cb.asc(foldersFirst);
+    }
+
+    private Expression<String> getRelativeRealName(Root<T> root, CriteriaBuilder cb) {
+
+        return cb.substring(
+                root.get(ResultEntity_.realName),
+                criteria.getPath().equals("/") ? 1 : criteria.getPath().length() + 1
         );
     }
 }

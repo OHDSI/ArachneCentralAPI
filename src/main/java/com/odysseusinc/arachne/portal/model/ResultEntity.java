@@ -36,6 +36,11 @@ public class ResultEntity extends AbstractResultFile {
 
     public ResultEntity(String uuid, String label, String realName, String searchPath, String contentType, Date created, Date updated, Submission submission, Boolean manuallyUploaded) {
 
-        super(uuid, label, realName.substring(searchPath.equals("/") ? 0 : searchPath.length()).split("/")[0], contentType, created, updated, submission, manuallyUploaded);
+        super(uuid, label, getCurrentLevelName(realName, searchPath), contentType, created, updated, submission, manuallyUploaded);
+    }
+
+    private static String getCurrentLevelName(String realName, String searchPath) {
+
+        return realName.substring(searchPath.equals("/") ? 0 : searchPath.length()).split("/")[0];
     }
 }

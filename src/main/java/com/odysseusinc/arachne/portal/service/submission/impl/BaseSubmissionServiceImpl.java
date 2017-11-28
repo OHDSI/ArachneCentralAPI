@@ -97,12 +97,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipOutputStream;
 import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CompoundSelection;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -593,12 +589,6 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
                 throw new PermissionDeniedException();
             }
         }
-
-        if (org.apache.commons.lang3.StringUtils.isNotEmpty(resultFileSearch.getPath())
-                && !resultFileSearch.getPath().equals("/")
-                && !resultFileSearch.getPath().endsWith("/")) {
-            resultFileSearch.setPath(resultFileSearch.getPath() + "/");
-        }
         resultFileSearch.setSubmission(submission);
 
         ResultEntitySpecification spec = new ResultEntitySpecification(resultFileSearch);
@@ -609,13 +599,10 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         Root<ResultFile> root = criteriaQuery.from(ResultEntity.class);
 
         criteriaQuery.select(spec.getSelection(root, criteriaBuilder));
+        criteriaQuery.where(spec.toPredicate(root, criteriaQuery, criteriaBuilder));
+        criteriaQuery.orderBy(spec.getOrderBy(root, criteriaBuilder));
 
-        Predicate predicate = spec.toPredicate(root, criteriaQuery, criteriaBuilder);
-        criteriaQuery.where(predicate);
-
-        TypedQuery<ResultEntity> typedQuery = entityManager.createQuery(criteriaQuery);
-
-        return typedQuery.getResultList();
+        return entityManager.createQuery(criteriaQuery).getResultList();
     }
 
     @Override
