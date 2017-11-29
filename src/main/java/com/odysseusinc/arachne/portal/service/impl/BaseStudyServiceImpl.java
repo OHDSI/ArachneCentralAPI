@@ -223,17 +223,19 @@ public abstract class BaseStudyServiceImpl<
     // sort detection logic cab be moved out into its own class smth like SortDetecter
     @PostConstruct
     private void init() {
-        this.studySortPaths.put("title",new String[]{"study.title"});
-        this.studySortPaths.put("leadList",new String[]{"firstLead.firstname", "firstLead.middlename", "firstLead.lastname"});
-        this.studySortPaths.put("role",new String[]{"role"});
-        this.studySortPaths.put("created",new String[]{"study.created"});
-        this.studySortPaths.put("type",new String[]{"study.type.name"});
-        this.studySortPaths.put("status",new String[]{"study.status"});
+
+        this.studySortPaths.put("title", new String[]{"study.title"});
+        this.studySortPaths.put("leadList", new String[]{"firstLead.firstname", "firstLead.middlename", "firstLead.lastname"});
+        this.studySortPaths.put("role", new String[]{"role"});
+        this.studySortPaths.put("created", new String[]{"study.created"});
+        this.studySortPaths.put("type", new String[]{"study.type.name"});
+        this.studySortPaths.put("status", new String[]{"study.status"});
 
         this.studySortPaths.putAll(getAdditionalSortPaths());
     }
 
     protected Map<String, String[]> getAdditionalSortPaths() {
+
         return new HashMap<>();
     }
 
@@ -340,7 +342,7 @@ public abstract class BaseStudyServiceImpl<
             forUpdate.setType(studyTypeService.getById(study.getType().getId()));
         }
         if (study.getStatus() != null && study.getStatus().getId() != null
-                && studyStateMachine.canTransit(forUpdate , studyStatusService.getById(study.getStatus().getId()))) {
+                && studyStateMachine.canTransit(forUpdate, studyStatusService.getById(study.getStatus().getId()))) {
             forUpdate.setStatus(studyStatusService.getById(study.getStatus().getId()));
         }
         forUpdate.setTitle(study.getTitle() != null ? study.getTitle() : forUpdate.getTitle());
@@ -425,11 +427,12 @@ public abstract class BaseStudyServiceImpl<
     protected final Sort getSort(String sortBy, Boolean sortAsc) {
 
         String defaultSort = "study.title";
-
-        return new Sort(
+        Sort sort = new Sort(
                 sortAsc == null || sortAsc ? Sort.Direction.ASC : Sort.Direction.DESC,
                 studySortPaths.getOrDefault(sortBy, new String[]{defaultSort})
         );
+        sort.forEach(Sort.Order::ignoreCase);
+        return sort;
     }
 
 
