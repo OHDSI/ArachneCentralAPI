@@ -422,18 +422,8 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     @Override
     public List<U> suggestUser(final String query, List<String> emailsList, final Integer limit) {
 
-        String[] split = query.trim().split(" ");
-        StringBuilder suggestRequest = new StringBuilder("%(");
-        for (String s : split) {
-            suggestRequest.append(s.toLowerCase()).append("|");
-        }
-        suggestRequest.delete(suggestRequest.length() - 1, suggestRequest.length());
-        suggestRequest.append(")%");
-        StringBuilder emailSb = new StringBuilder();
-        for (String emailStr : emailsList) {
-            emailSb.append("'").append(emailStr).append("',");
-        }
-        return userRepository.suggest(suggestRequest.toString(), emailsList, limit);
+        final String preparedQuery = prepareQuery(query);
+        return userRepository.suggest(preparedQuery, emailsList, limit);
     }
 
     @Override
@@ -961,7 +951,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
 
     private String prepareQuery(String query) {
 
-        String[] split = query.trim().split(" ");
+        String[] split = query.toLowerCase().trim().split(" ");
         return Stream.of(split).collect(Collectors.joining("|", "%(", ")%"));
     }
 }
