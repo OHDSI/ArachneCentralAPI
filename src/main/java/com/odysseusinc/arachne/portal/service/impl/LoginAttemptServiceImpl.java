@@ -28,44 +28,50 @@ import com.google.common.cache.LoadingCache;
 import com.odysseusinc.arachne.portal.service.LoginAttemptService;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.PostConstruct;
+import org.apache.commons.lang3.ObjectUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 
 @Service
 public class LoginAttemptServiceImpl implements LoginAttemptService {
 
-    private static final int MAX_ATTEMPT = 3;
-    private static final int ATTEMPTS_RESET_MINUTES = 3;
+    @Value("${arachne.loginAttempts.count}")
+    private int maxAttempts;
+    @Value("${arachne.loginAttempts.resetMinutes}")
+    private int attemptsResetMinutes;
+
     private LoadingCache<String, Integer> attemptsCache;
 
-    public LoginAttemptServiceImpl() {
-        super();
+    @PostConstruct
+    private void init() {
+
         attemptsCache = CacheBuilder.newBuilder().
-                expireAfterWrite(ATTEMPTS_RESET_MINUTES, TimeUnit.MINUTES).build(new CacheLoader<String, Integer>() {
+                expireAfterWrite(attemptsResetMinutes, TimeUnit.MINUTES).build(new CacheLoader<String, Integer>() {
             public Integer load(String key) {
+
                 return 0;
             }
         });
     }
 
     public void loginSucceeded(String key) {
+
         attemptsCache.invalidate(key);
     }
 
     public void loginFailed(String key) {
-        int attempts;
-        try {
-            attempts = attemptsCache.get(key);
-        } catch (ExecutionException e) {
-            attempts = 0;
-        }
+
+        int attempts = ObjectUtils.firstNonNull(attemptsCache.getIfPresent(key), 0);
         attempts++;
         attemptsCache.put(key, attempts);
     }
 
     public boolean isBlocked(String key) {
+
         try {
-            return attemptsCache.get(key) >= MAX_ATTEMPT;
+            return attemptsCache.get(key) >= maxAttempts;
         } catch (ExecutionException e) {
             return false;
         }

@@ -123,8 +123,8 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
         JsonResult jsonResult;
         String username = authenticationRequest.getUsername();
         try {
-            if (loginAttemptService.isBlocked(username)){
-                throw new PermissionDeniedException("Try to login later");
+            if (loginAttemptService.isBlocked(username)) {
+                throw new PermissionDeniedException("You have exceeded the number of allowed login attempts. Please try again later.");
             }
             Authentication authentication = this.authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
