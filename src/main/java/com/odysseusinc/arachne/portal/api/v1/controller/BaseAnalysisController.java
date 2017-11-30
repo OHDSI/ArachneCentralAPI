@@ -522,7 +522,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
             putFileContentToResponse(
                     response,
                     analysisFile.getContentType(),
-                    CommonFileUtils.getFileName(analysisFile.getRealName()),
+                    StringUtils.getFilename(analysisFile.getRealName()),
                     analysisService.getAnalysisFile(analysisFile));
         } catch (IOException ex) {
             LOGGER.info("Error writing file to output stream. Filename was '{}'", uuid, ex);
