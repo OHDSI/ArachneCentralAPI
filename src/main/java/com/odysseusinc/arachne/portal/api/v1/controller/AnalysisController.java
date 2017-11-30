@@ -57,8 +57,9 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 public class AnalysisController extends BaseAnalysisController<Analysis, AnalysisDTO, DataNode, AnalysisCreateDTO> {
 
-    private static final String RUN_CC_REPORTS_FILE_NAME = "run_cc_reports.r";
+    private static final String RUN_CC_REPORTS_FILE_NAME = "run_cc_reports.R";
     private static final String CC_SQLS_DIR = "sql/cc";
+    public static final String RUN_PLP_ANALYSIS_FILE_NAME = "run_plp_analysis.R";
 
     static {
         ANALISYS_MIMETYPE_MAP.put(CommonAnalysisType.COHORT, CommonFileUtils.TYPE_COHORT_SQL);
@@ -102,15 +103,15 @@ public class AnalysisController extends BaseAnalysisController<Analysis, Analysi
     @Override
     protected void attachPredictionFiles(List<MultipartFile> files) throws IOException {
 
-        files.add(new MockMultipartFile("run_plp_analysis.r", "run_plp_analysis.r", null,
-                readResource("r/run_plp_analysis.R")));
+        files.add(new MockMultipartFile(RUN_PLP_ANALYSIS_FILE_NAME, RUN_PLP_ANALYSIS_FILE_NAME, null,
+                readResource("r/"+ RUN_PLP_ANALYSIS_FILE_NAME)));
     }
 
     @Override
     protected void attachCohortCharacterizationFiles(List<MultipartFile> files) throws IOException, URISyntaxException {
 
         files.add(new MockMultipartFile(RUN_CC_REPORTS_FILE_NAME, RUN_CC_REPORTS_FILE_NAME, null,
-                readResource("r/run_cc_reports.R")));
+                readResource("r/" + RUN_CC_REPORTS_FILE_NAME)));
 
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(
                 PortalStarter.class.getClassLoader());
