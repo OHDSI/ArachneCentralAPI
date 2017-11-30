@@ -163,7 +163,7 @@ public abstract class BaseStudyServiceImpl<
     private final FavouriteStudyRepository favouriteStudyRepository;
     private final StudyDataSourceCommentRepository dataSourceCommentRepository;
     private final ArachneMailSender arachneMailSender;
-    private final SimpMessagingTemplate wsTemplate;
+    protected final SimpMessagingTemplate wsTemplate;
     protected final GenericConversionService conversionService;
     protected final AddDataSourceStrategyFactory<DS> addDataSourceStrategyFactory;
     protected final StudyStateMachine studyStateMachine;

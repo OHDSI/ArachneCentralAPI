@@ -618,7 +618,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
 
     @Override
     public void saveAvatar(U user, MultipartFile file)
-            throws IOException, WrongFileFormatException, ImageProcessingException, MetadataException {
+            throws IOException, WrongFileFormatException, ImageProcessingException, MetadataException, IllegalAccessException, SolrServerException, NoSuchFieldException {
 
         String fileExt = FilenameUtils.getExtension(file.getOriginalFilename());
         BufferedImage img = ImageIO.read(file.getInputStream());
@@ -685,6 +685,9 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
                 Math.min(Math.max(img.getHeight(), img.getWidth()), 640),
                 Scalr.OP_ANTIALIAS);
         ImageIO.write(thumbnail, fileExt, avatar);
+        user.setUpdated(new Date());
+        U savedUser = userRepository.save(user);
+        indexBySolr(savedUser);
 
 
     }

@@ -75,6 +75,8 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
 
     Path getAnalysisFile(AnalysisFile analysisFile) throws FileNotFoundException;
 
+    List<AnalysisFile> findAnalysisFilesByDataReference(T analysis, DataReference dataReference);
+
     AnalysisFile getAnalysisFile(Long analysisId, String uuid);
 
     AnalysisFile getAnalysisFileUnsecured(String uuid);

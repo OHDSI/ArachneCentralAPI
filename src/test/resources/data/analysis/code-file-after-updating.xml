@@ -6,7 +6,7 @@
             analysis_id="1"
             real_name="test_updated.jpg"
             executable="false"
-            content_type="image/jpeg"
+            content_type="image"
             label="codeFile"
             author_id="1"
             version="2"

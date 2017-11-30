@@ -142,7 +142,7 @@ public interface BaseUserService<U extends User, S extends Skill> {
     U removePublicationFromUser(Long userId, Long publicationId) throws NotExistException;
 
     void saveAvatar(U user, MultipartFile file)
-            throws IOException, WrongFileFormatException, ImageProcessingException, MetadataException;
+            throws IOException, WrongFileFormatException, ImageProcessingException, MetadataException, IllegalAccessException, SolrServerException, NoSuchFieldException;
 
     InputStream getUserAvatar(U user) throws IOException;
 

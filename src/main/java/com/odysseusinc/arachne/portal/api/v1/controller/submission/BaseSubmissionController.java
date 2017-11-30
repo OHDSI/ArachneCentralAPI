@@ -39,10 +39,12 @@ import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionFileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionStatusHistoryElementDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdateSubmissionsDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.UploadFileDTO;
 import com.odysseusinc.arachne.portal.exception.NoExecutableFileException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
+import com.odysseusinc.arachne.portal.model.AbstractResultFile;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.ResultFile;
 import com.odysseusinc.arachne.portal.model.Submission;
@@ -50,6 +52,7 @@ import com.odysseusinc.arachne.portal.model.SubmissionFile;
 import com.odysseusinc.arachne.portal.model.SubmissionStatus;
 import com.odysseusinc.arachne.portal.model.SubmissionStatusHistoryElement;
 import com.odysseusinc.arachne.portal.model.User;
+import com.odysseusinc.arachne.portal.model.search.ResultFileSearch;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
 import com.odysseusinc.arachne.portal.util.AnalysisHelper;
@@ -74,7 +77,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.multipart.MultipartFile;
 
 public abstract class BaseSubmissionController<T extends Submission, A extends Analysis, DTO extends SubmissionDTO>
         extends BaseController {
@@ -170,18 +172,18 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     public JsonResult<Boolean> uploadSubmissionResults(
             Principal principal,
             @RequestParam("submissionId") Long id,
-            @RequestParam MultipartFile file
+            @Valid UploadFileDTO uploadFileDTO
     ) throws IOException, NotExistException, ValidationException {
 
         LOGGER.info("uploading result files for submission with id='{}'", id);
 
         JsonResult.ErrorCode errorCode;
         Boolean hasResult;
-        if (file == null) {
+        if (uploadFileDTO.getFile() == null) {
             errorCode = JsonResult.ErrorCode.VALIDATION_ERROR;
             hasResult = false;
         } else {
-            submissionService.uploadResultsByDataOwner(id, file);
+            submissionService.uploadResultsByDataOwner(id, uploadFileDTO.getFile());
             errorCode = JsonResult.ErrorCode.NO_ERROR;
             hasResult = true;
         }
@@ -322,10 +324,18 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/results", method = GET)
     public List<ResultFileDTO> getResultFiles(
             Principal principal,
-            @PathVariable("submissionId") Long submissionId) throws PermissionDeniedException, NotExistException, IOException {
+            @PathVariable("submissionId") Long submissionId,
+            @RequestParam(value = "path", required = false, defaultValue = "") String path,
+            @RequestParam(value = "real-name", required = false) String realName
+    ) throws PermissionDeniedException, IOException {
 
         User user = userService.getByEmail(principal.getName());
-        List<ResultFile> resultFileList = submissionService.getResultFiles(user, submissionId);
+
+        ResultFileSearch resultFileSearch = new ResultFileSearch();
+        resultFileSearch.setPath(path);
+        resultFileSearch.setRealName(realName);
+
+        List<? extends AbstractResultFile> resultFileList = submissionService.getResultFiles(user, submissionId, resultFileSearch);
         return resultFileList.stream()
                 .map(rf -> conversionService.convert(rf, ResultFileDTO.class))
                 .collect(Collectors.toList());

@@ -517,6 +517,14 @@ public abstract class BaseAnalysisServiceImpl<
     }
 
     @Override
+    @PreAuthorize("hasPermission(#analysis,  "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
+    public List<AnalysisFile> findAnalysisFilesByDataReference(A analysis, DataReference dataReference) {
+
+        return analysisFileRepository.findAllByAnalysisIdAndDataReferenceId(analysis.getId(), dataReference.getId());
+    }
+
+    @Override
     @PreAuthorize("hasPermission(#analysisId,  'Analysis', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
     public AnalysisFile getAnalysisFile(Long analysisId, String uuid) {
@@ -652,14 +660,15 @@ public abstract class BaseAnalysisServiceImpl<
             AnalysisFile analysisFile = analysisFileRepository.findByUuid(uuid);
 
             if (file != null) {
-                analysisFile.setContentType(file.getContentType());
                 analysisFile.setRealName(file.getOriginalFilename());
                 Path analysisFolder = analysisHelper.getAnalysisFolder(analysis);
                 if (Files.notExists(analysisFolder)) {
                     Files.createDirectories(analysisFolder);
                 }
-                Files.copy(file.getInputStream(),
-                        analysisFolder.resolve(uuid), REPLACE_EXISTING);
+                Path targetPath = analysisFolder.resolve(uuid);
+                Files.copy(file.getInputStream(), targetPath, REPLACE_EXISTING);
+                String contentType = CommonFileUtils.getContentType(file.getOriginalFilename(), targetPath.toString());
+                analysisFile.setContentType(contentType);
             }
             Date updated = new Date();
             analysisFile.setUpdated(updated);

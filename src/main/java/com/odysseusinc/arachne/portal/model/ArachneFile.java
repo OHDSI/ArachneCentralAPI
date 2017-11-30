@@ -45,6 +45,18 @@ public class ArachneFile {
     @Column
     protected Date updated;
 
+    public ArachneFile() {}
+
+    public ArachneFile(String uuid, String label, String realName, String contentType, Date created, Date updated) {
+
+        this.uuid = uuid;
+        this.label = label;
+        this.realName = realName;
+        this.contentType = contentType;
+        this.created = created;
+        this.updated = updated;
+    }
+
     public String getUuid() {
 
         return uuid;
