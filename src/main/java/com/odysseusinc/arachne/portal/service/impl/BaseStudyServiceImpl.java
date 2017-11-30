@@ -86,6 +86,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -427,12 +429,12 @@ public abstract class BaseStudyServiceImpl<
     protected final Sort getSort(String sortBy, Boolean sortAsc) {
 
         String defaultSort = "study.title";
-        Sort sort = new Sort(
-                sortAsc == null || sortAsc ? Sort.Direction.ASC : Sort.Direction.DESC,
-                studySortPaths.getOrDefault(sortBy, new String[]{defaultSort})
-        );
-        sort.forEach(Sort.Order::ignoreCase);
-        return sort;
+        Sort.Direction sortDirection = sortAsc == null || sortAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
+        List<Sort.Order> orders = new ArrayList<>();
+        Arrays.asList(studySortPaths.getOrDefault(sortBy, new String[]{defaultSort})).forEach((param) ->
+                orders.add(new Sort.Order(sortDirection, param).ignoreCase()));
+
+        return new Sort(orders);
     }
 
 
