@@ -72,6 +72,7 @@ import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -276,7 +277,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
         HttpUtils.putFileContentToResponse(
                 response,
                 analysisFile.getContentType(),
-                analysisFile.getRealName(),
+                StringUtils.getFilename(analysisFile.getRealName()),
                 analysisService.getSubmissionFile(analysisFile));
     }
 
@@ -468,7 +469,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
         HttpUtils.putFileContentToResponse(
                 response,
                 resultFile.getContentType(),
-                resultFile.getRealName(),
+                StringUtils.getFilename(resultFile.getRealName()),
                 analysisService.getResultFile(resultFile));
     }
 
