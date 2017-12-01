@@ -401,6 +401,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
             {
                 add(SubmissionStatus.STARTING);
                 add(SubmissionStatus.IN_PROGRESS);
+                add(SubmissionStatus.QUEUE_PROCESSING);
             }
         };
         T submission = submissionService.getSubmissionByIdAndUpdatePasswordAndStatus(
@@ -409,7 +410,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
         submission.setStdout(stdout == null ? stdoutDiff : stdout + stdoutDiff);
         submission.setStdoutDate(status.getStdoutDate());
         submission.setUpdated(new Date());
-        if (submission.getStatus().equals(SubmissionStatus.STARTING)) {
+        if (submission.getStatus().equals(SubmissionStatus.STARTING) || submission.getStatus().equals(SubmissionStatus.QUEUE_PROCESSING)) {
             submissionService.moveSubmissionToNewStatus(submission, SubmissionStatus.IN_PROGRESS, null, null);
         } else {
             submissionService.saveSubmission(submission);
