@@ -171,6 +171,8 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
     }
 
     @Override
+    @PreAuthorize("hasPermission(#studyId, 'Study', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
     @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject.study )")
     public StudyViewItem getStudy(User user, Long studyId) {
 

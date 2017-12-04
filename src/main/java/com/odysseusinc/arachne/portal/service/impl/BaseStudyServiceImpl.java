@@ -238,7 +238,9 @@ public abstract class BaseStudyServiceImpl<
 
     protected Map<String, String[]> getAdditionalSortPaths() {
 
-        return new HashMap<>();
+        return new HashMap<String, String[]>() {{
+            put("privacy", new String[]{"study.privacy"});
+        }};
     }
 
     @Override
@@ -272,6 +274,9 @@ public abstract class BaseStudyServiceImpl<
 
     protected void beforeStudySave(T study) {
 
+        if (study.getPrivacy() == null) {
+            study.setPrivacy(true);
+        }
     }
 
     private UserStudy addDefaultLead(Study study, User owner) {
@@ -356,6 +361,7 @@ public abstract class BaseStudyServiceImpl<
                 && forUpdate.getStartDate().getTime() > forUpdate.getEndDate().getTime()) {
             throw new ValidationException("end date before start date ");
         }
+        forUpdate.setPrivacy(study.getPrivacy() != null ? study.getPrivacy() : forUpdate.getPrivacy());
 
         forUpdate.setUpdated(new Date());
 
@@ -368,6 +374,7 @@ public abstract class BaseStudyServiceImpl<
 
     protected void beforeStudyUpdate(T forUpdate, T willBeUpdated) {
 
+        forUpdate.setPrivacy(willBeUpdated.getPrivacy() != null ? willBeUpdated.getPrivacy() : forUpdate.getPrivacy());
     }
 
     protected void afterStudyUpdate(T exists, T wilBeUpdated) {

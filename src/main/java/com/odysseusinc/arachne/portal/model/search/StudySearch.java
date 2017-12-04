@@ -34,7 +34,7 @@ public class StudySearch {
     private Integer page;
     private Integer pagesize;
     private Boolean my = Boolean.FALSE;
-
+    private Boolean privacy;
 
     public String getSortBy() {
 
@@ -134,5 +134,15 @@ public class StudySearch {
     public void setMy(Boolean my) {
 
         this.my = my;
+    }
+
+    public Boolean getPrivacy() {
+
+        return privacy;
+    }
+
+    public void setPrivacy(Boolean privacy) {
+
+        this.privacy = privacy;
     }
 }

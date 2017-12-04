@@ -36,7 +36,6 @@ import com.odysseusinc.arachne.portal.service.StudyService;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.convert.support.GenericConversionService;
 
 public abstract class BaseUserStudyListItemToStudyListDTOConverter<DTO extends StudyListDTO> extends BaseConversionServiceAwareConverter<AbstractUserStudyListItem, DTO> {
 
@@ -82,5 +81,10 @@ public abstract class BaseUserStudyListItemToStudyListDTOConverter<DTO extends S
         return studyDTO;
     }
 
+    @Override
+    protected void proceedAdditionalFields(DTO dto, AbstractUserStudyListItem abstractUserStudyListItem) {
 
+        final Study study = abstractUserStudyListItem.getStudy();
+        dto.setPrivacy(study.getPrivacy());
+    }
 }
