@@ -155,7 +155,8 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
 
         return domainObject(domainObject)
                 .when(instanceOf(Analysis.class).and(analysis -> !(analysis.getStudy()).getPrivacy()))
-                .then(analysis -> Collections.singleton(ACCESS_STUDY)).and()
+                .then(analysis -> Collections.singleton(ACCESS_STUDY)).apply()
+                .when(instanceOf(Analysis.class))
                 .then(analysis -> getArachnePermissions(secureService.getRolesByAnalysis(user, analysis)))
                 .filter((analysis, permission) -> !(ArachnePermission.DELETE_ANALYSIS.equals(permission)
                         && (
