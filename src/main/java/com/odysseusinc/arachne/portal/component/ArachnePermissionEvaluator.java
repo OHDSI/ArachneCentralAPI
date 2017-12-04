@@ -144,15 +144,17 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
 
     protected PermissionDsl studyRules(Object domainObject, ArachneUser user) {
 
-        return domainObject(domainObject).when(instanceOf(Study.class))
-                .then(study -> Collections.singleton(ACCESS_STUDY)).and()
+        return domainObject(domainObject)
+                .when(instanceOf(Study.class).and(study -> !study.getPrivacy()))
+                .then(study -> Collections.singleton(ACCESS_STUDY)).apply()
+                .when(instanceOf(Study.class))
                 .then(study -> getArachnePermissions(secureService.getRolesByStudy(user, study))).apply();
     }
 
     protected PermissionDsl analysisRules(Object domainObject, ArachneUser user) {
 
         return domainObject(domainObject)
-                .when(instanceOf(Analysis.class))
+                .when(instanceOf(Analysis.class).and(analysis -> !(analysis.getStudy()).getPrivacy()))
                 .then(analysis -> Collections.singleton(ACCESS_STUDY)).and()
                 .then(analysis -> getArachnePermissions(secureService.getRolesByAnalysis(user, analysis)))
                 .filter((analysis, permission) -> !(ArachnePermission.DELETE_ANALYSIS.equals(permission)
