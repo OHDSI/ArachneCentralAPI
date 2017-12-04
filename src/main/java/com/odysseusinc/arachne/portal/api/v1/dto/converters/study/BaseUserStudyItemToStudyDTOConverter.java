@@ -43,16 +43,11 @@ public abstract class BaseUserStudyItemToStudyDTOConverter<S extends StudyDTO> e
         baseObject.setFavourite(source.getFavourite());
 
         converterUtils.shallowCopy(studyDto, baseObject);
+        final Study study = source.getStudy();
+        studyDto.setPrivacy(study.getPrivacy());
 
         proceedAdditionalFields(studyDto, source);
 
         return studyDto;
-    }
-
-    @Override
-    protected void proceedAdditionalFields(S dto, AbstractUserStudyListItem abstractUserStudyListItem) {
-
-        Study study = abstractUserStudyListItem.getStudy();
-        dto.setPrivacy(study.getPrivacy());
     }
 }

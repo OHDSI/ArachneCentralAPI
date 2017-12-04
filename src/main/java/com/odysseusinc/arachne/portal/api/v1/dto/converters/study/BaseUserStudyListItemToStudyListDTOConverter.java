@@ -75,16 +75,11 @@ public abstract class BaseUserStudyListItemToStudyListDTOConverter<DTO extends S
                         .map(studyLead -> conversionService.convert(studyLead, ShortUserDTO.class))
                         .collect(Collectors.toList())
         );
+        studyDTO.setPrivacy(source.getPrivacy());
 
         proceedAdditionalFields(studyDTO, userStudyLink);
 
         return studyDTO;
     }
 
-    @Override
-    protected void proceedAdditionalFields(DTO dto, AbstractUserStudyListItem abstractUserStudyListItem) {
-
-        final Study study = abstractUserStudyListItem.getStudy();
-        dto.setPrivacy(study.getPrivacy());
-    }
 }
