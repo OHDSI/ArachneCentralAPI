@@ -69,6 +69,7 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
         this.dataSources = study.dataSources;
         this.startDate = study.startDate;
         this.endDate = study.endDate;
+        this.privacy = study.getPrivacy();
     }
 
     @Id
@@ -119,6 +120,9 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
 
     @Column
     private Date endDate;
+
+    @Column
+    protected Boolean privacy = Boolean.TRUE;
 
     public BreadcrumbType getCrumbType() {
 
@@ -295,5 +299,15 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
     public void setPaper(Paper paper) {
 
         this.paper = paper;
+    }
+
+    public Boolean getPrivacy() {
+
+        return privacy;
+    }
+
+    public void setPrivacy(Boolean privacy) {
+
+        this.privacy = privacy;
     }
 }

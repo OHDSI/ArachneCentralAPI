@@ -1,0 +1,7 @@
+server:
+  ssl:
+    enabled: false
+logging:
+  level: debug
+portal:
+  hostsWhiteList: testcommunity.arachnenetwork.com

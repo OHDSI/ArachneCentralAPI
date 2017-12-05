@@ -107,6 +107,7 @@ public abstract class BaseSubmissionToSubmissionDTOConverter<T extends Submissio
                 break;
             }
             case STARTING:
+            case QUEUE_PROCESSING:
             case IN_PROGRESS:
             case EXECUTED:
             case FAILED: {

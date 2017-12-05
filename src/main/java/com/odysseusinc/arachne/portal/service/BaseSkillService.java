@@ -28,4 +28,6 @@ import java.util.List;
 public interface BaseSkillService<S extends Skill> extends CRUDLService<S> {
 
     List<S> suggestSkill(String query, Integer limit);
+
+    List<S> getAllExpectOfUserSkills(Long userId);
 }

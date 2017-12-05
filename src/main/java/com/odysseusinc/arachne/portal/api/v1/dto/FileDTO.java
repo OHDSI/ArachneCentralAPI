@@ -89,6 +89,7 @@ public class FileDTO {
         return mimeType;
     }
 
+    @Deprecated
     public void setMimeType(String mimeType) {
 
         this.mimeType = mimeType;
