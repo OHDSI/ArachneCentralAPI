@@ -86,6 +86,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -162,7 +164,7 @@ public abstract class BaseStudyServiceImpl<
     private final FavouriteStudyRepository favouriteStudyRepository;
     private final StudyDataSourceCommentRepository dataSourceCommentRepository;
     private final ArachneMailSender arachneMailSender;
-    private final SimpMessagingTemplate wsTemplate;
+    protected final SimpMessagingTemplate wsTemplate;
     protected final GenericConversionService conversionService;
     protected final AddDataSourceStrategyFactory<DS> addDataSourceStrategyFactory;
     protected final StudyStateMachine studyStateMachine;
@@ -223,18 +225,22 @@ public abstract class BaseStudyServiceImpl<
     // sort detection logic cab be moved out into its own class smth like SortDetecter
     @PostConstruct
     private void init() {
-        this.studySortPaths.put("title",new String[]{"study.title"});
-        this.studySortPaths.put("leadList",new String[]{"firstLead.firstname", "firstLead.middlename", "firstLead.lastname"});
-        this.studySortPaths.put("role",new String[]{"role"});
-        this.studySortPaths.put("created",new String[]{"study.created"});
-        this.studySortPaths.put("type",new String[]{"study.type.name"});
-        this.studySortPaths.put("status",new String[]{"study.status"});
+
+        this.studySortPaths.put("title", new String[]{"study.title"});
+        this.studySortPaths.put("leadList", new String[]{"firstLead.firstname", "firstLead.middlename", "firstLead.lastname"});
+        this.studySortPaths.put("role", new String[]{"role"});
+        this.studySortPaths.put("created", new String[]{"study.created"});
+        this.studySortPaths.put("type", new String[]{"study.type.name"});
+        this.studySortPaths.put("status", new String[]{"study.status"});
 
         this.studySortPaths.putAll(getAdditionalSortPaths());
     }
 
     protected Map<String, String[]> getAdditionalSortPaths() {
-        return new HashMap<>();
+
+        return new HashMap<String, String[]>() {{
+            put("privacy", new String[]{"study.privacy"});
+        }};
     }
 
     @Override
@@ -252,22 +258,15 @@ public abstract class BaseStudyServiceImpl<
         study.setType(studyTypeService.getById(study.getType().getId()));
         study.setStatus(studyStatusService.findByName("Initiate"));
 
-        beforeStudySave(study);
+        if (study.getPrivacy() == null) {
+            study.setPrivacy(true);
+        }
         T savedStudy = studyRepository.save(study);
-        afterStudySave(study);
 
         // Set Lead of the Study
         addDefaultLead(savedStudy, owner);
 
         return savedStudy;
-    }
-
-    protected void afterStudySave(T study) {
-
-    }
-
-    protected void beforeStudySave(T study) {
-
     }
 
     private UserStudy addDefaultLead(Study study, User owner) {
@@ -340,7 +339,7 @@ public abstract class BaseStudyServiceImpl<
             forUpdate.setType(studyTypeService.getById(study.getType().getId()));
         }
         if (study.getStatus() != null && study.getStatus().getId() != null
-                && studyStateMachine.canTransit(forUpdate , studyStatusService.getById(study.getStatus().getId()))) {
+                && studyStateMachine.canTransit(forUpdate, studyStatusService.getById(study.getStatus().getId()))) {
             forUpdate.setStatus(studyStatusService.getById(study.getStatus().getId()));
         }
         forUpdate.setTitle(study.getTitle() != null ? study.getTitle() : forUpdate.getTitle());
@@ -352,22 +351,14 @@ public abstract class BaseStudyServiceImpl<
                 && forUpdate.getStartDate().getTime() > forUpdate.getEndDate().getTime()) {
             throw new ValidationException("end date before start date ");
         }
+        forUpdate.setPrivacy(study.getPrivacy() != null ? study.getPrivacy() : forUpdate.getPrivacy());
 
         forUpdate.setUpdated(new Date());
 
-        beforeStudyUpdate(forUpdate, study);
+        forUpdate.setPrivacy(study.getPrivacy() != null ? study.getPrivacy() : forUpdate.getPrivacy());
         T updatedStudy = studyRepository.save(forUpdate);
-        afterStudyUpdate(forUpdate, study);
 
         return updatedStudy;
-    }
-
-    protected void beforeStudyUpdate(T forUpdate, T willBeUpdated) {
-
-    }
-
-    protected void afterStudyUpdate(T exists, T wilBeUpdated) {
-
     }
 
     @Override
@@ -425,11 +416,12 @@ public abstract class BaseStudyServiceImpl<
     protected final Sort getSort(String sortBy, Boolean sortAsc) {
 
         String defaultSort = "study.title";
+        Sort.Direction sortDirection = sortAsc == null || sortAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
+        List<Sort.Order> orders = new ArrayList<>();
+        Arrays.asList(studySortPaths.getOrDefault(sortBy, new String[]{defaultSort})).forEach((param) ->
+                orders.add(new Sort.Order(sortDirection, param).ignoreCase()));
 
-        return new Sort(
-                sortAsc == null || sortAsc ? Sort.Direction.ASC : Sort.Direction.DESC,
-                studySortPaths.getOrDefault(sortBy, new String[]{defaultSort})
-        );
+        return new Sort(orders);
     }
 
 

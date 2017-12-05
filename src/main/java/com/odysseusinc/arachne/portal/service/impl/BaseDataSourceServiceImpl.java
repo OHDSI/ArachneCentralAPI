@@ -162,6 +162,10 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
             exist.setCdmVersion(dataSource.getModelType().equals(CommonModelType.CDM) ? dataSource.getCdmVersion() : null);
         }
 
+        if (dataSource.getOrganization() != null) {
+            exist.setOrganization(dataSource.getOrganization());
+        }
+
         beforeUpdate(exist, dataSource);
 
         DS savedDataSource = dataSourceRepository.save(exist);

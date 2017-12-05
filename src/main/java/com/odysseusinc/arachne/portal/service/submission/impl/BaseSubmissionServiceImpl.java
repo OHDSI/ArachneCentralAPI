@@ -41,9 +41,12 @@ import com.odysseusinc.arachne.portal.exception.NoExecutableFileException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
+import com.odysseusinc.arachne.portal.model.AbstractResultFile_;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.AnalysisFile;
+import com.odysseusinc.arachne.portal.model.ArachneFile_;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.ResultEntity;
 import com.odysseusinc.arachne.portal.model.ResultFile;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
@@ -52,6 +55,8 @@ import com.odysseusinc.arachne.portal.model.SubmissionInsight;
 import com.odysseusinc.arachne.portal.model.SubmissionStatus;
 import com.odysseusinc.arachne.portal.model.SubmissionStatusHistoryElement;
 import com.odysseusinc.arachne.portal.model.User;
+import com.odysseusinc.arachne.portal.model.search.ResultFileSearch;
+import com.odysseusinc.arachne.portal.model.search.ResultEntitySpecification;
 import com.odysseusinc.arachne.portal.repository.ResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionGroupRepository;
@@ -91,6 +96,10 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipOutputStream;
+import javax.persistence.EntityManager;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -121,6 +130,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     protected final SubmissionFileRepository submissionFileRepository;
     protected final ResultFileRepository resultFileRepository;
     protected final SubmissionStatusHistoryRepository submissionStatusHistoryRepository;
+    protected final EntityManager entityManager;
 
     @Value("${files.store.path}")
     private String fileStorePath;
@@ -136,7 +146,8 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
                                         SubmissionInsightRepository submissionInsightRepository,
                                         SubmissionFileRepository submissionFileRepository,
                                         ResultFileRepository resultFileRepository,
-                                        SubmissionStatusHistoryRepository submissionStatusHistoryRepository) {
+                                        SubmissionStatusHistoryRepository submissionStatusHistoryRepository,
+                                        EntityManager entityManager) {
 
         this.submissionRepository = submissionRepository;
         this.dataSourceService = dataSourceService;
@@ -150,6 +161,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         this.submissionFileRepository = submissionFileRepository;
         this.resultFileRepository = resultFileRepository;
         this.submissionStatusHistoryRepository = submissionStatusHistoryRepository;
+        this.entityManager = entityManager;
     }
 
     @Override
@@ -569,7 +581,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     }
 
     @Override
-    public List<ResultFile> getResultFiles(User user, Long submissionId) throws PermissionDeniedException {
+    public List<ResultEntity> getResultFiles(User user, Long submissionId, ResultFileSearch resultFileSearch) throws PermissionDeniedException {
 
         Submission submission = submissionRepository.findById(submissionId);
         if (!(EXECUTED_PUBLISHED.equals(submission.getStatus()) || FAILED_PUBLISHED.equals(submission.getStatus()))) {
@@ -577,7 +589,20 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
                 throw new PermissionDeniedException();
             }
         }
-        return submission.getResultFiles();
+        resultFileSearch.setSubmission(submission);
+
+        ResultEntitySpecification spec = new ResultEntitySpecification(resultFileSearch);
+
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery criteriaQuery = criteriaBuilder.createQuery(ResultEntity.class);
+
+        Root<ResultFile> root = criteriaQuery.from(ResultEntity.class);
+
+        criteriaQuery.select(spec.getSelection(root, criteriaBuilder));
+        criteriaQuery.where(spec.toPredicate(root, criteriaQuery, criteriaBuilder));
+        criteriaQuery.orderBy(spec.getOrderBy(root, criteriaBuilder));
+
+        return entityManager.createQuery(criteriaQuery).getResultList();
     }
 
     @Override

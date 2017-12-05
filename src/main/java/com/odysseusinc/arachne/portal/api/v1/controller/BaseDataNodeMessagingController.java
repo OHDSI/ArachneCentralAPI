@@ -27,6 +27,7 @@ import static com.odysseusinc.arachne.commons.service.messaging.MessagingUtils.g
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
+import com.google.common.collect.ImmutableMap;
 import com.odysseusinc.arachne.commons.api.v1.dto.AtlasInfoDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonEntityDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonEntityRequestDTO;
@@ -40,6 +41,7 @@ import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.messaging.BaseDataNodeMessageService;
 import com.odysseusinc.arachne.portal.service.messaging.MessagingUtils;
 import com.odysseusinc.arachne.portal.util.ImportedFile;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,6 +72,18 @@ public abstract class BaseDataNodeMessagingController<DN extends DataNode> exten
     private final DestinationResolver destinationResolver;
     private final BaseDataNodeService<DN> baseDataNodeService;
     private final BaseDataNodeMessageService<DN> dataNodeMessageService;
+
+    private static final Map<String, String> ESCAPE_CHARS = ImmutableMap.<String, String>builder()
+            .put(":", "-colon-")
+            .put("/", "-slash-")
+            .put("<", "-lt-")
+            .put(">", "-gt-")
+            .put("*", "-star-")
+            .put("?", "-question mark-")
+            .put("\\", "-backslash-")
+            .put("|", "-verticalbar-")
+            .put("\"", "-quote-")
+            .build();
 
     @Autowired
     public BaseDataNodeMessagingController(
@@ -184,8 +198,8 @@ public abstract class BaseDataNodeMessagingController<DN extends DataNode> exten
     ) throws PermissionDeniedException, IOException {
 
         LinkedList<ImportedFile> importedFiles = new LinkedList<>();
-        for (MultipartFile mpf: files) {
-            importedFiles.add(new ImportedFile(mpf.getOriginalFilename(), mpf.getBytes()));
+        for (MultipartFile mpf : files) {
+            importedFiles.add(new ImportedFile(filterFileName(mpf.getOriginalFilename()), mpf.getBytes()));
         }
 
         saveCommonEntity(
@@ -193,6 +207,17 @@ public abstract class BaseDataNodeMessagingController<DN extends DataNode> exten
                 id,
                 importedFiles
         );
+    }
+
+    private String filterFileName(final String fileName) {
+
+        String filteredFileName = fileName;
+        for (Map.Entry<String, String> charEntry : ESCAPE_CHARS.entrySet()) {
+            if (filteredFileName.contains(charEntry.getKey())) {
+                filteredFileName = filteredFileName.replace(charEntry.getKey(), charEntry.getValue());
+            }
+        }
+        return filteredFileName;
     }
 
     private void saveCommonEntity(
