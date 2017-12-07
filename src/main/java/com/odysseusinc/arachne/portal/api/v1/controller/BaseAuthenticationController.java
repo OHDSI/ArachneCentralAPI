@@ -88,7 +88,6 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
     protected ProfessionalTypeService professionalTypeService;
     protected LoginAttemptService loginAttemptService;
 
-    @Autowired
     public BaseAuthenticationController(AuthenticationManager authenticationManager,
                                         TokenUtils tokenUtils,
                                         BaseUserService userService,
