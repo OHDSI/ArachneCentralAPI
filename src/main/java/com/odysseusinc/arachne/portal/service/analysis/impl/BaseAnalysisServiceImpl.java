@@ -667,6 +667,8 @@ public abstract class BaseAnalysisServiceImpl<
     }
 
     @Override
+    @PreAuthorize("hasPermission(#analysis,  'Analysis', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_ANALYSIS)")
     public void writeToFile(
             AnalysisFile analysisFile,
             FileContentDTO fileContentDTO,

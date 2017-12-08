@@ -38,6 +38,7 @@ public enum ArachnePermission {
     UPLOAD_FILES(Study.class),
     CREATE_ANALYSIS(Study.class),
     DELETE_ANALYSIS(Analysis.class),
+    EDIT_ANALYSIS(Analysis.class),
     DELETE_ANALYSIS_FILES(Analysis.class),
     UPLOAD_ANALYSIS_FILES(Analysis.class),
     LOCK_ANALYSIS_FILE(Analysis.class),
