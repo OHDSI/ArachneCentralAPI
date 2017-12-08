@@ -32,6 +32,7 @@ import com.odysseusinc.arachne.portal.model.ParticipantStatus;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionGroup;
+import com.odysseusinc.arachne.portal.model.SubmissionInsight;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserStudyExtended;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
@@ -180,6 +181,12 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends D
     public List<ParticipantRole> getRolesByPaper(ArachneUser user, P paper) {
 
         return new LinkedList<>(getRolesByStudy(user, paper.getStudy()));
+    }
+
+    @Override
+    public List<ParticipantRole> getRolesByInsight(ArachneUser user, SubmissionInsight domainObject) {
+
+        return getRolesBySubmission(user, domainObject.getSubmission());
     }
 
     public List<ParticipantRole> getParticipantRoles(final Long userId, final Study study) {

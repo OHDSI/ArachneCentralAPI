@@ -928,6 +928,7 @@ public abstract class BaseAnalysisServiceImpl<
     }
 
     @Override
+    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
     public SubmissionInsight getSubmissionInsight(Long submissionId) throws NotExistException {
 
         final SubmissionInsight insight = submissionInsightRepository.findOneBySubmissionId(submissionId);
@@ -943,6 +944,8 @@ public abstract class BaseAnalysisServiceImpl<
     }
 
     @Override
+    @PreAuthorize("hasPermission(#submissionId,  'Submission', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_ANALYSIS)")
     public SubmissionInsight createSubmissionInsight(Long submissionId, SubmissionInsight insight)
             throws AlreadyExistException, NotExistException {
 

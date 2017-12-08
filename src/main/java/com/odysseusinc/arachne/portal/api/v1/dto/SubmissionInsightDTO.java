@@ -24,6 +24,8 @@ package com.odysseusinc.arachne.portal.api.v1.dto;
 
 import java.util.Date;
 import java.util.List;
+
+import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
 import org.hibernate.validator.constraints.NotBlank;
 
 public class SubmissionInsightDTO extends SubmissionInsightCoreDTO {
@@ -39,6 +41,7 @@ public class SubmissionInsightDTO extends SubmissionInsightCoreDTO {
     private SubmissionDTO submission;
     private List<Commentable> recentCommentEntities;
     private Long commentsCount;
+    private PermissionsDTO permissions;
 
     public Date getCreated() {
 
@@ -138,5 +141,13 @@ public class SubmissionInsightDTO extends SubmissionInsightCoreDTO {
     public void setCommentsCount(Long commentsCount) {
 
         this.commentsCount = commentsCount;
+    }
+
+    public PermissionsDTO getPermissions() {
+        return permissions;
+    }
+
+    public void setPermissions(PermissionsDTO permissions) {
+        this.permissions = permissions;
     }
 }

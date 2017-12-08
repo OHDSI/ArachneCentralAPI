@@ -34,6 +34,7 @@ import static com.odysseusinc.arachne.portal.security.ArachnePermission.DELETE_A
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.DELETE_DATASOURCE;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.EDIT_ANALYSIS;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.EDIT_DATANODE;
+import static com.odysseusinc.arachne.portal.security.ArachnePermission.EDIT_INSIGHT;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.EDIT_PAPER;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.EDIT_STUDY;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.INVITE_CONTRIBUTOR;
@@ -64,7 +65,8 @@ public enum ParticipantRole {
             EDIT_PAPER,
             LIMITED_EDIT_PAPER,
             ACCESS_PAPER,
-            EDIT_ANALYSIS
+            EDIT_ANALYSIS,
+            EDIT_INSIGHT
     }),
     CONTRIBUTOR("Contributor", new ArachnePermission[]{
             CREATE_ANALYSIS,
@@ -76,7 +78,8 @@ public enum ParticipantRole {
             SENDING_UNLOCK_ANALYSIS_REQUEST,
             LIMITED_EDIT_PAPER,
             ACCESS_PAPER,
-            EDIT_ANALYSIS
+            EDIT_ANALYSIS,
+            EDIT_INSIGHT
     }),
     DATA_SET_OWNER("Data Set Owner", new ArachnePermission[]{
             CREATE_ANALYSIS,
@@ -92,7 +95,8 @@ public enum ParticipantRole {
             ACCESS_DATASOURCE,
             UNLINK_DATASOURCE,
             ACCESS_PAPER,
-            EDIT_ANALYSIS
+            EDIT_ANALYSIS,
+            EDIT_INSIGHT
     }),
     STUDY_PENDING_CONTRIBUTOR("Pending contributor", new ArachnePermission[]{
             ACCESS_STUDY,

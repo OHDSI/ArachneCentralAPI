@@ -42,6 +42,7 @@ import com.odysseusinc.arachne.portal.model.PublishState;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionGroup;
+import com.odysseusinc.arachne.portal.model.SubmissionInsight;
 import com.odysseusinc.arachne.portal.model.UserStudyGrouped;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
@@ -216,6 +217,12 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
                 .apply();
     }
 
+    protected PermissionDsl insightRules(Object domainObject, ArachneUser user) {
+
+        return domainObject(domainObject).when(instanceOf(SubmissionInsight.class))
+                .then(insight -> getArachnePermissions(secureService.getRolesByInsight(user, (SubmissionInsight) insight))).apply();
+    }
+
     protected PermissionDsl additionalRules(Object domainObject, ArachneUser user) {
 
         return domainObject(domainObject);
@@ -232,6 +239,7 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
                 .with(dataNodeRules(domainObject, user))
                 .with(submissionGroupRules(domainObject, user))
                 .with(paperRules(domainObject, user))
+                .with(insightRules(domainObject, user))
                 .with(additionalRules(domainObject, user))
                 .getPermissions();
     }

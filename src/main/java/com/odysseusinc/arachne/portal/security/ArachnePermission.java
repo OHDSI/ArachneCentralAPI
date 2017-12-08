@@ -23,11 +23,13 @@
 package com.odysseusinc.arachne.portal.security;
 
 import com.odysseusinc.arachne.portal.model.Analysis;
+import com.odysseusinc.arachne.portal.model.AnalysisFile;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.Submission;
+import com.odysseusinc.arachne.portal.model.SubmissionInsight;
 
 public enum ArachnePermission {
     EDIT_STUDY(Study.class),
@@ -39,7 +41,7 @@ public enum ArachnePermission {
     CREATE_ANALYSIS(Study.class),
     DELETE_ANALYSIS(Analysis.class),
     EDIT_ANALYSIS(Analysis.class),
-    DELETE_ANALYSIS_FILES(Analysis.class),
+    DELETE_ANALYSIS_FILES(AnalysisFile.class),
     UPLOAD_ANALYSIS_FILES(Analysis.class),
     LOCK_ANALYSIS_FILE(Analysis.class),
     CREATE_SUBMISSION(Analysis.class),
@@ -50,6 +52,7 @@ public enum ArachnePermission {
     DELETE_DATASOURCE(DataSource.class),
     SENDING_UNLOCK_ANALYSIS_REQUEST(Analysis.class),
     EDIT_PAPER(Paper.class),
+    EDIT_INSIGHT(SubmissionInsight.class),
     ACCESS_PAPER(Paper.class),
     LIMITED_EDIT_PAPER(Paper.class)
     ;
