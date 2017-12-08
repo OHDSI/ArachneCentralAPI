@@ -115,4 +115,9 @@ datanode:
 jasypt:
   encryptor:
     password:
+achilles:
+  executor:
+    corePoolSize: 4
+    maxPoolSize: 8
+    queueCapacity: 200
 #logging.level.org.hibernate.SQL=DEBUG
