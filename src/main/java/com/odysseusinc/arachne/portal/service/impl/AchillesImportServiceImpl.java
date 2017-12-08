@@ -102,7 +102,6 @@ public class AchillesImportServiceImpl implements AchillesImportService {
         Timestamp now = new Timestamp(new Date().getTime());
         characterization.setDate(now);
         Path tempDir = Files.createTempDirectory("achilles_");
-//        final Path tempDir = Paths.get("/tmp/achilles_qims");
         entityManager.setFlushMode(FlushModeType.COMMIT);
         batch.set(new ArrayList<>());
         try {
