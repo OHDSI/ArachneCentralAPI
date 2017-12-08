@@ -1,0 +1,30 @@
+server:
+  ssl:
+    enabled: false
+logging:
+  level: debug
+portal:
+  hostsWhiteList: localhost
+build:
+  number: no_build_number
+  id: no_build_id
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5489/arachne_portal
+    username: ohdsi
+    password: ENC(0Lpfvg9UPAyaaZpSIqwaDg==)
+  mail:
+    host: localhost
+    port: 1025
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+            required: false
+jasypt:
+  encryptor:
+    password: arachne
+arachne:
+  solrServerUrl: http://localhost:8985/solr
