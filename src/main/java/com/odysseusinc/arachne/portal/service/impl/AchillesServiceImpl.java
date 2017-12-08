@@ -30,6 +30,7 @@ import com.odysseusinc.arachne.portal.model.achilles.Characterization;
 import com.odysseusinc.arachne.portal.repository.AchillesFileRepository;
 import com.odysseusinc.arachne.portal.repository.AchillesReportRepository;
 import com.odysseusinc.arachne.portal.repository.CharacterizationRepository;
+import com.odysseusinc.arachne.portal.service.AchillesImportService;
 import com.odysseusinc.arachne.portal.service.AchillesService;
 import com.odysseusinc.arachne.portal.service.StudyService;
 import java.io.IOException;
@@ -50,17 +51,19 @@ public class AchillesServiceImpl extends BaseAchillesService<DataSource> impleme
     public AchillesServiceImpl(CharacterizationRepository characterizationRepository,
                                AchillesFileRepository achillesFileRepository,
                                AchillesReportRepository achillesReportRepository,
-                               StudyService studyService) {
+                               StudyService studyService,
+                               AchillesImportService achillesHelperService
+    ) {
 
-        super(achillesFileRepository, characterizationRepository, studyService, achillesReportRepository);
+        super(achillesFileRepository, characterizationRepository, studyService, achillesReportRepository, achillesHelperService);
 
     }
 
     @Override
     @PreAuthorize("#ds.dataNode == authentication.principal")
-    public Characterization createCharacterization(@P("ds") DataSource dataSource, MultipartFile data) throws IOException {
+    public void createCharacterization(@P("ds") DataSource dataSource, MultipartFile data) throws IOException {
 
-        return super.createCharacterization(dataSource, data);
+        super.createCharacterization(dataSource, data);
     }
 
     @Override

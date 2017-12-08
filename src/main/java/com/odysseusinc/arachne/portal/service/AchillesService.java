@@ -34,7 +34,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 
 public interface AchillesService<DS extends DataSource> {
-    Characterization createCharacterization(DS dataSource, MultipartFile data) throws IOException;
+    void createCharacterization(DS dataSource, MultipartFile data) throws IOException;
 
     List<Characterization> getCharacterizations(DS dataSource);
 
