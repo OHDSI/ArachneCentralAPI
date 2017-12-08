@@ -25,6 +25,6 @@ spring:
             required: false
 jasypt:
   encryptor:
-    password: arachne
+    password:
 arachne:
   solrServerUrl: http://localhost:8985/solr
