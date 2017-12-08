@@ -1,0 +1,1 @@
+UPDATE analyses SET "type" = 'CUSTOM' WHERE "type" = 'CHARACTERIZATION';
