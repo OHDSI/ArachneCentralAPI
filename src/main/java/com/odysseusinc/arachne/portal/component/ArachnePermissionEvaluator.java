@@ -24,6 +24,7 @@ package com.odysseusinc.arachne.portal.component;
 import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.analysisAuthorIs;
 import static com.odysseusinc.arachne.portal.component.PermissionDsl.domainObject;
 import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.analysisFileAuthorIs;
+import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.userIsDSOwner;
 import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.userIsLeadInvestigator;
 import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.hasRole;
 import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.instanceOf;

@@ -293,6 +293,8 @@ public abstract class BaseAnalysisServiceImpl<
     }
 
     @Override
+    @PreAuthorize("hasPermission(#analysis,  'Analysis', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_ANALYSIS)")
     public A update(A analysis)
             throws NotUniqueException, NotExistException, ValidationException {
 
@@ -517,12 +519,15 @@ public abstract class BaseAnalysisServiceImpl<
     @Override
     @PreAuthorize("hasPermission(#analysisId,  'Analysis', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
+    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
     public AnalysisFile getAnalysisFile(Long analysisId, String uuid) {
 
         return analysisFileRepository.findByUuid(uuid);
     }
 
     @Override
+    @PreAuthorize("hasPermission(#analysisId,  'Analysis', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_ANALYSIS)")
     public void lockAnalysisFiles(Long analysisId, Boolean locked) throws NotExistException {
 
         final Optional<A> analysisOptional = Optional.of(analysisRepository.findOne(analysisId));
@@ -668,7 +673,7 @@ public abstract class BaseAnalysisServiceImpl<
 
     @Override
     @PreAuthorize("hasPermission(#analysis,  'Analysis', "
-            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_ANALYSIS)")
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).DELETE_ANALYSIS)")
     public void writeToFile(
             AnalysisFile analysisFile,
             FileContentDTO fileContentDTO,
