@@ -92,7 +92,7 @@ run_cohort_characterization <- function(
     if (cohortResults[[key]]){
 
       cohortDefinitionSqlPathInLowerCase <- tolower(cohortDefinitionSqlPath)
-      sqlFileName <- gsub("\\.sql$", paste("-", ".sql", sep = key ), cohortDefinitionSqlPathInLowerCase)
+      sqlFileName <- gsub("\\.sql$", paste("-", ".sql", sep = key), cohortDefinitionSqlPathInLowerCase)
 
       sql <- readSql(sqlFileName)
       sql <- renderSql(sql,
