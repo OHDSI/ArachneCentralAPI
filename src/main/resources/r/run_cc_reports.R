@@ -101,7 +101,7 @@ run_cohort_characterization <- function(
                        target_cohort_id = cohortId)$sql
       sql <- translateSql(sql, targetDialect = connectionDetails$dbms)$sql
       res <- querySql(connection, sql)
-      write.csv(res, file = paste(sqlFileName, ".result.csv", sep =""), row.names=FALSE, quote = FALSE, col.names = TRUE)
+      write.csv(res, file = paste(sqlFileName, ".result.csv", sep = ""), row.names = FALSE, quote = FALSE, col.names = TRUE)
     }
   }
 
