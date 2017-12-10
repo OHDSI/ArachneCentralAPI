@@ -89,24 +89,19 @@ run_cohort_characterization <- function(
 
   for (key in names(cohortResults)) {
 
-    if (result[[key]]){
+    if (cohortResults[[key]]){
 
-      cohortDefinitionSqlPathInLowerCase <-   tolower(cohortDefinitionSqlPath)
-      pos <- cohortDefinitionSqlPathInLowerCase$lastIndexOf("\\.sql", fromIndex=0)
-
-      fileNameWoExt <- substring(cohortDefinitionSqlPathInLowerCase, pos, last = 1000000L)
-      sqlFileName <- sprintf("%s-%s.sql", fileNameWoExt, key);
+      cohortDefinitionSqlPathInLowerCase <- tolower(cohortDefinitionSqlPath)
+      sqlFileName <- gsub("\\.sql$", paste("-", ".sql", sep = key ), cohortDefinitionSqlPathInLowerCase)
 
       sql <- readSql(sqlFileName)
       sql <- renderSql(sql,
-        # cdm_database_schema = cdmDatabaseSchema,
-        target_database_schema = resultsDatabaseSchema,
-        target_cohort_table = cohortTable,
-        target_cohort_id = cohortId)$sql
-        sql <- translateSql(sql, targetDialect = connectionDetails$dbms)$sql
-
-      res <- executeSql(connection, sql)
-      write.csv(res, file = paste(sqlFileName, ".result.csv", sep =""), row.names=TRUE)
+                       target_database_schema = resultsDatabaseSchema,
+                       target_cohort_table = cohortTable,
+                       target_cohort_id = cohortId)$sql
+      sql <- translateSql(sql, targetDialect = connectionDetails$dbms)$sql
+      res <- querySql(connection, sql)
+      write.csv(res, file = paste(sqlFileName, ".result.csv", sep =""), row.names=FALSE, quote = FALSE, col.names = TRUE)
     }
   }
 
