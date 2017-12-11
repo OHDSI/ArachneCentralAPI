@@ -981,6 +981,8 @@ public abstract class BaseAnalysisServiceImpl<
     }
 
     @Override
+    @PreAuthorize("hasPermission(#insight, "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_INSIGHT)")
     public SubmissionInsight updateSubmissionInsight(Long submissionId, SubmissionInsight insight)
             throws NotExistException {
 
