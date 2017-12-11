@@ -465,7 +465,6 @@ public abstract class BaseAnalysisServiceImpl<
                 final String contentType = response.getHeaders().getContentType().toString();
 
                 Path pathToAnalysis = getAnalysisPath(analysis);
-                Path targetPath = Paths.get(pathToAnalysis.toString(), fileNameLowerCase);
 
                 Files.copy(new ByteArrayInputStream(response.getBody()),
                         pathToAnalysis, REPLACE_EXISTING);
@@ -685,14 +684,16 @@ public abstract class BaseAnalysisServiceImpl<
             if (Files.notExists(analysisFolder)) {
                 Files.createDirectories(analysisFolder);
             }
-            Path target = analysisFolder.resolve(analysisFile.getUuid());
+            Path targetPath = analysisFolder.resolve(analysisFile.getUuid());
             byte[] content = fileContentDTO.getContent().getBytes(StandardCharsets.UTF_8);
             try (final InputStream stream = new ByteArrayInputStream(content)) {
-                Files.copy(stream, target, REPLACE_EXISTING);
+                Files.copy(stream, targetPath, REPLACE_EXISTING);
             }
             analysisFile.setUpdated(new Date());
             analysisFile.setEntryPoint(analysisFile.getEntryPoint());
             analysisFile.setUpdatedBy(updatedBy);
+            analysisFile.setContentType(CommonFileUtils.getContentType(analysisFile.getRealName(), targetPath.toString()));
+
             analysisFile.incrementVersion();
             analysisFileRepository.save(analysisFile);
 

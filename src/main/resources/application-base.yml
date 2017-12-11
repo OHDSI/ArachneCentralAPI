@@ -48,12 +48,15 @@ spring:
     view:
       prefix: /
       suffix: .html
+    throw-exception-if-no-handler-found: true
   thymeleaf:
     enabled: false
   http:
     multipart:
       max-file-size: 128MB
       max-request-size: 128MB
+  resources:
+    add-mappings: false
   activemq:
     broker-url: vm://localhost?broker.persistent=true
     packages:
