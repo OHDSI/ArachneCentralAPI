@@ -526,8 +526,6 @@ public abstract class BaseAnalysisServiceImpl<
     }
 
     @Override
-    @PreAuthorize("hasPermission(#analysisId,  'Analysis', "
-            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_ANALYSIS)")
     public void lockAnalysisFiles(Long analysisId, Boolean locked) throws NotExistException {
 
         final Optional<A> analysisOptional = Optional.of(analysisRepository.findOne(analysisId));
