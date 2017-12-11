@@ -171,21 +171,19 @@ public abstract class BaseAnalysisController<T extends Analysis,
     public JsonResult<D> create(
             Principal principal,
             @RequestBody @Valid A_C_DTO analysisDTO,
-            BindingResult binding)
+            BindingResult bindingResult)
             throws PermissionDeniedException, NotExistException, NotUniqueException {
 
         JsonResult<D> result;
         User user = getUser(principal);
 
-        if (binding.hasErrors()) {
-            result = new JsonResult<>(VALIDATION_ERROR);
-            for (FieldError fieldError : binding.getFieldErrors()) {
-                result.getValidatorErrors().put(fieldError.getField(), fieldError.getDefaultMessage());
-            }
+        if (bindingResult.hasErrors()) {
+            return setValidationErrors(bindingResult);
         } else {
             T analysis = conversionService.convert(analysisDTO, getAnalysisClass());
             analysis.setAuthor(user);
             analysis = analysisService.create(analysis);
+            afterCreate(analysis, analysisDTO);
             result = new JsonResult<>(NO_ERROR);
             result.setResult(conversionService.convert(analysis, getAnalysisDTOClass()));
         }
@@ -703,6 +701,8 @@ public abstract class BaseAnalysisController<T extends Analysis,
             return IOUtils.toByteArray(in);
         }
     }
+
+    protected void afterCreate(T analysis, A_C_DTO analysisDTO) {}
 
     protected abstract void attachPredictionFiles(List<MultipartFile> files) throws IOException;
 
