@@ -34,6 +34,7 @@ import static com.odysseusinc.arachne.portal.security.ArachnePermission.DELETE_D
 
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.AnalysisFile;
+import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.Paper;
@@ -95,6 +96,7 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
         domainClassMap.put(SubmissionGroup.class.getSimpleName(), SubmissionGroup.class);
         domainClassMap.put(DataSource.class.getSimpleName(), DataSource.class);
         domainClassMap.put(Paper.class.getSimpleName(), Paper.class);
+        domainClassMap.put(CommentTopic.class.getSimpleName(), CommentTopic.class);
     }
 
     protected boolean checkPermission(Authentication authentication, Object domainObject, Object permissions) {
@@ -223,6 +225,12 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
                 .then(insight -> getArachnePermissions(secureService.getRolesByInsight(user, (SubmissionInsight) insight))).apply();
     }
 
+    protected PermissionDsl topicRules(Object domainObject, ArachneUser user) {
+
+        return domainObject(domainObject).when(instanceOf(CommentTopic.class))
+                .then(topic -> getArachnePermissions(secureService.getRolesByCommentTopic(user, (CommentTopic) topic))).apply();
+    }
+
     protected PermissionDsl additionalRules(Object domainObject, ArachneUser user) {
 
         return domainObject(domainObject);
@@ -240,6 +248,7 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
                 .with(submissionGroupRules(domainObject, user))
                 .with(paperRules(domainObject, user))
                 .with(insightRules(domainObject, user))
+                .with(topicRules(domainObject, user))
                 .with(additionalRules(domainObject, user))
                 .getPermissions();
     }

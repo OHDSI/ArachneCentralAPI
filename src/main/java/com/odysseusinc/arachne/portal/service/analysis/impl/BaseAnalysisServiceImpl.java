@@ -975,6 +975,12 @@ public abstract class BaseAnalysisServiceImpl<
     }
 
     @Override
+    public SubmissionInsightSubmissionFile findInsightByTopic(CommentTopic topic) {
+
+        return submissionInsightSubmissionFileRepository.findByCommentTopic(topic);
+    }
+
+    @Override
     public void deleteSubmissionInsightSubmissionFileLinks(List<SubmissionInsightSubmissionFile> links) {
 
         submissionInsightSubmissionFileRepository.delete(links);

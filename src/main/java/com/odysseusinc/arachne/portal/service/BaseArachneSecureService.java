@@ -23,6 +23,7 @@
 package com.odysseusinc.arachne.portal.service;
 
 import com.odysseusinc.arachne.portal.model.Analysis;
+import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.Paper;
@@ -52,4 +53,6 @@ public interface BaseArachneSecureService<P extends Paper, DS extends DataSource
     List<ParticipantRole> getRolesByPaper(ArachneUser user, P domainObject);
 
     List<ParticipantRole> getRolesByInsight(ArachneUser user, SubmissionInsight domainObject);
+
+    List<ParticipantRole> getRolesByCommentTopic(ArachneUser user, CommentTopic topic);
 }

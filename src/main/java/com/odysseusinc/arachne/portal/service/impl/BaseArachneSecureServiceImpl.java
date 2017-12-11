@@ -23,22 +23,27 @@
 package com.odysseusinc.arachne.portal.service.impl;
 
 import com.odysseusinc.arachne.portal.model.Analysis;
+import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataNodeRole;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import com.odysseusinc.arachne.portal.model.ParticipantStatus;
+import com.odysseusinc.arachne.portal.model.ResultFile;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionGroup;
 import com.odysseusinc.arachne.portal.model.SubmissionInsight;
+import com.odysseusinc.arachne.portal.model.SubmissionInsightSubmissionFile;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserStudyExtended;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
 import com.odysseusinc.arachne.portal.repository.AnalysisRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeUserRepository;
+import com.odysseusinc.arachne.portal.repository.ResultFileRepository;
+import com.odysseusinc.arachne.portal.repository.SubmissionInsightSubmissionFileRepository;
 import com.odysseusinc.arachne.portal.repository.UserStudyExtendedRepository;
 import com.odysseusinc.arachne.portal.repository.UserStudyGroupedRepository;
 import com.odysseusinc.arachne.portal.repository.submission.SubmissionRepository;
@@ -66,6 +71,8 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends D
     protected final DataNodeRepository<DataNode> dataNodeRepository;
     protected final DataNodeUserRepository dataNodeUserRepository;
     protected final UserStudyExtendedRepository userStudyExtendedRepository;
+    protected final SubmissionInsightSubmissionFileRepository submissionInsightSubmissionFileRepository;
+    protected final ResultFileRepository resultFileRepository;
 
     @Autowired
     public BaseArachneSecureServiceImpl(UserStudyGroupedRepository userStudyGroupedRepository,
@@ -73,7 +80,9 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends D
                                         SubmissionRepository submissionRepository,
                                         DataNodeRepository dataNodeRepository,
                                         DataNodeUserRepository dataNodeUserRepository,
-                                        UserStudyExtendedRepository userStudyExtendedRepository) {
+                                        UserStudyExtendedRepository userStudyExtendedRepository,
+                                        SubmissionInsightSubmissionFileRepository submissionInsightSubmissionFileRepository,
+                                        ResultFileRepository resultFileRepository) {
 
         this.userStudyGroupedRepository = userStudyGroupedRepository;
         this.analysisRepository = analysisRepository;
@@ -81,6 +90,8 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends D
         this.dataNodeRepository = dataNodeRepository;
         this.dataNodeUserRepository = dataNodeUserRepository;
         this.userStudyExtendedRepository = userStudyExtendedRepository;
+        this.submissionInsightSubmissionFileRepository = submissionInsightSubmissionFileRepository;
+        this.resultFileRepository = resultFileRepository;
     }
 
     @Override
@@ -187,6 +198,22 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends D
     public List<ParticipantRole> getRolesByInsight(ArachneUser user, SubmissionInsight domainObject) {
 
         return getRolesBySubmission(user, domainObject.getSubmission());
+    }
+
+    @Override
+    public List<ParticipantRole> getRolesByCommentTopic(ArachneUser user, CommentTopic topic) {
+
+        SubmissionInsightSubmissionFile submissionInsightLink = submissionInsightSubmissionFileRepository.findByCommentTopic(topic);
+        SubmissionInsight insight;
+
+        if (submissionInsightLink == null) {
+            ResultFile resultFile = resultFileRepository.findByCommentTopic(topic);
+            insight = resultFile.getSubmission().getSubmissionInsight();
+        } else {
+            insight = submissionInsightLink.getSubmissionInsight();
+        }
+
+        return getRolesByInsight(user, insight);
     }
 
     public List<ParticipantRole> getParticipantRoles(final Long userId, final Study study) {

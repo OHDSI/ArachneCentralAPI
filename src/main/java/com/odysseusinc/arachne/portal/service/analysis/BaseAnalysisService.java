@@ -123,6 +123,8 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
     SubmissionInsight createSubmissionInsight(Long submissionId, SubmissionInsight insight)
             throws AlreadyExistException, NotExistException;
 
+    SubmissionInsightSubmissionFile findInsightByTopic(CommentTopic topic);
+
     void deleteSubmissionInsightSubmissionFileLinks(List<SubmissionInsightSubmissionFile> links);
 
     SubmissionInsight updateSubmissionInsight(Long submissionId, SubmissionInsight insight)
