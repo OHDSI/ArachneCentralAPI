@@ -692,17 +692,25 @@ public abstract class BaseAnalysisController<T extends Analysis,
         if (entityType.equals(CommonAnalysisType.COHORT_CHARACTERIZATION)) {
             attachCohortCharacterizationFiles(files);
         }
+        if (entityType.equals(CommonAnalysisType.INCIDENCE)) {
+            attachIncidenceRatesFiles(files);
+        }
         return files;
     }
 
+    protected abstract void attachIncidenceRatesFiles(List<MultipartFile> files) throws IOException;
+
     protected byte[] readResource(final String path) throws IOException {
+
         Resource resource = new ClassPathResource(path);
         try (InputStream in = resource.getInputStream()) {
             return IOUtils.toByteArray(in);
         }
     }
 
-    protected void afterCreate(T analysis, A_C_DTO analysisDTO) {}
+    protected void afterCreate(T analysis, A_C_DTO analysisDTO) {
+
+    }
 
     protected abstract void attachPredictionFiles(List<MultipartFile> files) throws IOException;
 
