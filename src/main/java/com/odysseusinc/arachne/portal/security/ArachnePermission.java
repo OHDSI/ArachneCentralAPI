@@ -41,7 +41,7 @@ public enum ArachnePermission {
     CREATE_ANALYSIS(Study.class),
     DELETE_ANALYSIS(Analysis.class),
     EDIT_ANALYSIS(Analysis.class),
-    DELETE_ANALYSIS_FILES(AnalysisFile.class),
+    DELETE_ANALYSIS_FILES(Analysis.class, AnalysisFile.class),
     UPLOAD_ANALYSIS_FILES(Analysis.class),
     LOCK_ANALYSIS_FILE(Analysis.class),
     CREATE_SUBMISSION(Analysis.class),
@@ -57,14 +57,14 @@ public enum ArachnePermission {
     LIMITED_EDIT_PAPER(Paper.class)
     ;
 
-    private Class<?> applicableClass;
+    private Class<?>[] applicableClass;
 
-    ArachnePermission(Class<?> clazz) {
+    ArachnePermission(Class<?>... clazz) {
 
         applicableClass = clazz;
     }
 
-    public Class<?> getApplicableClass() {
+    public Class<?>[] getApplicableClass() {
 
         return applicableClass;
     }
