@@ -72,6 +72,7 @@ import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -276,7 +277,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
         HttpUtils.putFileContentToResponse(
                 response,
                 analysisFile.getContentType(),
-                analysisFile.getRealName(),
+                StringUtils.getFilename(analysisFile.getRealName()),
                 analysisService.getSubmissionFile(analysisFile));
     }
 
@@ -400,6 +401,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
             {
                 add(SubmissionStatus.STARTING);
                 add(SubmissionStatus.IN_PROGRESS);
+                add(SubmissionStatus.QUEUE_PROCESSING);
             }
         };
         T submission = submissionService.getSubmissionByIdAndUpdatePasswordAndStatus(
@@ -408,7 +410,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
         submission.setStdout(stdout == null ? stdoutDiff : stdout + stdoutDiff);
         submission.setStdoutDate(status.getStdoutDate());
         submission.setUpdated(new Date());
-        if (submission.getStatus().equals(SubmissionStatus.STARTING)) {
+        if (submission.getStatus().equals(SubmissionStatus.STARTING) || submission.getStatus().equals(SubmissionStatus.QUEUE_PROCESSING)) {
             submissionService.moveSubmissionToNewStatus(submission, SubmissionStatus.IN_PROGRESS, null, null);
         } else {
             submissionService.saveSubmission(submission);
@@ -468,7 +470,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
         HttpUtils.putFileContentToResponse(
                 response,
                 resultFile.getContentType(),
-                resultFile.getRealName(),
+                StringUtils.getFilename(resultFile.getRealName()),
                 analysisService.getResultFile(resultFile));
     }
 

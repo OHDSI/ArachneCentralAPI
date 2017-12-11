@@ -31,6 +31,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.ResetPasswordDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserInfoDTO;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PasswordValidationException;
+import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.UserNotActivatedException;
 import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
 import com.odysseusinc.arachne.portal.model.DataNode;
@@ -39,6 +40,7 @@ import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
 import com.odysseusinc.arachne.portal.security.TokenUtils;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
+import com.odysseusinc.arachne.portal.service.LoginAttemptService;
 import com.odysseusinc.arachne.portal.service.PasswordResetService;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
 import edu.vt.middleware.password.Password;
@@ -49,6 +51,7 @@ import io.swagger.annotations.ApiOperation;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -83,6 +86,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
     private PasswordResetService passwordResetService;
     private PasswordValidator passwordValidator;
     protected ProfessionalTypeService professionalTypeService;
+    protected LoginAttemptService loginAttemptService;
 
     public BaseAuthenticationController(AuthenticationManager authenticationManager,
                                         TokenUtils tokenUtils,
@@ -90,7 +94,8 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
                                         UserDetailsService userDetailsService,
                                         PasswordResetService passwordResetService,
                                         @Qualifier("passwordValidator") PasswordValidator passwordValidator,
-                                        ProfessionalTypeService professionalTypeService) {
+                                        ProfessionalTypeService professionalTypeService,
+                                        LoginAttemptService loginAttemptService) {
 
         this.authenticationManager = authenticationManager;
         this.tokenUtils = tokenUtils;
@@ -99,6 +104,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
         this.passwordResetService = passwordResetService;
         this.passwordValidator = passwordValidator;
         this.professionalTypeService = professionalTypeService;
+        this.loginAttemptService = loginAttemptService;
     }
 
     @ApiOperation("Get auth method")
@@ -112,36 +118,58 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
 
     @ApiOperation("Login with specified credentials.")
     @RequestMapping(value = "/api/v1/auth/login", method = RequestMethod.POST)
-    public JsonResult login(@RequestBody CommonAuthenticationRequest authenticationRequest)
+    public JsonResult<CommonAuthenticationResponse> login(@RequestBody CommonAuthenticationRequest authenticationRequest)
             throws AuthenticationException {
 
-        JsonResult jsonResult;
+        JsonResult<CommonAuthenticationResponse> jsonResult;
+        String username = authenticationRequest.getUsername();
+
         try {
-            Authentication authentication = this.authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            authenticationRequest.getUsername(),
-                            authenticationRequest.getPassword()
-                    )
-            );
+            checkIfUserBlocked(username);
+            Authentication authentication = authenticate(authenticationRequest);
             SecurityContextHolder.getContext().setAuthentication(authentication);
-
-            User user = getUser(authenticationRequest.getUsername());
-
-            String token = this.tokenUtils.generateToken(user.getUsername());
-            jsonResult = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
+            String token = this.tokenUtils.generateToken(username);
             CommonAuthenticationResponse authenticationResponse = new CommonAuthenticationResponse(token);
-            jsonResult.setResult(authenticationResponse);
+            jsonResult = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, authenticationResponse);
+            loginAttemptService.loginSucceeded(username);
         } catch (Exception ex) {
-            if (ex.getCause() instanceof UserNotActivatedException) {
-                jsonResult = new JsonResult<>(JsonResult.ErrorCode.UNACTIVATED);
-            } else {
-                jsonResult = new JsonResult<>(JsonResult.ErrorCode.UNAUTHORIZED);
-            }
-            jsonResult.setErrorMessage(ex.getMessage());
-            log.error(ex.getMessage(), ex);
+            jsonResult = getJsonResultForUnsuccessfulLogin(username, ex);
         }
         // Return the token
         return jsonResult;
+    }
+
+    private JsonResult<CommonAuthenticationResponse> getJsonResultForUnsuccessfulLogin(String username, Exception ex) {
+
+        JsonResult<CommonAuthenticationResponse> jsonResult;
+        String errorMessage = ex.getMessage();
+        if (ex.getCause() instanceof UserNotActivatedException) {
+            jsonResult = new JsonResult<>(JsonResult.ErrorCode.UNACTIVATED);
+        } else {
+            loginAttemptService.loginFailed(username);
+            jsonResult = new JsonResult<>(JsonResult.ErrorCode.UNAUTHORIZED);
+            errorMessage = "Unsuccessful attempt to login for user: {}";
+        }
+        jsonResult.setErrorMessage(ex.getMessage());
+        log.error(errorMessage, username);
+        return jsonResult;
+    }
+
+    private void checkIfUserBlocked(String username) throws PermissionDeniedException {
+
+        if (loginAttemptService.isBlocked(username)) {
+            throw new PermissionDeniedException("You have exceeded the number of allowed login attempts. Please try again later.");
+        }
+    }
+
+    private Authentication authenticate(CommonAuthenticationRequest authenticationRequest) {
+
+        return this.authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        authenticationRequest.getUsername(),
+                        authenticationRequest.getPassword()
+                )
+        );
     }
 
     protected User getUser(String userName) {

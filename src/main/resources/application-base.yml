@@ -79,6 +79,9 @@ arachne:
     header: Arachne-System-Token
   resetPasswordToken:
     expiresMinutes: 60
+  loginAttempts:
+    count: 3
+    resetMinutes: 3
   solrServerUrl: http://localhost:8983/solr
   mail:
     notifier: odysseusinc.notifier@gmail.com
@@ -112,4 +115,9 @@ datanode:
 jasypt:
   encryptor:
     password:
+achilles:
+  executor:
+    corePoolSize: 4
+    maxPoolSize: 8
+    queueCapacity: 200
 #logging.level.org.hibernate.SQL=DEBUG

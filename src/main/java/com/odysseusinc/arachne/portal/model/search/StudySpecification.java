@@ -83,6 +83,11 @@ public class StudySpecification<T extends AbstractUserStudyListItem> implements 
             predicates.add(cb.like(cb.lower(title), "%" + criteria.getQuery().toLowerCase() + "%"));
         }
 
+        final Boolean privacy = criteria.getPrivacy();
+        if (privacy != null) {
+            predicates.add(cb.equal(study.get("privacy"), privacy));
+        }
+
         getAdditionalPredicate(root, query, cb).map(predicates::add);
 
         return cb.and(predicates.toArray(new Predicate[predicates.size()]));

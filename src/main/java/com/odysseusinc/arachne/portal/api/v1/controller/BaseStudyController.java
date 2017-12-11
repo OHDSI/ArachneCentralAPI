@@ -193,7 +193,7 @@ public abstract class BaseStudyController<
             @PathVariable("studyId") Long id,
             @RequestBody @Valid SD studyDTO,
             BindingResult binding)
-            throws PermissionDeniedException, NotExistException, NotUniqueException, ValidationException {
+            throws NotExistException, NotUniqueException, ValidationException {
 
         JsonResult<SD> result;
         if (binding.hasErrors()) {

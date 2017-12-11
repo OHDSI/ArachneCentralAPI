@@ -36,7 +36,6 @@ import com.odysseusinc.arachne.portal.service.StudyService;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.convert.support.GenericConversionService;
 
 public abstract class BaseStudyToStudyListDTOConverter<S extends UserStudyGrouped, DTO extends StudyListDTO> extends BaseConversionServiceAwareConverter<S, DTO> {
 
@@ -74,9 +73,11 @@ public abstract class BaseStudyToStudyListDTOConverter<S extends UserStudyGroupe
                         .map(studyLead -> conversionService.convert(studyLead, ShortUserDTO.class))
                         .collect(Collectors.toList())
         );
+        studyDTO.setPrivacy(source.getPrivacy());
 
         proceedAdditionalFields(studyDTO, userStudyExtendedLink);
 
         return studyDTO;
     }
+
 }

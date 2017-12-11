@@ -30,31 +30,19 @@ import java.util.List;
 public class StudyListDTO {
 
     public Long id;
-
     private String title;
-
     private StudyTypeDTO type;
-
     private String description;
-
     private String role;
-
     private List<ShortUserDTO> leadList;
-
     private Date created;
-
     private StudyStatusDTO status;
-
     private Date updated;
-
     private Date startDate;
-
     private Date endDate;
-
     private Boolean favourite;
-
     private PermissionsDTO permissions;
-
+    private Boolean privacy;
 
     public String getDescription() {
 
@@ -187,4 +175,13 @@ public class StudyListDTO {
         this.permissions = permissions;
     }
 
+    public Boolean getPrivacy() {
+
+        return privacy;
+    }
+
+    public void setPrivacy(Boolean privacy) {
+
+        this.privacy = privacy;
+    }
 }

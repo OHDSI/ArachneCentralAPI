@@ -54,7 +54,7 @@ import java.util.UUID;
 public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements BaseDataNodeService<DN> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseDataNodeServiceImpl.class);
-    private static final String IS_NOT_FOUND_EXCEPTION = "Data node with sid='%s' is not found";
+    private static final String IS_NOT_FOUND_EXCEPTION = "Data node with id='%s' is not found";
     private static final String DATANODE_WITH_TOKEN_NOT_EXIST_EXC = "DataNode with suggested token does not exists";
     private static final String USER_ALREADY_LINKED_EXC = "User with id='%s' already linked to DataNode with id='%s'";
     private static final String USER_IS_NOT_LINKED_EXC = "User with id='%s' is not linked to DataNode with id='%s'";
