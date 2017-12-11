@@ -27,6 +27,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.Commentable;
 import com.odysseusinc.arachne.portal.api.v1.dto.CommentableResultFileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.CommentableSubmissionFileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.DataSourceDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.PermissionsDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ShortUserDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.StudyShortDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionDTO;
@@ -77,6 +78,7 @@ public class SubmissionInsightToSubmissionInsightDTOConverter extends BaseConver
         final AnalysisDTO analysisDTO = analysisConverter(source.getSubmission().getAnalysis());
         dto.setAnalysis(analysisDTO);
         dto.setCommentsCount(source.getCommentsCount());
+        dto.setPermissions(conversionService.convert(source, PermissionsDTO.class));
         return dto;
     }
 

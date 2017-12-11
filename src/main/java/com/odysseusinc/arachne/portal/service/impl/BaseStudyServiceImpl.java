@@ -144,6 +144,7 @@ public abstract class BaseStudyServiceImpl<
     private static final String EX_PARTICIPANT_EXISTS = "Participant is already added";
     private static final String DATASOURCE_NOT_EXIST_EXCEPTION = "DataSource with id='%s' does not exist";
     private static final String VIRTUAL_DATASOURCE_OWNERS_IS_EMPTY_EXC = "Virtual Data Source must have at least one Data Owner";
+    private static final String PENDING_USER_CANNOT_BE_DATASOURCE_OWNER = "Pending user cannot be a Data Owner";
 
     private final JavaMailSender javaMailSender;
     private final UserStudyExtendedRepository userStudyExtendedRepository;
@@ -683,16 +684,13 @@ public abstract class BaseStudyServiceImpl<
             FieldException, IllegalAccessException, SolrServerException {
 
         Study study = studyRepository.findOne(studyId);
-        if (study == null) {
-            throw new NotExistException("study not exist", Study.class);
-        }
-        if (CollectionUtils.isEmpty(dataOwnerIds)) {
-            throw new IllegalArgumentException(VIRTUAL_DATASOURCE_OWNERS_IS_EMPTY_EXC);
-        }
+
+        List<User> dataNodeOwners = validateVirtualDataSourceOwners(study, dataOwnerIds);
+
         final DataNode dataNode = studyHelper.getVirtualDataNode(study.getTitle(), dataSourceName);
         final DataNode registeredDataNode = baseDataNodeService.register(dataNode);
 
-        final Set<DataNodeUser> dataNodeUsers = updateDataNodeOwners(dataOwnerIds, registeredDataNode);
+        final Set<DataNodeUser> dataNodeUsers = updateDataNodeOwners(dataNodeOwners, registeredDataNode);
         registeredDataNode.setDataNodeUsers(dataNodeUsers);
 
         final DS dataSource = studyHelper.getVirtualDataSource(registeredDataNode, dataSourceName);
@@ -701,6 +699,32 @@ public abstract class BaseStudyServiceImpl<
         final DS registeredDataSource = dataSourceService.createOrRestoreDataSource(dataSource);
         addDataSource(createdBy, studyId, registeredDataSource.getId());
         return registeredDataSource;
+    }
+
+    private List<User> validateVirtualDataSourceOwners(Study study, List<Long> dataOwnerIds) {
+
+        if (study == null) {
+            throw new NotExistException("study not exist", Study.class);
+        }
+
+        if (CollectionUtils.isEmpty(dataOwnerIds)) {
+            throw new IllegalArgumentException(VIRTUAL_DATASOURCE_OWNERS_IS_EMPTY_EXC);
+        }
+
+        final List<User> dataOwners = userService.findUsersByIdsIn(dataOwnerIds);
+
+        Set<Long> pendingUserIdsSet = study.getParticipants().stream()
+                .filter(link -> Objects.equals(link.getStatus(), ParticipantStatus.PENDING))
+                .map(link -> link.getUser().getId())
+                .collect(Collectors.toSet());
+
+        boolean containsPending = dataOwners.stream().map(User::getId).anyMatch(pendingUserIdsSet::contains);
+
+        if (containsPending) {
+            throw new IllegalArgumentException(PENDING_USER_CANNOT_BE_DATASOURCE_OWNER);
+        }
+
+        return dataOwners;
     }
 
     @Override
@@ -722,10 +746,14 @@ public abstract class BaseStudyServiceImpl<
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).DELETE_DATASOURCE)")
     public DS updateVirtualDataSource(User user, Long studyId, Long dataSourceId, String name, List<Long> dataOwnerIds) throws IllegalAccessException, IOException, NoSuchFieldException, SolrServerException, ValidationException {
 
+        Study study = studyRepository.findOne(studyId);
+
+        List<User> dataOwners = validateVirtualDataSourceOwners(study, dataOwnerIds);
+
         final DS dataSource = getStudyDataSource(user, studyId, dataSourceId);
         final DataNode dataNode = dataSource.getDataNode();
 
-        updateDataNodeOwners(dataOwnerIds, dataNode);
+        updateDataNodeOwners(dataOwners, dataNode);
 
         dataSource.setName(name);
         final DS update = dataSourceService.update(dataSource);
@@ -874,9 +902,8 @@ public abstract class BaseStudyServiceImpl<
         return studyDataSourceLinkRepository.save(studyDataSourceLink);
     }
 
-    private Set<DataNodeUser> updateDataNodeOwners(List<Long> dataOwnerIds, DataNode dataNode) {
+    private Set<DataNodeUser> updateDataNodeOwners(List<User> dataOwners, DataNode dataNode) {
 
-        final List<User> dataOwners = userService.findUsersByIdsIn(dataOwnerIds);
         final Set<DataNodeUser> dataNodeUsers = studyHelper.usersToDataNodeAdmins(dataOwners, dataNode);
         final Authentication savedAuth = studyHelper.loginByNode(dataNode);
         baseDataNodeService.relinkAllUsersToDataNode(dataNode, dataNodeUsers);

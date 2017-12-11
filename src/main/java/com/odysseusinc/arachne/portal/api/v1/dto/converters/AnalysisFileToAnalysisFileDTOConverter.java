@@ -23,6 +23,7 @@
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisFileDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.PermissionsDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserInfoDTO;
 import com.odysseusinc.arachne.portal.model.AnalysisFile;
 import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
@@ -48,6 +49,7 @@ public class AnalysisFileToAnalysisFileDTOConverter extends BaseConversionServic
         analysisFileDTO.setAnalysisId(source.getAnalysis().getId());
         analysisFileDTO.setDocType(source.getContentType());
         analysisFileDTO.setVersion(source.getVersion());
+        analysisFileDTO.setPermissions(conversionService.convert(source, PermissionsDTO.class));
         return analysisFileDTO;
     }
 }

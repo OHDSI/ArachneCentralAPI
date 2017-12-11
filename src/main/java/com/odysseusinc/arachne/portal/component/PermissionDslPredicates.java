@@ -28,6 +28,7 @@ import com.odysseusinc.arachne.portal.model.ParticipantStatus;
 import com.odysseusinc.arachne.portal.model.UserStudyExtended;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -49,13 +50,25 @@ public class PermissionDslPredicates {
 
     public static <T extends AnalysisFile> Predicate<T> userIsLeadInvestigator(ArachneUser user) {
         return analysisFile -> Objects.nonNull(analysisFile.getAnalysis())
-                && analysisFile.getAnalysis().getStudy().getParticipants().stream()
+                && getRole(user, analysisFile)
+                .map(ParticipantRole.LEAD_INVESTIGATOR::equals)
+                .orElse(Boolean.FALSE);
+    }
+
+    public static <T extends AnalysisFile> Predicate<T> userIsDSOwner(ArachneUser user) {
+        return analysisFile -> Objects.nonNull(analysisFile.getAnalysis())
+                && getRole(user, analysisFile)
+                .map(ParticipantRole.DATA_SET_OWNER::equals)
+                .orElse(Boolean.FALSE);
+    }
+
+    private static <T extends AnalysisFile> Optional<ParticipantRole> getRole(ArachneUser user, T analysisFile) {
+
+        return analysisFile.getAnalysis().getStudy().getParticipants().stream()
                 .filter(userLink -> Objects.equals(user.getId(), userLink.getUser().getId()))
                 .filter(userLink -> ParticipantStatus.APPROVED.equals(userLink.getStatus()))
                 .findFirst()
-                .map(UserStudyExtended::getRole)
-                .map(ParticipantRole.LEAD_INVESTIGATOR::equals)
-                .orElse(Boolean.FALSE);
+                .map(UserStudyExtended::getRole);
     }
 
     public static <T> Predicate<T> hasRole(ArachneUser user, String role) {

@@ -24,6 +24,7 @@ package com.odysseusinc.arachne.portal.component;
 import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.analysisAuthorIs;
 import static com.odysseusinc.arachne.portal.component.PermissionDsl.domainObject;
 import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.analysisFileAuthorIs;
+import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.userIsDSOwner;
 import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.userIsLeadInvestigator;
 import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.hasRole;
 import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.instanceOf;
@@ -33,6 +34,7 @@ import static com.odysseusinc.arachne.portal.security.ArachnePermission.DELETE_D
 
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.AnalysisFile;
+import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.Paper;
@@ -41,6 +43,7 @@ import com.odysseusinc.arachne.portal.model.PublishState;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionGroup;
+import com.odysseusinc.arachne.portal.model.SubmissionInsight;
 import com.odysseusinc.arachne.portal.model.UserStudyGrouped;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
@@ -93,6 +96,7 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
         domainClassMap.put(SubmissionGroup.class.getSimpleName(), SubmissionGroup.class);
         domainClassMap.put(DataSource.class.getSimpleName(), DataSource.class);
         domainClassMap.put(Paper.class.getSimpleName(), Paper.class);
+        domainClassMap.put(CommentTopic.class.getSimpleName(), CommentTopic.class);
     }
 
     protected boolean checkPermission(Authentication authentication, Object domainObject, Object permissions) {
@@ -215,6 +219,18 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
                 .apply();
     }
 
+    protected PermissionDsl insightRules(Object domainObject, ArachneUser user) {
+
+        return domainObject(domainObject).when(instanceOf(SubmissionInsight.class))
+                .then(insight -> getArachnePermissions(secureService.getRolesByInsight(user, (SubmissionInsight) insight))).apply();
+    }
+
+    protected PermissionDsl topicRules(Object domainObject, ArachneUser user) {
+
+        return domainObject(domainObject).when(instanceOf(CommentTopic.class))
+                .then(topic -> getArachnePermissions(secureService.getRolesByCommentTopic(user, (CommentTopic) topic))).apply();
+    }
+
     protected PermissionDsl additionalRules(Object domainObject, ArachneUser user) {
 
         return domainObject(domainObject);
@@ -231,6 +247,8 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
                 .with(dataNodeRules(domainObject, user))
                 .with(submissionGroupRules(domainObject, user))
                 .with(paperRules(domainObject, user))
+                .with(insightRules(domainObject, user))
+                .with(topicRules(domainObject, user))
                 .with(additionalRules(domainObject, user))
                 .getPermissions();
     }

@@ -293,6 +293,8 @@ public abstract class BaseAnalysisServiceImpl<
     }
 
     @Override
+    @PreAuthorize("hasPermission(#analysis,  'Analysis', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_ANALYSIS)")
     public A update(A analysis)
             throws NotUniqueException, NotExistException, ValidationException {
 
@@ -516,6 +518,7 @@ public abstract class BaseAnalysisServiceImpl<
     @Override
     @PreAuthorize("hasPermission(#analysisId,  'Analysis', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
+    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
     public AnalysisFile getAnalysisFile(Long analysisId, String uuid) {
 
         return analysisFileRepository.findByUuid(uuid);
@@ -666,6 +669,8 @@ public abstract class BaseAnalysisServiceImpl<
     }
 
     @Override
+    @PreAuthorize("hasPermission(#analysis,  'Analysis', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).DELETE_ANALYSIS)")
     public void writeToFile(
             AnalysisFile analysisFile,
             FileContentDTO fileContentDTO,
@@ -922,6 +927,7 @@ public abstract class BaseAnalysisServiceImpl<
     }
 
     @Override
+    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
     public SubmissionInsight getSubmissionInsight(Long submissionId) throws NotExistException {
 
         final SubmissionInsight insight = submissionInsightRepository.findOneBySubmissionId(submissionId);
@@ -937,6 +943,8 @@ public abstract class BaseAnalysisServiceImpl<
     }
 
     @Override
+    @PreAuthorize("hasPermission(#submissionId,  'Submission', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_ANALYSIS)")
     public SubmissionInsight createSubmissionInsight(Long submissionId, SubmissionInsight insight)
             throws AlreadyExistException, NotExistException {
 
@@ -966,12 +974,20 @@ public abstract class BaseAnalysisServiceImpl<
     }
 
     @Override
+    public SubmissionInsightSubmissionFile findInsightByTopic(CommentTopic topic) {
+
+        return submissionInsightSubmissionFileRepository.findByCommentTopic(topic);
+    }
+
+    @Override
     public void deleteSubmissionInsightSubmissionFileLinks(List<SubmissionInsightSubmissionFile> links) {
 
         submissionInsightSubmissionFileRepository.delete(links);
     }
 
     @Override
+    @PreAuthorize("hasPermission(#insight, "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_INSIGHT)")
     public SubmissionInsight updateSubmissionInsight(Long submissionId, SubmissionInsight insight)
             throws NotExistException {
 
