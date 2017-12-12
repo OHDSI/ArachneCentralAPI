@@ -194,8 +194,8 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
         // updateRequest.add(document);
         // UpdateResponse updateResponse = updateRequest.process(solrClient);
 
-        UpdateResponse updateResponse = solrClient.add(document);
-        UpdateResponse commitResponse = solrClient.commit();
+        UpdateResponse updateResponse = solrClient.add(collection, document);
+        UpdateResponse commitResponse = solrClient.commit(collection);
 
         if (commitResponse.getStatus() != 0 || updateResponse.getStatus() != 0) {
             throw new SolrServerException("Cannot index by Solr");
@@ -215,6 +215,6 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
     public void deleteByQuery(String collection, String query) throws IOException, SolrServerException {
 
         solrClient.deleteByQuery(collection, query);
-        solrClient.commit();
+        solrClient.commit(collection);
     }
 }
