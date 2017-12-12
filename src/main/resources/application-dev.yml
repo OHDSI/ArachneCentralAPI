@@ -12,3 +12,8 @@ portal:
 build:
   number: no_build_number
   id: no_build_id
+achilles:
+  executor:
+    corePoolSize: 1
+    maxPoolSize: 2
+    queueCapacity: 10

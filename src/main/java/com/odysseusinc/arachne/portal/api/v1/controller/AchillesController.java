@@ -48,7 +48,13 @@ public class AchillesController extends BaseAchillesController<DataSource> {
                               AchillesReportRepository achillesReportRepository,
                               ConverterUtils converterUtils) {
 
-        super(dataSourceRepository, dataNodeRepository, converterUtils, achillesService, objectMapper, achillesReportRepository, conversionService);
+        super(dataSourceRepository,
+                dataNodeRepository,
+                converterUtils,
+                achillesService,
+                objectMapper,
+                achillesReportRepository,
+                conversionService);
 
     }
 
