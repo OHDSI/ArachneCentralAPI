@@ -36,6 +36,7 @@ import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.MetadataException;
 import com.drew.metadata.exif.ExifIFD0Directory;
+import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchExpertListDTO;
 import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
 import com.odysseusinc.arachne.portal.exception.ArachneSystemRuntimeException;
@@ -104,6 +105,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.imageio.ImageIO;
+import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 import org.apache.commons.io.FilenameUtils;
@@ -613,15 +615,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
             throw new WrongFileFormatException("file", "File format is not supported");
         }
 
-        File filesStoreDir = new File(fileStorePath);
-        if (!filesStoreDir.exists()) {
-            filesStoreDir.mkdirs();
-        }
-        File userFilesDir = Paths.get(filesStoreDir.getPath(), USERS_DIR, user.getId().toString()).toFile();
-        if (!userFilesDir.exists()) {
-            userFilesDir.mkdirs();
-        }
-        final File avatar = Paths.get(userFilesDir.getPath(), AVATAR_FILE_NAME).toFile();
+        final File avatar = getUserAvatarFile(user);
 
         Metadata metadata = ImageMetadataReader.readMetadata(file.getInputStream());
         ExifIFD0Directory exifIFD0Directory = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
@@ -685,6 +679,14 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         if (user == null) {
             return defaultAvatar.getInputStream();
         }
+        File avatar = getUserAvatarFile(user);
+        if (!avatar.exists()) {
+            return defaultAvatar.getInputStream();
+        }
+        return new FileInputStream(avatar);
+    }
+
+    private File getUserAvatarFile(U user) {
         File filesStoreDir = new File(fileStorePath);
         if (!filesStoreDir.exists()) {
             filesStoreDir.mkdirs();
@@ -693,11 +695,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         if (!userFilesDir.exists()) {
             userFilesDir.mkdirs();
         }
-        File avatar = Paths.get(userFilesDir.getPath(), AVATAR_FILE_NAME).toFile();
-        if (!avatar.exists()) {
-            return defaultAvatar.getInputStream();
-        }
-        return new FileInputStream(avatar);
+        return Paths.get(userFilesDir.getPath(), AVATAR_FILE_NAME).toFile();
     }
 
     @Override
@@ -953,5 +951,50 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
 
         String[] split = query.toLowerCase().trim().split(" ");
         return Stream.of(split).collect(Collectors.joining("|", "%(", ")%"));
+    }
+
+    @Override
+    public void putAvatarToResponse(HttpServletResponse response, U user) throws IOException {
+
+        try (final AvatarResolver res = new AvatarResolver(user)) {
+            response.setContentType(res.getContentType());
+            response.setHeader("Content-type", res.getContentType());
+            response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+            response.setHeader("Pragma", "no-cache");
+            response.setHeader("Expires", "0");
+            response.setHeader("Content-Disposition", "attachment; filename=avatar");
+            org.apache.commons.io.IOUtils.copy(res.getInputStream(), response.getOutputStream());
+            response.flushBuffer();
+        }
+    }
+
+    private class AvatarResolver implements AutoCloseable {
+
+        final private String contentType;
+        final InputStream inputStream;
+
+        private AvatarResolver(final U user) throws IOException {
+            final File userAvatarFile = getUserAvatarFile(user);
+            if (user != null && userAvatarFile.exists()) {
+                this.contentType = CommonFileUtils.getMimeType(userAvatarFile.getName(), userAvatarFile.getAbsolutePath());
+                this.inputStream = new FileInputStream(userAvatarFile);
+            } else {
+                this.contentType = CommonFileUtils.getMimeType(defaultAvatar.getFilename(), defaultAvatar);
+                this.inputStream = defaultAvatar.getInputStream();
+            }
+        }
+
+        public String getContentType() {
+            return this.contentType;
+        }
+
+        public InputStream getInputStream() {
+            return this.inputStream;
+        }
+
+        @Override
+        public void close() throws IOException {
+            inputStream.close();
+        }
     }
 }
