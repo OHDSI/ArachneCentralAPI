@@ -12,8 +12,7 @@ run_cohort_characterization <- function(
     resultsDatabaseSchema,
     cohortTable,
     includeDrilldownReports,
-    includedReports,
-    cohortResults
+    includedReports
 ) {
 
   #Inputs:
@@ -28,7 +27,6 @@ run_cohort_characterization <- function(
   # cohortTable - name of table with exposure cohort (default value "cohort"),
   # includeDrilldownReports - flag of including drilldown reports in result output
   # includedReports - flags of including reports in result output
-  # cohortResults - flags of including additional cohort result
 
   # Outputs:
   # None
@@ -86,13 +84,12 @@ run_cohort_characterization <- function(
 
   writeAllResults(dbms, connectionString, cdmDatabaseSchema, resultsDatabaseSchema,  user, password, cohortId, outputFolder, includeDrilldownReports, includedReports)
 
+  for (key in c("count", "summary")){
 
-  for (key in names(cohortResults)) {
+    sqlFileName <-  paste("cohort-", ".ohdsi.sql", sep = key)
+    sqlFileName <-  file.path(workDir, sqlFileName)
 
-    if (cohortResults[[key]]){
-
-      cohortDefinitionSqlPathInLowerCase <- tolower(cohortDefinitionSqlPath)
-      sqlFileName <- gsub("\\.sql$", paste("-", ".sql", sep = key), cohortDefinitionSqlPathInLowerCase)
+    if (file.exists(sqlFileName)){
 
       sql <- readSql(sqlFileName)
       sql <- renderSql(sql,
@@ -101,9 +98,12 @@ run_cohort_characterization <- function(
                        target_cohort_id = cohortId)$sql
       sql <- translateSql(sql, targetDialect = connectionDetails$dbms)$sql
       res <- querySql(connection, sql)
-      write.csv(res, file = paste(sqlFileName, ".result.csv", sep = ""), row.names = FALSE, quote = FALSE, col.names = TRUE)
+
+      resultFileName <- gsub("\\.ohdsi.sql$", paste("-", ".ohdsi.sql", sep = key), cohortDefinitionSqlPath)
+      write.csv(res, file = paste(resultFileName, ".result.csv", sep = ""), row.names = FALSE, quote = FALSE, col.names = TRUE)
     }
   }
+
 
   end.time <- Sys.time()
   time.taken <- end.time - start.time
