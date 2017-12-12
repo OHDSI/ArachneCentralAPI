@@ -84,24 +84,6 @@ run_cohort_characterization <- function(
 
   writeAllResults(dbms, connectionString, cdmDatabaseSchema, resultsDatabaseSchema,  user, password, cohortId, outputFolder, includeDrilldownReports, includedReports)
 
-
-  for (key in names(cohortResults)) {
-
-    if (cohortResults[[key]]){
-
-      cohortDefinitionSqlPathInLowerCase <- tolower(cohortDefinitionSqlPath)
-      sqlFileName <- gsub("\\.sql$", paste("-", ".sql", sep = key), cohortDefinitionSqlPathInLowerCase)
-
-      sql <- readSql(sqlFileName)
-      sql <- renderSql(sql,
-                       target_database_schema = resultsDatabaseSchema,
-                       target_cohort_table = cohortTable,
-                       target_cohort_id = cohortId)$sql
-      sql <- translateSql(sql, targetDialect = connectionDetails$dbms)$sql
-      res <- querySql(connection, sql)
-      write.csv(res, file = paste(sqlFileName, ".result.csv", sep = ""), row.names = FALSE, quote = FALSE, col.names = TRUE)
-    }
-  }
   for (key in c("count", "summary")){
 
     sqlFileName <-  paste("cohort-", ".ohdsi.sql", sep = key)
