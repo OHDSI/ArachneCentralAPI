@@ -105,9 +105,9 @@ run_cohort_characterization <- function(
   for (key in c("count", "summary")){
 
     sqlFileName <-  paste("cohort-", ".ohdsi.sql", sep = key)
+    sqlFileName <-  file.path(workDir, sqlFileName)
 
     if (file.exists(sqlFileName)){
-      sqlFileName <-  file.path(workDir, sqlFileName)
 
       sql <- readSql(sqlFileName)
       sql <- renderSql(sql,
