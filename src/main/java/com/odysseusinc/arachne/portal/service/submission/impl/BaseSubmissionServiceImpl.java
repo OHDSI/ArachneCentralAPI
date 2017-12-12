@@ -708,10 +708,4 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
             return DigestUtils.md5DigestAsHex(in);
         }
     }
-
-    @Override
-    public Integer findPositionInAnalysis(Submission submission) {
-
-        return submissionRepository.findSubmissionPositionInAnalysis(submission.getAnalysis().getId(), submission.getId());
-    }
 }

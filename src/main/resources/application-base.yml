@@ -109,6 +109,7 @@ user:
 portal:
   authMethod: NATIVE
   hostsWhiteList: community.arachnenetwork.com
+  useQueryInterceptor: true
 datanode:
   messaging:
     importTimeout: 60000

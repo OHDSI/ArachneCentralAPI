@@ -127,6 +127,4 @@ public interface BaseSubmissionService<T extends Submission, A extends Analysis>
     void deleteSubmissions(List<T> submission);
 
     void deleteSubmissionGroups(List<SubmissionGroup> groups);
-
-    Integer findPositionInAnalysis(Submission submission);
 }

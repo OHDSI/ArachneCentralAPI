@@ -23,48 +23,49 @@ package com.odysseusinc.arachne.portal.config.interceptors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.AsyncHandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-@Component
 public class RequestInterceptor implements AsyncHandlerInterceptor {
 
-	private ThreadLocal<Long> time = new ThreadLocal<>();
+    private ThreadLocal<Long> time = new ThreadLocal<>();
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(RequestInterceptor.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RequestInterceptor.class);
 
-	@Autowired
-	private QueryInterceptor interceptor;
+    private QueryInterceptor interceptor;
 
-	@Override
-	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+    public RequestInterceptor(QueryInterceptor interceptor) {
 
-		time.set(System.currentTimeMillis());
-		interceptor.startCounter();
-		return true;
-	}
+        this.interceptor = interceptor;
+    }
 
-	@Override
-	public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
-		long duration = System.currentTimeMillis() - time.get();
-		Long queryCount = interceptor.getCount();
-		interceptor.clearCounter();
-		time.remove();
-		LOGGER.info("[Time: {} ms] [Queries: {}] {} {}", duration, queryCount, request.getMethod(), request.getRequestURI());
-	}
+        time.set(System.currentTimeMillis());
+        interceptor.startCounter();
+        return true;
+    }
 
-	@Override
-	public void afterConcurrentHandlingStarted(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
 
-		interceptor.clearCounter();
-		time.remove();
-	}
+        long duration = System.currentTimeMillis() - time.get();
+        Long queryCount = interceptor.getCount();
+        interceptor.clearCounter();
+        time.remove();
+        LOGGER.info("[Time: {} ms] [Queries: {}] {} {}", duration, queryCount, request.getMethod(), request.getRequestURI());
+    }
+
+    @Override
+    public void afterConcurrentHandlingStarted(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+
+        interceptor.clearCounter();
+        time.remove();
+    }
 
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {

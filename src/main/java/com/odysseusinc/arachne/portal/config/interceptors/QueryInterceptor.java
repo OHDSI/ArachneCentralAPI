@@ -22,9 +22,7 @@
 package com.odysseusinc.arachne.portal.config.interceptors;
 
 import org.hibernate.EmptyInterceptor;
-import org.springframework.stereotype.Component;
 
-@Component
 public class QueryInterceptor extends EmptyInterceptor {
 
 	private ThreadLocal<Long> counter = new ThreadLocal<>();

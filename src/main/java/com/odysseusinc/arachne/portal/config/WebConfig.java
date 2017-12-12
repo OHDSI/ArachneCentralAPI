@@ -42,7 +42,7 @@ import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 @Configuration
 public class WebConfig extends WebMvcConfigurerAdapter {
 
-    @Autowired
+    @Autowired(required = false)
     private RequestInterceptor requestInterceptor;
 
     @Bean
@@ -84,6 +84,8 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(requestInterceptor).addPathPatterns("/**");
+        if (requestInterceptor != null) {
+            registry.addInterceptor(requestInterceptor).addPathPatterns("/**");
+        }
     }
 }
