@@ -12,8 +12,7 @@ run_cohort_characterization <- function(
     resultsDatabaseSchema,
     cohortTable,
     includeDrilldownReports,
-    includedReports,
-    cohortResults
+    includedReports
 ) {
 
   #Inputs:
@@ -28,7 +27,6 @@ run_cohort_characterization <- function(
   # cohortTable - name of table with exposure cohort (default value "cohort"),
   # includeDrilldownReports - flag of including drilldown reports in result output
   # includedReports - flags of including reports in result output
-  # cohortResults - flags of including additional cohort result
 
   # Outputs:
   # None
@@ -104,6 +102,26 @@ run_cohort_characterization <- function(
       write.csv(res, file = paste(sqlFileName, ".result.csv", sep = ""), row.names = FALSE, quote = FALSE, col.names = TRUE)
     }
   }
+  for (key in c("count", "summary")){
+
+    sqlFileName <-  paste("cohort-", ".ohdsi.sql", sep = key)
+
+    if (file.exists(sqlFileName)){
+      sqlFileName <-  file.path(workDir, sqlFileName)
+
+      sql <- readSql(sqlFileName)
+      sql <- renderSql(sql,
+                       target_database_schema = resultsDatabaseSchema,
+                       target_cohort_table = cohortTable,
+                       target_cohort_id = cohortId)$sql
+      sql <- translateSql(sql, targetDialect = connectionDetails$dbms)$sql
+      res <- querySql(connection, sql)
+
+      resultFileName <- gsub("\\.ohdsi.sql$", paste("-", ".ohdsi.sql", sep = key), cohortDefinitionSqlPath)
+      write.csv(res, file = paste(resultFileName, ".result.csv", sep = ""), row.names = FALSE, quote = FALSE, col.names = TRUE)
+    }
+  }
+
 
   end.time <- Sys.time()
   time.taken <- end.time - start.time
