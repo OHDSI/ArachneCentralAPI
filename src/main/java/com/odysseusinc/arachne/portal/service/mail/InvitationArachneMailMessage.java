@@ -31,7 +31,9 @@ public abstract class InvitationArachneMailMessage extends ArachneMailMessage{
         super(user);
         parameters.put("token", token);
         parameters.put("invitationUrl", portalUrl + "/api/v1/user-management/users/invitations/mail");
-        parameters.put("createdByUrl", portalUrl + "/expert-finder/profile/" + String.valueOf(createdBy.getId()));
-        parameters.put("createdByName", createdBy.getFirstname() + " " + createdBy.getLastname());
+        if (createdBy != null) {
+            parameters.put("createdByUrl", portalUrl + "/expert-finder/profile/" + String.valueOf(createdBy.getId()));
+            parameters.put("createdByName", createdBy.getFirstname() + " " + createdBy.getLastname());
+        }
     }
 }
