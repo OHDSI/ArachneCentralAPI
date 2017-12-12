@@ -33,6 +33,7 @@ import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.api.v1.dto.AchillesReportDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.CharacterizationDTO;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
+import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.achilles.AchillesFile;
 import com.odysseusinc.arachne.portal.model.achilles.AchillesReport;
@@ -44,6 +45,8 @@ import com.odysseusinc.arachne.portal.service.AchillesService;
 import com.odysseusinc.arachne.portal.util.ConverterUtils;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.GenericTypeResolver;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.http.HttpStatus;
@@ -59,6 +62,9 @@ import java.io.IOException;
 import java.util.List;
 
 public abstract class BaseAchillesController<DS extends DataSource> {
+    private static final String ACHILLES_RESULT_LOADED_LOG
+            = "Loaded Achilles result for Data Source with id='{}', name='{}', Data Node with id='{}' name='{}'";
+    protected static Logger LOGGER = LoggerFactory.getLogger(BaseAchillesController.class);
     protected final AchillesService<DS> achillesService;
     protected final BaseDataSourceRepository<DS> dataSourceRepository;
     protected final GenericConversionService conversionService;
@@ -89,17 +95,16 @@ public abstract class BaseAchillesController<DS extends DataSource> {
 
     @ApiOperation("Store Achilles results for given datasource")
     @RequestMapping(value = "datanode/datasource/{id}", method = RequestMethod.POST)
-    public JsonResult<CharacterizationDTO> receiveStats(
+    public void receiveStats(
             @PathVariable("id") Long datasourceId,
             @RequestParam(value = "file") MultipartFile data)
             throws NotExistException, IOException {
 
         DS dataSource = checkDataSource(datasourceId);
-        Characterization characterization = achillesService.createCharacterization(dataSource, data);
-        JsonResult<CharacterizationDTO> result = new JsonResult<>();
-        result.setErrorCode(NO_ERROR.getCode());
-        result.setResult(conversionService.convert(characterization, CharacterizationDTO.class));
-        return result;
+        final DataNode dataNode = dataSource.getDataNode();
+        LOGGER.info(ACHILLES_RESULT_LOADED_LOG,
+                dataSource.getId(), dataSource.getName(), dataNode.getId(), dataNode.getName());
+        achillesService.createCharacterization(dataSource, data);
     }
 
     @ApiOperation("List all characterizations for given datasource")
