@@ -29,6 +29,7 @@ import static com.odysseusinc.arachne.portal.model.ParticipantRole.LEAD_INVESTIG
 import static java.lang.Boolean.TRUE;
 import static java.util.Collections.singletonList;
 
+import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraphUtils;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
@@ -308,6 +309,12 @@ public abstract class BaseStudyServiceImpl<
     @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
     public T getById(Long id) throws NotExistException {
 
+        return getByIdUnsecured(id);
+    }
+
+    @Override
+    public T getByIdUnsecured(Long id) throws NotExistException {
+
         T study = super.getById(id);
         if (study == null) {
             throw new NotExistException(getType());
@@ -315,7 +322,6 @@ public abstract class BaseStudyServiceImpl<
         Hibernate.initialize(study.getParticipants());
         return study;
     }
-
 
     @Override
     @PreAuthorize("hasPermission(#study, "
@@ -396,10 +402,17 @@ public abstract class BaseStudyServiceImpl<
             throw new IllegalArgumentException("Method arguments must not be null");
         }
         final SU userStudyItem = baseUserStudyLinkRepository
-                .findFirstByUserIdAndStudyId(user.getId(), studyId).orElseThrow(
-                        () -> new NotExistException(UserStudyGrouped.class)
-                );
-        Hibernate.initialize(userStudyItem.getStudy().getParticipants());
+                .findFirstByUserIdAndStudyId(
+                        user.getId(),
+                        studyId,
+                        EntityGraphUtils.fromAttributePaths(
+                                "study",
+                                "study.participants",
+                                "study.participants.user",
+                                "study.participants.dataSource",
+                                "study.participants.comment"
+                        )
+                ).orElseThrow(() -> new NotExistException(UserStudyGrouped.class));
         return userStudyItem;
     }
 
@@ -608,6 +621,12 @@ public abstract class BaseStudyServiceImpl<
     @PreAuthorize("hasPermission(#studyId, 'Study', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
     public StudyFile getStudyFile(Long studyId, String fileName) {
+
+        return getStudyFileUnsecured(studyId, fileName);
+    }
+
+    @Override
+    public StudyFile getStudyFileUnsecured(Long studyId, String fileName) {
 
         return studyFileRepository.findByUuid(fileName);
     }

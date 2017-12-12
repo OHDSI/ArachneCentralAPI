@@ -303,7 +303,7 @@ public abstract class BaseUserController<
             @PathVariable("id") Long id,
             HttpServletResponse response) throws IOException {
 
-        U user = userService.getById(id);
+        U user = userService.getByIdAndInitializeCollections(id);
         putAvatarToResponse(response, user);
     }
 
@@ -365,7 +365,7 @@ public abstract class BaseUserController<
 
         User logginedUser = userService.getByEmail(principal.getName());
         JsonResult<UserProfileDTO> result;
-        User user = userService.getById(userId);
+        User user = userService.getByIdAndInitializeCollections(userId);
         UserProfileDTO userProfileDTO = conversionService.convert(user, UserProfileDTO.class);
         userProfileDTO.setIsEditable(logginedUser.getId().equals(userId));
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
@@ -458,7 +458,7 @@ public abstract class BaseUserController<
     ) {
 
         JsonResult<CommonUserDTO> result;
-        U user = userService.getById(id);
+        U user = userService.getByIdAndInitializeCollections(id);
         CommonUserDTO userDTO = conversionService.convert(user, CommonUserDTO.class);
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
         result.setResult(userDTO);
@@ -691,7 +691,7 @@ public abstract class BaseUserController<
             case InvitationType.UNLOCK_ANALYSIS:
             case InvitationType.APPROVE_PUBLISH_SUBMISSION:
             case InvitationType.APPROVE_EXECUTE_SUBMISSION: {
-                user = userService.getById(userId);
+                user = userService.getByIdAndInitializeCollections(userId);
                 break;
             }
             default: {
@@ -752,7 +752,7 @@ public abstract class BaseUserController<
             }
         }
         return new JsonResult<>(NO_ERROR,
-                conversionService.convert(userService.getById(user.getId()), UserProfileDTO.class));
+                conversionService.convert(userService.getByIdAndInitializeCollections(user.getId()), UserProfileDTO.class));
     }
 
     private void checkIfUserExists(U user) {
@@ -930,7 +930,7 @@ public abstract class BaseUserController<
                                       @PathVariable("confirmed") Boolean confirm)
             throws IOException, NoSuchFieldException, SolrServerException, IllegalAccessException {
 
-        U user = userService.getById(userId);
+        U user = userService.getByIdAndInitializeCollections(userId);
         user.setEmailConfirmed(confirm);
         userService.update(user);
         return conversionService.convert(user, CommonUserDTO.class);

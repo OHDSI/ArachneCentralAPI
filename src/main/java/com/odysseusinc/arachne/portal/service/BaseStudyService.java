@@ -58,6 +58,8 @@ public interface BaseStudyService<
 
     T getById(Long id) throws NotExistException;
 
+    T getByIdUnsecured(Long id) throws NotExistException;
+
     T update(T study)
             throws NotExistException, NotUniqueException, ValidationException;
 
@@ -84,6 +86,8 @@ public interface BaseStudyService<
     String saveFile(String link, Long studyId, String label, User user) throws IOException;
 
     StudyFile getStudyFile(Long studyId, String fileName);
+
+    StudyFile getStudyFileUnsecured(Long studyId, String fileName);
 
     Boolean getDeleteStudyFile(Long studyId, String uuid) throws FileNotFoundException;
 

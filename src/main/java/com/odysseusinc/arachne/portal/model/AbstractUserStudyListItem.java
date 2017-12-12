@@ -23,6 +23,7 @@
 package com.odysseusinc.arachne.portal.model;
 
 import javax.persistence.Column;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -34,7 +35,7 @@ public class AbstractUserStudyListItem {
     private Long id;
 
 
-    @ManyToOne(optional = false, targetEntity = User.class)
+    @ManyToOne(optional = false, targetEntity = User.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
@@ -49,7 +50,7 @@ public class AbstractUserStudyListItem {
     @Column
     private Boolean favourite;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "first_lead_id")
     private User firstLead;
 

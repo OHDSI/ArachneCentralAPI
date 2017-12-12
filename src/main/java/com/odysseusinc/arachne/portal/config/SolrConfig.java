@@ -1,5 +1,4 @@
 /*
- *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +14,24 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: September 14, 2017
- *
+ * Authors: Anton Gackovka
+ * Created: December 12, 2017
  */
 
-package com.odysseusinc.arachne.portal.repository.submission;
+package com.odysseusinc.arachne.portal.config;
 
-import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
-import com.odysseusinc.arachne.portal.model.Submission;
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.impl.HttpSolrClient;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-public interface SubmissionRepository extends BaseSubmissionRepository<Submission> {
+@Configuration
+public class SolrConfig {
+
+    @Bean(destroyMethod = "close")
+    public SolrClient solrClient( @Value("${arachne.solrServerUrl}") String serverUrl) {
+
+        return new HttpSolrClient.Builder(serverUrl).build();
+    }
 }

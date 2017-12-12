@@ -312,7 +312,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
         final User user = getUser(principal);
         final Submission submission = submissionService.getSubmissionById(submissionId);
         final Long analysisId = submission.getSubmissionGroup().getAnalysis().getId();
-        final ResultFile resultFile = submissionService.getResultFile(user, analysisId, uuid);
+        final ResultFile resultFile = submissionService.getResultFileAndCheckPermission(user, analysisId, uuid);
         final String content = new String(analysisService.getAllBytes(resultFile));
         final FileContentDTO contentDTO = conversionService.convert(resultFile, FileContentDTO.class);
         contentDTO.setContent(content);
@@ -435,7 +435,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
 
         Submission submission = submissionService.getSubmissionById(submissionId);
         User user = userService.getByEmail(principal.getName());
-        return submissionService.getResultFile(user, submission.getSubmissionGroup().getAnalysis().getId(), uuid);
+        return submissionService.getResultFileAndCheckPermission(user, submission.getSubmissionGroup().getAnalysis().getId(), uuid);
     }
 
     @ApiOperation("Get result file of the submission.")

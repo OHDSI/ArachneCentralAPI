@@ -26,6 +26,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -38,11 +39,11 @@ public class UserStudyExtended implements ParticipantLink {
     @Id
     private Long id;
 
-    @ManyToOne(optional = false, targetEntity = User.class)
+    @ManyToOne(optional = false, targetEntity = User.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
-    @ManyToOne(optional = false, targetEntity = Study.class)
+    @ManyToOne(optional = false, targetEntity = Study.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "study_id")
     private Study study;
 
@@ -57,7 +58,7 @@ public class UserStudyExtended implements ParticipantLink {
     @Column
     private String comment;
 
-    @ManyToOne(targetEntity = DataSource.class)
+    @ManyToOne(targetEntity = DataSource.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "owned_data_source_id")
     private DataSource dataSource;
 

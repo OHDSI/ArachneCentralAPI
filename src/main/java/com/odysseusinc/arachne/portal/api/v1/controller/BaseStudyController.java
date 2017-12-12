@@ -168,7 +168,7 @@ public abstract class BaseStudyController<
     @RequestMapping(value = "/api/v1/study-management/studies/{studyId}/available-state-transitions", method = RequestMethod.GET)
     public List<StudyTransition> getAvailableTransitions(@PathVariable Long studyId) {
 
-        return studyStateMachine.getAvailableStates(studyService.getById(studyId));
+        return studyStateMachine.getAvailableStates(studyService.getByIdUnsecured(studyId));
     }
 
     @RequestMapping(value = "/api/v1/study-management/studies/{studyId}", method = GET)

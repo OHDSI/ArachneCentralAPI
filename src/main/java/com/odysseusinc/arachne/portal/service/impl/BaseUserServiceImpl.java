@@ -31,6 +31,7 @@ import static com.odysseusinc.arachne.portal.service.RoleService.ROLE_ADMIN;
 import static java.lang.Boolean.TRUE;
 import static org.springframework.data.jpa.domain.Specifications.where;
 
+import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraphUtils;
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Metadata;
@@ -227,7 +228,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     @Override
     public U getByUnverifiedEmail(final String email) {
 
-        return userRepository.findByEmail(email);
+        return userRepository.findByEmail(email, EntityGraphUtils.fromAttributePaths("roles", "professionalType"));
     }
 
     @Override
@@ -325,10 +326,17 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     }
 
     @Override
+    public U getByIdAndInitializeCollections(Long id) {
+
+        return initUserCollections(getById(id));
+    }
+
+    @Override
     public U getById(Long id) {
 
-        return initUserCollections(userRepository.findOne(id));
+        return userRepository.findOne(id);
     }
+
 
     @Override
     public List<U> getAllByIDs(List<Long> ids) {
@@ -562,11 +570,6 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     private U initUserCollections(U user) {
 
         if (user != null) {
-            try {
-                user.setProfessionalType(professionalTypeService.getById(user.getProfessionalType().getId()));
-            } catch (NotExistException ex) {
-                LOGGER.error(ex.getMessage(), ex);
-            }
             user.setRoles(roleRepository.findByUser(user.getId()));
             user.setLinks(userLinkService.findByUser(user));
             user.setPublications(userPublicationService.findByUser(user));
