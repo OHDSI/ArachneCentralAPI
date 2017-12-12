@@ -66,6 +66,7 @@ import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataNodeRole;
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.Invitationable;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.StateProvince;
@@ -582,24 +583,30 @@ public abstract class BaseUserController<
     @ApiOperation("Get user's invitations.")
     @RequestMapping(value = "/api/v1/user-management/users/invitations", method = RequestMethod.GET)
     public JsonResult<List<InvitationDTO>> invitations(
-            Principal principal
+            Principal principal,
+            @RequestParam(value = "studyId", required = false) Long studyId
     ) throws NotExistException {
 
-        JsonResult<List<InvitationDTO>> result;
         U user = userService.getByEmail(principal.getName());
 
-        Stream<InvitationDTO> invitationStream = getInvitations(user)
-                .stream()
-                .flatMap(Collection::stream)
+        Stream<? extends Invitationable> invitationables;
+        if (studyId != null) {
+            invitationables = userService.getInvitationsForStudy(user, studyId).stream();
+        } else {
+            invitationables = getInvitations(user).stream().flatMap(Collection::stream);
+        }
+
+        Stream<InvitationDTO> invitationStream = invitationables
                 .map(o -> conversionService.convert(o, InvitationDTO.class))
                 .sorted(Comparator.comparing(InvitationDTO::getDate).reversed());
+
         return new JsonResult<>(NO_ERROR, invitationStream.collect(Collectors.toList()));
     }
 
     private List<Collection> getInvitations(U user) {
 
         return Arrays.asList(
-                userService.getInvitations(user),
+                userService.getCollaboratorInvitations(user),
                 analysisService.getWaitingForApprovalSubmissions(user),
                 userService.getDataSourceInvitations(user),
                 userService.getUnlockAnalysisRequests(user)
