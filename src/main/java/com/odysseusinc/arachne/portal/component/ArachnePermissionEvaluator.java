@@ -92,6 +92,7 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
 
         domainClassMap.put(Study.class.getSimpleName(), Study.class);
         domainClassMap.put(Analysis.class.getSimpleName(), Analysis.class);
+        domainClassMap.put(AnalysisFile.class.getSimpleName(), AnalysisFile.class);
         domainClassMap.put(Submission.class.getSimpleName(), Submission.class);
         domainClassMap.put(SubmissionGroup.class.getSimpleName(), SubmissionGroup.class);
         domainClassMap.put(DataSource.class.getSimpleName(), DataSource.class);
