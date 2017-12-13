@@ -57,6 +57,15 @@ import com.odysseusinc.arachne.portal.service.StudyService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.service.submission.SubmissionService;
 import edu.emory.mathcs.backport.java.util.Collections;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import org.apache.commons.io.FileUtils;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -71,16 +80,6 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.util.Assert;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
 
 @Ignore
 @RunWith(SpringRunner.class)
@@ -163,7 +162,7 @@ public class AnalysisHelperTest {
         analysis.setFiles(new ArrayList<>());
         analysis.setAuthor(author);
         analysis.setStudy(study);
-        analysis.setType(CommonAnalysisType.CHARACTERIZATION);
+        analysis.setType(CommonAnalysisType.COHORT_CHARACTERIZATION);
         Set<ArachnePermission> permissions = new HashSet<>();
         permissions.add(ArachnePermission.CREATE_SUBMISSION);
         permissions.add(ArachnePermission.CREATE_ANALYSIS);

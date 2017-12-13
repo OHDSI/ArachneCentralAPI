@@ -23,7 +23,6 @@
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
 import static com.github.springtestdbunit.assertion.DatabaseAssertionMode.NON_STRICT;
-import static com.github.springtestdbunit.assertion.DatabaseAssertionMode.NON_STRICT_UNORDERED;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA;
@@ -176,7 +175,7 @@ public class AnalysisControllerTests extends BaseControllerTest {
     public void testUpdateAnalysisType() throws Exception {
 
         AnalysisUpdateDTO analysisDTO = new AnalysisUpdateDTO();
-        analysisDTO.setTypeId(CommonAnalysisType.CHARACTERIZATION.name());
+        analysisDTO.setTypeId(CommonAnalysisType.COHORT_CHARACTERIZATION.name());
 
         testUpdate(analysisDTO, UPDATED_ANALYSIS_TYPE_JSON_OBJECT, "Clinical Characterization");
     }
