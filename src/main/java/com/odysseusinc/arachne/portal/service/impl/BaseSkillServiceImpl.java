@@ -30,7 +30,6 @@ import com.odysseusinc.arachne.portal.repository.SkillRepository;
 import com.odysseusinc.arachne.portal.service.BaseSkillService;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.repository.CrudRepository;
 
 public abstract class BaseSkillServiceImpl<S extends Skill> extends CRUDLServiceImpl<S> implements BaseSkillService<S> {
@@ -85,5 +84,11 @@ public abstract class BaseSkillServiceImpl<S extends Skill> extends CRUDLService
         suggestRequest.delete(suggestRequest.length() - 1, suggestRequest.length());
         suggestRequest.append(")%");
         return skillRepository.suggest(suggestRequest.toString(), limit);
+    }
+
+    @Override
+    public List<S> getAllExpectOfUserSkills(Long userId) {
+
+        return skillRepository.getAllExpectOfUserSkills(userId);
     }
 }

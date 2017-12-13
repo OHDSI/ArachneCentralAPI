@@ -23,7 +23,6 @@
 package com.odysseusinc.arachne.portal.util;
 
 import com.google.common.collect.Sets;
-import com.odysseusinc.arachne.portal.api.v1.dto.CreateSubmissionsDTO;
 import com.odysseusinc.arachne.portal.exception.ConverterRuntimeException;
 import com.odysseusinc.arachne.portal.exception.IORuntimeException;
 import com.odysseusinc.arachne.portal.exception.NoExecutableFileException;

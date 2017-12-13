@@ -22,12 +22,15 @@
 
 package com.odysseusinc.arachne.portal.model;
 
+import com.odysseusinc.arachne.portal.security.ArachnePermission;
+import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.BreadcrumbType;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -42,7 +45,7 @@ import javax.persistence.Transient;
 
 @Entity
 @Table(name = "submission_insights")
-public class SubmissionInsight implements Serializable, Breadcrumb {
+public class SubmissionInsight implements Serializable, Breadcrumb, HasArachnePermissions {
     @Id
     @SequenceGenerator(name = "submission_insights_pk_sequence", sequenceName = "submission_insights_id_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "submission_insights_pk_sequence")
@@ -60,6 +63,8 @@ public class SubmissionInsight implements Serializable, Breadcrumb {
     private List<SubmissionInsightSubmissionFile> submissionInsightSubmissionFiles = new ArrayList<>();
     @Transient
     private Long commentsCount;
+    @Transient
+    private Set<ArachnePermission> permissions;
 
     public BreadcrumbType getCrumbType() {
 
@@ -149,5 +154,15 @@ public class SubmissionInsight implements Serializable, Breadcrumb {
     public void setSubmissionInsightSubmissionFiles(List<SubmissionInsightSubmissionFile> submissionInsightSubmissionFiles) {
 
         this.submissionInsightSubmissionFiles = submissionInsightSubmissionFiles;
+    }
+
+    @Override
+    public Set<ArachnePermission> getPermissions() {
+        return permissions;
+    }
+
+    @Override
+    public void setPermissions(Set<ArachnePermission> permissions) {
+        this.permissions = permissions;
     }
 }

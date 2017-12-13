@@ -22,13 +22,6 @@
 
 package com.odysseusinc.arachne.portal.service.impl;
 
-import static java.nio.file.FileVisitResult.CONTINUE;
-import static java.nio.file.StandardOpenOption.READ;
-
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.stream.JsonReader;
-import com.odysseusinc.arachne.execution_engine_common.util.CommonFileUtils;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.achilles.AchillesFile;
@@ -37,31 +30,19 @@ import com.odysseusinc.arachne.portal.model.achilles.Characterization;
 import com.odysseusinc.arachne.portal.repository.AchillesFileRepository;
 import com.odysseusinc.arachne.portal.repository.AchillesReportRepository;
 import com.odysseusinc.arachne.portal.repository.CharacterizationRepository;
+import com.odysseusinc.arachne.portal.service.AchillesImportService;
 import com.odysseusinc.arachne.portal.service.AchillesService;
 import com.odysseusinc.arachne.portal.service.StudyService;
-import com.odysseusinc.arachne.portal.util.ZipUtil;
-import java.io.FileOutputStream;
+import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.sql.Timestamp;
-import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import net.lingala.zip4j.exception.ZipException;
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.access.method.P;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.FileCopyUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 public abstract class BaseAchillesService<DS extends DataSource> implements AchillesService<DS> {
@@ -70,67 +51,27 @@ public abstract class BaseAchillesService<DS extends DataSource> implements Achi
     protected final AchillesFileRepository achillesFileRepository;
     protected final AchillesReportRepository achillesReportRepository;
     protected final StudyService studyService;
+    protected final AchillesImportService achillesHelperService;
 
     public BaseAchillesService(AchillesFileRepository achillesFileRepository,
                                CharacterizationRepository characterizationRepository,
                                StudyService studyService,
-                               AchillesReportRepository achillesReportRepository) {
+                               AchillesReportRepository achillesReportRepository,
+                               AchillesImportService achillesHelperService) {
 
         this.achillesFileRepository = achillesFileRepository;
         this.characterizationRepository = characterizationRepository;
         this.studyService = studyService;
         this.achillesReportRepository = achillesReportRepository;
+        this.achillesHelperService = achillesHelperService;
     }
 
     @Override
-    public Characterization createCharacterization(DS dataSource,
-                                                   MultipartFile data) throws IOException {
+    public void createCharacterization(DS dataSource, MultipartFile data) throws IOException {
 
-        Characterization characterization = new Characterization();
-        characterization.setDataSource(dataSource);
-        Timestamp now = new Timestamp(new Date().getTime());
-        characterization.setDate(now);
-        Path tempDir = Files.createTempDirectory("achilles_");
-        try {
-            unzipData(data, tempDir);
-            List<AchillesFile> files = new LinkedList<>();
-            JsonParser parser = new JsonParser();
-            Files.walkFileTree(tempDir, new SimpleFileVisitor<Path>() {
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-
-                    AchillesFile achillesFile = new AchillesFile();
-                    achillesFile.setFilePath(tempDir.relativize(file).toString());
-                    try (JsonReader reader = new JsonReader(new InputStreamReader(Files.newInputStream(file, READ)))) {
-                        JsonObject jsonObject = parser.parse(reader).getAsJsonObject();
-                        achillesFile.setData(jsonObject);
-                    }
-                    files.add(achillesFile);
-                    return CONTINUE;
-                }
-            });
-            final Characterization result = characterizationRepository.save(characterization);
-            files.forEach(file -> file.setCharacterization(result));
-            achillesFileRepository.save(files);
-            return characterizationRepository.findOne(result.getId());
-        } finally {
-            FileUtils.deleteQuietly(tempDir.toFile());
-        }
-    }
-
-    protected void unzipData(MultipartFile file, Path destination) throws IOException {
-
-        if (Files.notExists(destination)) {
-            Files.createDirectories(destination);
-        }
-        Objects.requireNonNull(file);
-        Path archive = Files.createTempFile("achilles", ".zip");
-        FileCopyUtils.copy(file.getInputStream(), new FileOutputStream(archive.toFile()));
-        try {
-            CommonFileUtils.unzipFiles(archive.toFile(), destination.toFile());
-        } catch (ZipException e) {
-            throw new java.util.zip.ZipException(e.getMessage());
-        }
+        final File tempFile = Files.createTempFile("achilles", ".zip").toFile();
+        data.transferTo(tempFile);
+        achillesHelperService.importData(dataSource, tempFile);
     }
 
     @Override

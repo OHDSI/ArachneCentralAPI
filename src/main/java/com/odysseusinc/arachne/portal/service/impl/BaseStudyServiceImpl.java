@@ -86,6 +86,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -142,6 +144,7 @@ public abstract class BaseStudyServiceImpl<
     private static final String EX_PARTICIPANT_EXISTS = "Participant is already added";
     private static final String DATASOURCE_NOT_EXIST_EXCEPTION = "DataSource with id='%s' does not exist";
     private static final String VIRTUAL_DATASOURCE_OWNERS_IS_EMPTY_EXC = "Virtual Data Source must have at least one Data Owner";
+    private static final String PENDING_USER_CANNOT_BE_DATASOURCE_OWNER = "Pending user cannot be a Data Owner";
 
     private final JavaMailSender javaMailSender;
     private final UserStudyExtendedRepository userStudyExtendedRepository;
@@ -223,18 +226,22 @@ public abstract class BaseStudyServiceImpl<
     // sort detection logic cab be moved out into its own class smth like SortDetecter
     @PostConstruct
     private void init() {
-        this.studySortPaths.put("title",new String[]{"study.title"});
-        this.studySortPaths.put("leadList",new String[]{"firstLead.firstname", "firstLead.middlename", "firstLead.lastname"});
-        this.studySortPaths.put("role",new String[]{"role"});
-        this.studySortPaths.put("created",new String[]{"study.created"});
-        this.studySortPaths.put("type",new String[]{"study.type.name"});
-        this.studySortPaths.put("status",new String[]{"study.status"});
+
+        this.studySortPaths.put("title", new String[]{"study.title"});
+        this.studySortPaths.put("leadList", new String[]{"firstLead.firstname", "firstLead.middlename", "firstLead.lastname"});
+        this.studySortPaths.put("role", new String[]{"role"});
+        this.studySortPaths.put("created", new String[]{"study.created"});
+        this.studySortPaths.put("type", new String[]{"study.type.name"});
+        this.studySortPaths.put("status", new String[]{"study.status"});
 
         this.studySortPaths.putAll(getAdditionalSortPaths());
     }
 
     protected Map<String, String[]> getAdditionalSortPaths() {
-        return new HashMap<>();
+
+        return new HashMap<String, String[]>() {{
+            put("privacy", new String[]{"study.privacy"});
+        }};
     }
 
     @Override
@@ -252,22 +259,15 @@ public abstract class BaseStudyServiceImpl<
         study.setType(studyTypeService.getById(study.getType().getId()));
         study.setStatus(studyStatusService.findByName("Initiate"));
 
-        beforeStudySave(study);
+        if (study.getPrivacy() == null) {
+            study.setPrivacy(true);
+        }
         T savedStudy = studyRepository.save(study);
-        afterStudySave(study);
 
         // Set Lead of the Study
         addDefaultLead(savedStudy, owner);
 
         return savedStudy;
-    }
-
-    protected void afterStudySave(T study) {
-
-    }
-
-    protected void beforeStudySave(T study) {
-
     }
 
     private UserStudy addDefaultLead(Study study, User owner) {
@@ -340,7 +340,7 @@ public abstract class BaseStudyServiceImpl<
             forUpdate.setType(studyTypeService.getById(study.getType().getId()));
         }
         if (study.getStatus() != null && study.getStatus().getId() != null
-                && studyStateMachine.canTransit(forUpdate , studyStatusService.getById(study.getStatus().getId()))) {
+                && studyStateMachine.canTransit(forUpdate, studyStatusService.getById(study.getStatus().getId()))) {
             forUpdate.setStatus(studyStatusService.getById(study.getStatus().getId()));
         }
         forUpdate.setTitle(study.getTitle() != null ? study.getTitle() : forUpdate.getTitle());
@@ -352,22 +352,14 @@ public abstract class BaseStudyServiceImpl<
                 && forUpdate.getStartDate().getTime() > forUpdate.getEndDate().getTime()) {
             throw new ValidationException("end date before start date ");
         }
+        forUpdate.setPrivacy(study.getPrivacy() != null ? study.getPrivacy() : forUpdate.getPrivacy());
 
         forUpdate.setUpdated(new Date());
 
-        beforeStudyUpdate(forUpdate, study);
+        forUpdate.setPrivacy(study.getPrivacy() != null ? study.getPrivacy() : forUpdate.getPrivacy());
         T updatedStudy = studyRepository.save(forUpdate);
-        afterStudyUpdate(forUpdate, study);
 
         return updatedStudy;
-    }
-
-    protected void beforeStudyUpdate(T forUpdate, T willBeUpdated) {
-
-    }
-
-    protected void afterStudyUpdate(T exists, T wilBeUpdated) {
-
     }
 
     @Override
@@ -425,11 +417,12 @@ public abstract class BaseStudyServiceImpl<
     protected final Sort getSort(String sortBy, Boolean sortAsc) {
 
         String defaultSort = "study.title";
+        Sort.Direction sortDirection = sortAsc == null || sortAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
+        List<Sort.Order> orders = new ArrayList<>();
+        Arrays.asList(studySortPaths.getOrDefault(sortBy, new String[]{defaultSort})).forEach((param) ->
+                orders.add(new Sort.Order(sortDirection, param).ignoreCase()));
 
-        return new Sort(
-                sortAsc == null || sortAsc ? Sort.Direction.ASC : Sort.Direction.DESC,
-                studySortPaths.getOrDefault(sortBy, new String[]{defaultSort})
-        );
+        return new Sort(orders);
     }
 
 
@@ -691,16 +684,13 @@ public abstract class BaseStudyServiceImpl<
             FieldException, IllegalAccessException, SolrServerException {
 
         Study study = studyRepository.findOne(studyId);
-        if (study == null) {
-            throw new NotExistException("study not exist", Study.class);
-        }
-        if (CollectionUtils.isEmpty(dataOwnerIds)) {
-            throw new IllegalArgumentException(VIRTUAL_DATASOURCE_OWNERS_IS_EMPTY_EXC);
-        }
+
+        List<User> dataNodeOwners = validateVirtualDataSourceOwners(study, dataOwnerIds);
+
         final DataNode dataNode = studyHelper.getVirtualDataNode(study.getTitle(), dataSourceName);
         final DataNode registeredDataNode = baseDataNodeService.register(dataNode);
 
-        final Set<DataNodeUser> dataNodeUsers = updateDataNodeOwners(dataOwnerIds, registeredDataNode);
+        final Set<DataNodeUser> dataNodeUsers = updateDataNodeOwners(dataNodeOwners, registeredDataNode);
         registeredDataNode.setDataNodeUsers(dataNodeUsers);
 
         final DS dataSource = studyHelper.getVirtualDataSource(registeredDataNode, dataSourceName);
@@ -709,6 +699,32 @@ public abstract class BaseStudyServiceImpl<
         final DS registeredDataSource = dataSourceService.createOrRestoreDataSource(dataSource);
         addDataSource(createdBy, studyId, registeredDataSource.getId());
         return registeredDataSource;
+    }
+
+    private List<User> validateVirtualDataSourceOwners(Study study, List<Long> dataOwnerIds) {
+
+        if (study == null) {
+            throw new NotExistException("study not exist", Study.class);
+        }
+
+        if (CollectionUtils.isEmpty(dataOwnerIds)) {
+            throw new IllegalArgumentException(VIRTUAL_DATASOURCE_OWNERS_IS_EMPTY_EXC);
+        }
+
+        final List<User> dataOwners = userService.findUsersByIdsIn(dataOwnerIds);
+
+        Set<Long> pendingUserIdsSet = study.getParticipants().stream()
+                .filter(link -> Objects.equals(link.getStatus(), ParticipantStatus.PENDING))
+                .map(link -> link.getUser().getId())
+                .collect(Collectors.toSet());
+
+        boolean containsPending = dataOwners.stream().map(User::getId).anyMatch(pendingUserIdsSet::contains);
+
+        if (containsPending) {
+            throw new IllegalArgumentException(PENDING_USER_CANNOT_BE_DATASOURCE_OWNER);
+        }
+
+        return dataOwners;
     }
 
     @Override
@@ -730,10 +746,14 @@ public abstract class BaseStudyServiceImpl<
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).DELETE_DATASOURCE)")
     public DS updateVirtualDataSource(User user, Long studyId, Long dataSourceId, String name, List<Long> dataOwnerIds) throws IllegalAccessException, IOException, NoSuchFieldException, SolrServerException, ValidationException {
 
+        Study study = studyRepository.findOne(studyId);
+
+        List<User> dataOwners = validateVirtualDataSourceOwners(study, dataOwnerIds);
+
         final DS dataSource = getStudyDataSource(user, studyId, dataSourceId);
         final DataNode dataNode = dataSource.getDataNode();
 
-        updateDataNodeOwners(dataOwnerIds, dataNode);
+        updateDataNodeOwners(dataOwners, dataNode);
 
         dataSource.setName(name);
         final DS update = dataSourceService.update(dataSource);
@@ -882,9 +902,8 @@ public abstract class BaseStudyServiceImpl<
         return studyDataSourceLinkRepository.save(studyDataSourceLink);
     }
 
-    private Set<DataNodeUser> updateDataNodeOwners(List<Long> dataOwnerIds, DataNode dataNode) {
+    private Set<DataNodeUser> updateDataNodeOwners(List<User> dataOwners, DataNode dataNode) {
 
-        final List<User> dataOwners = userService.findUsersByIdsIn(dataOwnerIds);
         final Set<DataNodeUser> dataNodeUsers = studyHelper.usersToDataNodeAdmins(dataOwners, dataNode);
         final Authentication savedAuth = studyHelper.loginByNode(dataNode);
         baseDataNodeService.relinkAllUsersToDataNode(dataNode, dataNodeUsers);

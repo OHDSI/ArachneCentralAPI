@@ -23,6 +23,7 @@
 package com.odysseusinc.arachne.portal.service;
 
 import com.odysseusinc.arachne.portal.model.Analysis;
+import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.Paper;
@@ -30,6 +31,7 @@ import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionGroup;
+import com.odysseusinc.arachne.portal.model.SubmissionInsight;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
 import java.util.List;
 
@@ -49,4 +51,8 @@ public interface BaseArachneSecureService<P extends Paper, DS extends DataSource
     List<ParticipantRole> getRolesBySubmissionGroup(ArachneUser user, SubmissionGroup submissionGroup);
 
     List<ParticipantRole> getRolesByPaper(ArachneUser user, P domainObject);
+
+    List<ParticipantRole> getRolesByInsight(ArachneUser user, SubmissionInsight domainObject);
+
+    List<ParticipantRole> getRolesByCommentTopic(ArachneUser user, CommentTopic topic);
 }

@@ -22,8 +22,11 @@
 
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
+import static com.odysseusinc.arachne.commons.utils.CommonFileUtils.convertToUnixPath;
+
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
+import com.odysseusinc.arachne.portal.PortalStarter;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisCreateDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisDTO;
 import com.odysseusinc.arachne.portal.model.Analysis;
@@ -34,14 +37,29 @@ import com.odysseusinc.arachne.portal.service.DataReferenceService;
 import com.odysseusinc.arachne.portal.service.ImportService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.core.convert.support.GenericConversionService;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @SuppressWarnings("unused")
 @RestController
 public class AnalysisController extends BaseAnalysisController<Analysis, AnalysisDTO, DataNode, AnalysisCreateDTO> {
+
+    private static final String RUN_CC_REPORTS_FILE_NAME = "run_cc_reports.R";
+    private static final String CC_SQLS_DIR = "sql/cc";
+    public static final String RUN_PLP_ANALYSIS_FILE_NAME = "run_plp_analysis.R";
 
     static {
         ANALISYS_MIMETYPE_MAP.put(CommonAnalysisType.COHORT, CommonFileUtils.TYPE_COHORT_SQL);
@@ -81,6 +99,43 @@ public class AnalysisController extends BaseAnalysisController<Analysis, Analysi
 
         return AnalysisDTO.class;
     }
+
+    @Override
+    protected void attachPredictionFiles(List<MultipartFile> files) throws IOException {
+
+        files.add(new MockMultipartFile(RUN_PLP_ANALYSIS_FILE_NAME, RUN_PLP_ANALYSIS_FILE_NAME, null,
+                readResource("r/"+ RUN_PLP_ANALYSIS_FILE_NAME)));
+    }
+
+    @Override
+    protected void attachCohortCharacterizationFiles(List<MultipartFile> files) throws IOException, URISyntaxException {
+
+        files.add(new MockMultipartFile(RUN_CC_REPORTS_FILE_NAME, RUN_CC_REPORTS_FILE_NAME, null,
+                readResource("r/" + RUN_CC_REPORTS_FILE_NAME)));
+
+        PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(
+                PortalStarter.class.getClassLoader());
+
+        List<MultipartFile> multipartFiles = Arrays.stream(resolver.getResources(
+                "classpath:/" + CC_SQLS_DIR + "/**"))
+                .filter(r -> ((ClassPathResource) r).getPath().endsWith(".sql"))
+                .map(this::convertToMultipartFile)
+                .collect(Collectors.toList());
+
+        files.addAll(multipartFiles);
+    }
+
+    private MultipartFile convertToMultipartFile(Resource resource) {
+
+        try {
+            String rootPath = ((ClassPathResource) resource).getPath();
+            String name = convertToUnixPath(rootPath.substring(rootPath.indexOf(CC_SQLS_DIR) + CC_SQLS_DIR.length() + 1));
+            return new MockMultipartFile(name, name, null, readResource(CC_SQLS_DIR + "/" + name));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
 }
 
 
