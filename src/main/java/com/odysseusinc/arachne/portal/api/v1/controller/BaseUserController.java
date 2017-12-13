@@ -140,6 +140,7 @@ public abstract class BaseUserController<
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseUserController.class);
     private static final String AVATAR_CONTENT_TYPE = "image/*";
     private static final String DATA_NODE_NOT_FOUND_EXCEPTION = "dataNode %s not found";
+    private static final String INVITATION_HOME_PAGE ="/study-manager/studies/";
 
     protected final TokenUtils tokenUtils;
     protected final BaseUserService<U, SK> userService;
@@ -269,7 +270,7 @@ public abstract class BaseUserController<
     public JsonResult<Boolean> saveUserAvatar(
             Principal principal,
             @RequestParam(name = "file") MultipartFile[] file)
-            throws IOException, WrongFileFormatException, ValidationException, ImageProcessingException, MetadataException {
+            throws IOException, WrongFileFormatException, ValidationException, ImageProcessingException, MetadataException, IllegalAccessException, SolrServerException, NoSuchFieldException {
 
         JsonResult<Boolean> result;
         U user = userService.getByEmail(principal.getName());
@@ -292,7 +293,7 @@ public abstract class BaseUserController<
 
         final Optional<String> userName = Optional.ofNullable(principal != null ? principal.getName() : null);
         U user = userName.map(userService::getByEmail).orElse(null);
-        putAvatarToResponse(response, user);
+        userService.putAvatarToResponse(response, user);
     }
 
     @ApiOperation("Download user avatar")
@@ -302,7 +303,7 @@ public abstract class BaseUserController<
             HttpServletResponse response) throws IOException {
 
         U user = userService.getById(id);
-        putAvatarToResponse(response, user);
+        userService.putAvatarToResponse(response, user);
     }
 
     @ApiOperation("Save user profile")
@@ -618,7 +619,7 @@ public abstract class BaseUserController<
 
         InvitationActionWithTokenDTO dto = new InvitationActionWithTokenDTO(id, type, accepted, token);
 
-        String redirectLink = "";
+        String redirectLink;
         U user;
 
         try {
@@ -627,7 +628,7 @@ public abstract class BaseUserController<
         } catch (NotExistException ex) {
             JsonResult result = new JsonResult<>(VALIDATION_ERROR);
             result.setErrorMessage(ex.getMessage());
-            response.sendRedirect(redirectLink);
+            response.sendRedirect(INVITATION_HOME_PAGE);
             return result;
         }
         response.sendRedirect(redirectLink);
@@ -636,7 +637,7 @@ public abstract class BaseUserController<
 
     private String getRedirectLinkFromInvitationDto(InvitationActionWithTokenDTO dto, Long id, String token) {
 
-        String redirectLink = "/study-manager/studies/";
+        String redirectLink = INVITATION_HOME_PAGE;
 
         switch (dto.getType()) {
             case InvitationType.COLLABORATOR: {
@@ -817,12 +818,12 @@ public abstract class BaseUserController<
     @RequestMapping(value = "/api/v1/user-management/datanodes/{datanodeSid}/users", method = RequestMethod.POST)
     public JsonResult linkUserToDataNode(@PathVariable("datanodeSid") Long datanodeId,
                                          @RequestBody CommonLinkUserToDataNodeDTO linkUserToDataNode
-    ) throws NotExistException, AlreadyExistException {
+    ) throws NotExistException, AlreadyExistException, IOException, NoSuchFieldException, SolrServerException, IllegalAccessException {
 
         final DN datanode = Optional.ofNullable(baseDataNodeService.getById(datanodeId)).orElseThrow(() ->
                 new NotExistException(String.format(DATA_NODE_NOT_FOUND_EXCEPTION, datanodeId),
                         DataNode.class));
-        final U user = userService.getByUsername(linkUserToDataNode.getUserName());
+        final U user = userService.getByUnverifiedEmail(linkUserToDataNode.getUserName());
         final Set<DataNodeRole> roles = linkUserToDataNode.getRoles()
                 .stream()
                 .map(role ->
@@ -850,14 +851,14 @@ public abstract class BaseUserController<
 
     @ApiOperation("Relink all Users to DataNode")
     @RequestMapping(value = "/api/v1/user-management/datanodes/{datanodeId}/users", method = RequestMethod.PUT)
-    public JsonResult relinkAllUsersToDataNode(@PathVariable("datanodeId") Long datanodeId,
-                                               @RequestBody List<CommonLinkUserToDataNodeDTO> linkUserToDataNodes
+    public JsonResult<List<CommonUserDTO>> relinkAllUsersToDataNode(@PathVariable("datanodeId") Long datanodeId,
+                                                                    @RequestBody List<CommonLinkUserToDataNodeDTO> linkUserToDataNodes
     ) throws NotExistException {
 
         final DN datanode = baseDataNodeService.getById(datanodeId);
         final Set<DataNodeUser> users = linkUserToDataNodes.stream()
                 .map(link -> {
-                            final U user = userService.getByUsername(link.getUserName());
+                            final U user = userService.getByUnverifiedEmail(link.getUserName());
                             final Set<DataNodeRole> roles = link.getRoles()
                                     .stream()
                                     .map(role ->
@@ -875,21 +876,10 @@ public abstract class BaseUserController<
                 )
                 .collect(Collectors.toSet());
         baseDataNodeService.relinkAllUsersToDataNode(datanode, users);
-        return new JsonResult(NO_ERROR);
-    }
-
-    private void putAvatarToResponse(HttpServletResponse response, U user) throws IOException {
-
-        try (final InputStream is = userService.getUserAvatar(user)) {
-            response.setContentType(AVATAR_CONTENT_TYPE);
-            response.setHeader("Content-type", AVATAR_CONTENT_TYPE);
-            response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-            response.setHeader("Pragma", "no-cache");
-            response.setHeader("Expires", "0");
-            response.setHeader("Content-Disposition", "attachment; filename=avatar");
-            org.apache.commons.io.IOUtils.copy(is, response.getOutputStream());
-            response.flushBuffer();
-        }
+        List<CommonUserDTO> userDTOs = users.stream()
+                .map(user -> conversionService.convert(user.getUser(), CommonUserDTO.class))
+                .collect(Collectors.toList());
+        return new JsonResult<>(NO_ERROR, userDTOs);
     }
 
     @ApiOperation("Create new user")

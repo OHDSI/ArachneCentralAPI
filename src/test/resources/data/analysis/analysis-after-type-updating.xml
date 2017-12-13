@@ -4,7 +4,7 @@
             id="1"
             author_id="1"
             study_id="1"
-            type="CHARACTERIZATION"
+            type="COHORT_CHARACTERIZATION"
             is_locked="false"
     />
 </dataset>

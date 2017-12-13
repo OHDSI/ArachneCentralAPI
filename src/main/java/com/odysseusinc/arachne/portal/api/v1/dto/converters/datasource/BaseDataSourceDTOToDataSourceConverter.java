@@ -36,6 +36,7 @@ public abstract class BaseDataSourceDTOToDataSourceConverter<DTO extends CommonB
         }
 
         DS dataSource = createResultObject();
+        dataSource.setId(source.getId());
         dataSource.setName(source.getName());
         dataSource.setUuid(source.getUuid());
         dataSource.setModelType(source.getModelType());

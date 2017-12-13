@@ -29,12 +29,14 @@ import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.ResultEntity;
 import com.odysseusinc.arachne.portal.model.ResultFile;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
 import com.odysseusinc.arachne.portal.model.SubmissionGroup;
 import com.odysseusinc.arachne.portal.model.SubmissionStatusHistoryElement;
 import com.odysseusinc.arachne.portal.model.User;
+import com.odysseusinc.arachne.portal.model.search.ResultFileSearch;
 import com.odysseusinc.arachne.portal.repository.ResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionGroupRepository;
@@ -50,6 +52,7 @@ import com.odysseusinc.arachne.portal.util.LegacyAnalysisHelper;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
+import javax.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PostAuthorize;
@@ -75,7 +78,8 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
                                  SubmissionInsightRepository submissionInsightRepository,
                                  SubmissionFileRepository submissionFileRepository,
                                  ResultFileRepository resultFileRepository,
-                                 SubmissionStatusHistoryRepository submissionStatusHistoryRepository) {
+                                 SubmissionStatusHistoryRepository submissionStatusHistoryRepository,
+                                 EntityManager entityManager) {
 
         super(submissionRepository,
                 dataSourceService,
@@ -87,7 +91,7 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
                 submissionGroupRepository,
                 submissionInsightRepository,
                 submissionFileRepository,
-                resultFileRepository, submissionStatusHistoryRepository);
+                resultFileRepository, submissionStatusHistoryRepository, entityManager);
     }
 
     @Override
@@ -165,9 +169,9 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
     @Override
     @PreAuthorize("hasPermission(#submissionId, 'Submission', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
-    public List<ResultFile> getResultFiles(User user, Long submissionId) throws PermissionDeniedException {
+    public List<ResultEntity> getResultFiles(User user, Long submissionId, ResultFileSearch resultFileSearch) throws PermissionDeniedException {
 
-        return super.getResultFiles(user, submissionId);
+        return super.getResultFiles(user, submissionId, resultFileSearch);
     }
 
     @Override

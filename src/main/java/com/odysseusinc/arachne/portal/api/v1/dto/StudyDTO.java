@@ -65,6 +65,8 @@ public class StudyDTO {
 
     private Long paperId;
 
+    private Boolean privacy;
+
 
     public String getDescription() {
 
@@ -235,5 +237,15 @@ public class StudyDTO {
     public void setPaperId(Long paperId) {
 
         this.paperId = paperId;
+    }
+
+    public Boolean getPrivacy() {
+
+        return privacy;
+    }
+
+    public void setPrivacy(Boolean privacy) {
+
+        this.privacy = privacy;
     }
 }

@@ -42,22 +42,36 @@ import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.exception.WrongFileFormatException;
 import java.io.IOException;
+import java.util.Collections;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.ResourceHttpRequestHandler;
 
 @ControllerAdvice
 public class ExceptionHandlingController extends BaseController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ExceptionHandlingController.class);
+    private static final String STATIC_CONTENT_FOLDER = "public";
+    private static final String INDEX_FILE = STATIC_CONTENT_FOLDER + "/index.html";
+
+    @Autowired
+    private WebApplicationContext webApplicationContext;
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<JsonResult> exceptionHandler(Exception ex) {
@@ -214,5 +228,41 @@ public class ExceptionHandlingController extends BaseController {
         JsonResult result = new JsonResult(SYSTEM_ERROR);
         result.setErrorMessage(ex.getMessage());
         return result;
+    }
+
+    @ExceptionHandler(BindException.class)
+    public ResponseEntity<JsonResult> exceptionHandler(BindException ex) {
+
+        LOGGER.warn(ex.getMessage());
+        JsonResult result = new JsonResult<>(VALIDATION_ERROR);
+        result.setErrorMessage("Incorrect data");
+        if (ex.hasErrors()) {
+            ex.getFieldErrors().forEach(er -> result.getValidatorErrors().put(er.getField(), er.getDefaultMessage()));
+        }
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @ExceptionHandler({ NoHandlerFoundException.class })
+    public void handleNotFoundError(HttpServletRequest request, HttpServletResponse response) throws Exception {
+
+        ResourceHttpRequestHandler handler = new ResourceHttpRequestHandler() {
+            @Override
+            protected Resource getResource(HttpServletRequest request) throws IOException {
+                String requestPath = request.getRequestURI().substring(request.getContextPath().length());
+
+                ClassPathResource resource = new ClassPathResource(STATIC_CONTENT_FOLDER + requestPath);
+                if (!resource.exists()) {
+                    resource = new ClassPathResource(INDEX_FILE);
+                }
+
+                return resource;
+            }
+        };
+
+        handler.setServletContext(webApplicationContext.getServletContext());
+        handler.setLocations(Collections.singletonList(new ClassPathResource("classpath:/" + STATIC_CONTENT_FOLDER + "/")));
+        handler.afterPropertiesSet();
+
+        handler.handleRequest(request, response);
     }
 }

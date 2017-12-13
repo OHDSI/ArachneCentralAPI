@@ -22,13 +22,16 @@
 
 package com.odysseusinc.arachne.portal.repository;
 
+import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
+import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.ResultFile;
+import java.util.List;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 
-/**
- * Created by AKrutov on 21.11.2016.
- */
 public interface ResultFileRepository extends CrudRepository<ResultFile, Long> {
 
     ResultFile findByUuid(String uuid);
+    ResultFile findByCommentTopic(CommentTopic topic);
 }

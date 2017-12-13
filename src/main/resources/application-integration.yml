@@ -1,0 +1,12 @@
+server:
+  ssl:
+    enabled: false
+logging:
+  level: debug
+portal:
+  hostsWhiteList: testcommunity.arachnenetwork.com
+achilles:
+  executor:
+    corePoolSize: 2
+    maxPoolSize: 4
+    queueCapacity: 100

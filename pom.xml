@@ -6,7 +6,7 @@
 
     <artifactId>portal</artifactId>
     <groupId>com.odysseusinc.arachne</groupId>
-    <version>1.9.0</version>
+    <version>1.10.0-QA</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -38,41 +38,33 @@
         <profile>
             <id>test</id>
             <properties>
-                <env>test</env>
+                <env>integration</env>
+                <latestSuffix>-snapshot</latestSuffix>
             </properties>
         </profile>
         <profile>
             <id>prod</id>
             <properties>
                 <env>prod</env>
+                <latestSuffix>-prod</latestSuffix>
             </properties>
         </profile>
         <profile>
             <id>dev</id>
             <properties>
                 <env>dev</env>
+                <latestSuffix>-dev</latestSuffix>
             </properties>
-            <build>
-                <plugins>
-                    <!--<plugin>-->
-                    <!--<groupId>org.sonarsource.scanner.maven</groupId>-->
-                    <!--<artifactId>sonar-maven-plugin</artifactId>-->
-                    <!--<version>3.2</version>-->
-                    <!--<executions>-->
-                    <!--<execution>-->
-                    <!--<id>sonar</id>-->
-                    <!--<phase>verify</phase>-->
-                    <!--<goals>-->
-                    <!--<goal>sonar</goal>-->
-                    <!--</goals>-->
-                    <!--</execution>-->
-                    <!--</executions>-->
-                    <!--</plugin>-->
-                </plugins>
-            </build>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
+        </profile>
+        <profile>
+            <id>qa</id>
+            <properties>
+                <env>qa</env>
+                <latestSuffix>-qa</latestSuffix>
+            </properties>
         </profile>
     </profiles>
 
@@ -296,18 +288,6 @@
 
     <build>
         <finalName>portal</finalName>
-        <resources>
-            <resource>
-                <directory>properties/${env}</directory>
-                <includes>
-                    <include>**</include>
-                </includes>
-                <filtering>true</filtering>
-            </resource>
-            <resource>
-                <directory>src/main/resources</directory>
-            </resource>
-        </resources>
         <plugins>
             <plugin>
                 <artifactId>maven-clean-plugin</artifactId>
@@ -372,12 +352,11 @@
                     <imageName>${dockerImagePrefix}/${project.artifactId}</imageName>
                     <imageTags>
                         <imageTag>${project.version}</imageTag>
-                        <imageTag>latest</imageTag>
+                        <imageTag>latest${latestSuffix}</imageTag>
                     </imageTags>
                     <dockerDirectory>src/main/docker</dockerDirectory>
                     <resources>
                         <resource>
-                            <!--<targetPath>/</targetPath>-->
                             <directory>${project.build.directory}</directory>
                             <include>${project.build.finalName}-exec.${project.packaging}</include>
                         </resource>

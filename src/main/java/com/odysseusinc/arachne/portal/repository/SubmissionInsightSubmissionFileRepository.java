@@ -22,8 +22,10 @@
 
 package com.odysseusinc.arachne.portal.repository;
 
+import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.SubmissionInsightSubmissionFile;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface SubmissionInsightSubmissionFileRepository extends JpaRepository<SubmissionInsightSubmissionFile, Long> {
+    SubmissionInsightSubmissionFile findByCommentTopic(CommentTopic topic);
 }

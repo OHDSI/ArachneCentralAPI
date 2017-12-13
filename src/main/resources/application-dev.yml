@@ -1,0 +1,19 @@
+#spring:
+#  profiles: dev
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/arachne_portal
+    username: ohdsi
+    password: ENC(0Lpfvg9UPAyaaZpSIqwaDg==)
+logging:
+  level: debug
+portal:
+  hostsWhiteList: localhost
+build:
+  number: no_build_number
+  id: no_build_id
+achilles:
+  executor:
+    corePoolSize: 1
+    maxPoolSize: 2
+    queueCapacity: 10

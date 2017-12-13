@@ -41,6 +41,7 @@ public abstract class BaseStudyDTOToStudyConverter<DTO extends StudyDTO, S exten
         study.setType(conversionService.convert(source.getType(), StudyType.class));
         study.setStatus(conversionService.convert(source.getStatus(), StudyStatus.class));
         study.setId(source.getId());
+        study.setPrivacy(source.getPrivacy());
 
         proceedAdditionalFields(study, source);
 

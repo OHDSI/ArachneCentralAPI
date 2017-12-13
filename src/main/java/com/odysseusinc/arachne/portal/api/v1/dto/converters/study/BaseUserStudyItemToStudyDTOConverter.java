@@ -25,6 +25,7 @@ package com.odysseusinc.arachne.portal.api.v1.dto.converters.study;
 import com.odysseusinc.arachne.portal.api.v1.dto.StudyDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
 import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
+import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.util.ConverterUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -42,6 +43,8 @@ public abstract class BaseUserStudyItemToStudyDTOConverter<S extends StudyDTO> e
         baseObject.setFavourite(source.getFavourite());
 
         converterUtils.shallowCopy(studyDto, baseObject);
+        final Study study = source.getStudy();
+        studyDto.setPrivacy(study.getPrivacy());
 
         proceedAdditionalFields(studyDto, source);
 
