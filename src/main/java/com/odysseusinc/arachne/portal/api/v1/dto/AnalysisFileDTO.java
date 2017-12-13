@@ -31,6 +31,8 @@ public class AnalysisFileDTO extends FileDTO {
     private Boolean imported;
     private String entryPoint;
 
+    private PermissionsDTO permissions;
+
     public Boolean getIsExecutable() {
 
         return isExecutable;
@@ -89,5 +91,15 @@ public class AnalysisFileDTO extends FileDTO {
     public void setEntryPoint(String entryPoint) {
 
         this.entryPoint = entryPoint;
+    }
+
+    public PermissionsDTO getPermissions() {
+
+        return permissions;
+    }
+
+    public void setPermissions(PermissionsDTO permissions) {
+
+        this.permissions = permissions;
     }
 }

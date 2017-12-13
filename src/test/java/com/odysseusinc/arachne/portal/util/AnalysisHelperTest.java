@@ -163,7 +163,7 @@ public class AnalysisHelperTest {
         analysis.setFiles(new ArrayList<>());
         analysis.setAuthor(author);
         analysis.setStudy(study);
-        analysis.setType(CommonAnalysisType.CHARACTERIZATION);
+        analysis.setType(CommonAnalysisType.COHORT_CHARACTERIZATION);
         Set<ArachnePermission> permissions = new HashSet<>();
         permissions.add(ArachnePermission.CREATE_SUBMISSION);
         permissions.add(ArachnePermission.CREATE_ANALYSIS);

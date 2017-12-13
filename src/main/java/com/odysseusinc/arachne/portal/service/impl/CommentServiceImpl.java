@@ -42,6 +42,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -101,6 +102,8 @@ public class CommentServiceImpl implements CommentService {
 
     @CacheEvict(cacheNames = "comments", allEntries = true)
     @Override
+    @PreAuthorize("hasPermission(#topicId, 'CommentTopic', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_INSIGHT)")
     public Comment addComment(Long topicId, Long parentId, Comment comment) {
 
         comment.setId(null);
