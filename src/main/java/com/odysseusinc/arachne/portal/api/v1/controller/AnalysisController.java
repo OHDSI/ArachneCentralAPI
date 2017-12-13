@@ -62,9 +62,13 @@ public class AnalysisController extends BaseAnalysisController<Analysis, Analysi
     private static final String RUN_CC_REPORTS_FILE_NAME = "run_cc_reports.R";
     private static final String CC_SQLS_DIR = "sql/cc";
     private static final String CIRCE_JAR = "circe-1.2.2-SNAPSHOT.jar";
+    private static final String CIRCE_JAR_RES = "circe-1.2.2-SNAPSHOT.jar.res";
     private static final String COMMONS_IO_JAR = "commons-io-2.6.jar";
+    private static final String COMMONS_IO_JAR_RES = "commons-io-2.6.jar.res";
     private static final String COMMONS_LANG_JAR = "commons-lang3-3.7.jar";
+    private static final String COMMONS_LANG_JAR_RES = "commons-lang3-3.7.jar.res";
     private static final String JACKSON_JAR = "jackson-annotations-2.9.2.jar";
+    private static final String JACKSON_JAR_RES = "jackson-annotations-2.9.2.jar.res";
     private static final String JARS_IR_PATH = "jars/ir/";
 
     static {
@@ -118,13 +122,13 @@ public class AnalysisController extends BaseAnalysisController<Analysis, Analysi
         files.add(new MockMultipartFile(RUN_IR_ANALYSIS_FILE_NAME, RUN_IR_ANALYSIS_FILE_NAME, null,
                 readResource("r/" + RUN_IR_ANALYSIS_FILE_NAME)));
         files.add(new MockMultipartFile(CIRCE_JAR, CIRCE_JAR, null,
-                readResource(JARS_IR_PATH + CIRCE_JAR)));
+                readResource(JARS_IR_PATH + CIRCE_JAR_RES)));
         files.add(new MockMultipartFile(COMMONS_IO_JAR, COMMONS_IO_JAR, null,
-                readResource(JARS_IR_PATH + COMMONS_IO_JAR)));
+                readResource(JARS_IR_PATH + COMMONS_IO_JAR_RES)));
         files.add(new MockMultipartFile(COMMONS_LANG_JAR, COMMONS_LANG_JAR, null,
-                readResource(JARS_IR_PATH + COMMONS_LANG_JAR)));
+                readResource(JARS_IR_PATH + COMMONS_LANG_JAR_RES)));
         files.add(new MockMultipartFile(JACKSON_JAR, JACKSON_JAR, null,
-                readResource(JACKSON_JAR)));
+                readResource(JACKSON_JAR_RES)));
     }
 
 
