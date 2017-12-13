@@ -143,8 +143,6 @@ public interface BaseUserService<U extends User, S extends Skill> {
     void saveAvatar(U user, MultipartFile file)
             throws IOException, WrongFileFormatException, ImageProcessingException, MetadataException, IllegalAccessException, SolrServerException, NoSuchFieldException;
 
-    InputStream getUserAvatar(U user) throws IOException;
-
     List<? extends Invitationable> getInvitations(U user);
 
     List<? extends Invitationable> getDataSourceInvitations(U user);

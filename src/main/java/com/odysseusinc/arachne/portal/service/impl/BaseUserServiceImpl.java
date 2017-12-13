@@ -673,19 +673,6 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
 
     }
 
-    @Override
-    public InputStream getUserAvatar(U user) throws IOException {
-
-        if (user == null) {
-            return defaultAvatar.getInputStream();
-        }
-        File avatar = getUserAvatarFile(user);
-        if (!avatar.exists()) {
-            return defaultAvatar.getInputStream();
-        }
-        return new FileInputStream(avatar);
-    }
-
     private File getUserAvatarFile(U user) {
         File filesStoreDir = new File(fileStorePath);
         if (!filesStoreDir.exists()) {
