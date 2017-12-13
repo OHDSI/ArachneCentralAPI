@@ -294,7 +294,7 @@ public abstract class BaseUserController<
 
         final Optional<String> userName = Optional.ofNullable(principal != null ? principal.getName() : null);
         U user = userName.map(userService::getByEmail).orElse(null);
-        putAvatarToResponse(response, user);
+        userService.putAvatarToResponse(response, user);
     }
 
     @ApiOperation("Download user avatar")
@@ -304,7 +304,7 @@ public abstract class BaseUserController<
             HttpServletResponse response) throws IOException {
 
         U user = userService.getByIdAndInitializeCollections(id);
-        putAvatarToResponse(response, user);
+        userService.putAvatarToResponse(response, user);
     }
 
     @ApiOperation("Save user profile")
@@ -887,20 +887,6 @@ public abstract class BaseUserController<
                 .map(user -> conversionService.convert(user.getUser(), CommonUserDTO.class))
                 .collect(Collectors.toList());
         return new JsonResult<>(NO_ERROR, userDTOs);
-    }
-
-    private void putAvatarToResponse(HttpServletResponse response, U user) throws IOException {
-
-        try (final InputStream is = userService.getUserAvatar(user)) {
-            response.setContentType(AVATAR_CONTENT_TYPE);
-            response.setHeader("Content-type", AVATAR_CONTENT_TYPE);
-            response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-            response.setHeader("Pragma", "no-cache");
-            response.setHeader("Expires", "0");
-            response.setHeader("Content-Disposition", "attachment; filename=avatar");
-            org.apache.commons.io.IOUtils.copy(is, response.getOutputStream());
-            response.flushBuffer();
-        }
     }
 
     @ApiOperation("Create new user")

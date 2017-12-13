@@ -22,15 +22,19 @@
 
 package com.odysseusinc.arachne.portal.model;
 
+import com.odysseusinc.arachne.portal.security.ArachnePermission;
+import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
 import java.util.Date;
+import java.util.Set;
 import javax.persistence.Access;
 import javax.persistence.AccessType;
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
+import javax.persistence.Transient;
 
 @MappedSuperclass
 @Access(AccessType.FIELD)
-public class ArachneFile {
+public class ArachneFile implements HasArachnePermissions {
 
     @Column
     protected String uuid;
@@ -44,6 +48,9 @@ public class ArachneFile {
     protected Date created;
     @Column
     protected Date updated;
+
+    @Transient
+    private Set<ArachnePermission> permissions;
 
     public ArachneFile() {}
 
@@ -115,5 +122,17 @@ public class ArachneFile {
     public void setLabel(String label) {
 
         this.label = label;
+    }
+
+    @Override
+    public Set<ArachnePermission> getPermissions() {
+
+        return this.permissions;
+    }
+
+    @Override
+    public void setPermissions(Set<ArachnePermission> permissions) {
+
+        this.permissions = permissions;
     }
 }
