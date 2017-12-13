@@ -114,12 +114,8 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends D
                 result = getRolesByStudy(user, analysis.getStudy());
                 final DataNode dataNode = submission.getDataSource().getDataNode();
                 if (!DataNodeUtils.isDataNodeOwner(dataNode, user.getId())) {
-                    for (Iterator<ParticipantRole> iterator = result.iterator(); iterator.hasNext(); ) {
-                        ParticipantRole participantRole = iterator.next();
-                        if (ParticipantRole.DATA_SET_OWNER.equals(participantRole)) {
-                            iterator.remove();
-                        }
-                    }
+                    // check if we are not owner - delete owner role O_O
+                    result.removeIf(ParticipantRole.DATA_SET_OWNER::equals);
                 }
             } else if (analysis != null) {
 

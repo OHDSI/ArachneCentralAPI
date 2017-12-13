@@ -9,6 +9,7 @@ logging:
   level: debug
 portal:
   hostsWhiteList: localhost
+  useQueryInterceptor: true
 build:
   number: no_build_number
   id: no_build_id
@@ -17,3 +18,4 @@ achilles:
     corePoolSize: 1
     maxPoolSize: 2
     queueCapacity: 10
+

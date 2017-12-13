@@ -83,6 +83,8 @@ public interface BaseUserService<U extends User, S extends Skill> {
 
     void sendRemindPasswordEmail(U user, String token, String registrantToken, String callbackUrl);
 
+    U getByIdAndInitializeCollections(Long id);
+
     U getById(Long id);
 
     List<U> getAllByIDs(List<Long> ids);
@@ -144,9 +146,11 @@ public interface BaseUserService<U extends User, S extends Skill> {
 
     InputStream getUserAvatar(U user) throws IOException;
 
-    List<? extends Invitationable> getInvitations(U user);
+    List<? extends Invitationable> getCollaboratorInvitations(U user);
 
     List<? extends Invitationable> getDataSourceInvitations(U user);
+
+    List<? extends Invitationable> getInvitationsForStudy(U user, final Long studyId);
 
     UserStudy processInvitation(U user, Long id, Boolean accepted, String comment);
 

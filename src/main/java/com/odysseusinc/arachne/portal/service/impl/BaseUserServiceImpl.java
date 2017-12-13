@@ -31,6 +31,7 @@ import static com.odysseusinc.arachne.portal.service.RoleService.ROLE_ADMIN;
 import static java.lang.Boolean.TRUE;
 import static org.springframework.data.jpa.domain.Specifications.where;
 
+import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraphUtils;
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Metadata;
@@ -227,7 +228,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     @Override
     public U getByUnverifiedEmail(final String email) {
 
-        return userRepository.findByEmail(email);
+        return userRepository.findByEmail(email, EntityGraphUtils.fromAttributePaths("roles", "professionalType"));
     }
 
     @Override
@@ -325,10 +326,17 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     }
 
     @Override
+    public U getByIdAndInitializeCollections(Long id) {
+
+        return initUserCollections(getById(id));
+    }
+
+    @Override
     public U getById(Long id) {
 
-        return initUserCollections(userRepository.findOne(id));
+        return userRepository.findOne(id);
     }
+
 
     @Override
     public List<U> getAllByIDs(List<Long> ids) {
@@ -562,11 +570,6 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     private U initUserCollections(U user) {
 
         if (user != null) {
-            try {
-                user.setProfessionalType(professionalTypeService.getById(user.getProfessionalType().getId()));
-            } catch (NotExistException ex) {
-                LOGGER.error(ex.getMessage(), ex);
-            }
             user.setRoles(roleRepository.findByUser(user.getId()));
             user.setLinks(userLinkService.findByUser(user));
             user.setPublications(userPublicationService.findByUser(user));
@@ -701,7 +704,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     }
 
     @Override
-    public List<? extends Invitationable> getInvitations(U user) {
+    public List<? extends Invitationable> getCollaboratorInvitations(U user) {
 
         return userStudyRepository.findByUserAndStatus(user, ParticipantStatus.PENDING);
     }
@@ -710,6 +713,25 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     public List<? extends Invitationable> getDataSourceInvitations(U user) {
 
         return studyDataSourceLinkRepository.findByOwnerAndStatus(user, DataSourceStatus.PENDING);
+    }
+
+    @Override
+    public List<? extends Invitationable> getInvitationsForStudy(U user, final Long studyId) {
+
+        List<? extends Invitationable> collaboratorInvitations = userStudyRepository.findByUserAndStudyIdAndStatus(
+                user,
+                studyId,
+                ParticipantStatus.PENDING
+        );
+        List<? extends Invitationable> dataSourceInvitations = studyDataSourceLinkRepository.findByOwnerAndStudyIdAndStatus(
+                user,
+                studyId,
+                DataSourceStatus.PENDING
+        );
+
+        return Stream
+                .concat(collaboratorInvitations.stream(), dataSourceInvitations.stream())
+                .collect(Collectors.toList());
     }
 
     @Override

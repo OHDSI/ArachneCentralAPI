@@ -5,6 +5,7 @@ logging:
   level: debug
 portal:
   hostsWhiteList: testcommunity.arachnenetwork.com
+  useQueryInterceptor: true
 achilles:
   executor:
     corePoolSize: 2

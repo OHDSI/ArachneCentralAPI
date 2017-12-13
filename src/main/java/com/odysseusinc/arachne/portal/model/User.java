@@ -47,7 +47,7 @@ import javax.persistence.Table;
 @Table(name = "users")
 public class User implements Serializable {
 
-    @ManyToMany(targetEntity = Role.class)
+    @ManyToMany(targetEntity = Role.class, fetch = FetchType.LAZY)
     @JoinTable(name = "users_roles",
             joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))

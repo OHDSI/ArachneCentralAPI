@@ -95,24 +95,24 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
     @ManyToOne(fetch = FetchType.EAGER)
     private StudyStatus status;
 
-    @OneToMany(mappedBy = "study")
+    @OneToMany(mappedBy = "study", fetch = FetchType.LAZY)
     private List<UserStudyExtended> participants;
 
     @Transient
     private Set<ArachnePermission> permissions;
 
-    @OneToMany(mappedBy = "study", targetEntity = Analysis.class)
+    @OneToMany(mappedBy = "study", targetEntity = Analysis.class, fetch = FetchType.LAZY)
     @OrderBy("ord ASC")
     private List<Analysis> analyses = new ArrayList<>();
 
-    @OneToMany(mappedBy = "study", targetEntity = StudyFile.class)
+    @OneToMany(mappedBy = "study", targetEntity = StudyFile.class, fetch = FetchType.LAZY)
     private List<StudyFile> files;
 
-    @OneToMany(targetEntity = StudyDataSourceLink.class, mappedBy = "study")
+    @OneToMany(targetEntity = StudyDataSourceLink.class, mappedBy = "study", fetch = FetchType.LAZY)
     @OrderBy("deleted_at DESC, created ASC")
     private List<StudyDataSourceLink> dataSources;
 
-    @OneToOne(mappedBy = "study")
+    @OneToOne(mappedBy = "study", fetch = FetchType.LAZY)
     private Paper paper;
 
     @Column

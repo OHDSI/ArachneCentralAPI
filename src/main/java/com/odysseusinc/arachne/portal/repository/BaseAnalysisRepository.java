@@ -22,6 +22,8 @@
 
 package com.odysseusinc.arachne.portal.repository;
 
+import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
+import com.cosium.spring.data.jpa.entity.graph.repository.EntityGraphJpaRepository;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.Study;
 import java.util.List;
@@ -32,7 +34,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.query.Param;
 
 @NoRepositoryBean
-public interface BaseAnalysisRepository<T extends Analysis> extends JpaRepository<T, Long> {
+public interface BaseAnalysisRepository<T extends Analysis> extends EntityGraphJpaRepository<T, Long> {
     List<T> findByTitleAndStudyId(String title, Long studyId);
 
     List<T> findByStudyOrderByOrd(Study study);
@@ -45,4 +47,6 @@ public interface BaseAnalysisRepository<T extends Analysis> extends JpaRepositor
     List<T> findByStudyIdIn(List<Long> ids);
 
     void deleteByIdIn(List<Long> ids);
+
+    T findById(Long id, EntityGraph entityGraph);
 }

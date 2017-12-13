@@ -101,7 +101,9 @@ public interface BaseSubmissionService<T extends Submission, A extends Analysis>
 
     @PreAuthorize("hasPermission(#analysisId,  'Analysis', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
-    ResultFile getResultFile(User user, Long analysisId, String uuid) throws PermissionDeniedException;
+    ResultFile getResultFileAndCheckPermission(User user, Long analysisId, String uuid) throws PermissionDeniedException;
+
+    ResultFile getResultFileByUUID(String uuid);
 
     void getSubmissionResultAllFiles(User user, Long analysisId, Long submissionId, String archiveName, OutputStream os)
             throws IOException, PermissionDeniedException;
@@ -119,6 +121,8 @@ public interface BaseSubmissionService<T extends Submission, A extends Analysis>
     SubmissionGroup getSubmissionGroupById(Long id) throws NotExistException;
 
     void deleteSubmissionStatusHistory(List<SubmissionStatusHistoryElement> statusHistory);
+
+    SubmissionStatusHistoryElement getSubmissionStatusHistoryElementById(Long id);
 
     void deleteSubmissions(List<T> submission);
 
