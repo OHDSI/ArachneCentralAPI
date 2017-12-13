@@ -708,9 +708,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
         }
     }
 
-    protected void afterCreate(T analysis, A_C_DTO analysisDTO) {
-
-    }
+    protected void afterCreate(T analysis, A_C_DTO analysisDTO) {}
 
     protected abstract void attachPredictionFiles(List<MultipartFile> files) throws IOException;
 
