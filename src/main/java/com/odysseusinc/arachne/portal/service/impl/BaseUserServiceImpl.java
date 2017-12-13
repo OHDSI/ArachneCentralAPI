@@ -704,7 +704,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     }
 
     @Override
-    public List<? extends Invitationable> getInvitations(U user) {
+    public List<? extends Invitationable> getCollaboratorInvitations(U user) {
 
         return userStudyRepository.findByUserAndStatus(user, ParticipantStatus.PENDING);
     }
@@ -713,6 +713,25 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     public List<? extends Invitationable> getDataSourceInvitations(U user) {
 
         return studyDataSourceLinkRepository.findByOwnerAndStatus(user, DataSourceStatus.PENDING);
+    }
+
+    @Override
+    public List<? extends Invitationable> getInvitationsForStudy(U user, final Long studyId) {
+
+        List<? extends Invitationable> collaboratorInvitations = userStudyRepository.findByUserAndStudyIdAndStatus(
+                user,
+                studyId,
+                ParticipantStatus.PENDING
+        );
+        List<? extends Invitationable> dataSourceInvitations = studyDataSourceLinkRepository.findByOwnerAndStudyIdAndStatus(
+                user,
+                studyId,
+                DataSourceStatus.PENDING
+        );
+
+        return Stream
+                .concat(collaboratorInvitations.stream(), dataSourceInvitations.stream())
+                .collect(Collectors.toList());
     }
 
     @Override
