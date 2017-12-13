@@ -28,6 +28,7 @@ import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
 import java.util.Arrays;
 import java.util.Set;
 import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
+import java.util.stream.Stream;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -43,7 +44,8 @@ public class HasArachnePermissionsToPermissionDTOConverter
         if (permissions != null) {
             Arrays.stream(ArachnePermission.values())
                     .filter(arachnePermission ->
-                            arachnePermission.getApplicableClass().isAssignableFrom(hasArachnePermissions.getClass()))
+                            Stream.of(arachnePermission.getApplicableClass())
+                                    .anyMatch(clazz -> clazz.isAssignableFrom(hasArachnePermissions.getClass())))
                     .forEach(ap ->
                             permissionsDTO.put(ap, permissions.contains(ap)));
         }

@@ -46,6 +46,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.Principal;
 import java.util.List;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -144,8 +145,6 @@ public interface BaseUserService<U extends User, S extends Skill> {
     void saveAvatar(U user, MultipartFile file)
             throws IOException, WrongFileFormatException, ImageProcessingException, MetadataException, IllegalAccessException, SolrServerException, NoSuchFieldException;
 
-    InputStream getUserAvatar(U user) throws IOException;
-
     List<? extends Invitationable> getCollaboratorInvitations(U user);
 
     List<? extends Invitationable> getDataSourceInvitations(U user);
@@ -193,4 +192,6 @@ public interface BaseUserService<U extends User, S extends Skill> {
     List<U> findUsersByIdsIn(List<Long> dataOwnerIds);
 
     List<U> findUsersApprovedInDataSource(Long id);
+
+    void putAvatarToResponse(HttpServletResponse response, U user) throws IOException;
 }

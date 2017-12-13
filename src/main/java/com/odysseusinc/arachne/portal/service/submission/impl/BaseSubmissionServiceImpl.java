@@ -104,6 +104,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -378,6 +379,8 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     }
 
     @Override
+    @PreAuthorize("hasPermission(#submissionId,  'Submission', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_ANALYSIS)")
     public void deleteSubmissionInsight(Long submissionId) throws NotExistException {
 
         LOGGER.info(DELETING_INSIGHT_LOG, submissionId);

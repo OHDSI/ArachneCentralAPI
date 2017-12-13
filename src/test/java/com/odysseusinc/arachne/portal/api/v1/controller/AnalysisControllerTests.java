@@ -85,7 +85,7 @@ public class AnalysisControllerTests extends BaseControllerTest {
     private final JSONObject UPDATED_ANALYSIS_TYPE_JSON_OBJECT = new JSONObject()
             .put("id", ANALYSIS_ID)
             .put("title", ANALYSIS_TITLE)
-            .put("type", new JSONObject().put("id", "CHARACTERIZATION"));
+            .put("type", new JSONObject().put("id", "COHORT_CHARACTERIZATION"));
 
     private final JSONObject SUBMISSION_JSON_OBJECT = new JSONObject()
             .put("dataSource", new JSONObject().put("id", DATA_SOURCE_ID));
@@ -177,7 +177,7 @@ public class AnalysisControllerTests extends BaseControllerTest {
         AnalysisUpdateDTO analysisDTO = new AnalysisUpdateDTO();
         analysisDTO.setTypeId(CommonAnalysisType.COHORT_CHARACTERIZATION.name());
 
-        testUpdate(analysisDTO, UPDATED_ANALYSIS_TYPE_JSON_OBJECT, "Clinical Characterization");
+        testUpdate(analysisDTO, UPDATED_ANALYSIS_TYPE_JSON_OBJECT, "Cohort Characterization");
     }
 
     private void testUpdate(AnalysisUpdateDTO analysisDTO, JSONObject expected, String newValue) throws Exception {

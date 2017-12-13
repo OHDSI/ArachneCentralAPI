@@ -294,6 +294,8 @@ public abstract class BaseAnalysisServiceImpl<
     }
 
     @Override
+    @PreAuthorize("hasPermission(#analysis,  'Analysis', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_ANALYSIS)")
     public A update(A analysis)
             throws NotUniqueException, NotExistException, ValidationException {
 
@@ -473,7 +475,6 @@ public abstract class BaseAnalysisServiceImpl<
                 final String contentType = response.getHeaders().getContentType().toString();
 
                 Path pathToAnalysis = getAnalysisPath(analysis);
-                Path targetPath = Paths.get(pathToAnalysis.toString(), fileNameLowerCase);
 
                 Files.copy(new ByteArrayInputStream(response.getBody()),
                         pathToAnalysis, REPLACE_EXISTING);
@@ -527,6 +528,7 @@ public abstract class BaseAnalysisServiceImpl<
     @Override
     @PreAuthorize("hasPermission(#analysisId,  'Analysis', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
+    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
     public AnalysisFile getAnalysisFile(Long analysisId, String uuid) {
 
         return getAnalysisFileUnsecured(uuid);
@@ -683,6 +685,8 @@ public abstract class BaseAnalysisServiceImpl<
     }
 
     @Override
+    @PreAuthorize("hasPermission(#analysisFile, "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).DELETE_ANALYSIS_FILES)")
     public void writeToFile(
             AnalysisFile analysisFile,
             FileContentDTO fileContentDTO,
@@ -696,14 +700,16 @@ public abstract class BaseAnalysisServiceImpl<
             if (Files.notExists(analysisFolder)) {
                 Files.createDirectories(analysisFolder);
             }
-            Path target = analysisFolder.resolve(analysisFile.getUuid());
+            Path targetPath = analysisFolder.resolve(analysisFile.getUuid());
             byte[] content = fileContentDTO.getContent().getBytes(StandardCharsets.UTF_8);
             try (final InputStream stream = new ByteArrayInputStream(content)) {
-                Files.copy(stream, target, REPLACE_EXISTING);
+                Files.copy(stream, targetPath, REPLACE_EXISTING);
             }
             analysisFile.setUpdated(new Date());
             analysisFile.setEntryPoint(analysisFile.getEntryPoint());
             analysisFile.setUpdatedBy(updatedBy);
+            analysisFile.setContentType(CommonFileUtils.getContentType(analysisFile.getRealName(), targetPath.toString()));
+
             analysisFile.incrementVersion();
             analysisFileRepository.save(analysisFile);
 
@@ -937,6 +943,7 @@ public abstract class BaseAnalysisServiceImpl<
     }
 
     @Override
+    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
     public SubmissionInsight getSubmissionInsight(Long submissionId) throws NotExistException {
 
         final SubmissionInsight insight = submissionInsightRepository.findOneBySubmissionId(submissionId);
@@ -952,6 +959,8 @@ public abstract class BaseAnalysisServiceImpl<
     }
 
     @Override
+    @PreAuthorize("hasPermission(#submissionId,  'Submission', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_ANALYSIS)")
     public SubmissionInsight createSubmissionInsight(Long submissionId, SubmissionInsight insight)
             throws AlreadyExistException, NotExistException {
 
@@ -981,12 +990,20 @@ public abstract class BaseAnalysisServiceImpl<
     }
 
     @Override
+    public SubmissionInsightSubmissionFile findInsightByTopic(CommentTopic topic) {
+
+        return submissionInsightSubmissionFileRepository.findByCommentTopic(topic);
+    }
+
+    @Override
     public void deleteSubmissionInsightSubmissionFileLinks(List<SubmissionInsightSubmissionFile> links) {
 
         submissionInsightSubmissionFileRepository.delete(links);
     }
 
     @Override
+    @PreAuthorize("hasPermission(#insight, "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_INSIGHT)")
     public SubmissionInsight updateSubmissionInsight(Long submissionId, SubmissionInsight insight)
             throws NotExistException {
 

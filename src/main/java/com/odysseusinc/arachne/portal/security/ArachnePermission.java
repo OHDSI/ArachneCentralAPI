@@ -23,11 +23,13 @@
 package com.odysseusinc.arachne.portal.security;
 
 import com.odysseusinc.arachne.portal.model.Analysis;
+import com.odysseusinc.arachne.portal.model.AnalysisFile;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.Submission;
+import com.odysseusinc.arachne.portal.model.SubmissionInsight;
 
 public enum ArachnePermission {
     EDIT_STUDY(Study.class),
@@ -38,7 +40,8 @@ public enum ArachnePermission {
     UPLOAD_FILES(Study.class),
     CREATE_ANALYSIS(Study.class),
     DELETE_ANALYSIS(Analysis.class),
-    DELETE_ANALYSIS_FILES(Analysis.class),
+    EDIT_ANALYSIS(Analysis.class),
+    DELETE_ANALYSIS_FILES(Analysis.class, AnalysisFile.class),
     UPLOAD_ANALYSIS_FILES(Analysis.class),
     LOCK_ANALYSIS_FILE(Analysis.class),
     CREATE_SUBMISSION(Analysis.class),
@@ -49,18 +52,19 @@ public enum ArachnePermission {
     DELETE_DATASOURCE(DataSource.class),
     SENDING_UNLOCK_ANALYSIS_REQUEST(Analysis.class),
     EDIT_PAPER(Paper.class),
+    EDIT_INSIGHT(SubmissionInsight.class),
     ACCESS_PAPER(Paper.class),
     LIMITED_EDIT_PAPER(Paper.class)
     ;
 
-    private Class<?> applicableClass;
+    private Class<?>[] applicableClass;
 
-    ArachnePermission(Class<?> clazz) {
+    ArachnePermission(Class<?>... clazz) {
 
         applicableClass = clazz;
     }
 
-    public Class<?> getApplicableClass() {
+    public Class<?>[] getApplicableClass() {
 
         return applicableClass;
     }
