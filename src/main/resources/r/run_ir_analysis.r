@@ -60,13 +60,32 @@ run_ir_analysis <- function(basicDir, analysisId, analysisDescriptionFile, cohor
     DatabaseConnector::executeSql(connection, translatedSql)
 
     # Save results
+    # Summary
     sql <- SqlRender::readSql("analysis_summary.sql")
     sql <- SqlRender::renderSql(sql,
     resultsSchema = resultsDatabaseSchema,
     id = analysisId)$sql
     sql <- SqlRender::translateSql(sql, targetDialect = dbms)$sql
     result <- DatabaseConnector::querySql(connection, sql)
-    write.csv(result, file.path(workDir, "summary.csv"), na = "")
+    write.csv(result, file.path(workDir, "ir_summary.csv"), na = "")
+
+    # Dist
+    sql <- SqlRender::readSql("ir_dist.sql")
+    sql <- SqlRender::renderSql(sql,
+    resultsSchema = resultsDatabaseSchema,
+    analysisId = analysisId)$sql
+    sql <- SqlRender::translateSql(sql, targetDialect = dbms)$sql
+    dist <- DatabaseConnector::querySql(connection, sql)
+    write.csv(dist, file.path(workDir, "ir_dist.csv"), na = "")
+
+    # Strata
+    sql <- SqlRender::readSql("strata_stats.sql")
+    sql <- SqlRender::renderSql(sql,
+    results_database_schema = resultsDatabaseSchema,
+    analysis_id = analysisId)$sql
+    sql <- SqlRender::translateSql(sql, targetDialect = dbms)$sql
+    strata <- DatabaseConnector::querySql(connection, sql)
+    write.csv(strata, file.path(workDir, "ir_strata.csv"), na = "")
 
     disconnect(connection)
 
