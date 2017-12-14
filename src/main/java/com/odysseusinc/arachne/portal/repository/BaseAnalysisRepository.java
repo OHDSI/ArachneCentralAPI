@@ -49,4 +49,6 @@ public interface BaseAnalysisRepository<T extends Analysis> extends EntityGraphJ
     void deleteByIdIn(List<Long> ids);
 
     T findById(Long id, EntityGraph entityGraph);
+
+    T findById(Long id);
 }

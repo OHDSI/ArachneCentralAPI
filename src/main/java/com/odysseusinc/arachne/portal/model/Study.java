@@ -48,7 +48,7 @@ import org.hibernate.annotations.DiscriminatorFormula;
 
 @Entity
 @Table(name = "studies")
-@DiscriminatorFormula("'Entity'")
+@DiscriminatorFormula("'STUDY_ENTITY'")
 public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyStatus> {
     public Study() {
 

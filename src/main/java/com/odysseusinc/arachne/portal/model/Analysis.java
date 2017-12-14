@@ -41,6 +41,7 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedAttributeNode;
 import javax.persistence.NamedEntityGraph;
+import javax.persistence.NamedEntityGraphs;
 import javax.persistence.NamedSubgraph;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
@@ -49,9 +50,29 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import org.hibernate.annotations.DiscriminatorFormula;
 
+@NamedEntityGraphs(value = {
+        @NamedEntityGraph(
+                name = "Analysis.default",
+                attributeNodes = {
+                        @NamedAttributeNode(value = "submissions"),
+                        @NamedAttributeNode(value = "submissions", subgraph = "submissionsGraph")
+                },
+                subgraphs = {
+                        @NamedSubgraph(
+                                name = "submissionsGraph",
+                                attributeNodes = {
+                                        @NamedAttributeNode(value = "author"),
+                                        @NamedAttributeNode(value = "submissionGroup"),
+                                        @NamedAttributeNode(value = "submissionInsight"),
+                                        @NamedAttributeNode(value = "dataSource")
+                                }
+                        )
+                }
+        )
+})
 @Entity
 @Table(name = "analyses")
-@DiscriminatorFormula("'Entity'")
+@DiscriminatorFormula("'ANALYSIS_ENTITY'")
 public class Analysis implements HasArachnePermissions, Breadcrumb {
 
     public Analysis() {

@@ -53,7 +53,7 @@ import org.springframework.util.CollectionUtils;
 
 @Entity
 @Table(name = "papers")
-@DiscriminatorFormula("'Entity'")
+@DiscriminatorFormula("'PAPER_ENTITY'")
 public class Paper implements HasArachnePermissions, Breadcrumb {
 
     @Id

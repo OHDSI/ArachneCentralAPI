@@ -73,7 +73,7 @@ public class Submission implements HasArachnePermissions, Breadcrumb, Invitation
     @ManyToOne(fetch = FetchType.LAZY)
     private User author;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private DataSource dataSource;
 
     @LazyCollection(LazyCollectionOption.EXTRA)
