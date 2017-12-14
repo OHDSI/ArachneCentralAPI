@@ -27,7 +27,6 @@ import static com.odysseusinc.arachne.commons.service.messaging.MessagingUtils.g
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
-import com.google.common.collect.ImmutableMap;
 import com.odysseusinc.arachne.commons.api.v1.dto.AtlasInfoDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonEntityDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonEntityRequestDTO;
@@ -41,7 +40,16 @@ import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.messaging.BaseDataNodeMessageService;
 import com.odysseusinc.arachne.portal.service.messaging.MessagingUtils;
 import com.odysseusinc.arachne.portal.util.ImportedFile;
-import java.util.Map;
+import java.io.IOException;
+import java.io.Serializable;
+import java.security.Principal;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
+import javax.jms.JMSException;
+import javax.jms.ObjectMessage;
+import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,17 +61,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.jms.JMSException;
-import javax.jms.ObjectMessage;
-import javax.validation.Valid;
-import java.io.IOException;
-import java.io.Serializable;
-import java.security.Principal;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-
 public abstract class BaseDataNodeMessagingController<DN extends DataNode> extends BaseController<DN> {
 
     private static final Logger log = LoggerFactory.getLogger(BaseDataNodeController.class);
@@ -72,18 +69,6 @@ public abstract class BaseDataNodeMessagingController<DN extends DataNode> exten
     private final DestinationResolver destinationResolver;
     private final BaseDataNodeService<DN> baseDataNodeService;
     private final BaseDataNodeMessageService<DN> dataNodeMessageService;
-
-    private static final Map<String, String> ESCAPE_CHARS = ImmutableMap.<String, String>builder()
-            .put(":", "-colon-")
-            .put("/", "-slash-")
-            .put("<", "-lt-")
-            .put(">", "-gt-")
-            .put("*", "-star-")
-            .put("?", "-question mark-")
-            .put("\\", "-backslash-")
-            .put("|", "-verticalbar-")
-            .put("\"", "-quote-")
-            .build();
 
     @Autowired
     public BaseDataNodeMessagingController(
@@ -199,7 +184,7 @@ public abstract class BaseDataNodeMessagingController<DN extends DataNode> exten
 
         LinkedList<ImportedFile> importedFiles = new LinkedList<>();
         for (MultipartFile mpf : files) {
-            importedFiles.add(new ImportedFile(filterFileName(mpf.getOriginalFilename()), mpf.getBytes()));
+            importedFiles.add(new ImportedFile(mpf.getOriginalFilename(), mpf.getBytes()));
         }
 
         saveCommonEntity(
@@ -207,17 +192,6 @@ public abstract class BaseDataNodeMessagingController<DN extends DataNode> exten
                 id,
                 importedFiles
         );
-    }
-
-    private String filterFileName(final String fileName) {
-
-        String filteredFileName = fileName;
-        for (Map.Entry<String, String> charEntry : ESCAPE_CHARS.entrySet()) {
-            if (filteredFileName.contains(charEntry.getKey())) {
-                filteredFileName = filteredFileName.replace(charEntry.getKey(), charEntry.getValue());
-            }
-        }
-        return filteredFileName;
     }
 
     private void saveCommonEntity(
