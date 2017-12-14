@@ -33,6 +33,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
+import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.AddStudyParticipantDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.BooleanDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.Commentable;
@@ -71,6 +72,7 @@ import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.model.statemachine.study.StudyStateMachine;
 import com.odysseusinc.arachne.portal.model.statemachine.study.StudyTransition;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
+import com.odysseusinc.arachne.portal.service.DocToPdfConverter;
 import com.odysseusinc.arachne.portal.service.StudyFileService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import io.swagger.annotations.ApiOperation;
@@ -81,6 +83,7 @@ import java.security.Principal;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
@@ -89,6 +92,7 @@ import javax.validation.constraints.NotNull;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -119,6 +123,10 @@ public abstract class BaseStudyController<
     protected GenericConversionService conversionService;
     private BaseAnalysisService<A> analysisService;
     private SimpMessagingTemplate wsTemplate;
+
+    @Autowired
+    private DocToPdfConverter docToPdfConverter;
+
 
     public BaseStudyController(BaseStudyService<T, DS, SS, SU> studyService,
                                BaseAnalysisService<A> analysisService,
@@ -403,6 +411,9 @@ public abstract class BaseStudyController<
         if (withContent) {
             final String content = new String(fileService.getAllBytes(studyFile));
             studyFileDTO.setContent(content);
+            if (Objects.equals(studyFile.getContentType(), CommonFileUtils.TYPE_WORD)) {
+                studyFileDTO.setDocType(CommonFileUtils.TYPE_PDF);
+            }
         }
 
         return studyFileDTO;

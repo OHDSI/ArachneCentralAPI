@@ -20,11 +20,11 @@
 
 package com.odysseusinc.arachne.portal.service;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.OutputStream;
+
 import org.apache.poi.xwpf.converter.core.IXWPFConverter;
 import org.apache.poi.xwpf.converter.pdf.PdfConverter;
 import org.apache.poi.xwpf.converter.pdf.PdfOptions;
@@ -32,18 +32,21 @@ import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.stereotype.Component;
 
 @Component
-public class DocToPdfConverter {
+public class DocToPdfConverter{
 
     private final PdfOptions options = PdfOptions.create();
     private final IXWPFConverter<PdfOptions> converter = PdfConverter.getInstance();
 
-    void convert(final OutputStream out, final File docFile) throws IOException {
+    public byte[] convert(final File docFile) throws IOException {
 
-        converter.convert(convertFileToXWPFDocument(docFile), out, options);
+        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+        converter.convert(getDocument(docFile), outputStream, options);
+
+        return outputStream.toByteArray();
     }
 
-    private XWPFDocument convertFileToXWPFDocument(final File file) throws IOException {
-
+    private XWPFDocument getDocument(final File file) throws IOException {
         final FileInputStream inputStream = new FileInputStream(file);
         return new XWPFDocument(inputStream);
     }
