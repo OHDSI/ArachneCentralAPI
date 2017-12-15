@@ -144,8 +144,6 @@ public class AnalysisController extends BaseAnalysisController<Analysis, Analysi
                 readResource(IR_RESOURCES_PATH  + "ir_dist.sql")));
         files.add(new MockMultipartFile("performAnalysis.sql", "performAnalysis.sql", null,
                 readResource(IR_RESOURCES_PATH  + "performAnalysis.sql")));
-        files.add(new MockMultipartFile("result.sql", "result.sql", null,
-                readResource(IR_RESOURCES_PATH  + "result.sql")));
         files.add(new MockMultipartFile("strata.sql", "strata.sql", null,
                 readResource(IR_RESOURCES_PATH  + "strata.sql")));
         files.add(new MockMultipartFile("strata_rules.sql", "strata_rules.sql", null,
