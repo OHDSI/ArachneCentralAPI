@@ -23,6 +23,8 @@ package com.odysseusinc.arachne.portal.service.domain;
 
 import java.io.Serializable;
 import javax.persistence.EntityManagerFactory;
+
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.support.Repositories;
 

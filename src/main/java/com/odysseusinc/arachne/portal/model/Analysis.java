@@ -41,6 +41,7 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedAttributeNode;
 import javax.persistence.NamedEntityGraph;
+import javax.persistence.NamedEntityGraphs;
 import javax.persistence.NamedSubgraph;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
@@ -51,7 +52,7 @@ import org.hibernate.annotations.DiscriminatorFormula;
 
 @Entity
 @Table(name = "analyses")
-@DiscriminatorFormula("'Entity'")
+@DiscriminatorFormula("'ANALYSIS_ENTITY'")
 public class Analysis implements HasArachnePermissions, Breadcrumb {
 
     public Analysis() {
@@ -268,5 +269,26 @@ public class Analysis implements HasArachnePermissions, Breadcrumb {
     public void setType(CommonAnalysisType type) {
 
         this.type = type;
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+
+        if (this == obj) {
+            return true;
+        }
+
+        if (obj == null || !(obj instanceof Analysis)) {
+            return false;
+        }
+
+        final Analysis s = (Analysis) obj;
+        return java.util.Objects.equals(id, s.id);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return java.util.Objects.hashCode(this.id);
     }
 }
