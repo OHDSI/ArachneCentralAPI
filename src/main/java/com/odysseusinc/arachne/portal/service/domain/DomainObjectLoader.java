@@ -63,9 +63,9 @@ public abstract class DomainObjectLoader {
         return this;
     }
 
-    protected JpaRepository getRepository() {
+    protected CrudRepository getRepository() {
 
-        return (JpaRepository) repositories.getRepositoryFor(domainClazz);
+        return (CrudRepository) repositories.getRepositoryFor(domainClazz);
     }
 
     protected Serializable getTargetId(Object domainObject) {

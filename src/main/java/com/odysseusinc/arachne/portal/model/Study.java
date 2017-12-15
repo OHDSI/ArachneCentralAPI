@@ -310,4 +310,23 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
 
         this.privacy = privacy;
     }
+
+    @Override
+    public boolean equals(final Object obj) {
+
+        if (this == obj) {
+            return true;
+        }
+
+        if (obj == null || !(obj instanceof Study)) return false;
+
+        final Study s = (Study) obj;
+        return java.util.Objects.equals(id, s.id);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return java.util.Objects.hashCode(this.id);
+    }
 }

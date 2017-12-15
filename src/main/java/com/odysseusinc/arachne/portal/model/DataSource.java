@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.model;
 
+import com.google.common.base.Objects;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonCDMVersionDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonModelType;
@@ -55,7 +56,7 @@ import java.util.Set;
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 //@DiscriminatorColumn(name = "data_source_type")
-@DiscriminatorFormula("'DATA_SOURCE'")
+@DiscriminatorFormula("'DATA_SOURCE_ENTITY'")
 @Table(name = "data_sources")
 @SQLDelete(sql = "UPDATE data_sources "
         + "SET deleted = current_timestamp, health_status = 'NOT_CONNECTED', health_status_description = 'Deleted'"
@@ -102,6 +103,25 @@ public class DataSource implements Serializable, HasArachnePermissions {
     @NotBlank
     @Column
     protected String organization;
+
+    @Override
+    public boolean equals(final Object obj) {
+
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || !(obj instanceof DataSource)) {
+            return false;
+        }
+        final DataSource s = (DataSource) obj;
+        return java.util.Objects.equals(id, s.id);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return java.util.Objects.hashCode(this.id);
+    }
 
     public Long getId() {
 

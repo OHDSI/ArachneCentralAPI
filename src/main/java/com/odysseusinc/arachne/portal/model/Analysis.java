@@ -50,26 +50,6 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import org.hibernate.annotations.DiscriminatorFormula;
 
-@NamedEntityGraphs(value = {
-        @NamedEntityGraph(
-                name = "Analysis.default",
-                attributeNodes = {
-                        @NamedAttributeNode(value = "submissions"),
-                        @NamedAttributeNode(value = "submissions", subgraph = "submissionsGraph")
-                },
-                subgraphs = {
-                        @NamedSubgraph(
-                                name = "submissionsGraph",
-                                attributeNodes = {
-                                        @NamedAttributeNode(value = "author"),
-                                        @NamedAttributeNode(value = "submissionGroup"),
-                                        @NamedAttributeNode(value = "submissionInsight"),
-                                        @NamedAttributeNode(value = "dataSource")
-                                }
-                        )
-                }
-        )
-})
 @Entity
 @Table(name = "analyses")
 @DiscriminatorFormula("'ANALYSIS_ENTITY'")
@@ -289,5 +269,26 @@ public class Analysis implements HasArachnePermissions, Breadcrumb {
     public void setType(CommonAnalysisType type) {
 
         this.type = type;
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+
+        if (this == obj) {
+            return true;
+        }
+
+        if (obj == null || !(obj instanceof Analysis)) {
+            return false;
+        }
+
+        final Analysis s = (Analysis) obj;
+        return java.util.Objects.equals(id, s.id);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return java.util.Objects.hashCode(this.id);
     }
 }

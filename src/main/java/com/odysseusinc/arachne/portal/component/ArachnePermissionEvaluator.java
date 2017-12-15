@@ -88,9 +88,6 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
         initDomainClassMap();
     }
 
-    @Autowired
-    private AnalysisRepository analysisRepository;
-
     protected void initDomainClassMap() {
 
         domainClassMap.put(Study.class.getSimpleName(), Study.class);
@@ -145,7 +142,6 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
         Object domainObject = domainObjectLoaderFactory.getDomainObjectLoader(domainClassMap.get(targetType))
                 .withTargetId(targetId)
                 .loadDomainObject();
-//        Object domainObject = analysisRepository.findById((long)targetId);
 
         return Objects.nonNull(domainObject)
                 && checkPermission(authentication, domainObject, permission);
