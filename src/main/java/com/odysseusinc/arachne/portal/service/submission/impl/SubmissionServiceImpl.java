@@ -49,6 +49,7 @@ import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import com.odysseusinc.arachne.portal.service.submission.SubmissionService;
 import com.odysseusinc.arachne.portal.util.AnalysisHelper;
 import com.odysseusinc.arachne.portal.util.LegacyAnalysisHelper;
+import com.odysseusinc.arachne.portal.util.SubmissionHelper;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
@@ -79,7 +80,8 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
                                  SubmissionFileRepository submissionFileRepository,
                                  ResultFileRepository resultFileRepository,
                                  SubmissionStatusHistoryRepository submissionStatusHistoryRepository,
-                                 EntityManager entityManager) {
+                                 EntityManager entityManager,
+                                 SubmissionHelper submissionHelper) {
 
         super(submissionRepository,
                 dataSourceService,
@@ -91,7 +93,10 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
                 submissionGroupRepository,
                 submissionInsightRepository,
                 submissionFileRepository,
-                resultFileRepository, submissionStatusHistoryRepository, entityManager);
+                resultFileRepository,
+                submissionStatusHistoryRepository,
+                entityManager,
+                submissionHelper);
     }
 
     @Override

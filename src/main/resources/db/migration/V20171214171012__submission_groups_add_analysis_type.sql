@@ -16,26 +16,19 @@
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
  * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: December 08, 2016
+ * Created: January 13, 2017
  *
  */
 
-package com.odysseusinc.arachne.portal.repository;
+ALTER TABLE submission_groups
+  ADD COLUMN IF NOT EXISTS analysis_type VARCHAR DEFAULT 'CUSTOM';
 
-import com.odysseusinc.arachne.portal.model.ResultFile;
-import com.odysseusinc.arachne.portal.model.Submission;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import org.springframework.data.repository.CrudRepository;
+UPDATE submission_groups
+SET analysis_type = 'CUSTOM'
+WHERE analysis_type IS NULL;
 
-public interface SubmissionResultFileRepository extends CrudRepository<ResultFile, Long> {
+ALTER TABLE submission_groups
+  ALTER COLUMN analysis_type SET NOT NULL;
 
-    ResultFile findByUuid(String uuid);
-
-    Long countBySubmissionAndContentTypeIn(Submission submission, Set<String> contenTypes);
-
-    List<ResultFile> findAllBySubmissionAndRealNameLikeAndRealNameEndingWith(Submission submission, String realNameQuery, String extension);
-
-    Optional<ResultFile> findBySubmissionAndRealName(Submission submission, String realName);
-}
+ALTER TABLE submissions
+  ADD COLUMN IF NOT EXISTS result_info JSONB;
