@@ -61,10 +61,6 @@ public interface BaseSubmissionService<T extends Submission, A extends Analysis>
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).CREATE_SUBMISSION)")
     SubmissionGroup createSubmissionGroup(User user, Analysis analysis) throws IOException, NoExecutableFileException;
 
-    void deleteSubmissionInsight(Long submissionId) throws NotExistException;
-
-    void tryDeleteSubmissionInsight(Long submissionInsightId);
-
     @PreAuthorize("hasPermission(#submissionId, 'Submission', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).APPROVE_SUBMISSION)")
     boolean deleteSubmissionResultFile(Long submissionId, String fileUuid)

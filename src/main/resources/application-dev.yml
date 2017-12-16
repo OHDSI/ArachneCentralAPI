@@ -9,7 +9,6 @@ logging:
   level: debug
 portal:
   hostsWhiteList: localhost
-  useQueryInterceptor: true
 build:
   number: no_build_number
   id: no_build_id

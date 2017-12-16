@@ -219,6 +219,6 @@ public abstract class BaseAdminServiceImpl<
 
         submissionInsightService.deleteSubmissionInsightSubmissionFileLinks(submissionInsightSubmissionFiles);
 
-        submissionService.tryDeleteSubmissionInsight(insight.getId());
+        submissionInsightService.tryDeleteSubmissionInsight(insight.getId());
     }
 }

@@ -45,6 +45,7 @@ public class SubmissionInsightServiceImpl implements SubmissionInsightService {
     private static final String INSIGHT_NOT_EXIST_EXCEPTION = "Insight for Submission with id='%s' does not exist";
     private static final String INSIGHT_ALREADY_EXISTS_EXCEPTION = "Insight for Submission with id='%s' already exists";
     private static final String SUBMISSION_NOT_EXIST_EXCEPTION = "Submission with id='%s' does not exist";
+    public static final String DELETING_INSIGHT_LOG = "Deleting Insight for Submission with id='{}'";
 
     protected final SubmissionInsightRepository submissionInsightRepository;
     protected final SubmissionInsightSubmissionFileRepository submissionInsightSubmissionFileRepository;
@@ -151,6 +152,28 @@ public class SubmissionInsightServiceImpl implements SubmissionInsightService {
             insights.forEach(insight -> insight.setCommentsCount(counts.getOrDefault(insight.getId(), 0L)));
         }
         return page;
+    }
+
+    @Override
+    @PreAuthorize("hasPermission(#submissionId,  'Submission', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_ANALYSIS)")
+    public void deleteSubmissionInsight(Long submissionId) throws NotExistException {
+
+        LOGGER.info(DELETING_INSIGHT_LOG, submissionId);
+        final Submission submission = submissionRepository.findOne(submissionId);
+        throwNotExistExceptionIfNull(submission, submissionId);
+        final SubmissionInsight submissionInsight = submissionInsightRepository.findOneBySubmissionId(submissionId);
+        throwNotExistExceptionIfNull(submissionInsight, submissionId);
+        final List<ResultFile> resultFiles = submission.getResultFiles();
+        resultFiles.forEach(resultFile -> resultFile.setCommentTopic(null));
+        submissionResultFileRepository.save(resultFiles);
+        submissionInsightRepository.deleteBySubmissionId(submissionId);
+    }
+
+    @Override
+    public void tryDeleteSubmissionInsight(Long submissionInsightId) {
+
+        submissionInsightRepository.delete(submissionInsightId);
     }
 
     private void throwNotExistExceptionIfNull(Submission submission, Long submissionId) throws NotExistException {

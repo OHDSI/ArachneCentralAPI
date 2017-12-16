@@ -26,4 +26,8 @@ public interface SubmissionInsightService {
             throws NotExistException;
 
     Page<SubmissionInsight> getInsightsByStudyId(Long studyId, Pageable pageable);
+
+    void deleteSubmissionInsight(Long submissionId) throws NotExistException;
+
+    void tryDeleteSubmissionInsight(Long submissionInsightId);
 }

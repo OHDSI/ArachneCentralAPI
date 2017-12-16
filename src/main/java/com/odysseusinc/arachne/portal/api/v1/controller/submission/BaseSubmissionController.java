@@ -53,6 +53,7 @@ import com.odysseusinc.arachne.portal.model.SubmissionStatus;
 import com.odysseusinc.arachne.portal.model.SubmissionStatusHistoryElement;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.ResultFileSearch;
+import com.odysseusinc.arachne.portal.service.SubmissionInsightService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
 import com.odysseusinc.arachne.portal.util.AnalysisHelper;
@@ -85,12 +86,15 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     protected static final Logger LOGGER = LoggerFactory.getLogger(BaseSubmissionController.class);
     protected final BaseAnalysisService<A> analysisService;
     protected final BaseSubmissionService<T, A> submissionService;
+    protected final SubmissionInsightService submissionInsightService;
 
     public BaseSubmissionController(BaseAnalysisService<A> analysisService,
-                                    BaseSubmissionService<T, A> submissionService) {
+                                    BaseSubmissionService<T, A> submissionService,
+                                    SubmissionInsightService submissionInsightService) {
 
         this.analysisService = analysisService;
         this.submissionService = submissionService;
+        this.submissionInsightService = submissionInsightService;
     }
 
     @ApiOperation("Create and send submission.")
@@ -225,7 +229,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/insight", method = DELETE)
     public JsonResult deleteSubmissionInsight(@PathVariable("submissionId") Long submissionId) throws NotExistException {
 
-        submissionService.deleteSubmissionInsight(submissionId);
+        submissionInsightService.deleteSubmissionInsight(submissionId);
         return new JsonResult<>(NO_ERROR);
     }
 

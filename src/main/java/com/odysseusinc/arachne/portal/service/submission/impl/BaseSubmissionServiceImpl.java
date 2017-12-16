@@ -41,10 +41,8 @@ import com.odysseusinc.arachne.portal.exception.NoExecutableFileException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
-import com.odysseusinc.arachne.portal.model.AbstractResultFile_;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.AnalysisFile;
-import com.odysseusinc.arachne.portal.model.ArachneFile_;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.ResultEntity;
 import com.odysseusinc.arachne.portal.model.ResultFile;
@@ -104,7 +102,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -113,7 +110,6 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
 
     public static final String SUBMISSION_NOT_EXIST_EXCEPTION = "Submission with id='%s' does not exist";
     public static final String ILLEGAL_SUBMISSION_STATE_EXCEPTION = "Submission must be in EXECUTED or FAILED state before approve result";
-    public static final String DELETING_INSIGHT_LOG = "Deleting Insight for Submission with id='{}'";
     public static final String INSIGHT_NOT_EXIST_EXCEPTION = "Insight for Submission with id='%s' does not exist";
     public static final String RESULT_FILE_NOT_EXISTS_EXCEPTION = "Result file with uuid='%s' for submission with "
             + "id='%s' does not exist";
@@ -376,28 +372,6 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     public List<SubmissionStatusHistoryElement> getSubmissionStatusHistory(Long analysisId, Long submissionId) {
 
         return submissionStatusHistoryRepository.findBySubmissionIdOrderByDate(submissionId);
-    }
-
-    @Override
-    @PreAuthorize("hasPermission(#submissionId,  'Submission', "
-            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_ANALYSIS)")
-    public void deleteSubmissionInsight(Long submissionId) throws NotExistException {
-
-        LOGGER.info(DELETING_INSIGHT_LOG, submissionId);
-        final T submission = submissionRepository.findOne(submissionId);
-        throwNotExistExceptionIfNull(submission, submissionId);
-        final SubmissionInsight submissionInsight = submissionInsightRepository.findOneBySubmissionId(submissionId);
-        throwNotExistExceptionIfNull(submissionInsight, submissionId);
-        final List<ResultFile> resultFiles = submission.getResultFiles();
-        resultFiles.forEach(resultFile -> resultFile.setCommentTopic(null));
-        submissionResultFileRepository.save(resultFiles);
-        submissionInsightRepository.deleteBySubmissionId(submissionId);
-    }
-
-    @Override
-    public void tryDeleteSubmissionInsight(Long submissionInsightId) {
-
-        submissionInsightRepository.delete(submissionInsightId);
     }
 
     @Override

@@ -25,6 +25,7 @@ package com.odysseusinc.arachne.portal.api.v1.controller.submission;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionDTO;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.Submission;
+import com.odysseusinc.arachne.portal.service.SubmissionInsightService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.service.submission.SubmissionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,9 +36,10 @@ public class SubmissionController extends BaseSubmissionController<Submission, A
 
     @Autowired
     public SubmissionController(BaseAnalysisService<Analysis> analysisService,
-                                SubmissionService submissionService) {
+                                SubmissionService submissionService,
+                                SubmissionInsightService submissionInsightService) {
 
-        super(analysisService, submissionService);
+        super(analysisService, submissionService, submissionInsightService);
     }
 
     @Override
