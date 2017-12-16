@@ -83,7 +83,7 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
     @Column(length = 10000)
     private String description;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     private StudyType type;
 
     @Column
@@ -92,7 +92,7 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
     @Column
     private Date updated;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     private StudyStatus status;
 
     @OneToMany(mappedBy = "study", fetch = FetchType.LAZY)

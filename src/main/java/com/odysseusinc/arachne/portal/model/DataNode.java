@@ -69,10 +69,10 @@ public class DataNode implements HasArachnePermissions {
     @Column(name = "description")
     private String description;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     private DataNodeStatus status;
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "dataNode", targetEntity = DataSource.class)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "dataNode", targetEntity = DataSource.class)
     private Set<DataSource> dataSources;
 
     @Column(name = "health_status")
@@ -92,7 +92,7 @@ public class DataNode implements HasArachnePermissions {
     @Column(name = "is_virtual")
     private Boolean virtual;
 
-    @OneToMany(mappedBy = "dataNode", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "dataNode", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<DataNodeUser> dataNodeUsers = new HashSet<>();
 
     @Column(name = "atlas_version")

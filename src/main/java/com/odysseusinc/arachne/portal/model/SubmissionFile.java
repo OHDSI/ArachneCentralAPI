@@ -24,6 +24,7 @@ package com.odysseusinc.arachne.portal.model;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -40,9 +41,9 @@ public class SubmissionFile extends ArachneFile {
     private Long id;
     @Column(nullable = false)
     private Boolean executable;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private SubmissionGroup submissionGroup;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private User author;
     @Column(name = "version")
     private Integer version;

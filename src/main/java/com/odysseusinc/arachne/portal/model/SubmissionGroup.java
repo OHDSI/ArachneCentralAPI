@@ -49,10 +49,10 @@ public class SubmissionGroup implements Breadcrumb {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "submission_groups_pk_sequence")
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private Analysis analysis;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private User author;
 
     @OneToMany(mappedBy = "submissionGroup", targetEntity = Submission.class, fetch = FetchType.LAZY)

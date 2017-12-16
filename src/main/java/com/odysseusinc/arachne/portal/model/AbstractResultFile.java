@@ -28,6 +28,7 @@ import javax.persistence.Access;
 import javax.persistence.AccessType;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -43,9 +44,9 @@ public class AbstractResultFile extends ArachneFile {
     @SequenceGenerator(name = "result_files_pk_sequence", sequenceName = "result_files_id_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "result_files_pk_sequence")
     private Long id;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private Submission submission;
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private CommentTopic commentTopic;
     @Column(name = "manual_upload")
     private Boolean manuallyUploaded;

@@ -24,6 +24,7 @@ package com.odysseusinc.arachne.portal.model.achilles;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -42,7 +43,7 @@ public class AchillesReportMatcher {
             sequenceName = "achilles_report_matchers_id_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "achilles_report_matcher_pk_sequence")
     private Long id;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "achilles_report_id")
     private AchillesReport report;
     @Column
