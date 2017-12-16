@@ -152,11 +152,6 @@ public abstract class BaseAnalysisServiceImpl<
 
     public static final String ILLEGAL_SUBMISSION_STATE_EXCEPTION = "Submission must be in EXECUTED or FAILED state before approve result";
     protected static final Logger LOGGER = LoggerFactory.getLogger(BaseAnalysisServiceImpl.class);
-    private static final String CREATING_INSIGHT_LOG = "Creating Insight for Submission with id='{}'";
-    private static final String UPDATING_INSIGHT_LOG = "Updating Insight for Submission with id='{}'";
-    private static final String SUBMISSION_NOT_EXIST_EXCEPTION = "Submission with id='%s' does not exist";
-    private static final String INSIGHT_NOT_EXIST_EXCEPTION = "Insight for Submission with id='%s' does not exist";
-    private static final String INSIGHT_ALREADY_EXISTS_EXCEPTION = "Insight for Submission with id='%s' already exists";
     private static final String ANALYSIS_NOT_FOUND_EXCEPTION = "Analysis with id='%s' is not found";
     private static final String RESULT_FILE_NOT_EXISTS_EXCEPTION = "Result file with uuid='%s' for submission with "
             + "id='%s' does not exist";
@@ -171,12 +166,8 @@ public abstract class BaseAnalysisServiceImpl<
     protected final BaseSubmissionRepository<Submission> submissionRepository;
     protected final AnalysisFileRepository analysisFileRepository;
     protected final SubmissionFileRepository submissionFileRepository;
-    protected final SubmissionResultFileRepository submissionResultFileRepository;
     protected final ResultFileRepository resultFileRepository;
     protected final SubmissionStatusHistoryRepository submissionStatusHistoryRepository;
-    protected final SubmissionInsightRepository submissionInsightRepository;
-    protected final SubmissionInsightSubmissionFileRepository submissionInsightSubmissionFileRepository;
-    protected final CommentService commentService;
     protected final RestTemplate restTemplate;
     protected final LegacyAnalysisHelper legacyAnalysisHelper;
     protected final AnalysisUnlockRequestRepository analysisUnlockRequestRepository;
@@ -195,12 +186,8 @@ public abstract class BaseAnalysisServiceImpl<
                                    BaseSubmissionRepository submissionRepository,
                                    AnalysisFileRepository analysisFileRepository,
                                    SubmissionFileRepository submissionFileRepository,
-                                   SubmissionResultFileRepository submissionResultFileRepository,
                                    ResultFileRepository resultFileRepository,
                                    SubmissionStatusHistoryRepository submissionStatusHistoryRepository,
-                                   SubmissionInsightRepository submissionInsightRepository,
-                                   SubmissionInsightSubmissionFileRepository submissionInsightSubmissionFileRepository,
-                                   CommentService commentService,
                                    @SuppressWarnings("SpringJavaAutowiringInspection")
                                    @Qualifier("restTemplate") RestTemplate restTemplate,
                                    LegacyAnalysisHelper legacyAnalysisHelper,
@@ -218,12 +205,8 @@ public abstract class BaseAnalysisServiceImpl<
         this.submissionRepository = submissionRepository;
         this.analysisFileRepository = analysisFileRepository;
         this.submissionFileRepository = submissionFileRepository;
-        this.submissionResultFileRepository = submissionResultFileRepository;
         this.resultFileRepository = resultFileRepository;
         this.submissionStatusHistoryRepository = submissionStatusHistoryRepository;
-        this.submissionInsightRepository = submissionInsightRepository;
-        this.submissionInsightSubmissionFileRepository = submissionInsightSubmissionFileRepository;
-        this.commentService = commentService;
         this.restTemplate = restTemplate;
         this.legacyAnalysisHelper = legacyAnalysisHelper;
         this.analysisUnlockRequestRepository = analysisUnlockRequestRepository;
@@ -942,118 +925,11 @@ public abstract class BaseAnalysisServiceImpl<
         }
     }
 
-    @Override
-    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
-    public SubmissionInsight getSubmissionInsight(Long submissionId) throws NotExistException {
-
-        final SubmissionInsight insight = submissionInsightRepository.findOneBySubmissionId(submissionId);
-        throwNotExistExceptionIfNull(insight, submissionId);
-        return insight;
-    }
-
-    @Override
-    public Set<CommentTopic> getInsightComments(SubmissionInsight insight, Integer size, Sort sort) {
-
-        final Set<CommentTopic> topics = extractCommentTopics(insight);
-        return commentService.list(topics, size, sort);
-    }
-
-    @Override
-    @PreAuthorize("hasPermission(#submissionId,  'Submission', "
-            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_ANALYSIS)")
-    public SubmissionInsight createSubmissionInsight(Long submissionId, SubmissionInsight insight)
-            throws AlreadyExistException, NotExistException {
-
-        LOGGER.info(CREATING_INSIGHT_LOG, submissionId);
-        final SubmissionInsight submissionInsight = submissionInsightRepository.findOneBySubmissionId(submissionId);
-        if (submissionInsight != null) {
-            final String message = String.format(INSIGHT_ALREADY_EXISTS_EXCEPTION, submissionId);
-            throw new AlreadyExistException(message);
-        }
-        final List<String> allowedStatuses = Arrays.asList(EXECUTED_PUBLISHED.name(), FAILED_PUBLISHED.name());
-        final Submission submission = submissionRepository.findByIdAndStatusIn(submissionId, allowedStatuses);
-        throwNotExistExceptionIfNull(submission, submissionId);
-        insight.setId(null);
-        insight.setCreated(new Date());
-        insight.setSubmission(submission);
-        final SubmissionInsight savedInsight = submissionInsightRepository.save(insight);
-        final List<SubmissionInsightSubmissionFile> submissionInsightSubmissionFiles
-                = submission.getSubmissionGroup().getFiles()
-                .stream()
-                .map(sf -> new SubmissionInsightSubmissionFile(savedInsight, sf, new CommentTopic()))
-                .collect(Collectors.toList());
-        submissionInsightSubmissionFileRepository.save(submissionInsightSubmissionFiles);
-        final List<ResultFile> resultFiles = submission.getResultFiles();
-        resultFiles.forEach(resultFile -> resultFile.setCommentTopic(new CommentTopic()));
-        submissionResultFileRepository.save(resultFiles);
-        return savedInsight;
-    }
-
-    @Override
-    public SubmissionInsightSubmissionFile findInsightByTopic(CommentTopic topic) {
-
-        return submissionInsightSubmissionFileRepository.findByCommentTopic(topic);
-    }
-
-    @Override
-    public void deleteSubmissionInsightSubmissionFileLinks(List<SubmissionInsightSubmissionFile> links) {
-
-        submissionInsightSubmissionFileRepository.delete(links);
-    }
-
-    @Override
-    @PreAuthorize("hasPermission(#insight, "
-            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_INSIGHT)")
-    public SubmissionInsight updateSubmissionInsight(Long submissionId, SubmissionInsight insight)
-            throws NotExistException {
-
-        LOGGER.info(UPDATING_INSIGHT_LOG, submissionId);
-        final SubmissionInsight exist = submissionInsightRepository.findOneBySubmissionId(submissionId);
-        throwNotExistExceptionIfNull(exist, submissionId);
-        if (insight.getName() != null) {
-            exist.setName(insight.getName());
-        }
-        if (insight.getDescription() != null) {
-            exist.setDescription(insight.getDescription());
-        }
-        return submissionInsightRepository.save(exist);
-    }
-
-    @Override
-    public Page<SubmissionInsight> getInsightsByStudyId(Long studyId, Pageable pageable) {
-
-        final Page<SubmissionInsight> page = submissionInsightRepository.findAllWithCommentsOrDescIsNotEmpty(studyId, pageable);
-        final List<SubmissionInsight> insights = page.getContent();
-        if (!insights.isEmpty()) {
-            final List<Long> ids = insights.stream().map(SubmissionInsight::getId).collect(Collectors.toList());
-            final Map<Long, Long> counts = submissionInsightRepository.countCommentsByTopicIds(ids)
-                    .stream()
-                    .collect(Collectors.toMap(o -> ((BigInteger) o[0]).longValue(), o -> ((BigInteger) o[1]).longValue()));
-            insights.forEach(insight -> insight.setCommentsCount(counts.getOrDefault(insight.getId(), 0L)));
-        }
-        return page;
-    }
 
     @Override
     public List<User> findLeads(Analysis analysis) {
 
         return studyService.findLeads((S)analysis.getStudy());
-    }
-
-    private void throwNotExistExceptionIfNull(SubmissionInsight submissionInsight, Long submissionId) throws NotExistException {
-
-        if (submissionInsight == null) {
-            final String message = String.format(INSIGHT_NOT_EXIST_EXCEPTION, submissionId);
-            throw new NotExistException(message, SubmissionInsight.class);
-        }
-    }
-
-    private void throwNotExistExceptionIfNull(Submission submission, Long submissionId) throws NotExistException {
-
-        if (submission == null) {
-            String message = String.format(SUBMISSION_NOT_EXIST_EXCEPTION, submissionId);
-            throw new NotExistException(message, Submission.class);
-        }
     }
 
     private void throwAccessDeniedExceptionIfLocked(Analysis analysis) {
@@ -1063,21 +939,6 @@ public abstract class BaseAnalysisServiceImpl<
             final String message = String.format(ANALYSIS_LOCKE_EXCEPTION, analysis.getId());
             throw new AccessDeniedException(message);
         }
-    }
-
-    private Set<CommentTopic> extractCommentTopics(SubmissionInsight insight) {
-
-        final Stream<CommentTopic> submissionFilesTopics = insight.getSubmissionInsightSubmissionFiles()
-                .stream()
-                .map(SubmissionInsightSubmissionFile::getCommentTopic);
-        final Submission submission = insight.getSubmission();
-        final Stream<CommentTopic> resultFileTopics = submission.getResultFiles()
-                .stream()
-                .map(ResultFile::getCommentTopic);
-        return Stream.concat(submissionFilesTopics, resultFileTopics).map(commentTopic -> {
-            commentTopic.setComments(new LinkedList<>());
-            return commentTopic;
-        }).collect(Collectors.toSet());
     }
 
     @Override

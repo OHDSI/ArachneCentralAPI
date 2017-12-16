@@ -35,6 +35,7 @@ import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.DataReferenceService;
 import com.odysseusinc.arachne.portal.service.ImportService;
+import com.odysseusinc.arachne.portal.service.SubmissionInsightService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
 import java.io.IOException;
@@ -86,7 +87,8 @@ public class AnalysisController extends BaseAnalysisController<Analysis, Analysi
             SimpMessagingTemplate wsTemplate,
             JmsTemplate jmsTemplate,
             ImportService importService,
-            BaseSubmissionService submissionService) {
+            BaseSubmissionService submissionService,
+            SubmissionInsightService submissionInsightService) {
 
         super(analysisService,
                 submissionService,
@@ -96,7 +98,8 @@ public class AnalysisController extends BaseAnalysisController<Analysis, Analysi
                 baseDataNodeService,
                 dataSourceService,
                 importService,
-                wsTemplate);
+                wsTemplate,
+                submissionInsightService);
     }
 
     @Override

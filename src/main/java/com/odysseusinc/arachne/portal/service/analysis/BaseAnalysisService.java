@@ -118,22 +118,6 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
 
     void getAnalysisAllFiles(Long analysisId, String archiveName, OutputStream os) throws IOException;
 
-    SubmissionInsight getSubmissionInsight(Long submissionId) throws NotExistException;
-
-    Set<CommentTopic> getInsightComments(SubmissionInsight insight, Integer size, Sort sort);
-
-    SubmissionInsight createSubmissionInsight(Long submissionId, SubmissionInsight insight)
-            throws AlreadyExistException, NotExistException;
-
-    SubmissionInsightSubmissionFile findInsightByTopic(CommentTopic topic);
-
-    void deleteSubmissionInsightSubmissionFileLinks(List<SubmissionInsightSubmissionFile> links);
-
-    SubmissionInsight updateSubmissionInsight(Long submissionId, SubmissionInsight insight)
-            throws NotExistException;
-
-    Page<SubmissionInsight> getInsightsByStudyId(Long studyId, Pageable pageable);
-
     List<User> findLeads(T analysis);
 
     List<? extends Invitationable> getWaitingForApprovalSubmissions(User user);

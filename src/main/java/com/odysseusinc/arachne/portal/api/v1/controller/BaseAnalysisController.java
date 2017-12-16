@@ -73,6 +73,7 @@ import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.DataReferenceService;
 import com.odysseusinc.arachne.portal.service.ImportService;
+import com.odysseusinc.arachne.portal.service.SubmissionInsightService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.service.messaging.MessagingUtils;
 import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
@@ -148,11 +149,23 @@ public abstract class BaseAnalysisController<T extends Analysis,
     protected final DestinationResolver destinationResolver;
     protected final ImportService importService;
     protected final BaseSubmissionService<Submission, Analysis> submissionService;
+    protected final SubmissionInsightService submissionInsightService;
 
     @Value("${datanode.messaging.importTimeout}")
     private Long datanodeImportTimeout;
 
-    public BaseAnalysisController(BaseAnalysisService analysisService, BaseSubmissionService submissionService, DataReferenceService dataReferenceService, JmsTemplate jmsTemplate, GenericConversionService conversionService, BaseDataNodeService baseDataNodeService, BaseDataSourceService dataSourceService, ImportService importService, SimpMessagingTemplate wsTemplate) {
+    public BaseAnalysisController(
+            BaseAnalysisService analysisService,
+            BaseSubmissionService submissionService,
+            DataReferenceService dataReferenceService,
+            JmsTemplate jmsTemplate,
+            GenericConversionService conversionService,
+            BaseDataNodeService baseDataNodeService,
+            BaseDataSourceService dataSourceService,
+            ImportService importService,
+            SimpMessagingTemplate wsTemplate,
+            SubmissionInsightService submissionInsightService
+    ) {
 
         this.analysisService = analysisService;
         this.submissionService = submissionService;
@@ -164,6 +177,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
         this.dataSourceService = dataSourceService;
         this.importService = importService;
         this.wsTemplate = wsTemplate;
+        this.submissionInsightService = submissionInsightService;
     }
 
     @ApiOperation("Create analysis.")
@@ -466,9 +480,9 @@ public abstract class BaseAnalysisController<T extends Analysis,
         if (order == null) {
             order = Sort.Direction.ASC;
         }
-        final SubmissionInsight insight = analysisService.getSubmissionInsight(submissionId);
+        final SubmissionInsight insight = submissionInsightService.getSubmissionInsight(submissionId);
         final SubmissionInsightDTO insightDTO = conversionService.convert(insight, SubmissionInsightDTO.class);
-        final Set<CommentTopic> recentTopics = analysisService.getInsightComments(insight, size, new Sort(order, "id"));
+        final Set<CommentTopic> recentTopics = submissionInsightService.getInsightComments(insight, size, new Sort(order, "id"));
         final List<Commentable> recentCommentables = getRecentCommentables(conversionService, recentTopics, insightDTO);
         insightDTO.setRecentCommentEntities(recentCommentables);
         final JsonResult<SubmissionInsightDTO> result = new JsonResult<>(NO_ERROR);
@@ -485,7 +499,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
     ) throws AlreadyExistException, NotExistException {
 
         final SubmissionInsight insight = conversionService.convert(insightDTO, SubmissionInsight.class);
-        final SubmissionInsight savedInsight = analysisService.createSubmissionInsight(submissionId, insight);
+        final SubmissionInsight savedInsight = submissionInsightService.createSubmissionInsight(submissionId, insight);
         final SubmissionInsightDTO savedInsightDTO = conversionService.convert(savedInsight, SubmissionInsightDTO.class);
         final JsonResult<SubmissionInsightDTO> result = new JsonResult<>(NO_ERROR);
         result.setResult(savedInsightDTO);
@@ -500,7 +514,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
     ) throws NotExistException {
 
         final SubmissionInsight insight = conversionService.convert(insightDTO, SubmissionInsight.class);
-        final SubmissionInsight updatedInsight = analysisService.updateSubmissionInsight(submissionId, insight);
+        final SubmissionInsight updatedInsight = submissionInsightService.updateSubmissionInsight(submissionId, insight);
         final SubmissionInsightDTO updatedInsightDTO = conversionService.convert(updatedInsight, SubmissionInsightDTO.class);
         final JsonResult<SubmissionInsightDTO> result = new JsonResult<>(NO_ERROR);
         result.setResult(updatedInsightDTO);

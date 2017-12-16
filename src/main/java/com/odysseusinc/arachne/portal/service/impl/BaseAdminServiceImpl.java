@@ -40,6 +40,7 @@ import com.odysseusinc.arachne.portal.service.BaseAdminService;
 import com.odysseusinc.arachne.portal.service.BasePaperService;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.CommentService;
+import com.odysseusinc.arachne.portal.service.SubmissionInsightService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
 import java.util.List;
@@ -68,17 +69,22 @@ public abstract class BaseAdminServiceImpl<
     private final BasePaperService<P, PS> paperService;
     private final BaseSubmissionService<SB, A> submissionService;
     private final CommentService commentService;
+    private final SubmissionInsightService submissionInsightService;
 
     @Autowired
     public BaseAdminServiceImpl(BaseStudyService<S, DS, SS, SU> studyService,
                                 BaseAnalysisService<A> analysisService,
-                                BasePaperService<P, PS> paperService, BaseSubmissionService<SB, A> submissionService, CommentService commentService) {
+                                BasePaperService<P, PS> paperService,
+                                BaseSubmissionService<SB, A> submissionService,
+                                CommentService commentService,
+                                SubmissionInsightService submissionInsightService) {
 
         this.studyService = studyService;
         this.analysisService = analysisService;
         this.paperService = paperService;
         this.submissionService = submissionService;
         this.commentService = commentService;
+        this.submissionInsightService = submissionInsightService;
     }
 
     /**
@@ -211,7 +217,7 @@ public abstract class BaseAdminServiceImpl<
             commentService.deleteTopic(topic);
         }
 
-        analysisService.deleteSubmissionInsightSubmissionFileLinks(submissionInsightSubmissionFiles);
+        submissionInsightService.deleteSubmissionInsightSubmissionFileLinks(submissionInsightSubmissionFiles);
 
         submissionService.tryDeleteSubmissionInsight(insight.getId());
     }
