@@ -91,11 +91,6 @@ public class AbstractResultFile extends ArachneFile {
         this.commentTopic = commentTopic;
     }
 
-    public Boolean getManuallyUploaded() {
-
-        return manuallyUploaded;
-    }
-
     public void setManuallyUploaded(Boolean manuallyUploaded) {
 
         this.manuallyUploaded = manuallyUploaded;
