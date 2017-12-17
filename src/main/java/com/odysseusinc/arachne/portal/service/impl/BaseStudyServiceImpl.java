@@ -154,7 +154,7 @@ public abstract class BaseStudyServiceImpl<
     private final UserStudyRepository userStudyRepository;
     private final BaseStudyRepository<T> studyRepository;
     private final RestTemplate restTemplate;
-    private final StudyFileRepository studyFileRepository;
+    protected final StudyFileRepository studyFileRepository;
     private final BaseUserService userService;
     private final BaseDataSourceService<DS> dataSourceService;
     private final BaseDataNodeService<DataNode> baseDataNodeService;

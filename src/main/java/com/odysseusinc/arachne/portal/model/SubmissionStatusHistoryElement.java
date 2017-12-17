@@ -56,6 +56,9 @@ public class SubmissionStatusHistoryElement {
     @Enumerated(EnumType.STRING)
     private SubmissionStatus status;
 
+    @Column
+    private boolean isLast;
+
     @ManyToOne(fetch = FetchType.LAZY)
     private User author;
 
@@ -136,5 +139,15 @@ public class SubmissionStatusHistoryElement {
     public void setComment(String comment) {
 
         this.comment = comment;
+    }
+
+    public boolean isLast() {
+
+        return isLast;
+    }
+
+    public void setLast(boolean last) {
+
+        isLast = last;
     }
 }
