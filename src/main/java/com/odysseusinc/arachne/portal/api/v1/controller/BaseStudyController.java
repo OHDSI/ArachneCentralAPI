@@ -72,7 +72,7 @@ import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.model.statemachine.study.StudyStateMachine;
 import com.odysseusinc.arachne.portal.model.statemachine.study.StudyTransition;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
-import com.odysseusinc.arachne.portal.service.DocToPdfConverter;
+import com.odysseusinc.arachne.portal.service.ToPdfConverter;
 import com.odysseusinc.arachne.portal.service.StudyFileService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import io.swagger.annotations.ApiOperation;
@@ -83,7 +83,6 @@ import java.security.Principal;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
@@ -125,7 +124,7 @@ public abstract class BaseStudyController<
     private SimpMessagingTemplate wsTemplate;
 
     @Autowired
-    private DocToPdfConverter docToPdfConverter;
+    private ToPdfConverter docToPdfConverter;
 
 
     public BaseStudyController(BaseStudyService<T, DS, SS, SU> studyService,
@@ -411,7 +410,7 @@ public abstract class BaseStudyController<
         if (withContent) {
             final String content = new String(fileService.getAllBytes(studyFile));
             studyFileDTO.setContent(content);
-            if (Objects.equals(studyFile.getContentType(), CommonFileUtils.TYPE_WORD)) {
+            if (CommonFileUtils.isFileConvertableToPdf(studyFile.getContentType())) {
                 studyFileDTO.setDocType(CommonFileUtils.TYPE_PDF);
             }
         }

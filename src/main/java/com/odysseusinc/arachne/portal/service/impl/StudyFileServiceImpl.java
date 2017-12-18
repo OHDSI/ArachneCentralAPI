@@ -30,7 +30,7 @@ import com.odysseusinc.arachne.portal.model.AbstractPaperFile;
 import com.odysseusinc.arachne.portal.model.AbstractStudyFile;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyFile;
-import com.odysseusinc.arachne.portal.service.DocToPdfConverter;
+import com.odysseusinc.arachne.portal.service.ToPdfConverter;
 import com.odysseusinc.arachne.portal.service.StudyFileService;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -62,7 +62,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.codec.Base64;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
@@ -85,7 +84,7 @@ public class StudyFileServiceImpl implements StudyFileService {
     }
 
     @Autowired
-    private DocToPdfConverter docToPdfConverter;
+    private ToPdfConverter docToPdfConverter;
 
     @Override
     public InputStream getFileInputStream(AbstractStudyFile studyFile) throws FileNotFoundException {
@@ -105,16 +104,19 @@ public class StudyFileServiceImpl implements StudyFileService {
     }
 
     @Override
-    public byte[] getAllBytes(final AbstractStudyFile studyFile) throws IOException {
+    public byte[] getAllBytes(final AbstractStudyFile studyFile) {
 
         final Path pathToFile = getPathToFile(studyFile);
 
         final byte[] bytes;
-
-        if (Objects.equals(studyFile.getContentType(), CommonFileUtils.TYPE_WORD)) {
-            bytes = FileUtils.encode(docToPdfConverter.convert(pathToFile.toFile()));
-        } else {
-            bytes = FileUtils.getBytes(pathToFile, checkIfBase64EncodingNeeded(studyFile));
+        try {
+            if (CommonFileUtils.isFileConvertableToPdf(studyFile.getContentType())) {
+                bytes = FileUtils.encode(docToPdfConverter.convert(pathToFile.toFile()));
+            } else {
+                bytes = FileUtils.getBytes(pathToFile, checkIfBase64EncodingNeeded(studyFile));
+            }
+        } catch(IOException io) {
+            throw new RuntimeException(io);
         }
 
         return bytes;

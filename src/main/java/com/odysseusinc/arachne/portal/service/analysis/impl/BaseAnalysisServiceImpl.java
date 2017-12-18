@@ -40,7 +40,7 @@ import com.google.common.base.Objects;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.ApproveDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.FileContentDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.FileDTO;
 import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.IORuntimeException;
@@ -81,6 +81,7 @@ import com.odysseusinc.arachne.portal.repository.SubmissionStatusHistoryReposito
 import com.odysseusinc.arachne.portal.repository.submission.BaseSubmissionRepository;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.CommentService;
+import com.odysseusinc.arachne.portal.service.ToPdfConverter;
 import com.odysseusinc.arachne.portal.service.StudyFileService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.service.impl.AnalysisPreprocessorService;
@@ -166,6 +167,7 @@ public abstract class BaseAnalysisServiceImpl<
     private static final String UNLOCK_REQUEST_NOT_EXIST_EXCEPTION
             = "Unlock request with id='%s' for User with id='%s' does not exist";
 
+    protected final ToPdfConverter docToPdfConverter;
     protected final GenericConversionService conversionService;
     protected final BaseAnalysisRepository<A> analysisRepository;
     protected final BaseSubmissionRepository<Submission> submissionRepository;
@@ -211,7 +213,10 @@ public abstract class BaseAnalysisServiceImpl<
                                    StudyStateMachine studyStateMachine,
                                    BaseStudyService<S, DS, SS, SU> studyService,
                                    AnalysisHelper analysisHelper,
-                                   StudyFileService fileService) {
+                                   StudyFileService fileService,
+                                   ToPdfConverter docToPdfConverter) {
+
+        this.docToPdfConverter = docToPdfConverter;
 
         this.conversionService = conversionService;
         this.analysisRepository = analysisRepository;
@@ -689,7 +694,7 @@ public abstract class BaseAnalysisServiceImpl<
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).DELETE_ANALYSIS_FILES)")
     public void writeToFile(
             AnalysisFile analysisFile,
-            FileContentDTO fileContentDTO,
+            FileDTO fileContentDTO,
             User updatedBy) throws IOException {
 
         Analysis analysis = analysisFile.getAnalysis();
@@ -728,10 +733,19 @@ public abstract class BaseAnalysisServiceImpl<
     }
 
     @Override
-    public byte[] getAllBytes(ArachneFile arachneFile) throws IOException {
+    public byte[] getAllBytes(final ArachneFile arachneFile) throws IOException {
 
         Path path = getPath(arachneFile);
-        return FileUtils.getBytes(path, checkIfBase64EncodingNeeded(arachneFile));
+
+        final byte[] bytes;
+
+        if (CommonFileUtils.isFileConvertableToPdf(arachneFile.getContentType())) {
+            bytes = FileUtils.encode(docToPdfConverter.convert(path.toFile()));
+        } else {
+            bytes = FileUtils.getBytes(path, checkIfBase64EncodingNeeded(arachneFile));
+        }
+
+        return bytes;
     }
 
     private boolean checkIfBase64EncodingNeeded(ArachneFile arachneFile) {

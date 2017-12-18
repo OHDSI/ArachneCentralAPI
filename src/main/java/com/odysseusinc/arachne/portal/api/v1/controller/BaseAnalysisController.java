@@ -37,7 +37,6 @@ import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.commons.service.messaging.ProducerConsumerTemplate;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.execution_engine_common.api.v1.dto.DBMSType;
-import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisContentFileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisCreateDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisFileDTO;
@@ -46,7 +45,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisUnlockRequestDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisUpdateDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.Commentable;
 import com.odysseusinc.arachne.portal.api.v1.dto.DataReferenceDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.FileContentDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.FileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.OptionDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightUpdateDTO;
@@ -547,7 +546,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
 
     @ApiOperation("Get analysis code file.")
     @RequestMapping(value = "/api/v1/analysis-management/analyses/{analysisId}/code-files/{fileUuid}", method = GET)
-    public JsonResult<AnalysisContentFileDTO> getFileContent(
+    public JsonResult<AnalysisFileDTO> getFileContent(
             @PathVariable("analysisId") Long analysisId,
             @RequestParam(defaultValue = "true") Boolean withContent,
             @PathVariable("fileUuid") String uuid)
@@ -555,11 +554,14 @@ public abstract class BaseAnalysisController<T extends Analysis,
 
         AnalysisFile analysisFile = analysisService.getAnalysisFile(analysisId, uuid);
         AnalysisFileDTO analysisFileDTO = conversionService.convert(analysisFile, AnalysisFileDTO.class);
-        AnalysisContentFileDTO contentDTO = new AnalysisContentFileDTO();
+        AnalysisFileDTO contentDTO = new AnalysisFileDTO();
         ReflectionUtils.shallowCopyFieldState(analysisFileDTO, contentDTO);
 
         if (withContent) {
             String content = new String(analysisService.getAllBytes(analysisFile));
+            if (CommonFileUtils.isFileConvertableToPdf(analysisFile.getContentType())) {
+                contentDTO.setDocType(CommonFileUtils.TYPE_PDF);
+            }
             contentDTO.setContent(content);
         }
 
@@ -568,7 +570,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
 
     @ApiOperation("Lock/unlock analysis files")
     @RequestMapping(value = "/api/v1/analysis-management/analyses/{analysisId}/lock", method = POST)
-    public JsonResult<FileContentDTO> setAnalysisLock(
+    public JsonResult<FileDTO> setAnalysisLock(
             @PathVariable("analysisId") Long analysisId,
             @RequestBody AnalysisLockDTO lockFileDTO
     )
@@ -580,7 +582,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
 
     @ApiOperation("Send analysis unlock request")
     @RequestMapping(value = "/api/v1/analysis-management/analyses/{analysisId}/unlock-request", method = POST)
-    public JsonResult<FileContentDTO> sendUnlockRequest(
+    public JsonResult<FileDTO> sendUnlockRequest(
             Principal principal,
             @PathVariable("analysisId") Long analysisId,
             @RequestBody AnalysisUnlockRequestDTO analysisUnlockRequestDTO
@@ -638,7 +640,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
             method = PUT)
     public JsonResult<Boolean> putFileContent(
             Principal principal,
-            @RequestBody FileContentDTO fileContentDTO,
+            @RequestBody FileDTO fileContentDTO,
             @PathVariable("analysisId") Long analysisId,
             @PathVariable("fileUuid") String uuid)
             throws PermissionDeniedException, NotExistException, IOException, URISyntaxException {

@@ -27,8 +27,10 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
+import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.BooleanDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.CreatePaperDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.FileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.PaperDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.PaperFileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ShortPaperDTO;
@@ -44,17 +46,23 @@ import com.odysseusinc.arachne.portal.model.PaperFileType;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.PaperSearch;
 import com.odysseusinc.arachne.portal.service.BasePaperService;
+import com.odysseusinc.arachne.portal.service.ToPdfConverter;
 import com.odysseusinc.arachne.portal.service.StudyFileService;
+import com.odysseusinc.arachne.portal.util.FileUtils;
 import io.swagger.annotations.ApiOperation;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.security.Principal;
+import java.util.function.Function;
+import java.util.stream.Stream;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.domain.Page;
@@ -85,6 +93,9 @@ public abstract class BasePaperController
         this.conversionService = conversionService;
         this.fileService = fileService;
     }
+
+    @Autowired
+    private ToPdfConverter toPdfConverter;
 
     @ApiOperation("Get Papers")
     @RequestMapping(method = GET)
@@ -179,7 +190,7 @@ public abstract class BasePaperController
 
     @ApiOperation("Get file of the Paper")
     @RequestMapping(value = "/{id}/files/{fileUuid}", method = GET)
-    public PaperFileDTO getFile(
+    public FileDTO getFile(
             @PathVariable("id") Long id,
             @PathVariable("fileUuid") String uuid,
             @RequestParam("type") PaperFileType type,
@@ -190,6 +201,48 @@ public abstract class BasePaperController
 
         if (withContent) {
             final String content = new String(fileService.getAllBytes(paperFile));
+            if (CommonFileUtils.isFileConvertableToPdf(paperFile.getContentType())) {
+                fileDto.setDocType(CommonFileUtils.TYPE_PDF);
+            }
+            fileDto.setContent(content);
+        }
+
+        final Path pathToFile = fileService.getPathToFile(paperFile);
+
+        return handleFileDto(
+                withContent,
+                paperFile.getContentType(),
+                fileDto,
+                pathToFile.toFile(),
+                toPdfConverter::convert);
+    }
+
+    public FileDTO handleFileDto(
+            Boolean withContent,
+            String contentType,
+            FileDTO fileDto,
+            File file,
+            Function<File, byte[]> pdfConverter) {
+
+
+        final byte[] bytes;
+        try {
+            if (CommonFileUtils.isFileConvertableToPdf(contentType)) {
+                bytes = FileUtils.encode(pdfConverter.apply(file));
+            } else {
+                boolean encodingNeeded = Stream.of(CommonFileUtils.TYPE_IMAGE, CommonFileUtils.TYPE_PDF)
+                        .anyMatch(type -> StringUtils.containsIgnoreCase(contentType, type));
+                bytes = FileUtils.getBytes(file.toPath(), encodingNeeded);
+            }
+        } catch(IOException io) {
+            throw new RuntimeException(io);
+        }
+
+        if (withContent) {
+            final String content = new String(bytes);
+            if (CommonFileUtils.isFileConvertableToPdf(contentType)) {
+                fileDto.setDocType(CommonFileUtils.TYPE_PDF);
+            }
             fileDto.setContent(content);
         }
 
