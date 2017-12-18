@@ -42,8 +42,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
-import javax.persistence.NamedEntityGraph;
-import javax.persistence.NamedEntityGraphs;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.PostLoad;
@@ -73,7 +71,7 @@ public class Submission implements HasArachnePermissions, Breadcrumb, Invitation
     @ManyToOne(fetch = FetchType.LAZY)
     private User author;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private DataSource dataSource;
 
     @LazyCollection(LazyCollectionOption.EXTRA)
@@ -98,7 +96,7 @@ public class Submission implements HasArachnePermissions, Breadcrumb, Invitation
     @Transient
     private SubmissionStatus status;
 
-    @OneToMany(cascade = {CascadeType.ALL}, mappedBy = "submission", targetEntity = SubmissionStatusHistoryElement.class, fetch = FetchType.EAGER)
+    @OneToMany(cascade = {CascadeType.ALL}, mappedBy = "submission", targetEntity = SubmissionStatusHistoryElement.class)
     private List<SubmissionStatusHistoryElement> statusHistory;
 
     @OneToOne(cascade = {CascadeType.ALL}, orphanRemoval = true, mappedBy = "submission", fetch = FetchType.LAZY)

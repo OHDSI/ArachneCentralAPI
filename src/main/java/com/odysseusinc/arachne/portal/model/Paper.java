@@ -53,7 +53,7 @@ import org.springframework.util.CollectionUtils;
 
 @Entity
 @Table(name = "papers")
-@DiscriminatorFormula("'Entity'")
+@DiscriminatorFormula("'PAPER_ENTITY'")
 public class Paper implements HasArachnePermissions, Breadcrumb {
 
     @Id
@@ -61,7 +61,7 @@ public class Paper implements HasArachnePermissions, Breadcrumb {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "papers_pk_sequence")
     private Long id;
 
-    @OneToOne(optional = false)
+    @OneToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "study_id")
     private Study study;
 

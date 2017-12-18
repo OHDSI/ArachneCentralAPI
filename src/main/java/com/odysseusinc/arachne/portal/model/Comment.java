@@ -52,15 +52,15 @@ public class Comment implements Serializable {
     @NotNull
     @Column(name = "comment")
     private String comment;
-    @OneToMany(fetch = FetchType.EAGER)
+    @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
     private List<Comment> comments = new ArrayList<>();
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
     private Comment parent;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private CommentTopic topic;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private User author;
 
     public Long getId() {

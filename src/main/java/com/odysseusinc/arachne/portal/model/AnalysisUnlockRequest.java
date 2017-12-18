@@ -29,6 +29,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -47,9 +48,9 @@ public class AnalysisUnlockRequest implements Invitationable, Serializable {
     )
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "analysis_unlock_requests_pk_sequence")
     private Long id;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private User user;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private Analysis analysis;
     @Column
     private Date created;

@@ -141,4 +141,6 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
     void fullDelete(List<T> analyses);
 
     List<T> findByStudyIds(List<Long> ids);
+
+    List<T> getByIdIn(List<Long> longs);
 }

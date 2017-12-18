@@ -49,11 +49,11 @@ public class DataNodeUser {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "datanodes_users_pk_sequence")
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "datanode_id")
     private DataNode dataNode;
 

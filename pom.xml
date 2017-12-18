@@ -12,7 +12,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>1.5.4.RELEASE</version>
+        <version>1.5.9.RELEASE</version>
         <relativePath/>
     </parent>
 
@@ -33,6 +33,7 @@
         <build.id>${BUILD_TIMESTAMP}</build.id>
         <dockerImagePrefix>hub.arachnenetwork.com</dockerImagePrefix>
         <jodConverter.version>4.1.0</jodConverter.version>
+        <hibernate.version>5.2.12.Final</hibernate.version>
     </properties>
 
     <profiles>
