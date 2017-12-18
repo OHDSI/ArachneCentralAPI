@@ -29,7 +29,6 @@ import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.DataSource;
-import com.odysseusinc.arachne.portal.model.ResultEntity;
 import com.odysseusinc.arachne.portal.model.ResultFile;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
@@ -45,6 +44,9 @@ import com.odysseusinc.arachne.portal.repository.SubmissionResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionStatusHistoryRepository;
 import com.odysseusinc.arachne.portal.repository.submission.BaseSubmissionRepository;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
+import com.odysseusinc.arachne.portal.service.ContentStorageService;
+import com.odysseusinc.arachne.portal.service.UserService;
+import com.odysseusinc.arachne.portal.service.jcr.ArachneFileMeta;
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import com.odysseusinc.arachne.portal.service.submission.SubmissionService;
 import com.odysseusinc.arachne.portal.util.AnalysisHelper;
@@ -79,7 +81,9 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
                                  SubmissionFileRepository submissionFileRepository,
                                  ResultFileRepository resultFileRepository,
                                  SubmissionStatusHistoryRepository submissionStatusHistoryRepository,
-                                 EntityManager entityManager) {
+                                 EntityManager entityManager,
+                                 ContentStorageService contentStorageService,
+                                 UserService userService) {
 
         super(submissionRepository,
                 dataSourceService,
@@ -91,7 +95,7 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
                 submissionGroupRepository,
                 submissionInsightRepository,
                 submissionFileRepository,
-                resultFileRepository, submissionStatusHistoryRepository, entityManager);
+                resultFileRepository, submissionStatusHistoryRepository, entityManager, contentStorageService, userService);
     }
 
     @Override
@@ -136,9 +140,9 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
     @Override
     @PreAuthorize("hasPermission(#submissionId, 'Submission', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).APPROVE_SUBMISSION)")
-    public ResultFile uploadResultsByDataOwner(Long submissionId, MultipartFile file) throws NotExistException, IOException {
+    public ResultFile uploadResultsByDataOwner(Long submissionId, String name, MultipartFile file) throws NotExistException, IOException {
 
-        return super.uploadResultsByDataOwner(submissionId, file);
+        return super.uploadResultsByDataOwner(submissionId, name, file);
     }
 
     @Override
@@ -169,7 +173,7 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
     @Override
     @PreAuthorize("hasPermission(#submissionId, 'Submission', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
-    public List<ResultEntity> getResultFiles(User user, Long submissionId, ResultFileSearch resultFileSearch) throws PermissionDeniedException {
+    public List<ArachneFileMeta> getResultFiles(User user, Long submissionId, ResultFileSearch resultFileSearch) throws PermissionDeniedException {
 
         return super.getResultFiles(user, submissionId, resultFileSearch);
     }

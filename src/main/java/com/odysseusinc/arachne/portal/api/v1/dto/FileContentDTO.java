@@ -27,6 +27,24 @@ public class FileContentDTO extends FileDTO {
     private Long analysisId;
     private String content;
 
+    public FileContentDTO() {
+
+    }
+
+    public FileContentDTO(FileDTO fileDTO) {
+
+        super(
+                fileDTO.getUuid(),
+                fileDTO.getName(),
+                fileDTO.getLabel(),
+                fileDTO.getCreated(),
+                fileDTO.getUpdated(),
+                fileDTO.getDocType(),
+                fileDTO.getMimeType(),
+                fileDTO.getAuthor()
+        );
+    }
+
     public String getContent() {
 
         return content;

@@ -104,7 +104,7 @@ public class StudyFileServiceImpl implements StudyFileService {
     public byte[] getAllBytes(AbstractStudyFile studyFile) throws IOException {
 
         Path pathToFile = getPathToFile(studyFile);
-        return FileUtils.getBytes(pathToFile, checkIfBase64EncodingNeeded(studyFile));
+        return FileUtils.getBytes(pathToFile, studyFile.getContentType());
     }
 
 
@@ -126,14 +126,6 @@ public class StudyFileServiceImpl implements StudyFileService {
 
         final File contentDirectory = getContentDirectory(studyFile);
         return contentDirectory.toPath().resolve(studyFile.getUuid());
-    }
-
-    @Override
-    public boolean checkIfBase64EncodingNeeded(AbstractStudyFile arachneFile) {
-
-        String contentType = arachneFile.getContentType();
-        return Stream.of(CommonFileUtils.TYPE_IMAGE, CommonFileUtils.TYPE_PDF)
-                .anyMatch(type -> org.apache.commons.lang3.StringUtils.containsIgnoreCase(contentType, type));
     }
 
     @Override

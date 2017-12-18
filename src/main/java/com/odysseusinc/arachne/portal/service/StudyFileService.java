@@ -32,7 +32,6 @@ import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.List;
 
-import com.odysseusinc.arachne.portal.model.StudyFile;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface StudyFileService {
@@ -40,8 +39,6 @@ public interface StudyFileService {
     byte[] getAllBytes(AbstractStudyFile studyFile) throws IOException;
 
     Path getPathToFile(AbstractStudyFile studyFile);
-
-    boolean checkIfBase64EncodingNeeded(AbstractStudyFile arachneFile);
 
     void saveFile(MultipartFile file, AbstractStudyFile studyFile) throws IOException;
 

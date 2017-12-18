@@ -714,14 +714,7 @@ public abstract class BaseAnalysisServiceImpl<
     public byte[] getAllBytes(ArachneFile arachneFile) throws IOException {
 
         Path path = getPath(arachneFile);
-        return FileUtils.getBytes(path, checkIfBase64EncodingNeeded(arachneFile));
-    }
-
-    private boolean checkIfBase64EncodingNeeded(ArachneFile arachneFile) {
-
-        String contentType = arachneFile.getContentType();
-        return Stream.of(CommonFileUtils.TYPE_IMAGE, CommonFileUtils.TYPE_PDF)
-                .anyMatch(type -> org.apache.commons.lang3.StringUtils.containsIgnoreCase(contentType, type));
+        return FileUtils.getBytes(path, arachneFile.getContentType());
     }
 
     @Override
@@ -747,8 +740,6 @@ public abstract class BaseAnalysisServiceImpl<
                     .resolve(arachneFile.getUuid());
         } else if (arachneFile instanceof SubmissionFile) {
             path = analysisHelper.getSubmissionFile((SubmissionFile) arachneFile);
-        } else if (arachneFile instanceof ResultFile) {
-            path = analysisHelper.getResultFile((ResultFile) arachneFile);
         }
         if (Files.notExists(path)) {
             throw new FileNotFoundException();

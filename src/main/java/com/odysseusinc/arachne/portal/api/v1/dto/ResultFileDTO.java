@@ -27,6 +27,25 @@ public class ResultFileDTO extends FileDTO {
 
     private Boolean manuallyUploaded;
 
+    public ResultFileDTO() {
+
+    }
+
+    public ResultFileDTO(FileDTO fileDTO) {
+
+        super(
+                fileDTO.getUuid(),
+                fileDTO.getName(),
+                fileDTO.getLabel(),
+                fileDTO.getCreated(),
+                fileDTO.getUpdated(),
+                fileDTO.getDocType(),
+                fileDTO.getMimeType(),
+                fileDTO.getAuthor()
+        );
+    }
+
+
     public Long getSubmissionId() {
 
         return submissionId;

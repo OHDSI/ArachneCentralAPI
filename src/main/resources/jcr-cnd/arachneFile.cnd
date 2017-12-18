@@ -1,0 +1,3 @@
+[mix:arachneFile] mixin
+  - jcr:contentType (string)
+  - jcr:author (string)

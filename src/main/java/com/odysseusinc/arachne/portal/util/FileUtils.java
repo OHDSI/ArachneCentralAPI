@@ -21,6 +21,10 @@
 
 package com.odysseusinc.arachne.portal.util;
 
+import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
+import java.io.InputStream;
+import java.util.stream.Stream;
+import org.apache.commons.io.IOUtils;
 import org.springframework.security.crypto.codec.Base64;
 
 import java.io.IOException;
@@ -29,15 +33,26 @@ import java.nio.file.Path;
 
 public class FileUtils {
 
-    private FileUtils() {
-
-    }
-
-    public static byte[] getBytes(Path path, boolean encodingNeeded) throws IOException {
-        byte[] result = Files.readAllBytes(path);
-        if (encodingNeeded) {
+    public static byte[] getBytes(InputStream inputStream, String contentType) throws IOException {
+        byte[] result = IOUtils.toByteArray(inputStream);
+        if (checkIfBase64EncodingNeeded(contentType)) {
             result = Base64.encode(result);
         }
         return result;
+    }
+
+    public static byte[] getBytes(Path path, String contentType) throws IOException {
+        byte[] result = Files.readAllBytes(path);
+        if (checkIfBase64EncodingNeeded(contentType)) {
+            result = Base64.encode(result);
+        }
+        return result;
+    }
+
+
+    public static boolean checkIfBase64EncodingNeeded(String contentType) {
+
+        return Stream.of(CommonFileUtils.TYPE_IMAGE, CommonFileUtils.TYPE_PDF)
+                .anyMatch(type -> org.apache.commons.lang3.StringUtils.containsIgnoreCase(contentType, type));
     }
 }

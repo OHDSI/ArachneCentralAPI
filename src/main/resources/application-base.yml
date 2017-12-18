@@ -97,6 +97,7 @@ project:
 files:
   store:
     path: /var/arachne/files
+    jcr-path: /var/arachne/files/jcr
   stdout:
     name: stdout.txt
 

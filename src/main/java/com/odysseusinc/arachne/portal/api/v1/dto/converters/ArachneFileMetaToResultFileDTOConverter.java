@@ -15,32 +15,28 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: January 13, 2017
+ * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva
+ * Created: December 18, 2017
  *
  */
 
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
+import com.odysseusinc.arachne.portal.api.v1.dto.FileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ResultFileDTO;
-import com.odysseusinc.arachne.portal.model.AbstractResultFile;
+import com.odysseusinc.arachne.portal.service.jcr.ArachneFileMeta;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ResultFileToResultFileDTOConverter extends BaseConversionServiceAwareConverter<AbstractResultFile, ResultFileDTO> {
+public class ArachneFileMetaToResultFileDTOConverter extends BaseConversionServiceAwareConverter<ArachneFileMeta, ResultFileDTO> {
 
     @Override
-    public ResultFileDTO convert(AbstractResultFile source) {
+    public ResultFileDTO convert(ArachneFileMeta source) {
 
-        ResultFileDTO resultFileDTO = new ResultFileDTO();
+        FileDTO fileDTO = conversionService.convert(source, FileDTO.class);
+        ResultFileDTO resultFileDTO = new ResultFileDTO(fileDTO);
 
-        resultFileDTO.setLabel(source.getLabel());
-        resultFileDTO.setUuid(source.getUuid());
-        resultFileDTO.setName(source.getRealName());
-        resultFileDTO.setCreated(source.getCreated());
-        resultFileDTO.setSubmissionId(source.getSubmission().getId());
-        resultFileDTO.setManuallyUploaded(source.getManuallyUploaded());
-        resultFileDTO.setDocType(source.getContentType());
+        resultFileDTO.setManuallyUploaded(source.getCreatedBy() != null);
 
         return resultFileDTO;
     }

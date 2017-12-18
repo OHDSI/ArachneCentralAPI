@@ -44,7 +44,6 @@ import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.AnalysisFile;
 import com.odysseusinc.arachne.portal.model.DataSource;
-import com.odysseusinc.arachne.portal.model.ResultEntity;
 import com.odysseusinc.arachne.portal.model.ResultFile;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
@@ -54,7 +53,6 @@ import com.odysseusinc.arachne.portal.model.SubmissionStatus;
 import com.odysseusinc.arachne.portal.model.SubmissionStatusHistoryElement;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.ResultFileSearch;
-import com.odysseusinc.arachne.portal.model.search.ResultEntitySpecification;
 import com.odysseusinc.arachne.portal.repository.ResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionGroupRepository;
@@ -63,11 +61,16 @@ import com.odysseusinc.arachne.portal.repository.SubmissionResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionStatusHistoryRepository;
 import com.odysseusinc.arachne.portal.repository.submission.BaseSubmissionRepository;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
+import com.odysseusinc.arachne.portal.service.ContentStorageService;
+import com.odysseusinc.arachne.portal.service.UserService;
+import com.odysseusinc.arachne.portal.service.jcr.ArachneFileMeta;
+import com.odysseusinc.arachne.portal.service.jcr.ArachneFileSourced;
+import com.odysseusinc.arachne.portal.service.jcr.QuerySpec;
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import com.odysseusinc.arachne.portal.service.mail.InvitationApprovalSubmissionArachneMailMessage;
 import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
 import com.odysseusinc.arachne.portal.util.AnalysisHelper;
-import com.odysseusinc.arachne.portal.util.AnalysisUtils;
+import com.odysseusinc.arachne.portal.util.ContentStorageHelper;
 import com.odysseusinc.arachne.portal.util.DataNodeUtils;
 import com.odysseusinc.arachne.portal.util.LegacyAnalysisHelper;
 import com.odysseusinc.arachne.portal.util.UUIDGenerator;
@@ -95,13 +98,14 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipOutputStream;
 import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
+import javax.transaction.Transactional;
+import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -128,6 +132,9 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     protected final ResultFileRepository resultFileRepository;
     protected final SubmissionStatusHistoryRepository submissionStatusHistoryRepository;
     protected final EntityManager entityManager;
+    protected final ContentStorageService contentStorageService;
+    protected final UserService userService;
+    protected final ContentStorageHelper contentStorageHelper;
 
     @Value("${files.store.path}")
     private String fileStorePath;
@@ -144,7 +151,9 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
                                         SubmissionFileRepository submissionFileRepository,
                                         ResultFileRepository resultFileRepository,
                                         SubmissionStatusHistoryRepository submissionStatusHistoryRepository,
-                                        EntityManager entityManager) {
+                                        EntityManager entityManager,
+                                        ContentStorageService contentStorageService,
+                                        UserService userService) {
 
         this.submissionRepository = submissionRepository;
         this.dataSourceService = dataSourceService;
@@ -159,6 +168,9 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         this.resultFileRepository = resultFileRepository;
         this.submissionStatusHistoryRepository = submissionStatusHistoryRepository;
         this.entityManager = entityManager;
+        this.contentStorageService = contentStorageService;
+        this.userService = userService;
+        this.contentStorageHelper = new ContentStorageHelper(contentStorageService);
     }
 
     @Override
@@ -405,6 +417,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         } catch (IOException e) {
             LOGGER.error("Failed to deleteComment result file", e);
         }
+        contentStorageService.delete(resultFile.getUuid());
     }
 
     protected SubmissionStatus beforeApproveSubmissionResult(T submission, ApproveDTO approveDTO) {
@@ -464,16 +477,22 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     }
 
     @Override
-    public ResultFile uploadResultsByDataOwner(Long submissionId, MultipartFile file) throws NotExistException, IOException {
+    public ResultFile uploadResultsByDataOwner(Long submissionId, String name, MultipartFile file) throws NotExistException, IOException {
+
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user = userService.getByUsername(userDetails.getUsername());
 
         T submission = submissionRepository.findByIdAndStatusIn(submissionId,
                 Collections.singletonList(IN_PROGRESS.name()));
         throwNotExistExceptionIfNull(submission, submissionId);
         Path zipArchiveResultPath = analysisHelper.getResultArchPath(submission);
-        Path submissionResultPath = analysisHelper.getResultFolder(submission);
         writeSubmissionResultFiles(submission, zipArchiveResultPath, file);
-        ResultFile resultFile = AnalysisUtils.createResultFile(submissionResultPath, zipArchiveResultPath, file.getOriginalFilename(),
-                submission);
+        ResultFile resultFile = createResultFile(
+                zipArchiveResultPath,
+                ObjectUtils.firstNonNull(name, file.getOriginalFilename()),
+                submission,
+                user.getId()
+        );
         resultFile.setManuallyUploaded(true);
         Date updated = new Date();
         List<ResultFile> resultFiles = submission.getResultFiles();
@@ -564,7 +583,40 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     }
 
     @Override
-    public List<ResultEntity> getResultFiles(User user, Long submissionId, ResultFileSearch resultFileSearch) throws PermissionDeniedException {
+    @Transactional
+    public ResultFile createResultFile(
+            Path fromDirectory,
+            String name,
+            Submission submission,
+            Long createById
+    ) throws IOException {
+
+        Path sourceFilePath = fromDirectory.resolve(name);
+
+        Path relativeFn = Paths.get(name);
+        Path relativePath = relativeFn.getParent();
+
+        String fileName = relativeFn.getFileName().toString();
+        String relativeDir = relativePath != null ? relativePath.toString() : null;
+
+        ResultFile resultFile = new ResultFile();
+        resultFile.setSubmission(submission);
+
+        ArachneFileMeta fileMeta = contentStorageService.saveFile(
+                contentStorageHelper.getResultFilesDir(submission, relativeDir),
+                fileName,
+                sourceFilePath.toFile(),
+                createById
+        );
+
+        resultFile.setUuid(fileMeta.getUuid());
+        resultFile.setPath(fileMeta.getPath());
+
+        return resultFile;
+    }
+
+    @Override
+    public List<ArachneFileMeta> getResultFiles(User user, Long submissionId, ResultFileSearch resultFileSearch) throws PermissionDeniedException {
 
         Submission submission = submissionRepository.findById(submissionId);
         if (!(EXECUTED_PUBLISHED.equals(submission.getStatus()) || FAILED_PUBLISHED.equals(submission.getStatus()))) {
@@ -572,20 +624,16 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
                 throw new PermissionDeniedException();
             }
         }
-        resultFileSearch.setSubmission(submission);
 
-        ResultEntitySpecification spec = new ResultEntitySpecification(resultFileSearch);
+        String resultFilesPath = contentStorageHelper.getResultFilesDir(submission, resultFileSearch.getPath());
 
-        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-        CriteriaQuery criteriaQuery = criteriaBuilder.createQuery(ResultEntity.class);
+        QuerySpec querySpec = new QuerySpec();
+        querySpec.setName(resultFileSearch.getRealName());
+        querySpec.setPath(resultFilesPath);
 
-        Root<ResultFile> root = criteriaQuery.from(ResultEntity.class);
+        List<ArachneFileMeta> resultFileList = contentStorageService.searchFiles(querySpec);
 
-        criteriaQuery.select(spec.getSelection(root, criteriaBuilder));
-        criteriaQuery.where(spec.toPredicate(root, criteriaQuery, criteriaBuilder));
-        criteriaQuery.orderBy(spec.getOrderBy(root, criteriaBuilder));
-
-        return entityManager.createQuery(criteriaQuery).getResultList();
+        return resultFileList;
     }
 
     @Override
@@ -622,23 +670,13 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
                 throw new PermissionDeniedException();
             }
         }
-        Path storeFilesPath = analysisHelper.getSubmissionResultFolder(submission);
-        if (Files.notExists(storeFilesPath)) {
-            storeFilesPath = legacyAnalysisHelper.getOldSubmissionResultFolder(submission);
-            if (Files.notExists(storeFilesPath)) {
-                throw new FileNotFoundException();
-            }
-        }
+
+        Path resultFilesPath = Paths.get(contentStorageHelper.getResultFilesDir(submission));
         try (ZipOutputStream zos = new ZipOutputStream(os)) {
             for (ResultFile resultFile : submission.getResultFiles()) {
-                String realName = resultFile.getRealName();
-                Path file = storeFilesPath.resolve(resultFile.getUuid());
-                if (Files.notExists(file)) {
-                    file = legacyAnalysisHelper.getOldResultFile(resultFile);
-                }
-                if (Files.exists(file)) {
-                    ZipUtil.addZipEntry(zos, realName, file);
-                }
+                ArachneFileSourced arachneFile = contentStorageService.getFileByFn(resultFile.getPath());
+                Path relativePath = resultFilesPath.relativize(Paths.get(arachneFile.getPath()));
+                ZipUtil.addZipEntry(zos, relativePath.toString(), arachneFile.getInputStream());
             }
         }
     }

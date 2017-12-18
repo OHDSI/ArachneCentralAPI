@@ -24,26 +24,31 @@ package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.CommentableResultFileDTO;
 import com.odysseusinc.arachne.portal.model.ResultFile;
+import com.odysseusinc.arachne.portal.service.ContentStorageService;
+import com.odysseusinc.arachne.portal.service.jcr.ArachneFileMeta;
 import org.springframework.beans.factory.annotation.Autowired;
-import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
-import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ResultFileToCommentableResultFileDTOConverter extends BaseConversionServiceAwareConverter<ResultFile, CommentableResultFileDTO> {
 
+    @Autowired
+    private ContentStorageService contentStorageService;
+
     @Override
     public CommentableResultFileDTO convert(ResultFile source) {
 
         final CommentableResultFileDTO dto = new CommentableResultFileDTO();
-        dto.setLabel(source.getLabel());
+
+        ArachneFileMeta arachneFileMeta = contentStorageService.getFileByFn(source.getPath());
+
         dto.setUuid(source.getUuid());
-        dto.setName(source.getRealName());
-        dto.setCreated(source.getCreated());
+        dto.setName(arachneFileMeta.getName());
+        dto.setCreated(arachneFileMeta.getCreated());
         dto.setSubmissionId(source.getSubmission().getId());
         dto.setCommentTopicId(source.getCommentTopic().getId());
         dto.setCommentCount(source.getCommentTopic().getCount());
-        dto.setDocType(source.getContentType());
+        dto.setDocType(arachneFileMeta.getContentType());
         return dto;
     }
 }

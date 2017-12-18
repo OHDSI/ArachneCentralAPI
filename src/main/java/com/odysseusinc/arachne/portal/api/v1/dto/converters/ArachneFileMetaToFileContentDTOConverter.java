@@ -16,31 +16,26 @@
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
  * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: December 06, 2016
+ * Created: January 13, 2017
  *
  */
 
-package com.odysseusinc.arachne.portal.model;
+package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
-import java.util.Date;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import com.odysseusinc.arachne.portal.api.v1.dto.FileContentDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.FileDTO;
+import com.odysseusinc.arachne.portal.service.jcr.ArachneFileMeta;
+import org.springframework.stereotype.Component;
 
-@Entity
-@Table(name = "v_result_files_with_folders")
-public class ResultEntity extends AbstractResultFile {
+@Component
+public class ArachneFileMetaToFileContentDTOConverter extends BaseConversionServiceAwareConverter<ArachneFileMeta, FileContentDTO> {
 
-    public ResultEntity() {
+    @Override
+    public FileContentDTO convert(ArachneFileMeta source) {
 
-    }
+        FileDTO fileDTO = conversionService.convert(source, FileDTO.class);
+        FileContentDTO resultFileDTO = new FileContentDTO(fileDTO);
 
-    public ResultEntity(String uuid, String label, String realName, String searchPath, String contentType, Date created, Date updated, Submission submission, Boolean manuallyUploaded) {
-
-        super(uuid, label, getCurrentLevelName(realName, searchPath), contentType, created, updated, submission, manuallyUploaded);
-    }
-
-    private static String getCurrentLevelName(String realName, String searchPath) {
-
-        return realName.substring(searchPath.equals("/") ? 0 : searchPath.length()).split("/")[0];
+        return resultFileDTO;
     }
 }

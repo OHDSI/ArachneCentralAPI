@@ -22,9 +22,110 @@
 
 package com.odysseusinc.arachne.portal.model;
 
+import java.util.Optional;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
+import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
 @Entity
 @Table(name = "result_files")
-public class ResultFile extends AbstractResultFile {}
+public class ResultFile {
+    @Id
+    @SequenceGenerator(name = "result_files_pk_sequence", sequenceName = "result_files_id_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "result_files_pk_sequence")
+    private Long id;
+
+    @Deprecated
+    @Column
+    protected String uuid;
+
+    @Column
+    private String path;
+
+    @ManyToOne
+    private Submission submission;
+
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    private CommentTopic commentTopic;
+
+    @Column(name = "manual_upload")
+    private Boolean manuallyUploaded;
+
+    public ResultFile() {
+
+    }
+
+    public Long getId() {
+
+        return id;
+    }
+
+    public void setId(Long id) {
+
+        this.id = id;
+    }
+
+    @Deprecated
+    public String getUuid() {
+
+        return uuid;
+    }
+
+    @Deprecated
+    public void setUuid(String uuid) {
+
+        this.uuid = uuid;
+    }
+
+    public String getPath() {
+
+        return path;
+    }
+
+    public void setPath(String path) {
+
+        this.path = path;
+    }
+
+    public Submission getSubmission() {
+
+        return submission;
+    }
+
+    public void setSubmission(Submission submission) {
+
+        this.submission = submission;
+    }
+
+    public CommentTopic getCommentTopic() {
+
+        return commentTopic;
+    }
+
+    public void setCommentTopic(CommentTopic commentTopic) {
+
+        this.commentTopic = commentTopic;
+    }
+
+    public Boolean getManuallyUploaded() {
+
+        return manuallyUploaded;
+    }
+
+    public void setManuallyUploaded(Boolean manuallyUploaded) {
+
+        this.manuallyUploaded = manuallyUploaded;
+    }
+
+    public boolean isManuallyUploaded() {
+
+        return Optional.ofNullable(this.manuallyUploaded).orElse(false);
+    }
+}
