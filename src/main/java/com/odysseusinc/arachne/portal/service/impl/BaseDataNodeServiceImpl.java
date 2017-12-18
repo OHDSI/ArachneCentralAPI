@@ -24,6 +24,7 @@ package com.odysseusinc.arachne.portal.service.impl;
 
 import static org.assertj.core.util.Preconditions.checkNotNull;
 
+import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraphUtils;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.model.DataNode;
@@ -216,7 +217,7 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
     @Override
     public Optional<DN> findByToken(String token) {
 
-        return dataNodeRepository.findByToken(token);
+        return dataNodeRepository.findByToken(token, EntityGraphUtils.fromAttributePaths("dataSources"));
     }
 
     private void saveOrUpdateDataNodeUser(DataNode dataNode, DataNodeUser dataNodeUser) {
