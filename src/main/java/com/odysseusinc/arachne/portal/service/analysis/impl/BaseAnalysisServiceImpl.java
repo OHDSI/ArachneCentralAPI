@@ -1106,4 +1106,10 @@ public abstract class BaseAnalysisServiceImpl<
 
         return analysisRepository.findByStudyIdIn(ids);
     }
+
+    @Override
+    public List<A> getByIdIn(List<Long> ids) {
+
+        return analysisRepository.findByIdIn(ids);
+    }
 }

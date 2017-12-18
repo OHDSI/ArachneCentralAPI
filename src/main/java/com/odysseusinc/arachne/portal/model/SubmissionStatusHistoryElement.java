@@ -27,6 +27,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -55,10 +56,13 @@ public class SubmissionStatusHistoryElement {
     @Enumerated(EnumType.STRING)
     private SubmissionStatus status;
 
-    @ManyToOne
+    @Column
+    private boolean isLast;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     private User author;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private Submission submission;
 
     public SubmissionStatusHistoryElement() {
@@ -135,5 +139,15 @@ public class SubmissionStatusHistoryElement {
     public void setComment(String comment) {
 
         this.comment = comment;
+    }
+
+    public boolean isLast() {
+
+        return isLast;
+    }
+
+    public void setLast(boolean last) {
+
+        isLast = last;
     }
 }

@@ -23,14 +23,14 @@
 package com.odysseusinc.arachne.portal.repository;
 
 import com.odysseusinc.arachne.portal.model.StudyFile;
-import org.springframework.data.repository.CrudRepository;
+import java.util.List;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-/**
- * Created by AKrutov on 21.11.2016.
- */
-public interface StudyFileRepository extends CrudRepository<StudyFile, Long> {
+public interface StudyFileRepository extends JpaRepository<StudyFile, Long> {
 
     StudyFile findByRealName(String fileName);
 
     StudyFile findByUuid(String uuid);
+
+    List<StudyFile> findByIdIn(List<Long> ids);
 }
