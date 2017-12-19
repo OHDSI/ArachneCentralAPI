@@ -40,7 +40,7 @@ public class AbstractUserStudyListItem {
     private User user;
 
 
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "study_id")
     private Study study;
 

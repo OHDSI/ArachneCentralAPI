@@ -87,4 +87,6 @@ public interface BaseDataSourceRepository<T extends DataSource> extends CrudRepo
 
     @Transactional
     int deleteByIdAndDeletedIsNull(Long id);
+
+    List<T> findByIdIn(List<Long> ids);
 }

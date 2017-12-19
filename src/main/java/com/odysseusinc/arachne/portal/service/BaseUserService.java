@@ -43,7 +43,6 @@ import com.odysseusinc.arachne.portal.model.search.UserSearch;
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
 import java.io.IOException;
-import java.io.InputStream;
 import java.security.Principal;
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;

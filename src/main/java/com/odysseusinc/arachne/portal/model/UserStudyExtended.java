@@ -58,7 +58,7 @@ public class UserStudyExtended implements ParticipantLink {
     @Column
     private String comment;
 
-    @ManyToOne(targetEntity = DataSource.class)
+    @ManyToOne(targetEntity = DataSource.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "owned_data_source_id")
     private DataSource dataSource;
 

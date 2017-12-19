@@ -22,7 +22,7 @@
 
 package com.odysseusinc.arachne.portal.service.analysis;
 
-import com.odysseusinc.arachne.portal.api.v1.dto.FileContentDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.FileDTO;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.NotUniqueException;
@@ -50,7 +50,6 @@ import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
-import org.apache.commons.compress.archivers.ArchiveException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -104,13 +103,15 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
             throws IOException;
 
     void writeToFile(AnalysisFile analysisFile,
-                     FileContentDTO fileContentDTO, User updatedBy) throws IOException;
+                     FileDTO fileContentDTO, User updatedBy) throws IOException;
 
     AnalysisFile saveAnalysisFile(AnalysisFile file);
 
     byte[] getAllBytes(ArachneFile arachneFile) throws IOException;
 
     void deleteSubmissionFile(SubmissionFile file);
+
+    Path getPath(ArachneFile arachneFile) throws FileNotFoundException;
 
     void setIsExecutable(String uuid);
 
@@ -141,4 +142,6 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
     void fullDelete(List<T> analyses);
 
     List<T> findByStudyIds(List<Long> ids);
+
+    List<T> getByIdIn(List<Long> longs);
 }

@@ -15,35 +15,27 @@
  *  Company: Odysseus Data Services, Inc.
  *  Product Owner/Architecture: Gregory Klebanov
  *  Authors: Anton Gackovka
- *  Created: October 18, 2017
+ *  Created: December 16, 2017
  *
  */
 
 package com.odysseusinc.arachne.portal.util;
 
-import org.springframework.security.crypto.codec.Base64;
+import org.hibernate.Hibernate;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+public class EntityUtils {
 
-public class FileUtils {
-
-    private FileUtils() {
+    private EntityUtils() {
 
     }
 
-    public static byte[] getBytes(final Path path, final boolean encodingNeeded) throws IOException {
+    public static <T> T unproxy(T object) {
 
-        byte[] result = Files.readAllBytes(path);
-        if (encodingNeeded) {
-            result = encode(result);
-        }
-        return result;
+        return (T)Hibernate.unproxy(object);
     }
 
-    public static byte[] encode(final byte[] result) {
+    public static <T> T unproxyAndConvert(Object object, Class<T> clazz) {
 
-        return Base64.encode(result);
+        return (T)Hibernate.unproxy(object);
     }
 }

@@ -23,7 +23,7 @@
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
-import com.odysseusinc.arachne.portal.api.v1.dto.FileContentDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisFileDTO;
 import com.odysseusinc.arachne.portal.model.AnalysisFile;
 import com.odysseusinc.arachne.portal.model.ArachneFile;
 import com.odysseusinc.arachne.portal.model.ResultFile;
@@ -31,11 +31,10 @@ import com.odysseusinc.arachne.portal.model.SubmissionFile;
 import com.odysseusinc.arachne.portal.util.AnalysisHelper;
 import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
-import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ArachneFileToFileContentDTOConverter extends BaseConversionServiceAwareConverter<ArachneFile, FileContentDTO> {
+public class ArachneFileToFileContentDTOConverter extends BaseConversionServiceAwareConverter<ArachneFile, AnalysisFileDTO> {
 
 
     @Autowired
@@ -43,9 +42,9 @@ public class ArachneFileToFileContentDTOConverter extends BaseConversionServiceA
 
 
     @Override
-    public FileContentDTO convert(ArachneFile source) {
+    public AnalysisFileDTO convert(ArachneFile source) {
 
-        FileContentDTO fileContentDTO = new FileContentDTO();
+        AnalysisFileDTO fileContentDTO = new AnalysisFileDTO();
         fileContentDTO.setUuid(source.getUuid());
         fileContentDTO.setName(source.getRealName());
         fileContentDTO.setCreated(source.getCreated());

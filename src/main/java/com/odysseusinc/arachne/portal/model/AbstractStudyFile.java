@@ -24,6 +24,7 @@ package com.odysseusinc.arachne.portal.model;
 
 import java.util.Date;
 import javax.persistence.Column;
+import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
 
@@ -43,7 +44,7 @@ public abstract class AbstractStudyFile {
     protected Date updated;
     @Column
     protected String link;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     protected User author;
 
     public String getUuid() {

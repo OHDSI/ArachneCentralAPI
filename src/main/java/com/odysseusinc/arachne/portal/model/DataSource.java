@@ -77,7 +77,7 @@ public class DataSource implements Serializable, HasArachnePermissions {
     @Column(name = "name", nullable = false, unique = true)
     protected String name;
     @NotNull
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     protected DataNode dataNode;
     @Transient
     protected Set<ArachnePermission> permissions;

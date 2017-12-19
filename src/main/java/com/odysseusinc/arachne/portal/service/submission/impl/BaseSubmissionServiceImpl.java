@@ -593,6 +593,18 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     }
 
     @Override
+    public List<T> getByIdIn(List<Long> ids) {
+
+        return submissionRepository.findByIdIn(ids);
+    }
+
+    @Override
+    public List<SubmissionStatusHistoryElement> getSubmissionStatusHistoryElementsByIdsIn(List<Long> ids) {
+
+        return submissionStatusHistoryRepository.findByIdIn(ids);
+    }
+
+    @Override
     public List<ResultEntity> getResultFiles(User user, Long submissionId, ResultFileSearch resultFileSearch) throws PermissionDeniedException {
 
         Submission submission = submissionRepository.findById(submissionId);
