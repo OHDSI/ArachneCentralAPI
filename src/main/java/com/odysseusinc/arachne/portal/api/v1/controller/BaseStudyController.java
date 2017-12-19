@@ -33,6 +33,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
+import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.AddStudyParticipantDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.BooleanDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.Commentable;
@@ -40,6 +41,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.CreateStudyDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.CreateVirtualDataSourceDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.DataSourceDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.EntityLinkDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.FileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.MoveAnalysisDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ShortUserDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.StudyDTO;
@@ -49,6 +51,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdateNotificationDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdateParticipantDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UploadFileDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.converters.FileDtoContentHandler;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
@@ -71,6 +74,7 @@ import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.model.statemachine.study.StudyStateMachine;
 import com.odysseusinc.arachne.portal.model.statemachine.study.StudyTransition;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
+import com.odysseusinc.arachne.portal.service.ToPdfConverter;
 import com.odysseusinc.arachne.portal.service.StudyFileService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import io.swagger.annotations.ApiOperation;
@@ -89,6 +93,7 @@ import javax.validation.constraints.NotNull;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -119,6 +124,10 @@ public abstract class BaseStudyController<
     protected GenericConversionService conversionService;
     private BaseAnalysisService<A> analysisService;
     private SimpMessagingTemplate wsTemplate;
+
+    @Autowired
+    private ToPdfConverter toPdfConverter;
+
 
     public BaseStudyController(BaseStudyService<T, DS, SS, SU> studyService,
                                BaseAnalysisService<A> analysisService,
@@ -391,21 +400,23 @@ public abstract class BaseStudyController<
 
     @ApiOperation("Get file of the study.")
     @RequestMapping(value = "/api/v1/study-management/studies/{studyId}/files/{fileUuid}", method = GET)
-    public StudyFileContentDTO getFile(
+    public FileDTO getFile(
             @PathVariable("studyId") Long studyId,
             @PathVariable("fileUuid") String uuid,
             @RequestParam(defaultValue = "true") Boolean withContent
     ) throws PermissionDeniedException, NotExistException, IOException {
 
         StudyFile studyFile = studyService.getStudyFile(studyId, uuid);
-        StudyFileContentDTO studyFileDTO = conversionService.convert(studyFile, StudyFileContentDTO.class);
+        FileDTO fileDto = conversionService.convert(studyFile, StudyFileContentDTO.class);
 
         if (withContent) {
-            final String content = new String(fileService.getAllBytes(studyFile));
-            studyFileDTO.setContent(content);
+            fileDto = FileDtoContentHandler
+                    .getInstance(fileDto, fileService.getPathToFile(studyFile).toFile())
+                    .withPdfConverter(toPdfConverter::convert)
+                    .handle();
         }
 
-        return studyFileDTO;
+        return fileDto;
     }
 
     @ApiOperation("Download file of the study.")

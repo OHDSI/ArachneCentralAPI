@@ -33,11 +33,17 @@ public class FileUtils {
 
     }
 
-    public static byte[] getBytes(Path path, boolean encodingNeeded) throws IOException {
+    public static byte[] getBytes(final Path path, final boolean encodingNeeded) throws IOException {
+
         byte[] result = Files.readAllBytes(path);
         if (encodingNeeded) {
-            result = Base64.encode(result);
+            result = encode(result);
         }
         return result;
+    }
+
+    public static byte[] encode(final byte[] result) {
+
+        return Base64.encode(result);
     }
 }

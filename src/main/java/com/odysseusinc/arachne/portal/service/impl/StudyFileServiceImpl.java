@@ -30,6 +30,7 @@ import com.odysseusinc.arachne.portal.model.AbstractPaperFile;
 import com.odysseusinc.arachne.portal.model.AbstractStudyFile;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyFile;
+import com.odysseusinc.arachne.portal.service.ToPdfConverter;
 import com.odysseusinc.arachne.portal.service.StudyFileService;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -61,7 +62,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.codec.Base64;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
@@ -83,6 +83,9 @@ public class StudyFileServiceImpl implements StudyFileService {
         this.restTemplate = restTemplate;
     }
 
+    @Autowired
+    private ToPdfConverter docToPdfConverter;
+
     @Override
     public InputStream getFileInputStream(AbstractStudyFile studyFile) throws FileNotFoundException {
 
@@ -99,14 +102,6 @@ public class StudyFileServiceImpl implements StudyFileService {
         }
         return new FileInputStream(file);
     }
-
-    @Override
-    public byte[] getAllBytes(AbstractStudyFile studyFile) throws IOException {
-
-        Path pathToFile = getPathToFile(studyFile);
-        return FileUtils.getBytes(pathToFile, checkIfBase64EncodingNeeded(studyFile));
-    }
-
 
     private InputStream getInputStream(AbstractStudyFile studyFile) {
         HttpHeaders headers = new HttpHeaders();
@@ -126,14 +121,6 @@ public class StudyFileServiceImpl implements StudyFileService {
 
         final File contentDirectory = getContentDirectory(studyFile);
         return contentDirectory.toPath().resolve(studyFile.getUuid());
-    }
-
-    @Override
-    public boolean checkIfBase64EncodingNeeded(AbstractStudyFile arachneFile) {
-
-        String contentType = arachneFile.getContentType();
-        return Stream.of(CommonFileUtils.TYPE_IMAGE, CommonFileUtils.TYPE_PDF)
-                .anyMatch(type -> org.apache.commons.lang3.StringUtils.containsIgnoreCase(contentType, type));
     }
 
     @Override
@@ -159,15 +146,6 @@ public class StudyFileServiceImpl implements StudyFileService {
         if (!file.delete()) {
             throw new IORuntimeException("Can't delete file:" + file);
         }
-
-        /*try {
-            final List<Path> filelist = Files.list(Paths.get(file.getParent())).collect(Collectors.toList());
-            if (filelist.isEmpty()) {
-                new File(file.getParent()).deleteComment();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }*/
     }
 
     @Override
