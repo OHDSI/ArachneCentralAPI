@@ -35,10 +35,14 @@ public class ToPdfConverter {
 
     public static final String docType = "docx";
 
-    @Autowired
+    @Autowired(required = false)
     private DocumentConverter converter;
 
     public byte[] convert(final byte[] docFile) {
+
+        if (converter == null) {
+            return docFile;
+        }
 
         try (final ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             converter
