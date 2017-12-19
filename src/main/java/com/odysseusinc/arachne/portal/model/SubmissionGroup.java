@@ -23,12 +23,15 @@
 package com.odysseusinc.arachne.portal.model;
 
 import com.google.common.base.Objects;
+import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.BreadcrumbType;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -70,6 +73,10 @@ public class SubmissionGroup implements Breadcrumb {
 
     @Column
     private String checksum;
+
+    @Column
+    @Enumerated(EnumType.STRING)
+    private CommonAnalysisType analysisType;
 
     public BreadcrumbType getCrumbType() {
 
@@ -161,6 +168,16 @@ public class SubmissionGroup implements Breadcrumb {
         this.checksum = checksum;
     }
 
+    public CommonAnalysisType getAnalysisType() {
+
+        return analysisType;
+    }
+
+    public void setAnalysisType(CommonAnalysisType analysisType) {
+
+        this.analysisType = analysisType;
+    }
+
     @Override
     public String toString() {
 
@@ -168,6 +185,7 @@ public class SubmissionGroup implements Breadcrumb {
                 .add("id", id)
                 .add("analysis", analysis != null ? analysis.getId() : null)
                 .add("author", author != null ? author.getId() : null)
+                .add("analysisType", analysisType)
                 .toString();
     }
 }

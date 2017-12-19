@@ -41,10 +41,8 @@ import com.odysseusinc.arachne.portal.exception.NoExecutableFileException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
-import com.odysseusinc.arachne.portal.model.AbstractResultFile_;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.AnalysisFile;
-import com.odysseusinc.arachne.portal.model.ArachneFile_;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.ResultEntity;
 import com.odysseusinc.arachne.portal.model.ResultFile;
@@ -55,8 +53,8 @@ import com.odysseusinc.arachne.portal.model.SubmissionInsight;
 import com.odysseusinc.arachne.portal.model.SubmissionStatus;
 import com.odysseusinc.arachne.portal.model.SubmissionStatusHistoryElement;
 import com.odysseusinc.arachne.portal.model.User;
-import com.odysseusinc.arachne.portal.model.search.ResultFileSearch;
 import com.odysseusinc.arachne.portal.model.search.ResultEntitySpecification;
+import com.odysseusinc.arachne.portal.model.search.ResultFileSearch;
 import com.odysseusinc.arachne.portal.repository.ResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionGroupRepository;
@@ -72,6 +70,7 @@ import com.odysseusinc.arachne.portal.util.AnalysisHelper;
 import com.odysseusinc.arachne.portal.util.AnalysisUtils;
 import com.odysseusinc.arachne.portal.util.DataNodeUtils;
 import com.odysseusinc.arachne.portal.util.LegacyAnalysisHelper;
+import com.odysseusinc.arachne.portal.util.SubmissionHelper;
 import com.odysseusinc.arachne.portal.util.UUIDGenerator;
 import com.odysseusinc.arachne.portal.util.ZipUtil;
 import java.io.File;
@@ -132,6 +131,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     protected final ResultFileRepository resultFileRepository;
     protected final SubmissionStatusHistoryRepository submissionStatusHistoryRepository;
     protected final EntityManager entityManager;
+    protected final SubmissionHelper submissionHelper;
 
     @Value("${files.store.path}")
     private String fileStorePath;
@@ -148,7 +148,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
                                         SubmissionFileRepository submissionFileRepository,
                                         ResultFileRepository resultFileRepository,
                                         SubmissionStatusHistoryRepository submissionStatusHistoryRepository,
-                                        EntityManager entityManager) {
+                                        EntityManager entityManager, SubmissionHelper submissionHelper) {
 
         this.submissionRepository = submissionRepository;
         this.dataSourceService = dataSourceService;
@@ -163,6 +163,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         this.resultFileRepository = resultFileRepository;
         this.submissionStatusHistoryRepository = submissionStatusHistoryRepository;
         this.entityManager = entityManager;
+        this.submissionHelper = submissionHelper;
     }
 
     @Override
@@ -174,6 +175,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         List<SubmissionStatusHistoryElement> statusHistory = submission.getStatusHistory();
         statusHistory.add(new SubmissionStatusHistoryElement(new Date(), status, user, submission, approveDTO.getComment()));
         submission.setStatusHistory(statusHistory);
+        submissionHelper.updateSubmissionExtendedInfo(submission);
         submission = saveSubmission(submission);
 
         notifyOwnersAboutSubmissionUpdateViaSocket(submission);
@@ -325,6 +327,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         List<SubmissionFile> files = new LinkedList<>();
         SubmissionGroup submissionGroup = new SubmissionGroup();
         submissionGroup.setAnalysis(analysis);
+        submissionGroup.setAnalysisType(analysis.getType());
         submissionGroup.setAuthor(user);
         Date now = new Date();
         submissionGroup.setCreated(now);

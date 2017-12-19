@@ -23,6 +23,7 @@
 package com.odysseusinc.arachne.portal.model;
 
 import com.google.common.base.Objects;
+import com.google.gson.JsonObject;
 import com.odysseusinc.arachne.portal.api.v1.dto.InvitationType;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
@@ -52,6 +53,7 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
+import org.hibernate.annotations.Type;
 
 @Entity
 @Table(name = "submissions")
@@ -104,6 +106,10 @@ public class Submission implements HasArachnePermissions, Breadcrumb, Invitation
 
     @Column
     private String token;
+
+    @Column
+    @Type(type = "com.odysseusinc.arachne.portal.repository.hibernate.JsonbType")
+    private JsonObject resultInfo;
 
     @Override
     public boolean equals(Object obj) {
@@ -313,6 +319,16 @@ public class Submission implements HasArachnePermissions, Breadcrumb, Invitation
     public void setToken(String token) {
 
         this.token = token;
+    }
+
+    public JsonObject getResultInfo() {
+
+        return resultInfo;
+    }
+
+    public void setResultInfo(JsonObject resultInfo) {
+
+        this.resultInfo = resultInfo;
     }
 
     @Override

@@ -57,7 +57,7 @@ public class RequestInterceptor implements AsyncHandlerInterceptor {
         Long queryCount = interceptor.getCount();
         interceptor.clearCounter();
         time.remove();
-        LOGGER.info("[Time: {} ms] [Queries: {}] {} {}", duration, queryCount, request.getMethod(), request.getRequestURI());
+        LOGGER.debug("[Time: {} ms] [Queries: {}] {} {}", duration, queryCount, request.getMethod(), request.getRequestURI());
     }
 
     @Override
