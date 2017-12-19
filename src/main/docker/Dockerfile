@@ -1,4 +1,4 @@
-FROM hub.arachnenetwork.com/portal_env:1.0.3
+FROM hub.arachnenetwork.com/portal_env:1.0.2
 MAINTAINER alexandr.ryabokon@odysseusinc.com
 USER root
 VOLUME /tmp
