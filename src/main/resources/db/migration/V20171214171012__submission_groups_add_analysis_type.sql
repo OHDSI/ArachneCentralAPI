@@ -21,14 +21,7 @@
  */
 
 ALTER TABLE submission_groups
-  ADD COLUMN IF NOT EXISTS analysis_type VARCHAR DEFAULT 'CUSTOM';
-
-UPDATE submission_groups
-SET analysis_type = 'CUSTOM'
-WHERE analysis_type IS NULL;
-
-ALTER TABLE submission_groups
-  ALTER COLUMN analysis_type SET NOT NULL;
+  ADD COLUMN IF NOT EXISTS analysis_type VARCHAR NOT NULL DEFAULT 'CUSTOM';
 
 ALTER TABLE submissions
   ADD COLUMN IF NOT EXISTS result_info JSONB;

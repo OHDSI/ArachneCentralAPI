@@ -105,7 +105,8 @@ public class SubmissionHelper {
         @Override
         public void updateExtendInfo(final Submission submission) {
 
-            final List<ResultFile> files = submissionResultFileRepository.findAllBySubmissionAndRealNameLikeAndRealNameEndingWith(submission, "%count%", "csv");
+            final List<ResultFile> files= submissionResultFileRepository.findAllBySubmissionIdAndRealNameMatchesTo(
+                    submission.getId(), "^[^/]*count.*\\.csv$");
             final JsonObject resultInfo = new JsonObject();
             final String jsonColumnName = "persons";
             resultInfo.add(jsonColumnName, new JsonPrimitive(0));
