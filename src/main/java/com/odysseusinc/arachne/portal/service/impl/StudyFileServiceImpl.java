@@ -103,26 +103,6 @@ public class StudyFileServiceImpl implements StudyFileService {
         return new FileInputStream(file);
     }
 
-    @Override
-    public byte[] getAllBytes(final AbstractStudyFile studyFile) {
-
-        final Path pathToFile = getPathToFile(studyFile);
-
-        final byte[] bytes;
-        try {
-            if (CommonFileUtils.isFileConvertableToPdf(studyFile.getContentType())) {
-                bytes = FileUtils.encode(docToPdfConverter.convert(pathToFile.toFile()));
-            } else {
-                bytes = FileUtils.getBytes(pathToFile, checkIfBase64EncodingNeeded(studyFile));
-            }
-        } catch(IOException io) {
-            throw new RuntimeException(io);
-        }
-
-        return bytes;
-    }
-
-
     private InputStream getInputStream(AbstractStudyFile studyFile) {
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(singletonList(MediaType.APPLICATION_OCTET_STREAM));
@@ -141,14 +121,6 @@ public class StudyFileServiceImpl implements StudyFileService {
 
         final File contentDirectory = getContentDirectory(studyFile);
         return contentDirectory.toPath().resolve(studyFile.getUuid());
-    }
-
-    @Override
-    public boolean checkIfBase64EncodingNeeded(AbstractStudyFile arachneFile) {
-
-        String contentType = arachneFile.getContentType();
-        return Stream.of(CommonFileUtils.TYPE_IMAGE, CommonFileUtils.TYPE_PDF)
-                .anyMatch(type -> org.apache.commons.lang3.StringUtils.containsIgnoreCase(contentType, type));
     }
 
     @Override
@@ -174,15 +146,6 @@ public class StudyFileServiceImpl implements StudyFileService {
         if (!file.delete()) {
             throw new IORuntimeException("Can't delete file:" + file);
         }
-
-        /*try {
-            final List<Path> filelist = Files.list(Paths.get(file.getParent())).collect(Collectors.toList());
-            if (filelist.isEmpty()) {
-                new File(file.getParent()).deleteComment();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }*/
     }
 
     @Override

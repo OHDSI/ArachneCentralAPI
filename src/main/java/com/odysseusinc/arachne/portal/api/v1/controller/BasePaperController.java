@@ -36,6 +36,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.PaperFileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ShortPaperDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdatePaperDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UploadFileDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.converters.FileDtoContentHandler;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.NotUniqueException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
@@ -54,9 +55,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.Principal;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
@@ -197,54 +200,15 @@ public abstract class BasePaperController
             @RequestParam(defaultValue = "true") Boolean withContent) throws PermissionDeniedException, IOException {
 
         final AbstractPaperFile paperFile = paperService.getFile(id, uuid, type);
-        final PaperFileDTO fileDto = conversionService.convert(paperFile, PaperFileDTO.class);
+        FileDTO fileDto = conversionService.convert(paperFile, PaperFileDTO.class);
 
         if (withContent) {
-            final String content = new String(fileService.getAllBytes(paperFile));
-            if (CommonFileUtils.isFileConvertableToPdf(paperFile.getContentType())) {
-                fileDto.setDocType(CommonFileUtils.TYPE_PDF);
-            }
-            fileDto.setContent(content);
+            fileDto = FileDtoContentHandler
+                    .getInstance(fileDto, fileService.getPathToFile(paperFile).toFile())
+                    .withPdfConverter(toPdfConverter::convert)
+                    .handle();
         }
 
-        final Path pathToFile = fileService.getPathToFile(paperFile);
-
-        return handleFileDto(
-                withContent,
-                paperFile.getContentType(),
-                fileDto,
-                pathToFile.toFile(),
-                toPdfConverter::convert);
-    }
-
-    public FileDTO handleFileDto(
-            Boolean withContent,
-            String contentType,
-            FileDTO fileDto,
-            File file,
-            Function<File, byte[]> pdfConverter) {
-
-
-        final byte[] bytes;
-        try {
-            if (CommonFileUtils.isFileConvertableToPdf(contentType)) {
-                bytes = FileUtils.encode(pdfConverter.apply(file));
-            } else {
-                boolean encodingNeeded = Stream.of(CommonFileUtils.TYPE_IMAGE, CommonFileUtils.TYPE_PDF)
-                        .anyMatch(type -> StringUtils.containsIgnoreCase(contentType, type));
-                bytes = FileUtils.getBytes(file.toPath(), encodingNeeded);
-            }
-        } catch(IOException io) {
-            throw new RuntimeException(io);
-        }
-
-        if (withContent) {
-            final String content = new String(bytes);
-            if (CommonFileUtils.isFileConvertableToPdf(contentType)) {
-                fileDto.setDocType(CommonFileUtils.TYPE_PDF);
-            }
-            fileDto.setContent(content);
-        }
 
         return fileDto;
     }

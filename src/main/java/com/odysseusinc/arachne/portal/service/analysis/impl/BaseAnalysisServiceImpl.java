@@ -735,17 +735,7 @@ public abstract class BaseAnalysisServiceImpl<
     @Override
     public byte[] getAllBytes(final ArachneFile arachneFile) throws IOException {
 
-        Path path = getPath(arachneFile);
-
-        final byte[] bytes;
-
-        if (CommonFileUtils.isFileConvertableToPdf(arachneFile.getContentType())) {
-            bytes = FileUtils.encode(docToPdfConverter.convert(path.toFile()));
-        } else {
-            bytes = FileUtils.getBytes(path, checkIfBase64EncodingNeeded(arachneFile));
-        }
-
-        return bytes;
+        return FileUtils.getBytes(getPath(arachneFile), checkIfBase64EncodingNeeded(arachneFile));
     }
 
     private boolean checkIfBase64EncodingNeeded(ArachneFile arachneFile) {
@@ -767,7 +757,8 @@ public abstract class BaseAnalysisServiceImpl<
         submissionFileRepository.delete(file);
     }
 
-    protected Path getPath(ArachneFile arachneFile) throws FileNotFoundException {
+    @Override
+    public Path getPath(ArachneFile arachneFile) throws FileNotFoundException {
 
         if (arachneFile == null) {
             throw new FileNotFoundException();

@@ -111,6 +111,8 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
 
     void deleteSubmissionFile(SubmissionFile file);
 
+    Path getPath(ArachneFile arachneFile) throws FileNotFoundException;
+
     void setIsExecutable(String uuid);
 
     List<SubmissionAction> getSubmissionActions(Submission submission);

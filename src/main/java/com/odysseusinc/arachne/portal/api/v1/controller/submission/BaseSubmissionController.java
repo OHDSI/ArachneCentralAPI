@@ -41,6 +41,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionFileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionStatusHistoryElementDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdateSubmissionsDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UploadFileDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.converters.FileDtoContentHandler;
 import com.odysseusinc.arachne.portal.exception.NoExecutableFileException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
@@ -54,6 +55,7 @@ import com.odysseusinc.arachne.portal.model.SubmissionStatus;
 import com.odysseusinc.arachne.portal.model.SubmissionStatusHistoryElement;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.ResultFileSearch;
+import com.odysseusinc.arachne.portal.service.ToPdfConverter;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
 import com.odysseusinc.arachne.portal.util.AnalysisHelper;
@@ -72,6 +74,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
@@ -86,12 +89,15 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     protected static final Logger LOGGER = LoggerFactory.getLogger(BaseSubmissionController.class);
     protected final BaseAnalysisService<A> analysisService;
     protected final BaseSubmissionService<T, A> submissionService;
+    protected final ToPdfConverter toPdfConverter;
 
     public BaseSubmissionController(BaseAnalysisService<A> analysisService,
-                                    BaseSubmissionService<T, A> submissionService) {
+                                    BaseSubmissionService<T, A> submissionService,
+                                    ToPdfConverter toPdfConverter) {
 
         this.analysisService = analysisService;
         this.submissionService = submissionService;
+        this.toPdfConverter = toPdfConverter;
     }
 
     @ApiOperation("Create and send submission.")
@@ -382,15 +388,14 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
             throws PermissionDeniedException, NotExistException, IOException {
 
         final SubmissionFile submissionFile = submissionService.getSubmissionFile(submissionGroupId, uuid);
-        final FileDTO contentDTO = conversionService.convert(submissionFile, FileDTO.class);
+        FileDTO fileDto = conversionService.convert(submissionFile, FileDTO.class);
         if (withContent) {
-            final String content = new String(analysisService.getAllBytes(submissionFile));
-            if (CommonFileUtils.isFileConvertableToPdf(submissionFile.getContentType())) {
-                contentDTO.setDocType(CommonFileUtils.TYPE_PDF);
-            }
-            contentDTO.setContent(content);
+            fileDto = FileDtoContentHandler
+                    .getInstance(fileDto, analysisService.getPath(submissionFile).toFile())
+                    .withPdfConverter(toPdfConverter::convert)
+                    .handle();
         }
-        return new JsonResult<>(NO_ERROR, contentDTO);
+        return new JsonResult<>(NO_ERROR, fileDto);
     }
 
     @ApiOperation("Update analysis execution status.")
@@ -451,17 +456,16 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
             @PathVariable("fileUuid") String uuid) throws PermissionDeniedException, NotExistException, IOException {
 
         ResultFile resultFile = getResultFile(principal, submissionId, uuid);
-        final FileDTO contentDTO = conversionService.convert(resultFile, FileDTO.class);
+        FileDTO fileDto = conversionService.convert(resultFile, FileDTO.class);
 
         if (withContent) {
-            final String content = new String(analysisService.getAllBytes(resultFile));
-            if (CommonFileUtils.isFileConvertableToPdf(resultFile.getContentType())) {
-                contentDTO.setDocType(CommonFileUtils.TYPE_PDF);
-            }
-            contentDTO.setContent(content);
+            fileDto = FileDtoContentHandler
+                    .getInstance(fileDto, analysisService.getPath(resultFile).toFile())
+                    .withPdfConverter(toPdfConverter::convert)
+                    .handle();
         }
 
-        return new JsonResult<>(NO_ERROR, contentDTO);
+        return new JsonResult<>(NO_ERROR, fileDto);
     }
 
     @ApiOperation("Download result file of the submission.")
