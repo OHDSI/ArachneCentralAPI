@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.model;
 
+import com.odysseusinc.arachne.jcr.model.JcrStored;
 import java.util.Optional;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -36,7 +37,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "result_files")
-public class ResultFile {
+public class ResultFile implements JcrStored {
     @Id
     @SequenceGenerator(name = "result_files_pk_sequence", sequenceName = "result_files_id_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "result_files_pk_sequence")

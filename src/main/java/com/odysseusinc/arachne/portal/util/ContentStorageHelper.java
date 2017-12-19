@@ -1,7 +1,7 @@
 package com.odysseusinc.arachne.portal.util;
 
 import com.odysseusinc.arachne.portal.model.Submission;
-import com.odysseusinc.arachne.portal.service.ContentStorageService;
+import com.odysseusinc.arachne.jcr.service.ContentStorageService;
 import java.util.Arrays;
 
 public class ContentStorageHelper {

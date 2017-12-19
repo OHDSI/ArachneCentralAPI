@@ -61,11 +61,11 @@ import com.odysseusinc.arachne.portal.repository.SubmissionResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionStatusHistoryRepository;
 import com.odysseusinc.arachne.portal.repository.submission.BaseSubmissionRepository;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
-import com.odysseusinc.arachne.portal.service.ContentStorageService;
+import com.odysseusinc.arachne.jcr.service.ContentStorageService;
 import com.odysseusinc.arachne.portal.service.UserService;
-import com.odysseusinc.arachne.portal.service.jcr.ArachneFileMeta;
-import com.odysseusinc.arachne.portal.service.jcr.ArachneFileSourced;
-import com.odysseusinc.arachne.portal.service.jcr.QuerySpec;
+import com.odysseusinc.arachne.jcr.model.ArachneFileMeta;
+import com.odysseusinc.arachne.jcr.model.ArachneFileSourced;
+import com.odysseusinc.arachne.jcr.model.QuerySpec;
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import com.odysseusinc.arachne.portal.service.mail.InvitationApprovalSubmissionArachneMailMessage;
 import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
@@ -417,7 +417,6 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         } catch (IOException e) {
             LOGGER.error("Failed to deleteComment result file", e);
         }
-        contentStorageService.delete(resultFile.getUuid());
     }
 
     protected SubmissionStatus beforeApproveSubmissionResult(T submission, ApproveDTO approveDTO) {
