@@ -1,4 +1,4 @@
-run_estimation_analysis <- function(analysiDescriptionFile, outputFolder, targetCohortDefinitionPath, comparatorCohortDefinitionPath,  outcomeCohortDefinitionPath, dbms,  connectionString, user, password, cdmDatabaseSchema, resultsDatabaseSchema, exposureTable = "cohort", outcomeTable = "cohort", cdmVersion = 5, maxCores = 1){
+run_ple_analysis <- function(analysiDescriptionFile, outputFolder, targetCohortDefinitionPath, comparatorCohortDefinitionPath,  outcomeCohortDefinitionPath, dbms,  connectionString, user, password, cdmDatabaseSchema, resultsDatabaseSchema, exposureTable = "cohort", outcomeTable = "cohort", cdmVersion = 5, maxCores = 1){
 
   # This function read description of Population Level Estimation Analysis from json file execute code with approparate settings and saves results to file system
   
@@ -13,7 +13,8 @@ run_estimation_analysis <- function(analysiDescriptionFile, outputFolder, target
   # None
     
     
-  
+  library(packrat)
+  packrat::status()
   # Load the Cohort Method library
   library(CohortMethod) 
   library(SqlRender)
@@ -41,7 +42,7 @@ run_estimation_analysis <- function(analysiDescriptionFile, outputFolder, target
                    target_cohort_id = targetCohortId)$sql
   sql <- translateSql(sql, targetDialect = connectionDetails$dbms)$sql
   
-  executeSql(connection, sql)
+  # executeSql(connection, sql)
 
   sql <- readSql(comparatorCohortDefinitionPath)
   sql <- renderSql(sql,
@@ -50,7 +51,7 @@ run_estimation_analysis <- function(analysiDescriptionFile, outputFolder, target
                    target_cohort_table = "cohort",
                    target_cohort_id = comparatorCohortId)$sql
   sql <- translateSql(sql, targetDialect = connectionDetails$dbms)$sql
-  executeSql(connection, sql)
+  # executeSql(connection, sql)
 
   sql <- readSql(outcomeCohortDefinitionPath)
   sql <- renderSql(sql,
@@ -59,52 +60,9 @@ run_estimation_analysis <- function(analysiDescriptionFile, outputFolder, target
                    target_cohort_table = "cohort",
                    target_cohort_id = outcomeCohortId)$sql
   sql <- translateSql(sql, targetDialect = connectionDetails$dbms)$sql
-  executeSql(connection, sql)
+  # executeSql(connection, sql)
   
-  
-  analysisSettings$psDemographics = analysisSettings$psDemographics
-  analysisSettings$psDemographicsGender = analysisSettings$psDemographicsGender
-  analysisSettings$psDemographicsRace = analysisSettings$psDemographicsRace
-  analysisSettings$psDemographicsEthnicity = analysisSettings$psDemographicsEthnicity
-  analysisSettings$psDemographicsAge = analysisSettings$psDemographicsAge
-  analysisSettings$psDemographicsYear = analysisSettings$psDemographicsYear
-  analysisSettings$psDemographicsMonth = analysisSettings$psDemographicsMonth
-  analysisSettings$psConditionOcc = analysisSettings$psConditionOcc
-  analysisSettings$psConditionOcc365d = analysisSettings$psConditionOcc365d
-  analysisSettings$psConditionOcc30d = analysisSettings$psConditionOcc30d
-  analysisSettings$psConditionOccInpt180d = analysisSettings$psConditionOccInpt180d
-  analysisSettings$psConditionEra = analysisSettings$psConditionEra
-  analysisSettings$psConditionEraEver = analysisSettings$psConditionEraEver
-  analysisSettings$psConditionEraOverlap = analysisSettings$psConditionEraOverlap
-  analysisSettings$psConditionGroup = analysisSettings$psConditionGroup
-  analysisSettings$psConditionGroupMeddra = analysisSettings$psConditionGroupMeddra
-  analysisSettings$psConditionGroupSnomed = analysisSettings$psConditionGroupSnomed
-  analysisSettings$psDrugExposure = analysisSettings$psDrugExposure
-  analysisSettings$psDrugExposure365d = analysisSettings$psDrugExposure365d
-  analysisSettings$psDrugExposure30d = analysisSettings$psDrugExposure30d
-  analysisSettings$psDrugEra = analysisSettings$psDrugEra
-  analysisSettings$psDrugEra365d = analysisSettings$psDrugEra365d
-  analysisSettings$psDrugEra30d = analysisSettings$psDrugEra30d
-  analysisSettings$psDrugEraOverlap = analysisSettings$psDrugEraOverlap
-  analysisSettings$psDrugEraEver = analysisSettings$psDrugEraEver
-  analysisSettings$psDrugGroup = analysisSettings$psDrugGroup
-  analysisSettings$psProcedureOcc = analysisSettings$psProcedureOcc
-  analysisSettings$psProcedureOcc365d = analysisSettings$psProcedureOcc365d
-  analysisSettings$psProcedureOcc30d = analysisSettings$psProcedureOcc30d
-  analysisSettings$psMeasurement = analysisSettings$psMeasurement
-  analysisSettings$psMeasurement365d = analysisSettings$psMeasurement365d
-  analysisSettings$psMeasurement30d = analysisSettings$psMeasurement30d
-  analysisSettings$psMeasurementCount365d = analysisSettings$psMeasurementCount365d
-  analysisSettings$psMeasurementBelow = analysisSettings$psMeasurementBelow
-  analysisSettings$psMeasurementAbove = analysisSettings$psMeasurementAbove
-  analysisSettings$psConceptCounts = analysisSettings$psConceptCounts
-  analysisSettings$psRiskScores = analysisSettings$psRiskScores
-  analysisSettings$psRiskScoresCharlson = analysisSettings$psRiskScoresCharlson
-  analysisSettings$psRiskScoresDcsi = analysisSettings$psRiskScoresDcsi
-  analysisSettings$psRiskScoresChads2 = analysisSettings$psRiskScoresChads2
-  analysisSettings$psInteractionYear = analysisSettings$psInteractionYear
-  analysisSettings$psInteractionMonth = analysisSettings$psInteractionMonth
-  
+
   # Default Prior & Control settings ----
   defaultPrior <- createPrior("laplace", 
                               exclude = c(0),
@@ -305,7 +263,7 @@ run_estimation_analysis <- function(analysiDescriptionFile, outputFolder, target
     matchOnPsArgs1 <- createMatchOnPsArgs(caliper = 0.25, caliperScale = "standardized", maxRatio = as.numeric(analysisSettings$psMatchMaxRatio)) 
   }else if (analysisSettings$psMatch == 2){
     stratifyByPs = TRUE
-    stratifyByPsArgs1 <- createStratifyByPsArgs(strataPop, numberOfStrata = analysisSettings$psStratNumStrata) 
+    stratifyByPsArgs1 <- createStratifyByPsArgs(numberOfStrata = analysisSettings$psStratNumStrata) 
   }
   
   cmAnalysis1 <- createCmAnalysis(analysisId = 1,
@@ -586,7 +544,7 @@ run_estimation_analysis <- function(analysiDescriptionFile, outputFolder, target
         outcomeSummaryOutput <- capture.output(printCoefmat(outcomeSummaryOutput))
         outcomeModelOutput <- c(outcomeModelOutput, outcomeSummaryOutput)
         writeLines(outcomeModelOutput)
-        
+        write.table(outcomeModelOutput, file = file.path(outputFolder,"PLE_summary"), row.names = FALSE, col.names = FALSE)
       }
     }
   }
