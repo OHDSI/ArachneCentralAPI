@@ -29,6 +29,7 @@ import static com.odysseusinc.arachne.portal.model.ParticipantRole.LEAD_INVESTIG
 import static java.lang.Boolean.TRUE;
 import static java.util.Collections.singletonList;
 
+import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
 import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraphUtils;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
@@ -408,10 +409,12 @@ public abstract class BaseStudyServiceImpl<
                         studyId,
                         EntityGraphUtils.fromAttributePaths(
                                 "study",
+                                "study.paper",
+                                "study.status",
+                                "study.type",
                                 "study.participants",
                                 "study.participants.user",
-                                "study.participants.dataSource",
-                                "study.participants.comment"
+                                "study.participants.dataSource"
                         )
                 ).orElseThrow(() -> new NotExistException(UserStudyGrouped.class));
         return userStudyItem;
@@ -873,6 +876,18 @@ public abstract class BaseStudyServiceImpl<
     public List<T> getByIds(List<Long> studyIds) {
 
         return studyRepository.findByIdIn(studyIds);
+    }
+
+    @Override
+    public List<StudyDataSourceLink> getLinksByStudyId(Long id, EntityGraph graph) {
+
+        return studyDataSourceLinkRepository.findByStudyId(id, graph);
+    }
+
+    @Override
+    public List<StudyFile> getFilesByStudyId(Long id, EntityGraph graph) {
+
+        return studyFileRepository.findByStudyId(id, graph);
     }
 
     @Override

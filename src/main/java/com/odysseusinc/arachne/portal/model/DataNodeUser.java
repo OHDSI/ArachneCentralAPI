@@ -59,7 +59,7 @@ public class DataNodeUser {
 
     @Column(name = "datanode_role")
     @Enumerated(EnumType.STRING)
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "datanodes_users_roles", joinColumns = @JoinColumn(name = "datanode_user_id"))
     private Set<DataNodeRole> dataNodeRole = new HashSet<>();
 

@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.service;
 
+import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
@@ -126,4 +127,8 @@ public interface BaseStudyService<
     boolean fullDelete(List<T> studies);
 
     List<T> getByIds(List<Long> studyIds);
+
+    List<StudyDataSourceLink> getLinksByStudyId(Long id, EntityGraph dataSource);
+
+    List<StudyFile> getFilesByStudyId(Long id, EntityGraph author);
 }

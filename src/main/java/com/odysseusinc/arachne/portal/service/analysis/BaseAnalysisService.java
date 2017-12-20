@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.service.analysis;
 
+import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
 import com.odysseusinc.arachne.portal.api.v1.dto.FileDTO;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
@@ -32,14 +33,11 @@ import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.AnalysisFile;
 import com.odysseusinc.arachne.portal.model.AnalysisUnlockRequest;
 import com.odysseusinc.arachne.portal.model.ArachneFile;
-import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.DataReference;
 import com.odysseusinc.arachne.portal.model.Invitationable;
 import com.odysseusinc.arachne.portal.model.ResultFile;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
-import com.odysseusinc.arachne.portal.model.SubmissionInsight;
-import com.odysseusinc.arachne.portal.model.SubmissionInsightSubmissionFile;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.service.AnalysisPaths;
 import com.odysseusinc.arachne.portal.service.CRUDLService;
@@ -49,10 +47,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Set;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>, AnalysisPaths {
@@ -128,4 +122,6 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
     List<T> findByStudyIds(List<Long> ids);
 
     List<T> getByIdIn(List<Long> longs);
+
+    List<T> getByStudyId(Long id, EntityGraph author);
 }

@@ -22,15 +22,19 @@
 
 package com.odysseusinc.arachne.portal.repository;
 
+import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
+import com.cosium.spring.data.jpa.entity.graph.repository.EntityGraphJpaRepository;
 import com.odysseusinc.arachne.portal.model.StudyFile;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface StudyFileRepository extends JpaRepository<StudyFile, Long> {
+public interface StudyFileRepository extends EntityGraphJpaRepository<StudyFile, Long> {
 
     StudyFile findByRealName(String fileName);
 
     StudyFile findByUuid(String uuid);
 
     List<StudyFile> findByIdIn(List<Long> ids);
+
+    List<StudyFile> findByStudyId(Long id, EntityGraph graph);
 }
