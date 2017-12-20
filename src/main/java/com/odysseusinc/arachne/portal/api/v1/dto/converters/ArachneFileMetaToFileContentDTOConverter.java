@@ -24,7 +24,7 @@ package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.FileContentDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.FileDTO;
-import com.odysseusinc.arachne.jcr.model.ArachneFileMeta;
+import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import org.springframework.stereotype.Component;
 
 @Component

@@ -24,7 +24,7 @@ package com.odysseusinc.arachne.portal.model;
 
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
-import com.odysseusinc.arachne.jcr.model.ArachneFileMeta;
+import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import java.util.Date;
 import java.util.Set;
 import javax.persistence.Access;

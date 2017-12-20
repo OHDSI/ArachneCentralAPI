@@ -22,7 +22,7 @@
 
 package com.odysseusinc.arachne.portal.model;
 
-import com.odysseusinc.arachne.jcr.model.JcrStored;
+import com.odysseusinc.arachne.storage.model.JcrStored;
 import java.util.Optional;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -55,9 +55,6 @@ public class ResultFile implements JcrStored {
 
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     private CommentTopic commentTopic;
-
-    @Column(name = "manual_upload")
-    private Boolean manuallyUploaded;
 
     public ResultFile() {
 
@@ -113,20 +110,5 @@ public class ResultFile implements JcrStored {
     public void setCommentTopic(CommentTopic commentTopic) {
 
         this.commentTopic = commentTopic;
-    }
-
-    public Boolean getManuallyUploaded() {
-
-        return manuallyUploaded;
-    }
-
-    public void setManuallyUploaded(Boolean manuallyUploaded) {
-
-        this.manuallyUploaded = manuallyUploaded;
-    }
-
-    public boolean isManuallyUploaded() {
-
-        return Optional.ofNullable(this.manuallyUploaded).orElse(false);
     }
 }

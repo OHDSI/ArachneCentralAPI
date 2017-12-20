@@ -24,8 +24,8 @@ package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.CommentableResultFileDTO;
 import com.odysseusinc.arachne.portal.model.ResultFile;
-import com.odysseusinc.arachne.jcr.service.ContentStorageService;
-import com.odysseusinc.arachne.jcr.model.ArachneFileMeta;
+import com.odysseusinc.arachne.storage.service.ContentStorageService;
+import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -40,7 +40,7 @@ public class ResultFileToCommentableResultFileDTOConverter extends BaseConversio
 
         final CommentableResultFileDTO dto = new CommentableResultFileDTO();
 
-        ArachneFileMeta arachneFileMeta = contentStorageService.getFileByFn(source.getPath());
+        ArachneFileMeta arachneFileMeta = contentStorageService.getFileByPath(source.getPath());
 
         dto.setUuid(source.getUuid());
         dto.setName(arachneFileMeta.getName());

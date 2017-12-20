@@ -73,6 +73,8 @@ flyway:
   baseline-on-migrate: true
   placeholderReplacement: false
   out-of-order: true
+  validateOnMigrate: false
+  #locations: db/migration,classpath:com.odysseusinc.arachne.portal.db.migration
 arachne:
   token:
     secret: sssshhhh!

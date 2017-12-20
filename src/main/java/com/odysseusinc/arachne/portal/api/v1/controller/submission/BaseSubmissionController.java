@@ -53,11 +53,11 @@ import com.odysseusinc.arachne.portal.model.SubmissionStatus;
 import com.odysseusinc.arachne.portal.model.SubmissionStatusHistoryElement;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.ResultFileSearch;
-import com.odysseusinc.arachne.jcr.service.ContentStorageService;
+import com.odysseusinc.arachne.storage.service.ContentStorageService;
 import com.odysseusinc.arachne.portal.service.SubmissionInsightService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
-import com.odysseusinc.arachne.jcr.model.ArachneFileSourced;
-import com.odysseusinc.arachne.jcr.model.ArachneFileMeta;
+import com.odysseusinc.arachne.storage.model.ArachneFileSourced;
+import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
 import com.odysseusinc.arachne.portal.util.AnalysisHelper;
 import com.odysseusinc.arachne.portal.util.FileUtils;
@@ -443,7 +443,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
             @PathVariable("fileUuid") String uuid) throws PermissionDeniedException, NotExistException, IOException {
 
         ResultFile resultFile = getResultFile(principal, submissionId, uuid);
-        ArachneFileSourced file = contentStorageService.getFileByFn(resultFile.getPath());
+        ArachneFileSourced file = contentStorageService.getFileByPath(resultFile.getPath());
 
         final FileDTO fileDTO = conversionService.convert(file, FileDTO.class);
         final FileContentDTO contentDTO = new FileContentDTO(fileDTO);
@@ -467,7 +467,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
             HttpServletResponse response) throws PermissionDeniedException, NotExistException, IOException {
 
         ResultFile resultFile = getResultFile(principal, submissionId, uuid);
-        ArachneFileSourced file = contentStorageService.getFileByFn(resultFile.getPath());
+        ArachneFileSourced file = contentStorageService.getFileByPath(resultFile.getPath());
 
         HttpUtils.putFileContentToResponse(
                 response,

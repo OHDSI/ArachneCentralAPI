@@ -108,7 +108,7 @@
         </dependency>
         <dependency>
             <groupId>com.odysseusinc.arachne</groupId>
-            <artifactId>arachne-jcr</artifactId>
+            <artifactId>arachne-storage</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
         </dependency>

@@ -61,11 +61,11 @@ import com.odysseusinc.arachne.portal.repository.SubmissionResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionStatusHistoryRepository;
 import com.odysseusinc.arachne.portal.repository.submission.BaseSubmissionRepository;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
-import com.odysseusinc.arachne.jcr.service.ContentStorageService;
+import com.odysseusinc.arachne.storage.service.ContentStorageService;
 import com.odysseusinc.arachne.portal.service.UserService;
-import com.odysseusinc.arachne.jcr.model.ArachneFileMeta;
-import com.odysseusinc.arachne.jcr.model.ArachneFileSourced;
-import com.odysseusinc.arachne.jcr.model.QuerySpec;
+import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
+import com.odysseusinc.arachne.storage.model.ArachneFileSourced;
+import com.odysseusinc.arachne.storage.model.QuerySpec;
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import com.odysseusinc.arachne.portal.service.mail.InvitationApprovalSubmissionArachneMailMessage;
 import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
@@ -153,7 +153,8 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
                                         SubmissionStatusHistoryRepository submissionStatusHistoryRepository,
                                         EntityManager entityManager,
                                         ContentStorageService contentStorageService,
-                                        UserService userService) {
+                                        UserService userService,
+                                        ContentStorageHelper contentStorageHelper) {
 
         this.submissionRepository = submissionRepository;
         this.dataSourceService = dataSourceService;
@@ -170,7 +171,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         this.entityManager = entityManager;
         this.contentStorageService = contentStorageService;
         this.userService = userService;
-        this.contentStorageHelper = new ContentStorageHelper(contentStorageService);
+        this.contentStorageHelper = contentStorageHelper;
     }
 
     @Override
@@ -397,7 +398,8 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         Optional.ofNullable(resultFile).orElseThrow(() ->
                 new NotExistException(String.format(RESULT_FILE_NOT_EXISTS_EXCEPTION,
                         fileUuid, submission.getId()), ResultFile.class));
-        if (!resultFile.isManuallyUploaded()) {
+        ArachneFileMeta fileMeta = contentStorageService.getFileByPath(resultFile.getPath());
+        if (fileMeta.getCreatedBy() == null) { // not manually uploaded
             throw new ValidationException(String.format(FILE_NOT_UPLOADED_MANUALLY_EXCEPTION, fileUuid));
         }
         deleteSubmissionResultFile(resultFile);
@@ -461,14 +463,6 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         return submission;
     }
 
-    private void throwNotExistExceptionIfNull(SubmissionInsight submissionInsight, Long submissionId) throws NotExistException {
-
-        if (submissionInsight == null) {
-            final String message = String.format(INSIGHT_NOT_EXIST_EXCEPTION, submissionId);
-            throw new NotExistException(message, SubmissionInsight.class);
-        }
-    }
-
     @Override
     public T getSubmissionByIdAndToken(Long id, String token) throws NotExistException {
 
@@ -492,7 +486,6 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
                 submission,
                 user.getId()
         );
-        resultFile.setManuallyUploaded(true);
         Date updated = new Date();
         List<ResultFile> resultFiles = submission.getResultFiles();
         resultFiles.add(resultFile);
@@ -592,18 +585,11 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
 
         Path sourceFilePath = fromDirectory.resolve(name);
 
-        Path relativeFn = Paths.get(name);
-        Path relativePath = relativeFn.getParent();
-
-        String fileName = relativeFn.getFileName().toString();
-        String relativeDir = relativePath != null ? relativePath.toString() : null;
-
         ResultFile resultFile = new ResultFile();
         resultFile.setSubmission(submission);
 
         ArachneFileMeta fileMeta = contentStorageService.saveFile(
-                contentStorageHelper.getResultFilesDir(submission, relativeDir),
-                fileName,
+                contentStorageHelper.getResultFilesDir(submission, name),
                 sourceFilePath.toFile(),
                 createById
         );
@@ -673,7 +659,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         Path resultFilesPath = Paths.get(contentStorageHelper.getResultFilesDir(submission));
         try (ZipOutputStream zos = new ZipOutputStream(os)) {
             for (ResultFile resultFile : submission.getResultFiles()) {
-                ArachneFileSourced arachneFile = contentStorageService.getFileByFn(resultFile.getPath());
+                ArachneFileSourced arachneFile = contentStorageService.getFileByPath(resultFile.getPath());
                 Path relativePath = resultFilesPath.relativize(Paths.get(arachneFile.getPath()));
                 ZipUtil.addZipEntry(zos, relativePath.toString(), arachneFile.getInputStream());
             }

@@ -44,12 +44,13 @@ import com.odysseusinc.arachne.portal.repository.SubmissionResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionStatusHistoryRepository;
 import com.odysseusinc.arachne.portal.repository.submission.BaseSubmissionRepository;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
-import com.odysseusinc.arachne.jcr.service.ContentStorageService;
+import com.odysseusinc.arachne.storage.service.ContentStorageService;
 import com.odysseusinc.arachne.portal.service.UserService;
-import com.odysseusinc.arachne.jcr.model.ArachneFileMeta;
+import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import com.odysseusinc.arachne.portal.service.submission.SubmissionService;
 import com.odysseusinc.arachne.portal.util.AnalysisHelper;
+import com.odysseusinc.arachne.portal.util.ContentStorageHelper;
 import com.odysseusinc.arachne.portal.util.LegacyAnalysisHelper;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -83,7 +84,8 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
                                  SubmissionStatusHistoryRepository submissionStatusHistoryRepository,
                                  EntityManager entityManager,
                                  ContentStorageService contentStorageService,
-                                 UserService userService) {
+                                 UserService userService,
+                                 ContentStorageHelper contentStorageHelper) {
 
         super(submissionRepository,
                 dataSourceService,
@@ -95,7 +97,12 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
                 submissionGroupRepository,
                 submissionInsightRepository,
                 submissionFileRepository,
-                resultFileRepository, submissionStatusHistoryRepository, entityManager, contentStorageService, userService);
+                resultFileRepository,
+                submissionStatusHistoryRepository,
+                entityManager,
+                contentStorageService,
+                userService,
+                contentStorageHelper);
     }
 
     @Override
