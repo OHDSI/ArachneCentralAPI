@@ -34,25 +34,31 @@ import java.nio.file.Path;
 public class FileUtils {
 
     public static byte[] getBytes(InputStream inputStream, String contentType) throws IOException {
+
         byte[] result = IOUtils.toByteArray(inputStream);
         if (checkIfBase64EncodingNeeded(contentType)) {
-            result = Base64.encode(result);
+            result = encode(result);
         }
         return result;
     }
 
     public static byte[] getBytes(Path path, String contentType) throws IOException {
+
         byte[] result = Files.readAllBytes(path);
         if (checkIfBase64EncodingNeeded(contentType)) {
-            result = Base64.encode(result);
+            result = encode(result);
         }
         return result;
     }
-
 
     public static boolean checkIfBase64EncodingNeeded(String contentType) {
 
         return Stream.of(CommonFileUtils.TYPE_IMAGE, CommonFileUtils.TYPE_PDF)
                 .anyMatch(type -> org.apache.commons.lang3.StringUtils.containsIgnoreCase(contentType, type));
+    }
+
+    public static byte[] encode(final byte[] result) {
+
+        return Base64.encode(result);
     }
 }

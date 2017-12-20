@@ -34,14 +34,4 @@ import org.springframework.data.repository.query.Param;
 public interface SubmissionResultFileRepository extends CrudRepository<ResultFile, Long> {
 
     ResultFile findByUuid(String uuid);
-
-    Long countBySubmissionAndContentTypeIn(Submission submission, Set<String> contenTypes);
-
-    @Query(value = "SELECT * FROM result_files "
-            + " WHERE submission_id = :submissionId "
-            + "   AND real_name ~ :realNamePattern", nativeQuery = true)
-    List<ResultFile> findAllBySubmissionIdAndRealNameMatchesTo(@Param("submissionId") Long submissionId,
-                                                               @Param("realNamePattern") String realNamePattern);
-
-    Optional<ResultFile> findBySubmissionAndRealName(Submission submission, String realName);
 }

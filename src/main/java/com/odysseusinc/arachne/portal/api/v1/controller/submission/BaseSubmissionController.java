@@ -77,8 +77,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.StringUtils;
@@ -102,8 +104,8 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
 
     public BaseSubmissionController(BaseAnalysisService<A> analysisService,
                                     BaseSubmissionService<T, A> submissionService,
-                                    SubmissionInsightService submissionInsightService,
-                                    ToPdfConverter toPdfConverter) {
+                                    ToPdfConverter toPdfConverter,
+                                    SubmissionInsightService submissionInsightService) {
 
         this.analysisService = analysisService;
         this.submissionService = submissionService;
@@ -453,18 +455,21 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
         ResultFile resultFile = getResultFile(principal, submissionId, uuid);
         ArachneFileSourced file = contentStorageService.getFileByPath(resultFile.getPath());
 
-        final AnalysisFileDTO fileDTO = conversionService.convert(file, AnalysisFileDTO.class);
-        fileDTO.setAnalysisId(resultFile.getSubmission().getAnalysis().getId());
+        final FileDTO fileDTO = conversionService.convert(file, FileDTO.class);
+        AnalysisFileDTO analysisFileDTO = new AnalysisFileDTO();
+
+        BeanUtils.copyProperties(fileDTO, analysisFileDTO);
+        analysisFileDTO.setAnalysisId(resultFile.getSubmission().getAnalysis().getId());
 
         if (withContent) {
-            byte[] content = FileUtils.getBytes(file.getInputStream(), file.getContentType());
-            fileDTO = FileDtoContentHandler
-                    .getInstance(fileDTO, analysisService.getPath(resultFile).toFile())
+            byte[] content = IOUtils.toByteArray(file.getInputStream());
+            analysisFileDTO = (AnalysisFileDTO) FileDtoContentHandler
+                    .getInstance(analysisFileDTO, content)
                     .withPdfConverter(toPdfConverter::convert)
                     .handle();
         }
 
-        return new JsonResult<>(NO_ERROR, fileDTO);
+        return new JsonResult<>(NO_ERROR, analysisFileDTO);
     }
 
     @ApiOperation("Download result file of the submission.")

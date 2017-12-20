@@ -619,7 +619,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     }
 
     @Override
-    public List<ArachneFileMeta> getResultFiles(User user, Long submissionId, ResultFileSearch resultFileSearch) throws PermissionDeniedException {
+    public List<ArachneFileSourced> getResultFiles(User user, Long submissionId, ResultFileSearch resultFileSearch) throws PermissionDeniedException {
 
         Submission submission = submissionRepository.findById(submissionId);
         if (!(EXECUTED_PUBLISHED.equals(submission.getStatus()) || FAILED_PUBLISHED.equals(submission.getStatus()))) {
@@ -634,7 +634,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         querySpec.setName(resultFileSearch.getRealName());
         querySpec.setPath(resultFilesPath);
 
-        List<ArachneFileMeta> resultFileList = contentStorageService.searchFiles(querySpec);
+        List<ArachneFileSourced> resultFileList = contentStorageService.searchFiles(querySpec);
 
         return resultFileList;
     }

@@ -572,17 +572,15 @@ public abstract class BaseAnalysisController<T extends Analysis,
 
         AnalysisFile analysisFile = analysisService.getAnalysisFile(analysisId, uuid);
         AnalysisFileDTO analysisFileDTO = conversionService.convert(analysisFile, AnalysisFileDTO.class);
-        FileDTO fileDto = new AnalysisFileDTO();
-        ReflectionUtils.shallowCopyFieldState(analysisFileDTO, fileDto);
 
         if (withContent) {
-            fileDto = FileDtoContentHandler
-                    .getInstance(fileDto, analysisService.getPath(analysisFile).toFile())
+            analysisFileDTO = (AnalysisFileDTO) FileDtoContentHandler
+                    .getInstance(analysisFileDTO, analysisService.getPath(analysisFile).toFile())
                     .withPdfConverter(toPdfConverter::convert)
                     .handle();
         }
 
-        return new JsonResult<>(NO_ERROR, fileDto);
+        return new JsonResult<>(NO_ERROR, analysisFileDTO);
     }
 
     @ApiOperation("Lock/unlock analysis files")
