@@ -266,8 +266,11 @@ run_plp_analysis <-function(basicDir, analysisDescriptionFile, cohortDefinitionP
 
   PatientLevelPrediction::savePlpModel(results$model, dirPath = plpModelPath)
   PatientLevelPrediction::savePlpResult(results, dirPath = plpResultsPath)
-
- 
+  
+  plp_summary <- data.frame(plpResults$performanceEvaluation$evaluationStatistics)
+  plp_summary <- subset(plp_summary, select = c(Metric, Eval, Value))
+  write.table(plp_summary, file = file.path(basicDir, "PLP_summary"), row.names = FALSE)
+  
   end.time <- Sys.time()
   time.taken <- end.time - start.time
   time.taken  
