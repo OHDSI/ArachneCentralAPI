@@ -40,11 +40,19 @@ public class HttpUtils {
 
         Assert.notNull(file);
         try (InputStream is = Files.newInputStream(file)) {
-            response.setContentType(contentType);
-            response.setHeader("Content-disposition", "attachment; filename=" + fileName);
-            org.apache.commons.io.IOUtils.copy(is, response.getOutputStream());
-            response.flushBuffer();
+            putFileContentToResponse(response, contentType, fileName, is);
         }
+    }
+
+    public static void putFileContentToResponse(HttpServletResponse response,
+                                                String contentType,
+                                                String fileName,
+                                                InputStream stream) throws IOException {
+
+        response.setContentType(contentType);
+        response.setHeader("Content-disposition", "attachment; filename=" + fileName);
+        org.apache.commons.io.IOUtils.copy(stream, response.getOutputStream());
+        response.flushBuffer();
     }
 
 }

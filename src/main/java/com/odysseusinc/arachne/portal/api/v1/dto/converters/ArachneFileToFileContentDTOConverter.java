@@ -22,24 +22,14 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
-import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisFileDTO;
 import com.odysseusinc.arachne.portal.model.AnalysisFile;
 import com.odysseusinc.arachne.portal.model.ArachneFile;
-import com.odysseusinc.arachne.portal.model.ResultFile;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
-import com.odysseusinc.arachne.portal.util.AnalysisHelper;
-import java.util.Objects;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ArachneFileToFileContentDTOConverter extends BaseConversionServiceAwareConverter<ArachneFile, AnalysisFileDTO> {
-
-
-    @Autowired
-    private AnalysisHelper analysisHelper;
-
 
     @Override
     public AnalysisFileDTO convert(ArachneFile source) {
@@ -53,18 +43,7 @@ public class ArachneFileToFileContentDTOConverter extends BaseConversionServiceA
             fileContentDTO.setAnalysisId(((AnalysisFile) source).getAnalysis().getId());
         }
         if (source instanceof SubmissionFile) {
-            String contentType = CommonFileUtils.getContentType(
-                    source.getRealName(),
-                    Objects.toString(analysisHelper.getSubmissionFile((SubmissionFile) source))
-            );
-
-            fileContentDTO.setDocType(contentType);
-        } else if (source instanceof ResultFile) {
-            String contentType = CommonFileUtils.getContentType(
-                    source.getRealName(),
-                    Objects.toString(analysisHelper.getResultFile((ResultFile) source))
-            );
-            fileContentDTO.setDocType(contentType);
+            fileContentDTO.setDocType(source.getContentType());
         }
         return fileContentDTO;
     }

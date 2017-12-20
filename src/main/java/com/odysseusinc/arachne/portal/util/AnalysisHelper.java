@@ -132,7 +132,7 @@ public class AnalysisHelper implements AnalysisPaths {
         return getResultFolder(resultFile.getSubmission()).resolve(resultFile.getUuid());
     }
 
-    public Path getResultFolder(Submission source) {
+    public Path getResultFolder(Submission source, boolean createDirs) {
 
         Path resultFolder = getSubmissionFolder(source).resolve(RESULT_DIR);
         File file = resultFolder.toFile();
@@ -142,6 +142,11 @@ public class AnalysisHelper implements AnalysisPaths {
             }
         }
         return resultFolder;
+    }
+
+    public Path getResultFolder(Submission source) {
+
+        return getResultFolder(source, true);
     }
 
 

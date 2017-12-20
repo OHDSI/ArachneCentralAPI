@@ -25,6 +25,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.FileDTO;
 import com.odysseusinc.arachne.portal.util.FileUtils;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -37,7 +38,11 @@ public class FileDtoContentHandler {
         return new FileDtoContentHandler(fileDto, file);
     }
 
-    private final File file;
+    public static FileDtoContentHandler getInstance(final FileDTO fileDto, final byte[] content) {
+        return new FileDtoContentHandler(fileDto, content);
+    }
+
+    private byte[] content;
     private final FileDTO fileDto;
 
     private Function<byte[], byte[]> pdfConverter;
@@ -50,7 +55,17 @@ public class FileDtoContentHandler {
     public FileDtoContentHandler(final FileDTO fileDto, final File file) {
 
         this.fileDto = fileDto;
-        this.file = file;
+        try {
+            this.content = Files.readAllBytes(file.toPath());
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
+        }
+    }
+
+    public FileDtoContentHandler(final FileDTO fileDto, final byte[] content) {
+
+        this.fileDto = fileDto;
+        this.content = content;
     }
 
     public FileDtoContentHandler withPdfConverter(final Function<byte[], byte[]> pdfConverter) {
@@ -61,7 +76,6 @@ public class FileDtoContentHandler {
 
     public FileDTO handle() throws IOException {
 
-        byte[] content = gatherContent();
         if (convertToPdfNeeded.test(this.fileDto)) {
             if (this.pdfConverter == null) {
                 throw new IllegalArgumentException("Pdf converter should be set");
@@ -74,10 +88,5 @@ public class FileDtoContentHandler {
         }
         this.fileDto.setContent(new String(content));
         return this.fileDto;
-    }
-
-    private byte[] gatherContent() throws IOException {
-
-        return Files.readAllBytes(this.file.toPath());
     }
 }

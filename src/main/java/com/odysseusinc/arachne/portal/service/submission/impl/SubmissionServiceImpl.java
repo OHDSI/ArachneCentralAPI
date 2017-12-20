@@ -29,7 +29,6 @@ import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.DataSource;
-import com.odysseusinc.arachne.portal.model.ResultEntity;
 import com.odysseusinc.arachne.portal.model.ResultFile;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
@@ -45,9 +44,14 @@ import com.odysseusinc.arachne.portal.repository.SubmissionResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionStatusHistoryRepository;
 import com.odysseusinc.arachne.portal.repository.submission.BaseSubmissionRepository;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
+import com.odysseusinc.arachne.storage.model.ArachneFileSourced;
+import com.odysseusinc.arachne.storage.service.ContentStorageService;
+import com.odysseusinc.arachne.portal.service.UserService;
+import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import com.odysseusinc.arachne.portal.service.submission.SubmissionService;
 import com.odysseusinc.arachne.portal.util.AnalysisHelper;
+import com.odysseusinc.arachne.portal.util.ContentStorageHelper;
 import com.odysseusinc.arachne.portal.util.LegacyAnalysisHelper;
 import com.odysseusinc.arachne.portal.util.SubmissionHelper;
 import java.io.IOException;
@@ -81,7 +85,10 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
                                  ResultFileRepository resultFileRepository,
                                  SubmissionStatusHistoryRepository submissionStatusHistoryRepository,
                                  EntityManager entityManager,
-                                 SubmissionHelper submissionHelper) {
+                                 SubmissionHelper submissionHelper,
+                                 ContentStorageService contentStorageService,
+                                 UserService userService,
+                                 ContentStorageHelper contentStorageHelper) {
 
         super(submissionRepository,
                 dataSourceService,
@@ -96,7 +103,10 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
                 resultFileRepository,
                 submissionStatusHistoryRepository,
                 entityManager,
-                submissionHelper);
+                submissionHelper,
+                contentStorageService,
+                userService,
+                contentStorageHelper);
     }
 
     @Override
@@ -141,9 +151,9 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
     @Override
     @PreAuthorize("hasPermission(#submissionId, 'Submission', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).APPROVE_SUBMISSION)")
-    public ResultFile uploadResultsByDataOwner(Long submissionId, MultipartFile file) throws NotExistException, IOException {
+    public ResultFile uploadResultsByDataOwner(Long submissionId, String name, MultipartFile file) throws NotExistException, IOException {
 
-        return super.uploadResultsByDataOwner(submissionId, file);
+        return super.uploadResultsByDataOwner(submissionId, name, file);
     }
 
     @Override
@@ -174,7 +184,7 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
     @Override
     @PreAuthorize("hasPermission(#submissionId, 'Submission', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
-    public List<ResultEntity> getResultFiles(User user, Long submissionId, ResultFileSearch resultFileSearch) throws PermissionDeniedException {
+    public List<ArachneFileSourced> getResultFiles(User user, Long submissionId, ResultFileSearch resultFileSearch) throws PermissionDeniedException {
 
         return super.getResultFiles(user, submissionId, resultFileSearch);
     }
