@@ -36,8 +36,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface StudyFileService {
 
-    byte[] getAllBytes(AbstractStudyFile studyFile) throws IOException;
-
     Path getPathToFile(AbstractStudyFile studyFile);
 
     void saveFile(MultipartFile file, AbstractStudyFile studyFile) throws IOException;

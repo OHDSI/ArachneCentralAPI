@@ -35,6 +35,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -83,10 +84,10 @@ public class Analysis implements HasArachnePermissions, Breadcrumb {
     @Column
     private Date updated;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private User author;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private Study study;
 
     @Column(name = "ord")
@@ -95,15 +96,15 @@ public class Analysis implements HasArachnePermissions, Breadcrumb {
     @Column(name = "is_locked")
     private Boolean locked = false;
 
-    @OneToMany(mappedBy = "analysis", targetEntity = AnalysisFile.class)
+    @OneToMany(mappedBy = "analysis", targetEntity = AnalysisFile.class, fetch = FetchType.LAZY)
     @OrderBy("label asc")
     private List<AnalysisFile> files = new ArrayList<>();
 
-    @OneToMany(mappedBy = "analysis", targetEntity = Submission.class)
+    @OneToMany(mappedBy = "analysis", targetEntity = Submission.class, fetch = FetchType.LAZY)
     @OrderBy("id asc")
     private List<Submission> submissions;
 
-    @OneToMany(mappedBy = "analysis", targetEntity = SubmissionGroup.class)
+    @OneToMany(mappedBy = "analysis", targetEntity = SubmissionGroup.class, fetch = FetchType.LAZY)
     @OrderBy("created desc")
     private List<SubmissionGroup> submissionGroups = new ArrayList<>();
 

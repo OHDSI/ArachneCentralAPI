@@ -51,4 +51,6 @@ public interface BaseAnalysisRepository<T extends Analysis> extends EntityGraphJ
     T findById(Long id, EntityGraph entityGraph);
 
     T findById(Long id);
+
+    List<T> findByIdIn(List<Long> ids);
 }

@@ -16,23 +16,12 @@
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
  * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: May 18, 2017
+ * Created: January 13, 2017
  *
  */
 
-package com.odysseusinc.arachne.portal.api.v1.dto;
+ALTER TABLE submission_groups
+  ADD COLUMN IF NOT EXISTS analysis_type VARCHAR NOT NULL DEFAULT 'CUSTOM';
 
-public class AnalysisContentFileDTO extends AnalysisFileDTO {
-
-    private String content;
-
-    public String getContent() {
-
-        return content;
-    }
-
-    public void setContent(String content) {
-
-        this.content = content;
-    }
-}
+ALTER TABLE submissions
+  ADD COLUMN IF NOT EXISTS result_info JSONB;

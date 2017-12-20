@@ -23,6 +23,7 @@
 package com.odysseusinc.arachne.portal.model;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -42,9 +43,9 @@ public class PaperStudyDataSource {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "paper_study_data_sources_pk_sequence")
     private Long id;
 
-    @ManyToOne(optional = false, targetEntity = Paper.class)
+    @ManyToOne(optional = false, targetEntity = Paper.class, fetch = FetchType.LAZY)
     private Paper paper;
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "data_source_id")
     private DataSource dataSource;
 

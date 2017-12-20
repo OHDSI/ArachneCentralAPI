@@ -27,6 +27,7 @@ import java.util.LinkedList;
 import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -41,7 +42,7 @@ public class CommentTopic implements Serializable{
     @SequenceGenerator(name = "comment_topics_pk_sequence", sequenceName = "comment_topics_id_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "comment_topics_pk_sequence")
     private Long id;
-    @OneToMany(mappedBy = "topic", targetEntity = Comment.class)
+    @OneToMany(mappedBy = "topic", targetEntity = Comment.class, fetch = FetchType.LAZY)
     private List<Comment> comments = new LinkedList<>();
     @Column(insertable = false, updatable = false)
     private Long count;

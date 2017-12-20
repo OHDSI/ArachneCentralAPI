@@ -128,3 +128,5 @@ achilles:
     maxPoolSize: 8
     queueCapacity: 200
 #logging.level.org.hibernate.SQL=DEBUG
+jodconverter:
+  enabled: true

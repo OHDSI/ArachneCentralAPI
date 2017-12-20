@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto;
 
+import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import java.util.Date;
 import java.util.List;
 
@@ -31,6 +32,7 @@ public class SubmissionGroupDTO {
     private List<SubmissionDTO> submissions;
     private Integer queryFilesCount;
     private String checksum;
+    private CommonAnalysisType analysisType;
 
     public Long getId() {
 
@@ -80,5 +82,15 @@ public class SubmissionGroupDTO {
     public void setChecksum(String checksum) {
 
         this.checksum = checksum;
+    }
+
+    public void setAnalysisType(CommonAnalysisType analysisType) {
+
+        this.analysisType = analysisType;
+    }
+
+    public CommonAnalysisType getAnalysisType() {
+
+        return analysisType;
     }
 }

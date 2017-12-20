@@ -52,6 +52,7 @@ import com.odysseusinc.arachne.portal.service.submission.SubmissionService;
 import com.odysseusinc.arachne.portal.util.AnalysisHelper;
 import com.odysseusinc.arachne.portal.util.ContentStorageHelper;
 import com.odysseusinc.arachne.portal.util.LegacyAnalysisHelper;
+import com.odysseusinc.arachne.portal.util.SubmissionHelper;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
@@ -83,6 +84,7 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
                                  ResultFileRepository resultFileRepository,
                                  SubmissionStatusHistoryRepository submissionStatusHistoryRepository,
                                  EntityManager entityManager,
+                                 SubmissionHelper submissionHelper,
                                  ContentStorageService contentStorageService,
                                  UserService userService,
                                  ContentStorageHelper contentStorageHelper) {
@@ -100,6 +102,7 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
                 resultFileRepository,
                 submissionStatusHistoryRepository,
                 entityManager,
+                submissionHelper,
                 contentStorageService,
                 userService,
                 contentStorageHelper);

@@ -22,19 +22,19 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
-import com.odysseusinc.arachne.portal.api.v1.dto.FileContentDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisFileDTO;
 import com.odysseusinc.arachne.portal.model.AnalysisFile;
 import com.odysseusinc.arachne.portal.model.ArachneFile;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ArachneFileToFileContentDTOConverter extends BaseConversionServiceAwareConverter<ArachneFile, FileContentDTO> {
+public class ArachneFileToFileContentDTOConverter extends BaseConversionServiceAwareConverter<ArachneFile, AnalysisFileDTO> {
 
     @Override
-    public FileContentDTO convert(ArachneFile source) {
+    public AnalysisFileDTO convert(ArachneFile source) {
 
-        FileContentDTO fileContentDTO = new FileContentDTO();
+        AnalysisFileDTO fileContentDTO = new AnalysisFileDTO();
         fileContentDTO.setUuid(source.getUuid());
         fileContentDTO.setName(source.getRealName());
         fileContentDTO.setCreated(source.getCreated());

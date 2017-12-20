@@ -37,7 +37,6 @@ import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.commons.service.messaging.ProducerConsumerTemplate;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.execution_engine_common.api.v1.dto.DBMSType;
-import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisContentFileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisCreateDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisFileDTO;
@@ -46,12 +45,13 @@ import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisUnlockRequestDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisUpdateDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.Commentable;
 import com.odysseusinc.arachne.portal.api.v1.dto.DataReferenceDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.FileContentDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.FileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.OptionDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightUpdateDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdateNotificationDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UploadFileDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.converters.FileDtoContentHandler;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.NotEmptyException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
@@ -74,6 +74,7 @@ import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.DataReferenceService;
 import com.odysseusinc.arachne.portal.service.ImportService;
 import com.odysseusinc.arachne.portal.service.SubmissionInsightService;
+import com.odysseusinc.arachne.portal.service.ToPdfConverter;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.service.messaging.MessagingUtils;
 import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
@@ -110,6 +111,7 @@ import org.ohdsi.sql.SqlRender;
 import org.ohdsi.sql.SqlTranslate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.core.io.ClassPathResource;
@@ -149,23 +151,23 @@ public abstract class BaseAnalysisController<T extends Analysis,
     protected final DestinationResolver destinationResolver;
     protected final ImportService importService;
     protected final BaseSubmissionService<Submission, Analysis> submissionService;
+    protected final ToPdfConverter toPdfConverter;
     protected final SubmissionInsightService submissionInsightService;
 
     @Value("${datanode.messaging.importTimeout}")
     private Long datanodeImportTimeout;
 
-    public BaseAnalysisController(
-            BaseAnalysisService analysisService,
-            BaseSubmissionService submissionService,
-            DataReferenceService dataReferenceService,
-            JmsTemplate jmsTemplate,
-            GenericConversionService conversionService,
-            BaseDataNodeService baseDataNodeService,
-            BaseDataSourceService dataSourceService,
-            ImportService importService,
-            SimpMessagingTemplate wsTemplate,
-            SubmissionInsightService submissionInsightService
-    ) {
+    public BaseAnalysisController(BaseAnalysisService analysisService,
+                                  BaseSubmissionService submissionService,
+                                  DataReferenceService dataReferenceService,
+                                  JmsTemplate jmsTemplate,
+                                  GenericConversionService conversionService,
+                                  BaseDataNodeService baseDataNodeService,
+                                  BaseDataSourceService dataSourceService,
+                                  ImportService importService,
+                                  SimpMessagingTemplate wsTemplate,
+                                  ToPdfConverter toPdfConverter,
+                                  SubmissionInsightService submissionInsightService) {
 
         this.analysisService = analysisService;
         this.submissionService = submissionService;
@@ -178,6 +180,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
         this.importService = importService;
         this.wsTemplate = wsTemplate;
         this.submissionInsightService = submissionInsightService;
+        this.toPdfConverter = toPdfConverter;
     }
 
     @ApiOperation("Create analysis.")
@@ -561,7 +564,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
 
     @ApiOperation("Get analysis code file.")
     @RequestMapping(value = "/api/v1/analysis-management/analyses/{analysisId}/code-files/{fileUuid}", method = GET)
-    public JsonResult<AnalysisContentFileDTO> getFileContent(
+    public JsonResult<AnalysisFileDTO> getFileContent(
             @PathVariable("analysisId") Long analysisId,
             @RequestParam(defaultValue = "true") Boolean withContent,
             @PathVariable("fileUuid") String uuid)
@@ -569,20 +572,22 @@ public abstract class BaseAnalysisController<T extends Analysis,
 
         AnalysisFile analysisFile = analysisService.getAnalysisFile(analysisId, uuid);
         AnalysisFileDTO analysisFileDTO = conversionService.convert(analysisFile, AnalysisFileDTO.class);
-        AnalysisContentFileDTO contentDTO = new AnalysisContentFileDTO();
-        ReflectionUtils.shallowCopyFieldState(analysisFileDTO, contentDTO);
+        FileDTO fileDto = new AnalysisFileDTO();
+        ReflectionUtils.shallowCopyFieldState(analysisFileDTO, fileDto);
 
         if (withContent) {
-            String content = new String(analysisService.getAllBytes(analysisFile));
-            contentDTO.setContent(content);
+            fileDto = FileDtoContentHandler
+                    .getInstance(fileDto, analysisService.getPath(analysisFile).toFile())
+                    .withPdfConverter(toPdfConverter::convert)
+                    .handle();
         }
 
-        return new JsonResult<>(NO_ERROR, contentDTO);
+        return new JsonResult<>(NO_ERROR, fileDto);
     }
 
     @ApiOperation("Lock/unlock analysis files")
     @RequestMapping(value = "/api/v1/analysis-management/analyses/{analysisId}/lock", method = POST)
-    public JsonResult<FileContentDTO> setAnalysisLock(
+    public JsonResult<FileDTO> setAnalysisLock(
             @PathVariable("analysisId") Long analysisId,
             @RequestBody AnalysisLockDTO lockFileDTO
     )
@@ -594,7 +599,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
 
     @ApiOperation("Send analysis unlock request")
     @RequestMapping(value = "/api/v1/analysis-management/analyses/{analysisId}/unlock-request", method = POST)
-    public JsonResult<FileContentDTO> sendUnlockRequest(
+    public JsonResult<FileDTO> sendUnlockRequest(
             Principal principal,
             @PathVariable("analysisId") Long analysisId,
             @RequestBody AnalysisUnlockRequestDTO analysisUnlockRequestDTO
@@ -652,7 +657,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
             method = PUT)
     public JsonResult<Boolean> putFileContent(
             Principal principal,
-            @RequestBody FileContentDTO fileContentDTO,
+            @RequestBody FileDTO fileContentDTO,
             @PathVariable("analysisId") Long analysisId,
             @PathVariable("fileUuid") String uuid)
             throws PermissionDeniedException, NotExistException, IOException, URISyntaxException {

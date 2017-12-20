@@ -12,7 +12,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>1.5.4.RELEASE</version>
+        <version>1.5.9.RELEASE</version>
         <relativePath/>
     </parent>
 
@@ -32,6 +32,8 @@
         <build.number>${BUILD_NUMBER}</build.number>
         <build.id>${BUILD_TIMESTAMP}</build.id>
         <dockerImagePrefix>hub.arachnenetwork.com</dockerImagePrefix>
+        <jodConverter.version>4.1.0</jodConverter.version>
+        <hibernate.version>5.2.12.Final</hibernate.version>
     </properties>
 
     <profiles>
@@ -294,6 +296,21 @@
             <groupId>com.cosium.spring.data</groupId>
             <artifactId>spring-data-jpa-entity-graph</artifactId>
             <version>1.11.03</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jodconverter</groupId>
+            <artifactId>jodconverter-local</artifactId>
+            <version>${jodConverter.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jodconverter</groupId>
+            <artifactId>jodconverter-spring-boot-starter</artifactId>
+            <version>${jodConverter.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-csv</artifactId>
+            <version>1.5</version>
         </dependency>
     </dependencies>
 

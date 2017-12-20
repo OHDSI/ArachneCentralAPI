@@ -22,6 +22,8 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto.converters.submission;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.odysseusinc.arachne.portal.api.v1.dto.DataSourceDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.PermissionsDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionDTO;
@@ -37,6 +39,7 @@ import com.odysseusinc.arachne.portal.model.SubmissionStatus;
 import com.odysseusinc.arachne.portal.model.SubmissionStatusHistoryElement;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
 import com.odysseusinc.arachne.portal.util.DataNodeUtils;
+import java.util.Map;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 public abstract class BaseSubmissionToSubmissionDTOConverter<T extends Submission, DTO extends SubmissionDTO>
@@ -69,6 +72,9 @@ public abstract class BaseSubmissionToSubmissionDTOConverter<T extends Submissio
         }
         dto.setPermissions(conversionService.convert(source, PermissionsDTO.class));
         proceedAdditionalFields(dto, source);
+        final JsonObject resultInfo = source.getResultInfo();
+        final Map map = new Gson().fromJson(resultInfo, Map.class);
+        dto.setResultInfo(map);
         return dto;
     }
 

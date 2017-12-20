@@ -35,6 +35,7 @@ import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.DataReferenceService;
 import com.odysseusinc.arachne.portal.service.ImportService;
+import com.odysseusinc.arachne.portal.service.ToPdfConverter;
 import com.odysseusinc.arachne.portal.service.SubmissionInsightService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
@@ -88,6 +89,7 @@ public class AnalysisController extends BaseAnalysisController<Analysis, Analysi
             JmsTemplate jmsTemplate,
             ImportService importService,
             BaseSubmissionService submissionService,
+            ToPdfConverter toPdfConverter,
             SubmissionInsightService submissionInsightService) {
 
         super(analysisService,
@@ -99,6 +101,7 @@ public class AnalysisController extends BaseAnalysisController<Analysis, Analysi
                 dataSourceService,
                 importService,
                 wsTemplate,
+                toPdfConverter,
                 submissionInsightService);
     }
 

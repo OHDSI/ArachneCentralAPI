@@ -26,6 +26,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.odysseusinc.arachne.portal.service.impl.submission.SubmissionAction;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 public class SubmissionDTO extends DTO {
 
@@ -44,6 +45,7 @@ public class SubmissionDTO extends DTO {
     private ShortUserDTO author;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<SubmissionAction> availableActionList;
+    private Map<String, Object> resultInfo;
 
     public Long getId() {
 
@@ -183,5 +185,15 @@ public class SubmissionDTO extends DTO {
     public void setAvailableActionList(List<SubmissionAction> availableActionList) {
 
         this.availableActionList = availableActionList;
+    }
+
+    public void setResultInfo(Map<String, Object> resultInfo) {
+
+        this.resultInfo = resultInfo;
+    }
+
+    public Map<String, Object> getResultInfo() {
+
+        return resultInfo;
     }
 }

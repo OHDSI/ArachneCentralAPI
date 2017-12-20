@@ -48,7 +48,6 @@ import com.odysseusinc.arachne.portal.model.ResultFile;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
 import com.odysseusinc.arachne.portal.model.SubmissionGroup;
-import com.odysseusinc.arachne.portal.model.SubmissionInsight;
 import com.odysseusinc.arachne.portal.model.SubmissionStatus;
 import com.odysseusinc.arachne.portal.model.SubmissionStatusHistoryElement;
 import com.odysseusinc.arachne.portal.model.User;
@@ -73,6 +72,7 @@ import com.odysseusinc.arachne.portal.util.AnalysisHelper;
 import com.odysseusinc.arachne.portal.util.ContentStorageHelper;
 import com.odysseusinc.arachne.portal.util.DataNodeUtils;
 import com.odysseusinc.arachne.portal.util.LegacyAnalysisHelper;
+import com.odysseusinc.arachne.portal.util.SubmissionHelper;
 import com.odysseusinc.arachne.portal.util.UUIDGenerator;
 import com.odysseusinc.arachne.portal.util.ZipUtil;
 import java.io.File;
@@ -132,9 +132,11 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     protected final ResultFileRepository resultFileRepository;
     protected final SubmissionStatusHistoryRepository submissionStatusHistoryRepository;
     protected final EntityManager entityManager;
+    protected final SubmissionHelper submissionHelper;
     protected final ContentStorageService contentStorageService;
     protected final UserService userService;
     protected final ContentStorageHelper contentStorageHelper;
+
 
     @Value("${files.store.path}")
     private String fileStorePath;
@@ -152,6 +154,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
                                         ResultFileRepository resultFileRepository,
                                         SubmissionStatusHistoryRepository submissionStatusHistoryRepository,
                                         EntityManager entityManager,
+                                        SubmissionHelper submissionHelper,
                                         ContentStorageService contentStorageService,
                                         UserService userService,
                                         ContentStorageHelper contentStorageHelper) {
@@ -169,6 +172,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         this.resultFileRepository = resultFileRepository;
         this.submissionStatusHistoryRepository = submissionStatusHistoryRepository;
         this.entityManager = entityManager;
+        this.submissionHelper = submissionHelper;
         this.contentStorageService = contentStorageService;
         this.userService = userService;
         this.contentStorageHelper = contentStorageHelper;
@@ -183,6 +187,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         List<SubmissionStatusHistoryElement> statusHistory = submission.getStatusHistory();
         statusHistory.add(new SubmissionStatusHistoryElement(new Date(), status, user, submission, approveDTO.getComment()));
         submission.setStatusHistory(statusHistory);
+        submissionHelper.updateSubmissionExtendedInfo(submission);
         submission = saveSubmission(submission);
 
         notifyOwnersAboutSubmissionUpdateViaSocket(submission);
@@ -334,6 +339,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         List<SubmissionFile> files = new LinkedList<>();
         SubmissionGroup submissionGroup = new SubmissionGroup();
         submissionGroup.setAnalysis(analysis);
+        submissionGroup.setAnalysisType(analysis.getType());
         submissionGroup.setAuthor(user);
         Date now = new Date();
         submissionGroup.setCreated(now);
@@ -572,6 +578,18 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     public void deleteSubmissionGroups(List<SubmissionGroup> groups) {
 
         submissionGroupRepository.delete(groups);
+    }
+
+    @Override
+    public List<T> getByIdIn(List<Long> ids) {
+
+        return submissionRepository.findByIdIn(ids);
+    }
+
+    @Override
+    public List<SubmissionStatusHistoryElement> getSubmissionStatusHistoryElementsByIdsIn(List<Long> ids) {
+
+        return submissionStatusHistoryRepository.findByIdIn(ids);
     }
 
     @Override
