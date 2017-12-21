@@ -41,7 +41,9 @@ import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 import com.odysseusinc.arachne.portal.model.achilles.AchillesFile;
 import com.odysseusinc.arachne.portal.repository.AchillesFileRepository;
+import org.apache.jackrabbit.api.JackrabbitRepository;
 import org.assertj.core.util.Lists;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -119,6 +121,13 @@ public class AchillesControllerTest {
     public void setUp() throws Exception {
 
         mvc = MockMvcBuilders.webAppContextSetup(wac).build();
+    }
+
+    @After
+    public void after() {
+
+        JackrabbitRepository jackrabbitRepository = wac.getBean(JackrabbitRepository.class);
+        jackrabbitRepository.shutdown();
     }
 
     @Test

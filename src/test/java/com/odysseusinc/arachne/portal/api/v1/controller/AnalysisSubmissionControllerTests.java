@@ -39,14 +39,19 @@ import com.github.springtestdbunit.annotation.ExpectedDatabase;
 import com.github.springtestdbunit.annotation.ExpectedDatabases;
 import com.odysseusinc.arachne.portal.api.v1.dto.ApproveDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.CreateSubmissionsDTO;
+import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.service.AnalysisPaths;
 import com.odysseusinc.arachne.portal.util.AnalysisHelper;
+import com.odysseusinc.arachne.portal.util.ContentStorageHelper;
+import com.odysseusinc.arachne.storage.service.ContentStorageService;
+import com.odysseusinc.arachne.storage.util.TypifiedJcrTemplate;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import javax.jcr.Node;
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.util.Lists;
 import org.json.JSONObject;
@@ -61,6 +66,7 @@ import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springmodules.jcr.JcrTemplate;
 
 @RunWith(SpringRunner.class)
 @DatabaseSetups({
@@ -93,6 +99,16 @@ public class AnalysisSubmissionControllerTests extends BaseControllerTest {
 
     @Autowired
     private AnalysisHelper analysisHelper;
+
+    @Autowired
+    private ContentStorageService contentStorageService;
+
+    @Autowired
+    private ContentStorageHelper contentStorageHelper;
+
+    @Autowired
+    private TypifiedJcrTemplate jcrTemplate;
+
     @Value("${files.store.path}")
     private String filesStore;
 
@@ -100,6 +116,18 @@ public class AnalysisSubmissionControllerTests extends BaseControllerTest {
     public void cleanUp() {
 
         FileUtils.deleteQuietly(new File(filesStore));
+
+        jcrTemplate.exec(session -> {
+
+            String path = getResultFilePath(1L);
+
+            try {
+                Node fileNode = session.getNode(path);
+                fileNode.remove();
+                session.save();
+            } catch (Exception ex) {}
+            return null;
+        });
     }
 
     @Test
@@ -320,12 +348,34 @@ public class AnalysisSubmissionControllerTests extends BaseControllerTest {
         Files.write(path, "SELECT * FROM death LIMIT 10".getBytes());
     }
 
-    private void prepareResultFile(Long studyId, Long analysisId, Long submissionGroupId, Long submissionId) throws IOException {
+    /*private void prepareResultFile(Long studyId, Long analysisId, Long submissionGroupId, Long submissionId) throws IOException {
 
         Path dir = Paths.get(analysisHelper.getStoreFilesPath(), studyId.toString(), analysisId.toString(), "sg_" + submissionGroupId, submissionId.toString(), AnalysisPaths.RESULT_DIR);
         Files.createDirectories(dir);
         Path path = dir.resolve("9934135d-07f0-4c6a-afd2-b705a1c8d948");
         Files.write(path, "SELECT * FROM death LIMIT 10".getBytes());
+    }*/
+
+    private String getResultFilePath(Long submissionId) {
+
+        Submission submission = new Submission();
+        submission.setId(submissionId);
+
+        return contentStorageHelper.getResultFilesDir(submission, "test.sql");
+    }
+
+    private String prepareResultFile(Long submissionId) throws IOException {
+
+        String filepath = getResultFilePath(submissionId);
+
+        File tempFile = File.createTempFile("result-file", "tests");
+        tempFile.deleteOnExit();
+
+        Files.write(tempFile.toPath(), "SELECT * FROM death LIMIT 10".getBytes());
+
+        contentStorageService.saveFile(filepath, tempFile, 2L);
+
+        return filepath;
     }
 
     @Test
@@ -352,19 +402,19 @@ public class AnalysisSubmissionControllerTests extends BaseControllerTest {
         ).andExpect(NO_ERROR_CODE);
     }
 
-    @Test
-    @WithUserDetails(DATA_NODE_ONWER)
-    @DatabaseSetups({
-            @DatabaseSetup("/data/analysis/submission/submission-published-with-added-files.xml"),
-    })
-    @ExpectedDatabases({
-            @ExpectedDatabase(value = "/data/analysis/submission/submission-published-with-added-files.xml", assertionMode = NON_STRICT),
-
-    })
-    public void testGetUploadingSubmissionResult() throws Exception {
-
-        prepareResultFile(STUDY_ID, ANALYSIS_ID, 1L, 1L);
-    }
+//    @Test
+//    @WithUserDetails(DATA_NODE_ONWER)
+//    @DatabaseSetups({
+//            @DatabaseSetup("/data/analysis/submission/submission-published-with-added-files.xml"),
+//    })
+//    @ExpectedDatabases({
+//            @ExpectedDatabase(value = "/data/analysis/submission/submission-published-with-added-files.xml", assertionMode = NON_STRICT),
+//
+//    })
+//    public void testGetUploadingSubmissionResult() throws Exception {
+//
+//        prepareResultFile(1L);
+//    }
 
     @Test
     @WithUserDetails(DATA_NODE_ONWER)
@@ -380,12 +430,31 @@ public class AnalysisSubmissionControllerTests extends BaseControllerTest {
     })
     public void testDeleteSubmissionResult() throws Exception {
 
-        String uuid = "1234135d-07f0-4c6a-afd2-b705a1c8d948";
+        String id = "40";
         Long submissionId = 1L;
 
+        prepareResultFile(1L);
+
         mvc.perform(
-                delete("/api/v1/analysis-management/submissions/{submissionId}/result/{fileUuid}",
-                        submissionId, uuid)
+                delete("/api/v1/analysis-management/submissions/{submissionId}/result/byid/{fileId}",
+                        submissionId, id)
         ).andExpect(NO_ERROR_CODE);
+
+        if (checkFileExists(getResultFilePath(submissionId))) {
+            throw new Exception("JCR file was not deleted");
+        }
+    }
+
+    private boolean checkFileExists(String path) {
+
+        return jcrTemplate.exec(session -> {
+
+            try {
+                session.getNode(path);
+            } catch (Exception ex) {
+                return false;
+            }
+            return true;
+        });
     }
 }

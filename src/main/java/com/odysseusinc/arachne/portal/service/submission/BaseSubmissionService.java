@@ -63,7 +63,10 @@ public interface BaseSubmissionService<T extends Submission, A extends Analysis>
 
     @PreAuthorize("hasPermission(#submissionId, 'Submission', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).APPROVE_SUBMISSION)")
-    boolean deleteSubmissionResultFile(Long submissionId, String fileUuid)
+    boolean deleteSubmissionResultFileByUuid(Long submissionId, String fileUuid)
+            throws NotExistException, ValidationException;
+
+    boolean deleteSubmissionResultFile(Long submissionId, Long fileId)
             throws NotExistException, ValidationException;
 
     void deleteSubmissionResultFile(ResultFile resultFile);

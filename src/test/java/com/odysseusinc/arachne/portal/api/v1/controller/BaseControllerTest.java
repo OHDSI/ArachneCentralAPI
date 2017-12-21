@@ -36,9 +36,13 @@ import com.github.springtestdbunit.annotation.DbUnitConfiguration;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.PortalStarter;
 import java.io.UnsupportedEncodingException;
+import javax.annotation.PreDestroy;
+import org.apache.jackrabbit.api.JackrabbitRepository;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Rule;
@@ -48,6 +52,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.context.support.WithSecurityContextTestExecutionListener;
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.TestPropertySource;
@@ -68,6 +73,7 @@ import org.springframework.web.filter.CharacterEncodingFilter;
         DbUnitTestExecutionListener.class,
         WithSecurityContextTestExecutionListener.class})
 @DbUnitConfiguration(databaseConnection = {"primaryDataSource"})
+@DirtiesContext
 public class BaseControllerTest {
 
     static final CharacterEncodingFilter CHARACTER_ENCODING_FILTER = new CharacterEncodingFilter();
@@ -117,6 +123,13 @@ public class BaseControllerTest {
                 .addFilter(CHARACTER_ENCODING_FILTER)
                 .build();
     }
+
+    /*@After
+    public void after() {
+
+        JackrabbitRepository jackrabbitRepository = wac.getBean(JackrabbitRepository.class);
+        jackrabbitRepository.shutdown();
+    }*/
 
     JSONObject getResponse(MvcResult mvcResult) throws UnsupportedEncodingException, JSONException {
 
