@@ -41,9 +41,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 import com.odysseusinc.arachne.portal.model.achilles.AchillesFile;
 import com.odysseusinc.arachne.portal.repository.AchillesFileRepository;
-import org.apache.jackrabbit.api.JackrabbitRepository;
 import org.assertj.core.util.Lists;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,6 +51,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithSecurityContextTestExecutionListener;
 import org.springframework.security.test.context.support.WithUserDetails;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.TestPropertySource;
@@ -77,6 +76,7 @@ import java.util.List;
         WithSecurityContextTestExecutionListener.class})
 @DbUnitConfiguration(databaseConnection = {"primaryDataSource"})
 @DatabaseTearDown(value = "/data/empty.xml", type = DatabaseOperation.DELETE_ALL)
+@DirtiesContext
 public class AchillesControllerTest {
     private static final String API_DATASOURCE = "/api/v1/achilles/datasource/";
 
@@ -121,13 +121,6 @@ public class AchillesControllerTest {
     public void setUp() throws Exception {
 
         mvc = MockMvcBuilders.webAppContextSetup(wac).build();
-    }
-
-    @After
-    public void after() {
-
-        JackrabbitRepository jackrabbitRepository = wac.getBean(JackrabbitRepository.class);
-        jackrabbitRepository.shutdown();
     }
 
     @Test
