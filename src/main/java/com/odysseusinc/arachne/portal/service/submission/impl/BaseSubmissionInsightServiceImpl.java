@@ -3,6 +3,7 @@ package com.odysseusinc.arachne.portal.service.submission.impl;
 import static com.odysseusinc.arachne.portal.model.SubmissionStatus.EXECUTED_PUBLISHED;
 import static com.odysseusinc.arachne.portal.model.SubmissionStatus.FAILED_PUBLISHED;
 
+import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraphUtils;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.model.CommentTopic;
@@ -159,7 +160,10 @@ public abstract class BaseSubmissionInsightServiceImpl implements SubmissionInsi
     public void deleteSubmissionInsight(Long submissionId) throws NotExistException {
 
         LOGGER.info(DELETING_INSIGHT_LOG, submissionId);
-        final Submission submission = submissionService.getSubmissionById(submissionId);
+        final Submission submission = submissionService.getSubmissionById(
+                submissionId,
+                EntityGraphUtils.fromAttributePaths("submissionInsight", "resultFiles")
+        );
         throwNotExistExceptionIfNull(submission, submissionId);
         throwNotExistExceptionIfNull(submission.getSubmissionInsight(), submissionId);
         final List<ResultFile> resultFiles = submission.getResultFiles();

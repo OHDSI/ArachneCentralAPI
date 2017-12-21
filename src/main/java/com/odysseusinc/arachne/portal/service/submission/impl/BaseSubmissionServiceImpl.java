@@ -34,6 +34,8 @@ import static com.odysseusinc.arachne.portal.model.SubmissionStatus.PENDING;
 import static com.odysseusinc.arachne.portal.model.SubmissionStatus.valueOf;
 import static com.odysseusinc.arachne.portal.util.DataNodeUtils.isDataNodeOwner;
 
+import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
+import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraphUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.ApproveDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdateNotificationDTO;
 import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
@@ -306,6 +308,14 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     public T getSubmissionById(Long id) throws NotExistException {
 
         T submission = submissionRepository.findOne(id);
+        throwNotExistExceptionIfNull(submission, id);
+        return submission;
+    }
+
+    @Override
+    public T getSubmissionById(Long id, EntityGraph entityGraph) throws NotExistException {
+
+        T submission = submissionRepository.findById(id, entityGraph);
         throwNotExistExceptionIfNull(submission, id);
         return submission;
     }
@@ -628,7 +638,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     @Override
     public List<ArachneFileSourced> getResultFiles(User user, Long submissionId, ResultFileSearch resultFileSearch) throws PermissionDeniedException {
 
-        Submission submission = submissionRepository.findById(submissionId);
+        Submission submission = submissionRepository.findById(submissionId, EntityGraphUtils.fromAttributePaths("dataSource", "dataSource.dataNode"));
         if (!(EXECUTED_PUBLISHED.equals(submission.getStatus()) || FAILED_PUBLISHED.equals(submission.getStatus()))) {
             if (user == null || !isDataNodeOwner(submission.getDataSource().getDataNode(), user)) {
                 throw new PermissionDeniedException();

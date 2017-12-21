@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.service.submission;
 
+import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
 import com.odysseusinc.arachne.portal.api.v1.dto.ApproveDTO;
 import com.odysseusinc.arachne.portal.exception.NoExecutableFileException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
@@ -36,7 +37,6 @@ import com.odysseusinc.arachne.portal.model.SubmissionStatus;
 import com.odysseusinc.arachne.portal.model.SubmissionStatusHistoryElement;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.ResultFileSearch;
-import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.storage.model.ArachneFileSourced;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.multipart.MultipartFile;
@@ -79,6 +79,8 @@ public interface BaseSubmissionService<T extends Submission, A extends Analysis>
     T changeSubmissionState(Long id, String status);
 
     T getSubmissionById(Long id) throws NotExistException;
+
+    T getSubmissionById(Long id, EntityGraph entityGraph) throws NotExistException;
 
     T getSubmissionByIdAndStatus(Long id, SubmissionStatus status) throws NotExistException;
 
