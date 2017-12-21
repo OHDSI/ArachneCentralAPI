@@ -47,7 +47,6 @@ import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.storage.model.ArachneFileSourced;
 import com.odysseusinc.arachne.storage.service.ContentStorageService;
 import com.odysseusinc.arachne.portal.service.UserService;
-import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import com.odysseusinc.arachne.portal.service.submission.SubmissionService;
 import com.odysseusinc.arachne.portal.util.AnalysisHelper;
@@ -143,9 +142,17 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
     @Override
     @PreAuthorize("hasPermission(#submissionId, 'Submission', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).APPROVE_SUBMISSION)")
-    public boolean deleteSubmissionResultFile(Long submissionId, String fileUuid) throws NotExistException, ValidationException {
+    public boolean deleteSubmissionResultFileByUuid(Long submissionId, String fileUuid) throws NotExistException, ValidationException {
 
-        return super.deleteSubmissionResultFile(submissionId, fileUuid);
+        return super.deleteSubmissionResultFileByUuid(submissionId, fileUuid);
+    }
+
+    @Override
+    @PreAuthorize("hasPermission(#submissionId, 'Submission', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).APPROVE_SUBMISSION)")
+    public boolean deleteSubmissionResultFile(Long submissionId, Long fileId) throws NotExistException, ValidationException {
+
+        return super.deleteSubmissionResultFile(submissionId, fileId);
     }
 
     @Override

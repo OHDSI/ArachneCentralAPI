@@ -116,8 +116,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
 
     public static final String SUBMISSION_NOT_EXIST_EXCEPTION = "Submission with id='%s' does not exist";
     public static final String ILLEGAL_SUBMISSION_STATE_EXCEPTION = "Submission must be in EXECUTED or FAILED state before approve result";
-    public static final String INSIGHT_NOT_EXIST_EXCEPTION = "Insight for Submission with id='%s' does not exist";
-    public static final String RESULT_FILE_NOT_EXISTS_EXCEPTION = "Result file with uuid='%s' for submission with "
+    public static final String RESULT_FILE_NOT_EXISTS_EXCEPTION = "Result file with id='%s' for submission with "
             + "id='%s' does not exist";
     protected static final Logger LOGGER = LoggerFactory.getLogger(BaseSubmissionService.class);
     private static final String FILE_NOT_UPLOADED_MANUALLY_EXCEPTION = "File %s was not uploaded manually";
@@ -411,19 +410,27 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     }
 
     @Override
-    public boolean deleteSubmissionResultFile(Long submissionId, String fileUuid)
+    public boolean deleteSubmissionResultFileByUuid(Long submissionId, String fileUuid)
+            throws NotExistException, ValidationException {
+
+        ResultFile resultFile = submissionResultFileRepository.findByUuid(fileUuid);
+        return deleteSubmissionResultFile(submissionId, resultFile.getId());
+    }
+
+    @Override
+    public boolean deleteSubmissionResultFile(Long submissionId, Long fileId)
             throws NotExistException, ValidationException {
 
         final T submission = submissionRepository.findByIdAndStatusIn(submissionId,
                 Collections.singletonList(IN_PROGRESS.name()));
         throwNotExistExceptionIfNull(submission, submissionId);
-        ResultFile resultFile = submissionResultFileRepository.findByUuid(fileUuid);
+        ResultFile resultFile = submissionResultFileRepository.findOne(fileId);
         Optional.ofNullable(resultFile).orElseThrow(() ->
                 new NotExistException(String.format(RESULT_FILE_NOT_EXISTS_EXCEPTION,
-                        fileUuid, submission.getId()), ResultFile.class));
+                        fileId, submission.getId()), ResultFile.class));
         ArachneFileMeta fileMeta = contentStorageService.getFileByPath(resultFile.getPath());
         if (fileMeta.getCreatedBy() == null) { // not manually uploaded
-            throw new ValidationException(String.format(FILE_NOT_UPLOADED_MANUALLY_EXCEPTION, fileUuid));
+            throw new ValidationException(String.format(FILE_NOT_UPLOADED_MANUALLY_EXCEPTION, fileId));
         }
         deleteSubmissionResultFile(resultFile);
         submission.getResultFiles().remove(resultFile);
@@ -436,12 +443,6 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     public void deleteSubmissionResultFile(ResultFile resultFile) {
 
         submissionResultFileRepository.delete(resultFile);
-        Path resultPath = analysisHelper.getResultFile(resultFile);
-        try {
-            Files.deleteIfExists(resultPath);
-        } catch (IOException e) {
-            LOGGER.error("Failed to deleteComment result file", e);
-        }
     }
 
     protected SubmissionStatus beforeApproveSubmissionResult(T submission, ApproveDTO approveDTO) {

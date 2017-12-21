@@ -223,7 +223,35 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
         JsonResult.ErrorCode errorCode;
         Boolean hasResult;
         try {
-            hasResult = submissionService.deleteSubmissionResultFile(id, fileUuid);
+            hasResult = submissionService.deleteSubmissionResultFileByUuid(id, fileUuid);
+            errorCode = JsonResult.ErrorCode.NO_ERROR;
+        } catch (NotExistException e) {
+            LOGGER.warn("Submission was not found, id: {}", id);
+            errorCode = JsonResult.ErrorCode.VALIDATION_ERROR;
+            hasResult = false;
+        } catch (ValidationException e) {
+            LOGGER.warn("Result file was not deleted", e);
+            errorCode = JsonResult.ErrorCode.VALIDATION_ERROR;
+            hasResult = false;
+        }
+        JsonResult<Boolean> result = new JsonResult<>(errorCode);
+        result.setResult(hasResult);
+        return result;
+    }
+
+    @ApiOperation("Delete manually uploaded submission result file")
+    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/result/byid/{fileId}",
+            method = DELETE)
+    public JsonResult<Boolean> deleteSubmissionResultsById(
+            @PathVariable("submissionId") Long id,
+            @PathVariable("fileId") Long fileId
+    ) {
+
+        LOGGER.info("deleting result file for submission with id={} having id={}", id, fileId);
+        JsonResult.ErrorCode errorCode;
+        Boolean hasResult;
+        try {
+            hasResult = submissionService.deleteSubmissionResultFile(id, fileId);
             errorCode = JsonResult.ErrorCode.NO_ERROR;
         } catch (NotExistException e) {
             LOGGER.warn("Submission was not found, id: {}", id);
