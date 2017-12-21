@@ -1,4 +1,4 @@
-package com.odysseusinc.arachne.portal.service;
+package com.odysseusinc.arachne.portal.service.submission;
 
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;

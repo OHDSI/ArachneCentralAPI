@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.repository.submission;
 
+import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
 import com.cosium.spring.data.jpa.entity.graph.repository.EntityGraphJpaRepository;
 import com.odysseusinc.arachne.portal.model.Submission;
 import java.util.Collection;
@@ -73,6 +74,8 @@ public interface BaseSubmissionRepository<T extends Submission> extends EntityGr
     Optional<T> findByIdAndToken(Long id, String token);
 
     T findById(Long id);
+
+    T findById(Long id, EntityGraph entityGraph);
 
     @Query(nativeQuery = true, value =
             "SELECT n FROM ( " +

@@ -1,5 +1,5 @@
-DROP VIEW v_result_files_with_folders;
-DROP VIEW v_result_files_folders;
+DROP VIEW IF EXISTS v_result_files_with_folders;
+DROP VIEW IF EXISTS v_result_files_folders;
 
 ALTER TABLE result_files RENAME uuid TO legacy_uuid;
 ALTER TABLE result_files ALTER legacy_uuid DROP NOT NULL;

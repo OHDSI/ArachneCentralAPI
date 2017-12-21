@@ -33,6 +33,10 @@ import java.nio.file.Path;
 
 public class FileUtils {
 
+    private FileUtils() {
+
+    }
+
     public static byte[] getBytes(InputStream inputStream, String contentType) throws IOException {
 
         byte[] result = IOUtils.toByteArray(inputStream);
