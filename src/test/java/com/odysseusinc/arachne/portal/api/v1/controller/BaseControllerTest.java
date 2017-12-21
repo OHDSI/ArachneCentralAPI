@@ -124,13 +124,6 @@ public class BaseControllerTest {
                 .build();
     }
 
-    /*@After
-    public void after() {
-
-        JackrabbitRepository jackrabbitRepository = wac.getBean(JackrabbitRepository.class);
-        jackrabbitRepository.shutdown();
-    }*/
-
     JSONObject getResponse(MvcResult mvcResult) throws UnsupportedEncodingException, JSONException {
 
         return new JSONObject(mvcResult.getResponse().getContentAsString());
