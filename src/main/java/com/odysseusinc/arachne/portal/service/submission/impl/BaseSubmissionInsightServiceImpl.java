@@ -1,4 +1,4 @@
-package com.odysseusinc.arachne.portal.service.impl;
+package com.odysseusinc.arachne.portal.service.submission.impl;
 
 import static com.odysseusinc.arachne.portal.model.SubmissionStatus.EXECUTED_PUBLISHED;
 import static com.odysseusinc.arachne.portal.model.SubmissionStatus.FAILED_PUBLISHED;
@@ -10,12 +10,13 @@ import com.odysseusinc.arachne.portal.model.ResultFile;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionInsight;
 import com.odysseusinc.arachne.portal.model.SubmissionInsightSubmissionFile;
+import com.odysseusinc.arachne.portal.model.SubmissionStatus;
 import com.odysseusinc.arachne.portal.repository.SubmissionInsightRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionInsightSubmissionFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionResultFileRepository;
-import com.odysseusinc.arachne.portal.repository.submission.SubmissionRepository;
 import com.odysseusinc.arachne.portal.service.CommentService;
-import com.odysseusinc.arachne.portal.service.SubmissionInsightService;
+import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightService;
+import com.odysseusinc.arachne.portal.service.submission.SubmissionService;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Date;
@@ -33,12 +34,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
 
-@Service
-public class SubmissionInsightServiceImpl implements SubmissionInsightService {
+public abstract class BaseSubmissionInsightServiceImpl implements SubmissionInsightService {
 
-    protected static final Logger LOGGER = LoggerFactory.getLogger(SubmissionInsightServiceImpl.class);
+    protected static final Logger LOGGER = LoggerFactory.getLogger(BaseSubmissionInsightServiceImpl.class);
 
     private static final String CREATING_INSIGHT_LOG = "Creating Insight for Submission with id='{}'";
     private static final String UPDATING_INSIGHT_LOG = "Updating Insight for Submission with id='{}'";
@@ -51,21 +50,21 @@ public class SubmissionInsightServiceImpl implements SubmissionInsightService {
     protected final SubmissionInsightSubmissionFileRepository submissionInsightSubmissionFileRepository;
     protected final CommentService commentService;
     protected final SubmissionResultFileRepository submissionResultFileRepository;
-    protected final SubmissionRepository submissionRepository;
+    protected final SubmissionService submissionService;
 
     @Autowired
-    public SubmissionInsightServiceImpl(
+    public BaseSubmissionInsightServiceImpl(
             SubmissionInsightRepository submissionInsightRepository,
             SubmissionInsightSubmissionFileRepository submissionInsightSubmissionFileRepository,
             CommentService commentService,
             SubmissionResultFileRepository submissionResultFileRepository,
-            SubmissionRepository submissionRepository) {
+            SubmissionService submissionService) {
 
         this.submissionInsightRepository = submissionInsightRepository;
         this.submissionInsightSubmissionFileRepository = submissionInsightSubmissionFileRepository;
         this.commentService = commentService;
         this.submissionResultFileRepository = submissionResultFileRepository;
-        this.submissionRepository = submissionRepository;
+        this.submissionService = submissionService;
     }
 
     @Override
@@ -96,8 +95,8 @@ public class SubmissionInsightServiceImpl implements SubmissionInsightService {
             final String message = String.format(INSIGHT_ALREADY_EXISTS_EXCEPTION, submissionId);
             throw new AlreadyExistException(message);
         }
-        final List<String> allowedStatuses = Arrays.asList(EXECUTED_PUBLISHED.name(), FAILED_PUBLISHED.name());
-        final Submission submission = submissionRepository.findByIdAndStatusIn(submissionId, allowedStatuses);
+        final List<SubmissionStatus> allowedStatuses = Arrays.asList(EXECUTED_PUBLISHED, FAILED_PUBLISHED);
+        final Submission submission = submissionService.getSubmissionByIdAndStatus(submissionId, allowedStatuses);
         throwNotExistExceptionIfNull(submission, submissionId);
         insight.setId(null);
         insight.setCreated(new Date());
@@ -160,10 +159,9 @@ public class SubmissionInsightServiceImpl implements SubmissionInsightService {
     public void deleteSubmissionInsight(Long submissionId) throws NotExistException {
 
         LOGGER.info(DELETING_INSIGHT_LOG, submissionId);
-        final Submission submission = submissionRepository.findOne(submissionId);
+        final Submission submission = submissionService.getSubmissionById(submissionId);
         throwNotExistExceptionIfNull(submission, submissionId);
-        final SubmissionInsight submissionInsight = submissionInsightRepository.findOneBySubmissionId(submissionId);
-        throwNotExistExceptionIfNull(submissionInsight, submissionId);
+        throwNotExistExceptionIfNull(submission.getSubmissionInsight(), submissionId);
         final List<ResultFile> resultFiles = submission.getResultFiles();
         resultFiles.forEach(resultFile -> resultFile.setCommentTopic(null));
         submissionResultFileRepository.save(resultFiles);

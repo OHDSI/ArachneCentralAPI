@@ -34,7 +34,7 @@ import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.model.statemachine.study.StudyStateMachine;
 import com.odysseusinc.arachne.portal.service.StudyFileService;
 import com.odysseusinc.arachne.portal.service.StudyService;
-import com.odysseusinc.arachne.portal.service.SubmissionInsightService;
+import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.messaging.simp.SimpMessagingTemplate;

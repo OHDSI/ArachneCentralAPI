@@ -82,6 +82,8 @@ public interface BaseSubmissionService<T extends Submission, A extends Analysis>
 
     T getSubmissionByIdAndStatus(Long id, SubmissionStatus status) throws NotExistException;
 
+    T getSubmissionByIdAndStatus(Long id, List<SubmissionStatus> statusList) throws NotExistException;
+
     T getSubmissionByIdAndUpdatePasswordAndStatus(Long id, String updatePassword, List<SubmissionStatus> status)
             throws NotExistException;
 

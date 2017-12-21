@@ -318,6 +318,13 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     }
 
     @Override
+    public T getSubmissionByIdAndStatus(Long id, List<SubmissionStatus> statusList) throws NotExistException {
+
+        return throwNotExistExceptionIfNull(submissionRepository.findByIdAndStatusIn(id,
+                statusList.stream().map(Enum::name).collect(Collectors.toList())), id);
+    }
+
+    @Override
     public T getSubmissionByIdAndUpdatePasswordAndStatus(
             Long id, String updatePassword, List<SubmissionStatus> statusList) throws NotExistException {
 

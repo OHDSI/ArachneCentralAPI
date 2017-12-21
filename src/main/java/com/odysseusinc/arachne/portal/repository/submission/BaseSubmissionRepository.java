@@ -27,6 +27,7 @@ import com.odysseusinc.arachne.portal.model.Submission;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.query.Param;
@@ -73,6 +74,8 @@ public interface BaseSubmissionRepository<T extends Submission> extends EntityGr
     Optional<T> findByIdAndToken(Long id, String token);
 
     T findById(Long id);
+
+    T findById(Long id, EntityGraph entityGraph);
 
     @Query(nativeQuery = true, value =
             "SELECT n FROM ( " +

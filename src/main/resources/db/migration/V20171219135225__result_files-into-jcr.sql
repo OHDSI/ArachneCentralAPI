@@ -1,5 +1,5 @@
-DROP VIEW v_result_files_with_folders;
-DROP VIEW v_result_files_folders;
+DROP VIEW IF EXISTS v_result_files_with_folders;
+DROP VIEW IF EXISTS v_result_files_folders;
 
 ALTER TABLE result_files RENAME uuid TO legacy_uuid;
 ALTER TABLE result_files ALTER legacy_uuid DROP NOT NULL;
@@ -18,3 +18,5 @@ ALTER TABLE result_files DROP COLUMN IF EXISTS content_type;
 
 ALTER TABLE result_files ADD COLUMN IF NOT EXISTS path VARCHAR;
 ALTER TABLE result_files ADD COLUMN IF NOT EXISTS uuid VARCHAR;
+
+CREATE SCHEMA IF NOT EXISTS jcr;

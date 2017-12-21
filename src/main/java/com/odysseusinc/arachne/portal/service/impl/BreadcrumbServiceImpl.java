@@ -26,7 +26,7 @@ import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.service.BreadcrumbService;
 import com.odysseusinc.arachne.portal.service.StudyService;
-import com.odysseusinc.arachne.portal.service.SubmissionInsightService;
+import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.BreadcrumbType;
