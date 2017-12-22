@@ -28,16 +28,13 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.commons.utils.cohortcharacterization.CohortCharacterizationDocType;
-import com.odysseusinc.arachne.portal.model.ResultFile;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.repository.SubmissionResultFileRepository;
-import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.storage.model.ArachneFileSourced;
 import com.odysseusinc.arachne.storage.model.QuerySpec;
 import com.odysseusinc.arachne.storage.service.ContentStorageService;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -50,7 +47,6 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -162,22 +158,27 @@ public class SubmissionHelper {
         @Override
         public void updateExtendInfo(final Submission submission) {
 
-            final Set<String> docTypes = Arrays.stream(CohortCharacterizationDocType.values())
-                    .filter(docType -> CohortCharacterizationDocType.UNKNOWN != docType)
-                    .map(docType -> docType.getTitle())
-                    .collect(Collectors.toSet());
-
-            final String resultsDir = contentStorageHelper.getResultFilesDir(submission);
-
-            final QuerySpec querySpec = new QuerySpec();
-            querySpec.setPath(resultsDir);
-            querySpec.setContentTypes(docTypes);
-
-            final int count = contentStorageService.searchFiles(querySpec).size();
-
             final JsonObject resultInfo = new JsonObject();
-            final JsonElement element = new JsonPrimitive(count);
-            resultInfo.add("reports", element);
+            try {
+                final Set<String> docTypes = Arrays.stream(CohortCharacterizationDocType.values())
+                        .filter(docType -> CohortCharacterizationDocType.UNKNOWN != docType)
+                        .map(docType -> docType.getTitle())
+                        .collect(Collectors.toSet());
+
+                final String resultsDir = contentStorageHelper.getResultFilesDir(submission);
+
+                final QuerySpec querySpec = new QuerySpec();
+                querySpec.setPath(resultsDir);
+                querySpec.setContentTypes(docTypes);
+
+                final int count = contentStorageService.searchFiles(querySpec).size();
+
+                final JsonElement element = new JsonPrimitive(count);
+                resultInfo.add("reports", element);
+            } catch (Exception e) {
+                LOGGER.warn(CAN_NOT_BUILD_EXTEND_INFO_LOG, submission.getId());
+                LOGGER.warn("Error: ", e);
+            }
             submission.setResultInfo(resultInfo);
         }
     }
@@ -193,7 +194,7 @@ public class SubmissionHelper {
 
             final QuerySpec querySpec = new QuerySpec();
             querySpec.setPath(resultsDir);
-            querySpec.setName("ir_summary.csv");
+            querySpec.setName(INCIDENCE_SUMMARY_FILENAME);
 
             final List<ArachneFileSourced> files = contentStorageService.searchFiles(querySpec);
 
@@ -260,36 +261,45 @@ public class SubmissionHelper {
         public void updateExtendInfo(final Submission submission) {
 
             final JsonObject resultInfo = new JsonObject();
-            submissionResultFileRepository.findBySubmissionAndRealName(submission, PLE_SUMMARY_FILENAME)
-                    .ifPresent(f -> {
-                        try {
-                            final Path resultFile = analysisHelper.getResultFile(f);
-                            final CSVParser parser = CSVParser.parse(resultFile, Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
-                            final Map<String, Integer> headers = parser.getHeaderMap();
-                            Map<String, Integer> headerMap =
-                                    Arrays.asList("lower .95", "upper .95", "logRr", "seLogRr", "p", "cal p",
-                                            "cal p - lower .95", "cal p - upper .95")
-                                            .stream()
-                                            .collect(Collectors.toMap(header -> header, headers::get));
-                            final List<CSVRecord> records = parser.getRecords();
-                            if (!CollectionUtils.isEmpty(records)) {
-                                final CSVRecord firstRecord = records.get(0);
-                                for (Map.Entry<String, Integer> entry : headerMap.entrySet()) {
-                                    final String header = entry.getKey();
-                                    final Integer entryValue = entry.getValue();
-                                    if (Objects.nonNull(entryValue)) {
-                                        final String value = firstRecord.get(entryValue);
-                                        resultInfo.add(header, getJsonPrimitive(value));
-                                    }
-                                }
+
+            final String resultsDir = contentStorageHelper.getResultFilesDir(submission);
+
+            final QuerySpec querySpec = new QuerySpec();
+            querySpec.setPath(resultsDir);
+            querySpec.setName(PLE_SUMMARY_FILENAME);
+
+            final List<ArachneFileSourced> files = contentStorageService.searchFiles(querySpec);
+
+            if (!CollectionUtils.isEmpty(files)) {
+                ArachneFileSourced arachneFile = files.get(0);
+                try {
+                    final CSVParser parser = CSVParser.parse(arachneFile.getInputStream(), Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
+                    final Map<String, Integer> headers = parser.getHeaderMap();
+                    Map<String, Integer> headerMap =
+                            Arrays.asList("lower .95", "upper .95", "logRr", "seLogRr", "p", "cal p",
+                                    "cal p - lower .95", "cal p - upper .95")
+                                    .stream()
+                                    .collect(Collectors.toMap(header -> header, headers::get));
+                    final List<CSVRecord> records = parser.getRecords();
+                    if (!CollectionUtils.isEmpty(records)) {
+                        final CSVRecord firstRecord = records.get(0);
+                        for (Map.Entry<String, Integer> entry : headerMap.entrySet()) {
+                            final String header = entry.getKey();
+                            final Integer entryValue = entry.getValue();
+                            if (Objects.nonNull(entryValue)) {
+                                final String value = firstRecord.get(entryValue);
+                                resultInfo.add(header, getJsonPrimitive(value));
                             }
-                        } catch (IOException e) {
-                            LOGGER.warn(CAN_NOT_PARSE_LOG, PLE_SUMMARY_FILENAME);
-                        } catch (Exception e) {
-                            LOGGER.warn(CAN_NOT_BUILD_EXTEND_INFO_LOG, submission.getId());
-                            LOGGER.warn("Error: ", e);
                         }
-                    });
+                    }
+                } catch (IOException e) {
+                    LOGGER.warn(CAN_NOT_PARSE_LOG, PLE_SUMMARY_FILENAME);
+                } catch (Exception e) {
+                    LOGGER.warn(CAN_NOT_BUILD_EXTEND_INFO_LOG, submission.getId());
+                    LOGGER.warn("Error: ", e);
+                }
+
+            }
             submission.setResultInfo(resultInfo);
         }
     }
@@ -300,33 +310,40 @@ public class SubmissionHelper {
         public void updateExtendInfo(final Submission submission) {
 
             final JsonObject resultInfo = new JsonObject();
-            submissionResultFileRepository.findBySubmissionAndRealName(submission, PLP_SUMMARY_FILENAME)
-                    .ifPresent(f -> {
-                        try {
-                            final Path resultFile = analysisHelper.getResultFile(f);
-                            final CSVParser parser = CSVParser.parse(resultFile, Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
-                            final List<CSVRecord> records = parser.getRecords();
-                            for (CSVRecord record : records) {
-                                final ArrayList<String> recordAsList = new ArrayList<>();
-                                for (String s : record) {
-                                    recordAsList.add(s);
-                                }
-                                get(resultInfo, recordAsList);
-                            }
-                        } catch (IOException e) {
-                            LOGGER.warn(CAN_NOT_PARSE_LOG, PLP_SUMMARY_FILENAME);
-                        } catch (Exception e) {
-                            LOGGER.warn(CAN_NOT_BUILD_EXTEND_INFO_LOG, submission.getId());
-                            LOGGER.warn("Error: ", e);
+
+            final String resultsDir = contentStorageHelper.getResultFilesDir(submission);
+
+            final QuerySpec querySpec = new QuerySpec();
+            querySpec.setPath(resultsDir);
+            querySpec.setName(PLP_SUMMARY_FILENAME);
+            final List<ArachneFileSourced> files = contentStorageService.searchFiles(querySpec);
+            if (!CollectionUtils.isEmpty(files)) {
+                ArachneFileSourced arachneFile = files.get(0);
+                try {
+                    final CSVParser parser = CSVParser.parse(arachneFile.getInputStream(), Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
+                    final List<CSVRecord> records = parser.getRecords();
+                    for (CSVRecord record : records) {
+                        final ArrayList<String> recordAsList = new ArrayList<>();
+                        for (String s : record) {
+                            recordAsList.add(s);
                         }
-                    });
+                        get(resultInfo, recordAsList);
+                    }
+                } catch (IOException e) {
+                    LOGGER.warn(CAN_NOT_PARSE_LOG, PLP_SUMMARY_FILENAME);
+                } catch (Exception e) {
+                    LOGGER.warn(CAN_NOT_BUILD_EXTEND_INFO_LOG, submission.getId());
+                    LOGGER.warn("Error: ", e);
+                }
+
+            }
             submission.setResultInfo(resultInfo);
         }
 
         void get(JsonObject object, final List<String> record) {
 
             if (record.size() == 2) {
-                object.addProperty(record.remove(0), record.remove(0));
+                object.add(record.remove(0), getJsonPrimitive(record.remove(0)));
             } else {
                 final String property = record.remove(0);
                 JsonObject jsonObject = object.getAsJsonObject(property);
