@@ -1,0 +1,1 @@
+DELETE FROM result_files WHERE ltrim(legacy_real_name, ' ') = '' OR legacy_real_name IS NULL;
