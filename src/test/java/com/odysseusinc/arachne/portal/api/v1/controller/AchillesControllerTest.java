@@ -48,8 +48,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.io.IOException;
@@ -92,18 +90,10 @@ public class AchillesControllerTest extends BaseControllerTest {
             "person.json",
             "procedure_treemap.json",
             "visit_treemap.json");
-    private MockMvc mvc;
 
     private static final String RESTRICTED_DS = "2";
     private static final String PUBLIC_DS = "1";
     private static final String PRIVATE_DS = "3";
-
-
-    @Before
-    public void setUp() throws Exception {
-
-        mvc = MockMvcBuilders.webAppContextSetup(wac).build();
-    }
 
     @Test
     @WithUserDetails(value = "admin@odysseusinc.com")

@@ -136,7 +136,7 @@ public interface BaseSubmissionService<T extends Submission, A extends Analysis>
     List<SubmissionStatusHistoryElement> getSubmissionStatusHistoryElementsByIdsIn(List<Long> longs);
 
     ResultFile createResultFile(
-            Path toDirectory,
+            Path filePath,
             String name,
             Submission submission,
             Long createById

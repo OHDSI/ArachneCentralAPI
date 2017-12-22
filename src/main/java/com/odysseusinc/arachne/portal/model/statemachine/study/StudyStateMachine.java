@@ -54,12 +54,13 @@ public class StudyStateMachine extends RepositoryBasedStateMachine<Study, StudyS
     @PostConstruct
     private void configure() {
 
-        loadStates();
         reconfigure();
     }
 
     @Override
     public void reconfigure() {
+
+        loadStates();
 
         verifyStates(Arrays.asList(INITIATE, ACTIVE, COMPLETED, ARCHIVED));
 

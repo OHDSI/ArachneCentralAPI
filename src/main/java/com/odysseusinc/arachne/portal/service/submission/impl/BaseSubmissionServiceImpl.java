@@ -502,10 +502,12 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         T submission = submissionRepository.findByIdAndStatusIn(submissionId,
                 Collections.singletonList(IN_PROGRESS.name()));
         throwNotExistExceptionIfNull(submission, submissionId);
-        Path zipArchiveResultPath = analysisHelper.getResultArchPath(submission);
-        writeSubmissionResultFiles(submission, zipArchiveResultPath, file);
+
+        File tempFile = File.createTempFile("manual-upload", name);
+        file.transferTo(tempFile);
+
         ResultFile resultFile = createResultFile(
-                zipArchiveResultPath,
+                tempFile.toPath(),
                 ObjectUtils.firstNonNull(name, file.getOriginalFilename()),
                 submission,
                 user.getId()
@@ -613,20 +615,18 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     @Override
     @Transactional
     public ResultFile createResultFile(
-            Path fromDirectory,
+            Path filePath,
             String name,
             Submission submission,
             Long createById
     ) throws IOException {
-
-        Path sourceFilePath = fromDirectory.resolve(name);
 
         ResultFile resultFile = new ResultFile();
         resultFile.setSubmission(submission);
 
         ArachneFileMeta fileMeta = contentStorageService.saveFile(
                 contentStorageHelper.getResultFilesDir(submission, name),
-                sourceFilePath.toFile(),
+                filePath.toFile(),
                 createById
         );
 
