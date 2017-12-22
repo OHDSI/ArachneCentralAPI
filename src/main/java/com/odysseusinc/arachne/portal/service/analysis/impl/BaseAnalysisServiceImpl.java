@@ -35,6 +35,7 @@ import static com.odysseusinc.arachne.portal.service.impl.submission.SubmissionA
 import static com.odysseusinc.arachne.portal.service.impl.submission.SubmissionActionType.PUBLISH;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
+import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
 import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraphUtils;
 import com.google.common.base.Objects;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
@@ -54,7 +55,6 @@ import com.odysseusinc.arachne.portal.model.AnalysisFile;
 import com.odysseusinc.arachne.portal.model.AnalysisUnlockRequest;
 import com.odysseusinc.arachne.portal.model.AnalysisUnlockRequestStatus;
 import com.odysseusinc.arachne.portal.model.ArachneFile;
-import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.DataReference;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.Invitationable;
@@ -62,8 +62,6 @@ import com.odysseusinc.arachne.portal.model.ResultFile;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
-import com.odysseusinc.arachne.portal.model.SubmissionInsight;
-import com.odysseusinc.arachne.portal.model.SubmissionInsightSubmissionFile;
 import com.odysseusinc.arachne.portal.model.SubmissionStatus;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
@@ -74,13 +72,9 @@ import com.odysseusinc.arachne.portal.repository.AnalysisUnlockRequestRepository
 import com.odysseusinc.arachne.portal.repository.BaseAnalysisRepository;
 import com.odysseusinc.arachne.portal.repository.ResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionFileRepository;
-import com.odysseusinc.arachne.portal.repository.SubmissionInsightRepository;
-import com.odysseusinc.arachne.portal.repository.SubmissionInsightSubmissionFileRepository;
-import com.odysseusinc.arachne.portal.repository.SubmissionResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionStatusHistoryRepository;
 import com.odysseusinc.arachne.portal.repository.submission.BaseSubmissionRepository;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
-import com.odysseusinc.arachne.portal.service.CommentService;
 import com.odysseusinc.arachne.portal.service.ToPdfConverter;
 import com.odysseusinc.arachne.portal.service.StudyFileService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
@@ -100,7 +94,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.math.BigInteger;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -109,13 +102,9 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipOutputStream;
 import org.apache.commons.collections.CollectionUtils;
@@ -125,9 +114,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.support.GenericConversionService;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -969,5 +955,11 @@ public abstract class BaseAnalysisServiceImpl<
     public List<A> getByIdIn(List<Long> ids) {
 
         return analysisRepository.findByIdIn(ids);
+    }
+
+    @Override
+    public List<A> getByStudyId(Long id, EntityGraph graph) {
+
+        return analysisRepository.findByStudyId(id, graph);
     }
 }

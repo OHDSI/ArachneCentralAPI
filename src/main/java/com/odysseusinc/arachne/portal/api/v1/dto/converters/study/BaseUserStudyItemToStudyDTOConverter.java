@@ -39,7 +39,7 @@ public abstract class BaseUserStudyItemToStudyDTOConverter<S extends StudyDTO> e
 
         S studyDto = createResultObject();
 
-        StudyDTO baseObject = conversionService.convert(source.getStudy(), StudyDTO.class);
+        StudyDTO baseObject = conversionService.convert(source.getStudy(), getDtoClass());
         baseObject.setFavourite(source.getFavourite());
 
         converterUtils.shallowCopy(studyDto, baseObject);
@@ -50,4 +50,6 @@ public abstract class BaseUserStudyItemToStudyDTOConverter<S extends StudyDTO> e
 
         return studyDto;
     }
+
+    protected abstract Class<S> getDtoClass();
 }

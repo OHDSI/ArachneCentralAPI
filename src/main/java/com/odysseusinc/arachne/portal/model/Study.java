@@ -96,7 +96,7 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
     private StudyStatus status;
 
     @OneToMany(mappedBy = "study", fetch = FetchType.LAZY)
-    private List<UserStudyExtended> participants;
+    private List<UserStudyExtended> participants = new ArrayList<>();
 
     @Transient
     private Set<ArachnePermission> permissions;
@@ -106,11 +106,11 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
     private List<Analysis> analyses = new ArrayList<>();
 
     @OneToMany(mappedBy = "study", targetEntity = StudyFile.class, fetch = FetchType.LAZY)
-    private List<StudyFile> files;
+    private List<StudyFile> files = new ArrayList<>();
 
     @OneToMany(targetEntity = StudyDataSourceLink.class, mappedBy = "study", fetch = FetchType.LAZY)
     @OrderBy("deleted_at DESC, created ASC")
-    private List<StudyDataSourceLink> dataSources;
+    private List<StudyDataSourceLink> dataSources = new ArrayList<>();
 
     @OneToOne(mappedBy = "study", fetch = FetchType.LAZY)
     private Paper paper;
