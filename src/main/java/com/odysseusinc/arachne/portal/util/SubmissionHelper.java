@@ -33,6 +33,7 @@ import com.odysseusinc.arachne.portal.repository.SubmissionResultFileRepository;
 import com.odysseusinc.arachne.storage.model.ArachneFileSourced;
 import com.odysseusinc.arachne.storage.model.QuerySpec;
 import com.odysseusinc.arachne.storage.service.ContentStorageService;
+import com.odysseusinc.arachne.storage.service.JcrContentStorageServiceImpl;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -189,67 +190,59 @@ public class SubmissionHelper {
         public void updateExtendInfo(Submission submission) {
 
             final JsonObject resultInfo = new JsonObject();
+            try {
+                final String resultsDir = contentStorageHelper.getResultFilesDir(submission);
+                ArachneFileSourced arachneFile = contentStorageService.getFileByPath(resultsDir
+                        + JcrContentStorageServiceImpl.PATH_SEPARATOR
+                        + INCIDENCE_SUMMARY_FILENAME);
+                final CSVParser parser = CSVParser.parse(arachneFile.getInputStream(), Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
+                final Map<String, Integer> headers = parser.getHeaderMap();
 
-            final String resultsDir = contentStorageHelper.getResultFilesDir(submission);
+                final String personCountHeader = "PERSON_COUNT";
+                final String timeAtRiskHeader = "TIME_AT_RISK";
+                final String casesHeader = "CASES";
 
-            final QuerySpec querySpec = new QuerySpec();
-            querySpec.setPath(resultsDir);
-            querySpec.setName(INCIDENCE_SUMMARY_FILENAME);
+                Map<String, Integer> values =
+                        Arrays.asList(personCountHeader, timeAtRiskHeader, casesHeader)
+                                .stream()
+                                .collect(Collectors.toMap(header -> header, headers::get));
+                final List<CSVRecord> records = parser.getRecords();
 
-            final List<ArachneFileSourced> files = contentStorageService.searchFiles(querySpec);
+                if (!CollectionUtils.isEmpty(records)) {
+                    final CSVRecord firstRecord = records.get(0);
+                    final String personCount = firstRecord.get(values.get(personCountHeader));
+                    final String timeAtRisk = firstRecord.get(values.get(timeAtRiskHeader));
+                    final String cases = firstRecord.get(values.get(casesHeader));
 
-            if (files.size() > 0) {
-                ArachneFileSourced arachneFile = files.get(0);
-                try {
-                    final CSVParser parser = CSVParser.parse(arachneFile.getInputStream(), Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
-                    final Map<String, Integer> headers = parser.getHeaderMap();
-
-                    final String personCountHeader = "PERSON_COUNT";
-                    final String timeAtRiskHeader = "TIME_AT_RISK";
-                    final String casesHeader = "CASES";
-
-                    Map<String, Integer> values =
-                            Arrays.asList(personCountHeader, timeAtRiskHeader, casesHeader)
-                                    .stream()
-                                    .collect(Collectors.toMap(header -> header, headers::get));
-                    final List<CSVRecord> records = parser.getRecords();
-
-                    if (!CollectionUtils.isEmpty(records)) {
-                        final CSVRecord firstRecord = records.get(0);
-                        final String personCount = firstRecord.get(values.get(personCountHeader));
-                        final String timeAtRisk = firstRecord.get(values.get(timeAtRiskHeader));
-                        final String cases = firstRecord.get(values.get(casesHeader));
-
-                        resultInfo.add(personCountHeader, getJsonPrimitive(personCount));
-                        resultInfo.add(timeAtRiskHeader, getJsonPrimitive(timeAtRisk));
-                        resultInfo.add(casesHeader, getJsonPrimitive(cases));
+                    resultInfo.add(personCountHeader, getJsonPrimitive(personCount));
+                    resultInfo.add(timeAtRiskHeader, getJsonPrimitive(timeAtRisk));
+                    resultInfo.add(casesHeader, getJsonPrimitive(cases));
+                    try {
+                        final float casesFloat = cast(cases).floatValue();
                         try {
-                            final float casesFloat = cast(cases).floatValue();
-                            try {
-                                final float timeAtRiskFloat = cast(timeAtRisk).floatValue();
-                                final float rate = timeAtRiskFloat > 0 ? casesFloat / timeAtRiskFloat * 1000 : 0F;
-                                resultInfo.add("RATE", new JsonPrimitive(rate));
-                            } catch (IllegalArgumentException e) {
-                                LOGGER.debug("'TIME_AT_RISK' is not correct value, skipping calculate 'RATE' value");
-                            }
-                            try {
-                                final float personsFloat = cast(personCount).floatValue();
-                                final float proportion = personsFloat > 0 ? casesFloat / personsFloat * 1000 : 0F;
-                                resultInfo.add("PROPORTION", new JsonPrimitive(proportion));
-                            } catch (IllegalArgumentException e) {
-                                LOGGER.debug("'TIME_AT_RISK' is not correct value, skipping calculate 'PROPORTION' value");
-                            }
+                            final float timeAtRiskFloat = cast(timeAtRisk).floatValue();
+                            final float rate = timeAtRiskFloat > 0 ? casesFloat / timeAtRiskFloat * 1000 : 0F;
+                            resultInfo.add("RATE", new JsonPrimitive(rate));
                         } catch (IllegalArgumentException e) {
-                            LOGGER.debug("'PERSON_COUNT' is not correct value, skipping calculate 'RATE' & 'PROPORTION' values");
+                            LOGGER.debug("'TIME_AT_RISK' is not correct value, skipping calculate 'RATE' value");
                         }
-
+                        try {
+                            final float personsFloat = cast(personCount).floatValue();
+                            final float proportion = personsFloat > 0 ? casesFloat / personsFloat * 1000 : 0F;
+                            resultInfo.add("PROPORTION", new JsonPrimitive(proportion));
+                        } catch (IllegalArgumentException e) {
+                            LOGGER.debug("'TIME_AT_RISK' is not correct value, skipping calculate 'PROPORTION' value");
+                        }
+                    } catch (IllegalArgumentException e) {
+                        LOGGER.debug("'PERSON_COUNT' is not correct value, skipping calculate 'RATE' & 'PROPORTION' values");
                     }
-                } catch (IOException e) {
-                    LOGGER.debug(CAN_NOT_PARSE_LOG, INCIDENCE_SUMMARY_FILENAME);
-                } catch (Exception e) {
-                    LOGGER.warn(CAN_NOT_BUILD_EXTEND_INFO_LOG, submission.getId());
-                    LOGGER.warn("Error: ", e);
+
                 }
+            } catch (IOException e) {
+                LOGGER.debug(CAN_NOT_PARSE_LOG, INCIDENCE_SUMMARY_FILENAME);
+            } catch (Exception e) {
+                LOGGER.warn(CAN_NOT_BUILD_EXTEND_INFO_LOG, submission.getId());
+                LOGGER.warn("Error: ", e);
             }
             submission.setResultInfo(resultInfo);
         }
@@ -261,44 +254,29 @@ public class SubmissionHelper {
         public void updateExtendInfo(final Submission submission) {
 
             final JsonObject resultInfo = new JsonObject();
-
-            final String resultsDir = contentStorageHelper.getResultFilesDir(submission);
-
-            final QuerySpec querySpec = new QuerySpec();
-            querySpec.setPath(resultsDir);
-            querySpec.setName(PLE_SUMMARY_FILENAME);
-
-            final List<ArachneFileSourced> files = contentStorageService.searchFiles(querySpec);
-
-            if (!CollectionUtils.isEmpty(files)) {
-                ArachneFileSourced arachneFile = files.get(0);
-                try {
-                    final CSVParser parser = CSVParser.parse(arachneFile.getInputStream(), Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
-                    final Map<String, Integer> headers = parser.getHeaderMap();
-                    Map<String, Integer> headerMap =
-                            Arrays.asList("lower .95", "upper .95", "logRr", "seLogRr", "p", "cal p",
-                                    "cal p - lower .95", "cal p - upper .95")
-                                    .stream()
-                                    .collect(Collectors.toMap(header -> header, headers::get));
-                    final List<CSVRecord> records = parser.getRecords();
-                    if (!CollectionUtils.isEmpty(records)) {
-                        final CSVRecord firstRecord = records.get(0);
-                        for (Map.Entry<String, Integer> entry : headerMap.entrySet()) {
-                            final String header = entry.getKey();
-                            final Integer entryValue = entry.getValue();
-                            if (Objects.nonNull(entryValue)) {
-                                final String value = firstRecord.get(entryValue);
-                                resultInfo.add(header, getJsonPrimitive(value));
-                            }
+            try {
+                final String resultsDir = contentStorageHelper.getResultFilesDir(submission);
+                final ArachneFileSourced arachneFile = contentStorageService.getFileByPath(resultsDir
+                        + JcrContentStorageServiceImpl.PATH_SEPARATOR
+                        + PLE_SUMMARY_FILENAME);
+                final CSVParser parser = CSVParser.parse(arachneFile.getInputStream(), Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
+                final List<CSVRecord> records = parser.getRecords();
+                if (!CollectionUtils.isEmpty(records)) {
+                    final CSVRecord firstRecord = records.get(0);
+                    for (Map.Entry<String, Integer> entry : parser.getHeaderMap().entrySet()) {
+                        final String header = entry.getKey();
+                        final Integer entryValue = entry.getValue();
+                        if (Objects.nonNull(entryValue)) {
+                            final String value = firstRecord.get(entryValue);
+                            resultInfo.add(header, getJsonPrimitive(value));
                         }
                     }
-                } catch (IOException e) {
-                    LOGGER.warn(CAN_NOT_PARSE_LOG, PLE_SUMMARY_FILENAME);
-                } catch (Exception e) {
-                    LOGGER.warn(CAN_NOT_BUILD_EXTEND_INFO_LOG, submission.getId());
-                    LOGGER.warn("Error: ", e);
                 }
-
+            } catch (IOException e) {
+                LOGGER.warn(CAN_NOT_PARSE_LOG, PLE_SUMMARY_FILENAME);
+            } catch (Exception e) {
+                LOGGER.warn(CAN_NOT_BUILD_EXTEND_INFO_LOG, submission.getId());
+                LOGGER.warn("Error: ", e);
             }
             submission.setResultInfo(resultInfo);
         }
@@ -311,31 +289,25 @@ public class SubmissionHelper {
 
             final JsonObject resultInfo = new JsonObject();
 
-            final String resultsDir = contentStorageHelper.getResultFilesDir(submission);
-
-            final QuerySpec querySpec = new QuerySpec();
-            querySpec.setPath(resultsDir);
-            querySpec.setName(PLP_SUMMARY_FILENAME);
-            final List<ArachneFileSourced> files = contentStorageService.searchFiles(querySpec);
-            if (!CollectionUtils.isEmpty(files)) {
-                ArachneFileSourced arachneFile = files.get(0);
-                try {
-                    final CSVParser parser = CSVParser.parse(arachneFile.getInputStream(), Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
-                    final List<CSVRecord> records = parser.getRecords();
-                    for (CSVRecord record : records) {
-                        final ArrayList<String> recordAsList = new ArrayList<>();
-                        for (String s : record) {
-                            recordAsList.add(s);
-                        }
-                        get(resultInfo, recordAsList);
+            try {
+                final String resultsDir = contentStorageHelper.getResultFilesDir(submission);
+                final ArachneFileSourced arachneFile = contentStorageService.getFileByPath(resultsDir
+                        + JcrContentStorageServiceImpl.PATH_SEPARATOR
+                        + PLP_SUMMARY_FILENAME);
+                final CSVParser parser = CSVParser.parse(arachneFile.getInputStream(), Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
+                final List<CSVRecord> records = parser.getRecords();
+                for (CSVRecord record : records) {
+                    final ArrayList<String> recordAsList = new ArrayList<>();
+                    for (String s : record) {
+                        recordAsList.add(s);
                     }
-                } catch (IOException e) {
-                    LOGGER.warn(CAN_NOT_PARSE_LOG, PLP_SUMMARY_FILENAME);
-                } catch (Exception e) {
-                    LOGGER.warn(CAN_NOT_BUILD_EXTEND_INFO_LOG, submission.getId());
-                    LOGGER.warn("Error: ", e);
+                    get(resultInfo, recordAsList);
                 }
-
+            } catch (IOException e) {
+                LOGGER.warn(CAN_NOT_PARSE_LOG, PLP_SUMMARY_FILENAME);
+            } catch (Exception e) {
+                LOGGER.warn(CAN_NOT_BUILD_EXTEND_INFO_LOG, submission.getId());
+                LOGGER.warn("Error: ", e);
             }
             submission.setResultInfo(resultInfo);
         }
