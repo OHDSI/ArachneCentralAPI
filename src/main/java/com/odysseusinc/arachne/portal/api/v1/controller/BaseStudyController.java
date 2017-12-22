@@ -33,7 +33,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
-import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.AddStudyParticipantDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.BooleanDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.Commentable;
@@ -76,6 +75,7 @@ import com.odysseusinc.arachne.portal.model.statemachine.study.StudyTransition;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.ToPdfConverter;
 import com.odysseusinc.arachne.portal.service.StudyFileService;
+import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import io.swagger.annotations.ApiOperation;
 import java.io.FileNotFoundException;
@@ -124,6 +124,7 @@ public abstract class BaseStudyController<
     protected GenericConversionService conversionService;
     private BaseAnalysisService<A> analysisService;
     private SimpMessagingTemplate wsTemplate;
+    private SubmissionInsightService submissionInsightService;
 
     @Autowired
     private ToPdfConverter toPdfConverter;
@@ -134,7 +135,8 @@ public abstract class BaseStudyController<
                                GenericConversionService conversionService,
                                SimpMessagingTemplate wsTemplate,
                                StudyFileService fileService,
-                               StudyStateMachine studyStateMachine) {
+                               StudyStateMachine studyStateMachine,
+                               SubmissionInsightService submissionInsightService) {
 
         this.studyService = studyService;
         this.analysisService = analysisService;
@@ -142,6 +144,7 @@ public abstract class BaseStudyController<
         this.wsTemplate = wsTemplate;
         this.fileService = fileService;
         this.studyStateMachine = studyStateMachine;
+        this.submissionInsightService = submissionInsightService;
     }
 
     public abstract T convert(CreateStudyDTO studyDTO);
@@ -614,11 +617,11 @@ public abstract class BaseStudyController<
         List<SubmissionInsightDTO> submissionInsightDTOS = new ArrayList<>();
 
         Pageable pageRequest = new PageRequest(0, size, new Sort(order, "created"));
-        final Page<SubmissionInsight> page = analysisService.getInsightsByStudyId(studyId, pageRequest);
+        final Page<SubmissionInsight> page = submissionInsightService.getInsightsByStudyId(studyId, pageRequest);
         final List<SubmissionInsight> insights = page.getContent();
         for (int i = 0; i < insights.size(); i++) {
             final SubmissionInsight insight = insights.get(i);
-            final Set<CommentTopic> recentTopics = analysisService.getInsightComments(insight,
+            final Set<CommentTopic> recentTopics = submissionInsightService.getInsightComments(insight,
                     commentsPerInsight, new Sort(Sort.Direction.DESC, "id"));
             final SubmissionInsightDTO insightDTO = conversionService.convert(insight, SubmissionInsightDTO.class);
             final List<Commentable> recentCommentables = getRecentCommentables(conversionService, recentTopics,

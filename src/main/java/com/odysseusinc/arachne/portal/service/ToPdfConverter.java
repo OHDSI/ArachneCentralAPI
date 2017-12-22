@@ -21,10 +21,8 @@
 package com.odysseusinc.arachne.portal.service;
 
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
-import com.sun.xml.internal.messaging.saaj.util.ByteInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import org.jodconverter.DocumentConverter;
 import org.jodconverter.document.DefaultDocumentFormatRegistry;
@@ -37,14 +35,18 @@ public class ToPdfConverter {
 
     public static final String docType = "docx";
 
-    @Autowired
+    @Autowired(required = false)
     private DocumentConverter converter;
 
     public byte[] convert(final byte[] docFile) {
 
+        if (converter == null) {
+            return docFile;
+        }
+
         try (final ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             converter
-                    .convert(new ByteInputStream(docFile, docFile.length))
+                    .convert(new ByteArrayInputStream(docFile))
                     .as(
                             DefaultDocumentFormatRegistry.getFormatByExtension(docType))
                     .to(outputStream)

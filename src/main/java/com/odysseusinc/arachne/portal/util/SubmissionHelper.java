@@ -31,6 +31,10 @@ import com.odysseusinc.arachne.commons.utils.cohortcharacterization.CohortCharac
 import com.odysseusinc.arachne.portal.model.ResultFile;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.repository.SubmissionResultFileRepository;
+import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
+import com.odysseusinc.arachne.storage.model.ArachneFileSourced;
+import com.odysseusinc.arachne.storage.model.QuerySpec;
+import com.odysseusinc.arachne.storage.service.ContentStorageService;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
@@ -62,12 +66,15 @@ public class SubmissionHelper {
 
     private final SubmissionResultFileRepository submissionResultFileRepository;
     private final AnalysisHelper analysisHelper;
+    private final ContentStorageService contentStorageService;
+    private final ContentStorageHelper contentStorageHelper;
 
-    @Autowired
-    public SubmissionHelper(SubmissionResultFileRepository submissionResultFileRepository, AnalysisHelper analysisHelper) {
+    public SubmissionHelper(SubmissionResultFileRepository submissionResultFileRepository, AnalysisHelper analysisHelper, ContentStorageService contentStorageService, ContentStorageHelper contentStorageHelper) {
 
         this.submissionResultFileRepository = submissionResultFileRepository;
         this.analysisHelper = analysisHelper;
+        this.contentStorageService = contentStorageService;
+        this.contentStorageHelper = contentStorageHelper;
     }
 
     public void updateSubmissionExtendedInfo(final Submission submission) {
@@ -120,15 +127,20 @@ public class SubmissionHelper {
         @Override
         public void updateExtendInfo(final Submission submission) {
 
-            final List<ResultFile> files = submissionResultFileRepository.findAllBySubmissionIdAndRealNameMatchesTo(
-                    submission.getId(), "^[^/]*count.*\\.csv$");
+            QuerySpec querySpec = new QuerySpec();
+
+            querySpec.setPath(contentStorageHelper.getResultFilesDir(submission));
+            querySpec.setName("%count%.csv");
+            querySpec.setNameLike(true);
+
+            final List<ArachneFileSourced> files = contentStorageService.searchFiles(querySpec);
+
             final JsonObject resultInfo = new JsonObject();
             final String jsonColumnName = "persons";
             resultInfo.add(jsonColumnName, new JsonPrimitive(0));
             files.forEach(f -> {
-                final Path resultFile = analysisHelper.getResultFile(f);
                 try {
-                    final CSVParser parser = CSVParser.parse(resultFile, Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
+                    final CSVParser parser = CSVParser.parse(f.getInputStream(), Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
                     final Integer countColumnNumber = parser.getHeaderMap().get("count");
                     final List<CSVRecord> records = parser.getRecords();
                     if (!CollectionUtils.isEmpty(records)) {
@@ -154,7 +166,15 @@ public class SubmissionHelper {
                     .filter(docType -> CohortCharacterizationDocType.UNKNOWN != docType)
                     .map(docType -> docType.getTitle())
                     .collect(Collectors.toSet());
-            final Long count = submissionResultFileRepository.countBySubmissionAndContentTypeIn(submission, docTypes);
+
+            final String resultsDir = contentStorageHelper.getResultFilesDir(submission);
+
+            final QuerySpec querySpec = new QuerySpec();
+            querySpec.setPath(resultsDir);
+            querySpec.setContentTypes(docTypes);
+
+            final int count = contentStorageService.searchFiles(querySpec).size();
+
             final JsonObject resultInfo = new JsonObject();
             final JsonElement element = new JsonPrimitive(count);
             resultInfo.add("reports", element);
@@ -168,61 +188,68 @@ public class SubmissionHelper {
         public void updateExtendInfo(Submission submission) {
 
             final JsonObject resultInfo = new JsonObject();
-            submissionResultFileRepository.findBySubmissionAndRealName(submission, INCIDENCE_SUMMARY_FILENAME)
-                    .ifPresent(f -> {
-                                try {
-                                    final Path resultFile = analysisHelper.getResultFile(f);
-                                    final CSVParser parser = CSVParser.parse(resultFile, Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
-                                    final Map<String, Integer> headers = parser.getHeaderMap();
 
-                                    final String personCountHeader = "PERSON_COUNT";
-                                    final String timeAtRiskHeader = "TIME_AT_RISK";
-                                    final String casesHeader = "CASES";
+            final String resultsDir = contentStorageHelper.getResultFilesDir(submission);
 
-                                    Map<String, Integer> values =
-                                            Arrays.asList(personCountHeader, timeAtRiskHeader, casesHeader)
-                                                    .stream()
-                                                    .collect(Collectors.toMap(header -> header, headers::get));
-                                    final List<CSVRecord> records = parser.getRecords();
+            final QuerySpec querySpec = new QuerySpec();
+            querySpec.setPath(resultsDir);
+            querySpec.setName("ir_summary.csv");
 
-                                    if (!CollectionUtils.isEmpty(records)) {
-                                        final CSVRecord firstRecord = records.get(0);
-                                        final String personCount = firstRecord.get(values.get(personCountHeader));
-                                        final String timeAtRisk = firstRecord.get(values.get(timeAtRiskHeader));
-                                        final String cases = firstRecord.get(values.get(casesHeader));
+            final List<ArachneFileSourced> files = contentStorageService.searchFiles(querySpec);
 
-                                        resultInfo.add(personCountHeader, getJsonPrimitive(personCount));
-                                        resultInfo.add(timeAtRiskHeader, getJsonPrimitive(timeAtRisk));
-                                        resultInfo.add(casesHeader, getJsonPrimitive(cases));
-                                        try {
-                                            final float casesFloat = cast(cases).floatValue();
-                                            try {
-                                                final float timeAtRiskFloat = cast(timeAtRisk).floatValue();
-                                                final float rate = timeAtRiskFloat > 0 ? casesFloat / timeAtRiskFloat * 1000 : 0F;
-                                                resultInfo.add("RATE", new JsonPrimitive(rate));
-                                            } catch (IllegalArgumentException e) {
-                                                LOGGER.debug("'TIME_AT_RISK' is not correct value, skipping calculate 'RATE' value");
-                                            }
-                                            try {
-                                                final float personsFloat = cast(personCount).floatValue();
-                                                final float proportion = personsFloat > 0 ? casesFloat / personsFloat * 1000 : 0F;
-                                                resultInfo.add("PROPORTION", new JsonPrimitive(proportion));
-                                            } catch (IllegalArgumentException e) {
-                                                LOGGER.debug("'TIME_AT_RISK' is not correct value, skipping calculate 'PROPORTION' value");
-                                            }
-                                        } catch (IllegalArgumentException e) {
-                                            LOGGER.debug("'PERSON_COUNT' is not correct value, skipping calculate 'RATE' & 'PROPORTION' values");
-                                        }
+            if (files.size() > 0) {
+                ArachneFileSourced arachneFile = files.get(0);
+                try {
+                    final CSVParser parser = CSVParser.parse(arachneFile.getInputStream(), Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
+                    final Map<String, Integer> headers = parser.getHeaderMap();
 
-                                    }
-                                } catch (IOException e) {
-                                    LOGGER.debug(CAN_NOT_PARSE_LOG, INCIDENCE_SUMMARY_FILENAME);
-                                } catch (Exception e) {
-                                    LOGGER.warn(CAN_NOT_BUILD_EXTEND_INFO_LOG, submission.getId());
-                                    LOGGER.warn("Error: ", e);
-                                }
+                    final String personCountHeader = "PERSON_COUNT";
+                    final String timeAtRiskHeader = "TIME_AT_RISK";
+                    final String casesHeader = "CASES";
+
+                    Map<String, Integer> values =
+                            Arrays.asList(personCountHeader, timeAtRiskHeader, casesHeader)
+                                    .stream()
+                                    .collect(Collectors.toMap(header -> header, headers::get));
+                    final List<CSVRecord> records = parser.getRecords();
+
+                    if (!CollectionUtils.isEmpty(records)) {
+                        final CSVRecord firstRecord = records.get(0);
+                        final String personCount = firstRecord.get(values.get(personCountHeader));
+                        final String timeAtRisk = firstRecord.get(values.get(timeAtRiskHeader));
+                        final String cases = firstRecord.get(values.get(casesHeader));
+
+                        resultInfo.add(personCountHeader, getJsonPrimitive(personCount));
+                        resultInfo.add(timeAtRiskHeader, getJsonPrimitive(timeAtRisk));
+                        resultInfo.add(casesHeader, getJsonPrimitive(cases));
+                        try {
+                            final float casesFloat = cast(cases).floatValue();
+                            try {
+                                final float timeAtRiskFloat = cast(timeAtRisk).floatValue();
+                                final float rate = timeAtRiskFloat > 0 ? casesFloat / timeAtRiskFloat * 1000 : 0F;
+                                resultInfo.add("RATE", new JsonPrimitive(rate));
+                            } catch (IllegalArgumentException e) {
+                                LOGGER.debug("'TIME_AT_RISK' is not correct value, skipping calculate 'RATE' value");
                             }
-                    );
+                            try {
+                                final float personsFloat = cast(personCount).floatValue();
+                                final float proportion = personsFloat > 0 ? casesFloat / personsFloat * 1000 : 0F;
+                                resultInfo.add("PROPORTION", new JsonPrimitive(proportion));
+                            } catch (IllegalArgumentException e) {
+                                LOGGER.debug("'TIME_AT_RISK' is not correct value, skipping calculate 'PROPORTION' value");
+                            }
+                        } catch (IllegalArgumentException e) {
+                            LOGGER.debug("'PERSON_COUNT' is not correct value, skipping calculate 'RATE' & 'PROPORTION' values");
+                        }
+
+                    }
+                } catch (IOException e) {
+                    LOGGER.debug(CAN_NOT_PARSE_LOG, INCIDENCE_SUMMARY_FILENAME);
+                } catch (Exception e) {
+                    LOGGER.warn(CAN_NOT_BUILD_EXTEND_INFO_LOG, submission.getId());
+                    LOGGER.warn("Error: ", e);
+                }
+            }
             submission.setResultInfo(resultInfo);
         }
     }

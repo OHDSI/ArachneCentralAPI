@@ -32,7 +32,6 @@ import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.List;
 
-import com.odysseusinc.arachne.portal.model.StudyFile;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface StudyFileService {

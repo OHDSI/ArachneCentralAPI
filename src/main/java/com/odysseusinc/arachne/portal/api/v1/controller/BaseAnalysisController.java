@@ -73,6 +73,7 @@ import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.DataReferenceService;
 import com.odysseusinc.arachne.portal.service.ImportService;
+import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightService;
 import com.odysseusinc.arachne.portal.service.ToPdfConverter;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.service.messaging.MessagingUtils;
@@ -110,7 +111,6 @@ import org.ohdsi.sql.SqlRender;
 import org.ohdsi.sql.SqlTranslate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.core.io.ClassPathResource;
@@ -120,7 +120,6 @@ import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.destination.DestinationResolver;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -151,6 +150,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
     protected final ImportService importService;
     protected final BaseSubmissionService<Submission, Analysis> submissionService;
     protected final ToPdfConverter toPdfConverter;
+    protected final SubmissionInsightService submissionInsightService;
 
     @Value("${datanode.messaging.importTimeout}")
     private Long datanodeImportTimeout;
@@ -164,7 +164,8 @@ public abstract class BaseAnalysisController<T extends Analysis,
                                   BaseDataSourceService dataSourceService,
                                   ImportService importService,
                                   SimpMessagingTemplate wsTemplate,
-                                  ToPdfConverter toPdfConverter) {
+                                  ToPdfConverter toPdfConverter,
+                                  SubmissionInsightService submissionInsightService) {
 
         this.analysisService = analysisService;
         this.submissionService = submissionService;
@@ -176,6 +177,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
         this.dataSourceService = dataSourceService;
         this.importService = importService;
         this.wsTemplate = wsTemplate;
+        this.submissionInsightService = submissionInsightService;
         this.toPdfConverter = toPdfConverter;
     }
 
@@ -479,9 +481,9 @@ public abstract class BaseAnalysisController<T extends Analysis,
         if (order == null) {
             order = Sort.Direction.ASC;
         }
-        final SubmissionInsight insight = analysisService.getSubmissionInsight(submissionId);
+        final SubmissionInsight insight = submissionInsightService.getSubmissionInsight(submissionId);
         final SubmissionInsightDTO insightDTO = conversionService.convert(insight, SubmissionInsightDTO.class);
-        final Set<CommentTopic> recentTopics = analysisService.getInsightComments(insight, size, new Sort(order, "id"));
+        final Set<CommentTopic> recentTopics = submissionInsightService.getInsightComments(insight, size, new Sort(order, "id"));
         final List<Commentable> recentCommentables = getRecentCommentables(conversionService, recentTopics, insightDTO);
         insightDTO.setRecentCommentEntities(recentCommentables);
         final JsonResult<SubmissionInsightDTO> result = new JsonResult<>(NO_ERROR);
@@ -498,7 +500,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
     ) throws AlreadyExistException, NotExistException {
 
         final SubmissionInsight insight = conversionService.convert(insightDTO, SubmissionInsight.class);
-        final SubmissionInsight savedInsight = analysisService.createSubmissionInsight(submissionId, insight);
+        final SubmissionInsight savedInsight = submissionInsightService.createSubmissionInsight(submissionId, insight);
         final SubmissionInsightDTO savedInsightDTO = conversionService.convert(savedInsight, SubmissionInsightDTO.class);
         final JsonResult<SubmissionInsightDTO> result = new JsonResult<>(NO_ERROR);
         result.setResult(savedInsightDTO);
@@ -513,7 +515,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
     ) throws NotExistException {
 
         final SubmissionInsight insight = conversionService.convert(insightDTO, SubmissionInsight.class);
-        final SubmissionInsight updatedInsight = analysisService.updateSubmissionInsight(submissionId, insight);
+        final SubmissionInsight updatedInsight = submissionInsightService.updateSubmissionInsight(submissionId, insight);
         final SubmissionInsightDTO updatedInsightDTO = conversionService.convert(updatedInsight, SubmissionInsightDTO.class);
         final JsonResult<SubmissionInsightDTO> result = new JsonResult<>(NO_ERROR);
         result.setResult(updatedInsightDTO);
@@ -560,7 +562,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
 
     @ApiOperation("Get analysis code file.")
     @RequestMapping(value = "/api/v1/analysis-management/analyses/{analysisId}/code-files/{fileUuid}", method = GET)
-    public JsonResult<FileDTO> getFileContent(
+    public JsonResult<AnalysisFileDTO> getFileContent(
             @PathVariable("analysisId") Long analysisId,
             @RequestParam(defaultValue = "true") Boolean withContent,
             @PathVariable("fileUuid") String uuid)
@@ -568,17 +570,15 @@ public abstract class BaseAnalysisController<T extends Analysis,
 
         AnalysisFile analysisFile = analysisService.getAnalysisFile(analysisId, uuid);
         AnalysisFileDTO analysisFileDTO = conversionService.convert(analysisFile, AnalysisFileDTO.class);
-        FileDTO fileDto = new AnalysisFileDTO();
-        ReflectionUtils.shallowCopyFieldState(analysisFileDTO, fileDto);
 
         if (withContent) {
-            fileDto = FileDtoContentHandler
-                    .getInstance(fileDto, analysisService.getPath(analysisFile).toFile())
+            analysisFileDTO = (AnalysisFileDTO) FileDtoContentHandler
+                    .getInstance(analysisFileDTO, analysisService.getPath(analysisFile).toFile())
                     .withPdfConverter(toPdfConverter::convert)
                     .handle();
         }
 
-        return new JsonResult<>(NO_ERROR, fileDto);
+        return new JsonResult<>(NO_ERROR, analysisFileDTO);
     }
 
     @ApiOperation("Lock/unlock analysis files")

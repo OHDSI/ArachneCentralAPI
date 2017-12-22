@@ -36,6 +36,7 @@ import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.DataReferenceService;
 import com.odysseusinc.arachne.portal.service.ImportService;
 import com.odysseusinc.arachne.portal.service.ToPdfConverter;
+import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
 import java.io.IOException;
@@ -58,7 +59,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 public class AnalysisController extends BaseAnalysisController<Analysis, AnalysisDTO, DataNode, AnalysisCreateDTO> {
 
-    public static final String RUN_PLP_ANALYSIS_FILE_NAME = "run_plp_analysis.R";
+    public static final String RUN_PLP_ANALYSIS_FILE_NAME = "run_plp_analysis.r";
     public static final String RUN_IR_ANALYSIS_FILE_NAME = "run_ir_analysis.r";
     private static final String RUN_CC_REPORTS_FILE_NAME = "run_cc_reports.R";
     private static final String CC_SQLS_DIR = "sql/cc";
@@ -88,7 +89,8 @@ public class AnalysisController extends BaseAnalysisController<Analysis, Analysi
             JmsTemplate jmsTemplate,
             ImportService importService,
             BaseSubmissionService submissionService,
-            ToPdfConverter toPdfConverter) {
+            ToPdfConverter toPdfConverter,
+            SubmissionInsightService submissionInsightService) {
 
         super(analysisService,
                 submissionService,
@@ -99,7 +101,8 @@ public class AnalysisController extends BaseAnalysisController<Analysis, Analysi
                 dataSourceService,
                 importService,
                 wsTemplate,
-                toPdfConverter);
+                toPdfConverter,
+                submissionInsightService);
     }
 
     @Override

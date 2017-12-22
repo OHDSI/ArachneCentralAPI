@@ -26,6 +26,7 @@ import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.service.BreadcrumbService;
 import com.odysseusinc.arachne.portal.service.StudyService;
+import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.BreadcrumbType;
@@ -41,14 +42,18 @@ public class BreadcrumbServiceImpl implements BreadcrumbService {
     private StudyService studyService;
     private BaseAnalysisService<Analysis> analysisService;
     private final SubmissionService submissionService;
+    private final SubmissionInsightService submissionInsightService;
 
     @Autowired
-    public BreadcrumbServiceImpl(StudyService studyService, BaseAnalysisService<Analysis> analysisService,
-                                 SubmissionService submissionService) {
+    public BreadcrumbServiceImpl(StudyService studyService,
+                                 BaseAnalysisService<Analysis> analysisService,
+                                 SubmissionService submissionService,
+                                 SubmissionInsightService submissionInsightService) {
 
         this.studyService = studyService;
         this.analysisService = analysisService;
         this.submissionService = submissionService;
+        this.submissionInsightService = submissionInsightService;
     }
 
     // Entry point which ensures that we verify permissions
@@ -64,7 +69,7 @@ public class BreadcrumbServiceImpl implements BreadcrumbService {
             case SUBMISSION:
                 return submissionService.getSubmissionById(id);
             case INSIGHT:
-                return analysisService.getSubmissionInsight(id);
+                return submissionInsightService.getSubmissionInsight(id);
         }
         return null;
     }

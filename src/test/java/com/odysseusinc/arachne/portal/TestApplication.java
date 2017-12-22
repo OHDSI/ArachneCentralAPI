@@ -63,7 +63,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @SpringBootApplication
-@ComponentScan(basePackages = {"com.odysseusinc.arachne.portal"},
+@ComponentScan(basePackages = {"com.odysseusinc.arachne.portal", "com.odysseusinc.arachne.storage"},
         excludeFilters = {
                 @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = PortalStarter.class),
                 @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = WebSecurityConfig.class)

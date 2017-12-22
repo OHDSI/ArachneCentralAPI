@@ -83,9 +83,6 @@ public class StudyFileServiceImpl implements StudyFileService {
         this.restTemplate = restTemplate;
     }
 
-    @Autowired
-    private ToPdfConverter docToPdfConverter;
-
     @Override
     public InputStream getFileInputStream(AbstractStudyFile studyFile) throws FileNotFoundException {
 

@@ -23,15 +23,14 @@ package com.odysseusinc.arachne.portal.model;
 import javax.persistence.metamodel.SingularAttribute;
 import javax.persistence.metamodel.StaticMetamodel;
 
-@StaticMetamodel(AbstractResultFile.class)
-public class AbstractResultFile_ extends ArachneFile_ {
+@StaticMetamodel(ResultFile.class)
+public class ResultFile_ {
 
-    public static volatile SingularAttribute<AbstractResultFile, Long> id;
+    public static volatile SingularAttribute<ResultFile, Long> id;
 
-    public static volatile SingularAttribute<AbstractResultFile, Submission> submission;
+    public static volatile SingularAttribute<ResultFile, Submission> submission;
 
-    public static volatile SingularAttribute<AbstractResultFile, CommentTopic> commentTopic;
+    public static volatile SingularAttribute<ResultFile, CommentTopic> commentTopic;
 
-    public static volatile SingularAttribute<AbstractResultFile, Boolean> manuallyUploaded;
-
+    public static volatile SingularAttribute<ResultFile, Boolean> manuallyUploaded;
 }

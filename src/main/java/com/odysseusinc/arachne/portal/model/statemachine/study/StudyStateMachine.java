@@ -33,9 +33,11 @@ import java.util.Arrays;
 import java.util.function.Predicate;
 import javax.annotation.PostConstruct;
 
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 @Component
+@DependsOn("flywayInitializer")
 public class StudyStateMachine extends RepositoryBasedStateMachine<Study, StudyStatus, StudyTransition> {
 
     //TODO find a better way of doing this, but because of lack of time it's postponed
@@ -57,6 +59,8 @@ public class StudyStateMachine extends RepositoryBasedStateMachine<Study, StudyS
 
     @Override
     public void reconfigure() {
+
+        loadStates();
 
         verifyStates(Arrays.asList(INITIATE, ACTIVE, COMPLETED, ARCHIVED));
 
