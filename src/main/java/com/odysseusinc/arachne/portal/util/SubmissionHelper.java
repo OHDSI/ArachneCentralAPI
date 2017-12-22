@@ -34,9 +34,11 @@ import com.odysseusinc.arachne.portal.repository.SubmissionResultFileRepository;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.csv.CSVFormat;
@@ -52,6 +54,11 @@ import org.springframework.util.CollectionUtils;
 public class SubmissionHelper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SubmissionHelper.class);
+    private static final String PLE_SUMMARY_FILENAME = "PLE_summary.csv";
+    private static final String PLP_SUMMARY_FILENAME = "PLP_summary.csv";
+    private static final String INCIDENCE_SUMMARY_FILENAME = "ir_summary.csv";
+    private static final String CAN_NOT_PARSE_LOG = "Can not parse '{}'";
+    private static final String CAN_NOT_BUILD_EXTEND_INFO_LOG = "Can not build extendInfo for submission with id='{}'";
 
     private final SubmissionResultFileRepository submissionResultFileRepository;
     private final AnalysisHelper analysisHelper;
@@ -80,6 +87,14 @@ public class SubmissionHelper {
                 strategy = new IncidenceSubmissionExtendInfoStrategy();
                 break;
             }
+            case ESTIMATION: {
+                strategy = new EstimationSubmissionExtendInfoStrategy();
+                break;
+            }
+            case PREDICTION: {
+                strategy = new PredictionSubmissionExtendInfoStrategy();
+                break;
+            }
             default: {
                 strategy = new DefaultSubmissionExtendInfoStrategy();
             }
@@ -105,7 +120,7 @@ public class SubmissionHelper {
         @Override
         public void updateExtendInfo(final Submission submission) {
 
-            final List<ResultFile> files= submissionResultFileRepository.findAllBySubmissionIdAndRealNameMatchesTo(
+            final List<ResultFile> files = submissionResultFileRepository.findAllBySubmissionIdAndRealNameMatchesTo(
                     submission.getId(), "^[^/]*count.*\\.csv$");
             final JsonObject resultInfo = new JsonObject();
             final String jsonColumnName = "persons";
@@ -153,7 +168,7 @@ public class SubmissionHelper {
         public void updateExtendInfo(Submission submission) {
 
             final JsonObject resultInfo = new JsonObject();
-            submissionResultFileRepository.findBySubmissionAndRealName(submission, "ir_summary.csv")
+            submissionResultFileRepository.findBySubmissionAndRealName(submission, INCIDENCE_SUMMARY_FILENAME)
                     .ifPresent(f -> {
                                 try {
                                     final Path resultFile = analysisHelper.getResultFile(f);
@@ -201,13 +216,99 @@ public class SubmissionHelper {
 
                                     }
                                 } catch (IOException e) {
-                                    LOGGER.debug("Can not parse 'ir_summary.csv' file");
+                                    LOGGER.debug(CAN_NOT_PARSE_LOG, INCIDENCE_SUMMARY_FILENAME);
                                 } catch (Exception e) {
-                                    LOGGER.warn(e.getMessage());
+                                    LOGGER.warn(CAN_NOT_BUILD_EXTEND_INFO_LOG, submission.getId());
+                                    LOGGER.warn("Error: ", e);
                                 }
                             }
                     );
             submission.setResultInfo(resultInfo);
+        }
+    }
+
+    private class EstimationSubmissionExtendInfoStrategy extends SubmissionExtendInfoAnalyzeStrategy {
+
+        @Override
+        public void updateExtendInfo(final Submission submission) {
+
+            final JsonObject resultInfo = new JsonObject();
+            submissionResultFileRepository.findBySubmissionAndRealName(submission, PLE_SUMMARY_FILENAME)
+                    .ifPresent(f -> {
+                        try {
+                            final Path resultFile = analysisHelper.getResultFile(f);
+                            final CSVParser parser = CSVParser.parse(resultFile, Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
+                            final Map<String, Integer> headers = parser.getHeaderMap();
+                            Map<String, Integer> headerMap =
+                                    Arrays.asList("lower .95", "upper .95", "logRr", "seLogRr", "p", "cal p",
+                                            "cal p - lower .95", "cal p - upper .95")
+                                            .stream()
+                                            .collect(Collectors.toMap(header -> header, headers::get));
+                            final List<CSVRecord> records = parser.getRecords();
+                            if (!CollectionUtils.isEmpty(records)) {
+                                final CSVRecord firstRecord = records.get(0);
+                                for (Map.Entry<String, Integer> entry : headerMap.entrySet()) {
+                                    final String header = entry.getKey();
+                                    final Integer entryValue = entry.getValue();
+                                    if (Objects.nonNull(entryValue)) {
+                                        final String value = firstRecord.get(entryValue);
+                                        resultInfo.add(header, getJsonPrimitive(value));
+                                    }
+                                }
+                            }
+                        } catch (IOException e) {
+                            LOGGER.warn(CAN_NOT_PARSE_LOG, PLE_SUMMARY_FILENAME);
+                        } catch (Exception e) {
+                            LOGGER.warn(CAN_NOT_BUILD_EXTEND_INFO_LOG, submission.getId());
+                            LOGGER.warn("Error: ", e);
+                        }
+                    });
+            submission.setResultInfo(resultInfo);
+        }
+    }
+
+    private class PredictionSubmissionExtendInfoStrategy extends SubmissionExtendInfoAnalyzeStrategy {
+
+        @Override
+        public void updateExtendInfo(final Submission submission) {
+
+            final JsonObject resultInfo = new JsonObject();
+            submissionResultFileRepository.findBySubmissionAndRealName(submission, PLP_SUMMARY_FILENAME)
+                    .ifPresent(f -> {
+                        try {
+                            final Path resultFile = analysisHelper.getResultFile(f);
+                            final CSVParser parser = CSVParser.parse(resultFile, Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
+                            final List<CSVRecord> records = parser.getRecords();
+                            for (CSVRecord record : records) {
+                                final ArrayList<String> recordAsList = new ArrayList<>();
+                                for (String s : record) {
+                                    recordAsList.add(s);
+                                }
+                                get(resultInfo, recordAsList);
+                            }
+                        } catch (IOException e) {
+                            LOGGER.warn(CAN_NOT_PARSE_LOG, PLP_SUMMARY_FILENAME);
+                        } catch (Exception e) {
+                            LOGGER.warn(CAN_NOT_BUILD_EXTEND_INFO_LOG, submission.getId());
+                            LOGGER.warn("Error: ", e);
+                        }
+                    });
+            submission.setResultInfo(resultInfo);
+        }
+
+        void get(JsonObject object, final List<String> record) {
+
+            if (record.size() == 2) {
+                object.addProperty(record.remove(0), record.remove(0));
+            } else {
+                final String property = record.remove(0);
+                JsonObject jsonObject = object.getAsJsonObject(property);
+                if (Objects.isNull(jsonObject)) {
+                    jsonObject = new JsonObject();
+                }
+                object.add(property, jsonObject);
+                get(jsonObject, record);
+            }
         }
     }
 
