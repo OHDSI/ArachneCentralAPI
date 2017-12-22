@@ -63,7 +63,8 @@ public class BaseControllerTest extends SingleContextTest {
     static final String FIRST_NAME = "firstName";
     static final String LAST_NAME = "lastName";
 
-    static WebApplicationContext wac;
+    @Autowired
+    WebApplicationContext wac;
     @Autowired
     ObjectMapper objectMapper;
 
@@ -87,12 +88,6 @@ public class BaseControllerTest extends SingleContextTest {
         }
     }
 
-    @Autowired
-    public void setApplicationContext(WebApplicationContext wac) {
-
-        this.wac = wac;
-    }
-
     @Before
     public void before() throws Exception {
 
@@ -102,13 +97,6 @@ public class BaseControllerTest extends SingleContextTest {
                 .addFilter(CHARACTER_ENCODING_FILTER)
                 .build();
     }
-
-    /*@AfterClass
-    public static void afterAll() {
-
-        JackrabbitRepository jackrabbitRepository = wac.getBean(JackrabbitRepository.class);
-        jackrabbitRepository.shutdown();
-    }*/
 
     JSONObject getResponse(MvcResult mvcResult) throws UnsupportedEncodingException, JSONException {
 
