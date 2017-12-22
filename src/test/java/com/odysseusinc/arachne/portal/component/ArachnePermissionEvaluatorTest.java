@@ -28,6 +28,7 @@ import com.github.springtestdbunit.annotation.DatabaseOperation;
 import com.github.springtestdbunit.annotation.DatabaseSetup;
 import com.github.springtestdbunit.annotation.DatabaseSetups;
 import com.github.springtestdbunit.annotation.DatabaseTearDown;
+import com.odysseusinc.arachne.portal.SingleContextTest;
 import com.odysseusinc.arachne.portal.api.v1.controller.BaseControllerTest;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.Paper;
@@ -47,13 +48,10 @@ import org.springframework.test.context.transaction.TransactionalTestExecutionLi
 import org.springframework.transaction.annotation.Transactional;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest
-@ActiveProfiles("test")
-@TestPropertySource("/application.properties")
 @DatabaseTearDown(value = "/data/empty.xml", type = DatabaseOperation.DELETE_ALL)
 @TestExecutionListeners({TransactionalTestExecutionListener.class})
 @Transactional
-public class ArachnePermissionEvaluatorTest extends BaseControllerTest {
+public class ArachnePermissionEvaluatorTest extends SingleContextTest {
 
     @Autowired
     private ArachnePermissionEvaluator<Paper, DataSource> permissionEvaluator;
