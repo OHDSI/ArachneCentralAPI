@@ -61,6 +61,17 @@ public class FileDTO {
         this.author = author;
     }
 
+    public FileDTO(String name, String label, Date created, Date updated, String docType, String mimeType, UserInfoDTO author) {
+
+        this.name = name;
+        this.label = label;
+        this.created = created;
+        this.updated = updated;
+        this.docType = docType;
+        this.mimeType = mimeType;
+        this.author = author;
+    }
+
     public String getUuid() {
 
         return uuid;

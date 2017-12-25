@@ -86,8 +86,6 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
 
     Path getSubmissionFile(SubmissionFile submissionFile) throws FileNotFoundException;
 
-    Path getResultFile(ResultFile resultFile) throws FileNotFoundException;
-
     Boolean deleteAnalysisFile(T analysis,
                                AnalysisFile analysisFile);
 

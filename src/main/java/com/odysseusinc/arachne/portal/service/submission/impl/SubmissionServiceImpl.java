@@ -142,14 +142,6 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
     @Override
     @PreAuthorize("hasPermission(#submissionId, 'Submission', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).APPROVE_SUBMISSION)")
-    public boolean deleteSubmissionResultFileByUuid(Long submissionId, String fileUuid) throws NotExistException, ValidationException {
-
-        return super.deleteSubmissionResultFileByUuid(submissionId, fileUuid);
-    }
-
-    @Override
-    @PreAuthorize("hasPermission(#submissionId, 'Submission', "
-            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).APPROVE_SUBMISSION)")
     public boolean deleteSubmissionResultFile(Long submissionId, Long fileId) throws NotExistException, ValidationException {
 
         return super.deleteSubmissionResultFile(submissionId, fileId);
@@ -199,9 +191,9 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
     @Override
     @PreAuthorize("hasPermission(#analysisId,  'Analysis', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
-    public ResultFile getResultFileAndCheckPermission(User user, Long analysisId, String uuid) throws PermissionDeniedException {
+    public ResultFile getResultFileAndCheckPermission(User user, Long analysisId, Long fileId) throws PermissionDeniedException {
 
-        return super.getResultFileAndCheckPermission(user, analysisId, uuid);
+        return super.getResultFileAndCheckPermission(user, analysisId, fileId);
     }
 
     @Override

@@ -594,21 +594,6 @@ public abstract class BaseAnalysisServiceImpl<
     }
 
     @Override
-    public Path getResultFile(ResultFile resultFile) throws FileNotFoundException {
-
-        Optional.of(resultFile).orElseThrow(FileNotFoundException::new);
-        Path file = analysisHelper.getResultFile(resultFile);
-        if (Files.notExists(file)) {
-
-            file = legacyAnalysisHelper.getOldResultFile(resultFile);
-            if (Files.notExists(file)) {
-                throw new FileNotFoundException();
-            }
-        }
-        return file;
-    }
-
-    @Override
     public Boolean deleteAnalysisFile(A analysis,
                                       AnalysisFile analysisFile) {
 

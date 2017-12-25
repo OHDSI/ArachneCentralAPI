@@ -34,7 +34,6 @@ public class ResultFileDTO extends FileDTO {
     public ResultFileDTO(FileDTO fileDTO) {
 
         super(
-                fileDTO.getUuid(),
                 fileDTO.getName(),
                 fileDTO.getLabel(),
                 fileDTO.getCreated(),

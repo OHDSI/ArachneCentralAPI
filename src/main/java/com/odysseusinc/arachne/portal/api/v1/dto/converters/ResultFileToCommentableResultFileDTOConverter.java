@@ -42,7 +42,6 @@ public class ResultFileToCommentableResultFileDTOConverter extends BaseConversio
 
         ArachneFileMeta arachneFileMeta = contentStorageService.getFileByPath(source.getPath());
 
-        dto.setUuid(source.getUuid());
         dto.setName(arachneFileMeta.getName());
         dto.setCreated(arachneFileMeta.getCreated());
         dto.setSubmissionId(source.getSubmission().getId());

@@ -212,35 +212,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     }
 
     @ApiOperation("Delete manually uploaded submission result file")
-    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/result/{fileUuid}",
-            method = DELETE)
-    public JsonResult<Boolean> deleteSubmissionResults(
-            @PathVariable("submissionId") Long id,
-            @PathVariable("fileUuid") String fileUuid
-    ) {
-
-        LOGGER.info("deleting result file for submission with id={} having uuid={}", id, fileUuid);
-        JsonResult.ErrorCode errorCode;
-        Boolean hasResult;
-        try {
-            hasResult = submissionService.deleteSubmissionResultFileByUuid(id, fileUuid);
-            errorCode = JsonResult.ErrorCode.NO_ERROR;
-        } catch (NotExistException e) {
-            LOGGER.warn("Submission was not found, id: {}", id);
-            errorCode = JsonResult.ErrorCode.VALIDATION_ERROR;
-            hasResult = false;
-        } catch (ValidationException e) {
-            LOGGER.warn("Result file was not deleted", e);
-            errorCode = JsonResult.ErrorCode.VALIDATION_ERROR;
-            hasResult = false;
-        }
-        JsonResult<Boolean> result = new JsonResult<>(errorCode);
-        result.setResult(hasResult);
-        return result;
-    }
-
-    @ApiOperation("Delete manually uploaded submission result file")
-    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/result/byid/{fileId}",
+    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/result/{fileId}",
             method = DELETE)
     public JsonResult<Boolean> deleteSubmissionResultsById(
             @PathVariable("submissionId") Long id,
@@ -462,23 +434,23 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
                 .collect(Collectors.toList());
     }
 
-    private ResultFile getResultFile(Principal principal, Long submissionId, String uuid)
+    private ResultFile getResultFile(Principal principal, Long submissionId, Long fileId)
             throws NotExistException, PermissionDeniedException {
 
         Submission submission = submissionService.getSubmissionById(submissionId);
         User user = userService.getByEmail(principal.getName());
-        return submissionService.getResultFileAndCheckPermission(user, submission.getSubmissionGroup().getAnalysis().getId(), uuid);
+        return submissionService.getResultFileAndCheckPermission(user, submission.getSubmissionGroup().getAnalysis().getId(), fileId);
     }
 
     @ApiOperation("Get result file of the submission.")
-    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/results/{fileUuid}", method = GET)
+    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/results/{fileId}", method = GET)
     public JsonResult<FileDTO> getResultFileInfo(
             Principal principal,
             @PathVariable("submissionId") Long submissionId,
             @RequestParam(defaultValue = "true") Boolean withContent,
-            @PathVariable("fileUuid") String uuid) throws PermissionDeniedException, NotExistException, IOException {
+            @PathVariable("fileId") Long fileId) throws PermissionDeniedException, NotExistException, IOException {
 
-        ResultFile resultFile = getResultFile(principal, submissionId, uuid);
+        ResultFile resultFile = getResultFile(principal, submissionId, fileId);
         ArachneFileSourced file = contentStorageService.getFileByPath(resultFile.getPath());
 
         final FileDTO fileDTO = conversionService.convert(file, FileDTO.class);
@@ -499,15 +471,15 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     }
 
     @ApiOperation("Download result file of the submission.")
-    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/results/{fileUuid}/download",
+    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/results/{fileId}/download",
             method = GET)
     public void downloadResultFile(
             Principal principal,
             @PathVariable("submissionId") Long submissionId,
-            @PathVariable("fileUuid") String uuid,
+            @PathVariable("fileId") Long fileId,
             HttpServletResponse response) throws PermissionDeniedException, NotExistException, IOException {
 
-        ResultFile resultFile = getResultFile(principal, submissionId, uuid);
+        ResultFile resultFile = getResultFile(principal, submissionId, fileId);
         ArachneFileSourced file = contentStorageService.getFileByPath(resultFile.getPath());
 
         HttpUtils.putFileContentToResponse(

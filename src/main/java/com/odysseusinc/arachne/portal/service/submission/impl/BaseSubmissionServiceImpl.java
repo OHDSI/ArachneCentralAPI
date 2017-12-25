@@ -410,14 +410,6 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     }
 
     @Override
-    public boolean deleteSubmissionResultFileByUuid(Long submissionId, String fileUuid)
-            throws NotExistException, ValidationException {
-
-        ResultFile resultFile = submissionResultFileRepository.findByUuid(fileUuid);
-        return deleteSubmissionResultFile(submissionId, resultFile.getId());
-    }
-
-    @Override
     public boolean deleteSubmissionResultFile(Long submissionId, Long fileId)
             throws NotExistException, ValidationException {
 
@@ -630,7 +622,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
                 createById
         );
 
-        resultFile.setUuid(fileMeta.getUuid());
+        //resultFile.setUuid(fileMeta.getUuid());
         resultFile.setPath(fileMeta.getPath());
 
         return resultFile;
@@ -658,9 +650,9 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     }
 
     @Override
-    public ResultFile getResultFileAndCheckPermission(User user, Long analysisId, String uuid) throws PermissionDeniedException {
+    public ResultFile getResultFileAndCheckPermission(User user, Long analysisId, Long fileId) throws PermissionDeniedException {
 
-        ResultFile byUuid = getResultFileByUUID(uuid);
+        ResultFile byUuid = getResultFileById(fileId);
         Submission submission = byUuid.getSubmission();
         if (!(EXECUTED_PUBLISHED.equals(submission.getStatus()) || FAILED_PUBLISHED.equals(submission.getStatus()))) {
             if (user == null || !isDataNodeOwner(submission.getDataSource().getDataNode(), user)) {
@@ -670,10 +662,9 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         return byUuid;
     }
 
-    @Override
-    public ResultFile getResultFileByUUID(String uuid) {
+    public ResultFile getResultFileById(Long fileId) {
 
-        return resultFileRepository.findByUuid(uuid);
+        return resultFileRepository.findById(fileId);
     }
 
     @Override
