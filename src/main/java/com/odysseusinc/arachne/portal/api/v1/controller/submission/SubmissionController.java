@@ -38,9 +38,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class SubmissionController extends BaseSubmissionController<Submission, Analysis, SubmissionDTO> {
 
-
+    @Autowired
     public SubmissionController(BaseAnalysisService<Analysis> analysisService,
-                                BaseSubmissionService<Submission, Analysis> submissionService,
+                                SubmissionService submissionService,
                                 ToPdfConverter toPdfConverter,
                                 SubmissionInsightService submissionInsightService,
                                 ContentStorageService contentStorageService,
