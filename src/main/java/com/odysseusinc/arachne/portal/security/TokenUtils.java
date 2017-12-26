@@ -36,7 +36,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.servlet.http.HttpServletRequest;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -44,7 +45,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class TokenUtils {
 
-    private final Logger log = Logger.getLogger(getClass());
+    Logger log = LoggerFactory.getLogger(TokenUtils.class);
 
     @Value("${arachne.token.header}")
     private String tokenHeader;

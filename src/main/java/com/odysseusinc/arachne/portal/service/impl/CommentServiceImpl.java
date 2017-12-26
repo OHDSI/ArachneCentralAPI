@@ -33,7 +33,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
@@ -131,7 +131,7 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public void deleteComments(List<Comment> comments) {
 
-        commentRepository.delete(comments);
+        commentRepository.deleteAll(comments);
     }
 
     @Override

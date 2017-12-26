@@ -109,7 +109,7 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends D
             if (analysis.getStudy() != null) {
                 result = getRolesByStudy(user, analysis.getStudy());
             } else {
-                Analysis byId = analysisRepository.findOne(analysis.getId());
+                Analysis byId = analysisRepository.findById(analysis.getId());
                 result = byId != null ? getRolesByStudy(user, byId.getStudy()) : result;
             }
         }

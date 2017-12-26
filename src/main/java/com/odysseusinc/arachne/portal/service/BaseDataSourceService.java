@@ -30,6 +30,7 @@ import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
+import java.util.Optional;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.data.domain.Page;
@@ -73,7 +74,7 @@ public interface BaseDataSourceService<T extends DataSource> {
 
     T findByUuidUnsecured(String uuid) throws NotExistException;
 
-    T findById(Long dataSourceId);
+    Optional<T> findById(Long dataSourceId);
 
     Page<T> suggestDataSource(String query, Long studyId, Long userId,
                                        PageRequest pageRequest);

@@ -107,7 +107,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletResponse;
-import javax.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import javax.validation.constraints.NotNull;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -234,16 +234,14 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     }
 
     @Override
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void remove(Long id) throws ValidationException, UserNotFoundException, NotExistException, IOException, SolrServerException {
 
         if (id == null) {
             throw new ValidationException("remove user: id must be not null");
         }
-        U user = userRepository.findOne(id);
-        if (user == null) {
-            throw new UserNotFoundException("removeUser", "remove user: user not found");
-        }
+        U user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("removeUser", "remove user: user not found"));
+
         solrService.deleteByQuery(SolrServiceImpl.USER_COLLECTION, "id:" + user.getId());
         userRepository.delete(user);
     }

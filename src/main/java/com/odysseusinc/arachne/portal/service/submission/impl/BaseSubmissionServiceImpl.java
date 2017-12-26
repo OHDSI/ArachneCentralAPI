@@ -100,7 +100,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipOutputStream;
 import javax.persistence.EntityManager;
-import javax.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

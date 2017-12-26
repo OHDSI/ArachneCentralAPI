@@ -73,9 +73,9 @@ public interface BaseSubmissionRepository<T extends Submission> extends EntityGr
 
     Optional<T> findByIdAndToken(Long id, String token);
 
-    T findById(Long id);
+    Optional<T> findById(Long id);
 
-    T findById(Long id, EntityGraph entityGraph);
+    Optional<T> findById(Long id, EntityGraph entityGraph);
 
     @Query(nativeQuery = true, value =
             "SELECT n FROM ( " +

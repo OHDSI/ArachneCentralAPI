@@ -52,7 +52,7 @@ import java.util.List;
 import java.util.Objects;
 import javax.persistence.EntityManager;
 import javax.persistence.FlushModeType;
-import javax.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import net.lingala.zip4j.exception.ZipException;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -160,7 +160,7 @@ public class AchillesImportServiceImpl implements AchillesImportService {
 
         final List<AchillesFile> achillesFiles = batch.get();
         if (!CollectionUtils.isEmpty(achillesFiles)) {
-            achillesFileRepository.save(achillesFiles);
+            achillesFileRepository.saveAll(achillesFiles);
             batch.set(new ArrayList<>());
         }
         entityManager.flush();
