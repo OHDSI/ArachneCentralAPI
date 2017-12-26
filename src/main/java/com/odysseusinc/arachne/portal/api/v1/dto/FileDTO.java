@@ -51,14 +51,8 @@ public class FileDTO {
 
     public FileDTO(String uuid, String name, String label, Date created, Date updated, String docType, String mimeType, UserInfoDTO author) {
 
+        this(name, label, created, updated, docType, mimeType, author);
         this.uuid = uuid;
-        this.name = name;
-        this.label = label;
-        this.created = created;
-        this.updated = updated;
-        this.docType = docType;
-        this.mimeType = mimeType;
-        this.author = author;
     }
 
     public FileDTO(String name, String label, Date created, Date updated, String docType, String mimeType, UserInfoDTO author) {
