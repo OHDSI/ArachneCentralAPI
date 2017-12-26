@@ -397,7 +397,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
 
     @ApiOperation("Get query file of the submission by submission.")
     @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/files/{fileUuid}", method = GET)
-    public JsonResult<FileDTO> getSubmissionGroupFileInfoBySubmission(
+    public JsonResult<SubmissionFileDTO> getSubmissionGroupFileInfoBySubmission(
             @PathVariable("submissionId") Long submissionId,
             @PathVariable("fileUuid") String uuid)
             throws PermissionDeniedException, NotExistException, IOException {
@@ -409,16 +409,16 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     @ApiOperation("Get query file of the submission group.")
     @RequestMapping(value = "/api/v1/analysis-management/submission-groups/{submissionGroupId}/files/{fileUuid}",
             method = GET)
-    public JsonResult<FileDTO> getSubmissionGroupFileInfo(
+    public JsonResult<SubmissionFileDTO> getSubmissionGroupFileInfo(
             @PathVariable("submissionGroupId") Long submissionGroupId,
             @PathVariable("fileUuid") String uuid,
             @RequestParam(defaultValue = "true") Boolean withContent)
             throws PermissionDeniedException, NotExistException, IOException {
 
         final SubmissionFile submissionFile = submissionService.getSubmissionFile(submissionGroupId, uuid);
-        FileDTO fileDto = conversionService.convert(submissionFile, FileDTO.class);
+        SubmissionFileDTO fileDto = conversionService.convert(submissionFile, SubmissionFileDTO.class);
         if (withContent) {
-            fileDto = FileDtoContentHandler
+            fileDto = (SubmissionFileDTO) FileDtoContentHandler
                     .getInstance(fileDto, analysisService.getPath(submissionFile).toFile())
                     .withPdfConverter(toPdfConverter::convert)
                     .handle();
