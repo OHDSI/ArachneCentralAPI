@@ -622,7 +622,6 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
                 createById
         );
 
-        //resultFile.setUuid(fileMeta.getUuid());
         resultFile.setPath(fileMeta.getPath());
 
         return resultFile;
