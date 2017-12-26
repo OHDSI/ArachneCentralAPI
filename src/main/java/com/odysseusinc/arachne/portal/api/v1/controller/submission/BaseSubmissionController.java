@@ -31,7 +31,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisExecutionStatusDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.api.v1.controller.BaseController;
-import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisFileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ApproveDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.CreateSubmissionsDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.FileDTO;
@@ -55,6 +54,7 @@ import com.odysseusinc.arachne.portal.model.SubmissionStatusHistoryElement;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.ResultFileSearch;
 import com.odysseusinc.arachne.portal.service.ToPdfConverter;
+import com.odysseusinc.arachne.portal.util.ContentStorageHelper;
 import com.odysseusinc.arachne.storage.service.ContentStorageService;
 import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
@@ -78,7 +78,6 @@ import javax.validation.Valid;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.StringUtils;
@@ -96,19 +95,22 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     protected final BaseSubmissionService<T, A> submissionService;
     protected final SubmissionInsightService submissionInsightService;
     protected final ToPdfConverter toPdfConverter;
-
-    @Autowired
     private ContentStorageService contentStorageService;
+    private ContentStorageHelper contentStorageHelper;
 
     public BaseSubmissionController(BaseAnalysisService<A> analysisService,
                                     BaseSubmissionService<T, A> submissionService,
                                     ToPdfConverter toPdfConverter,
-                                    SubmissionInsightService submissionInsightService) {
+                                    SubmissionInsightService submissionInsightService,
+                                    ContentStorageService contentStorageService,
+                                    ContentStorageHelper contentStorageHelper) {
 
         this.analysisService = analysisService;
         this.submissionService = submissionService;
         this.toPdfConverter = toPdfConverter;
         this.submissionInsightService = submissionInsightService;
+        this.contentStorageHelper = contentStorageHelper;
+        this.contentStorageService = contentStorageService;
     }
 
     @ApiOperation("Create and send submission.")
@@ -363,10 +365,13 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
         resultFileSearch.setRealName(realName);
 
         List<? extends ArachneFileMeta> resultFileList = submissionService.getResultFiles(user, submissionId, resultFileSearch);
+        String resultFilesPath = contentStorageHelper.getResultFilesDir(Submission.class, submissionId, null);
+
         return resultFileList.stream()
                 .map(rf -> {
                     ResultFileDTO rfDto = conversionService.convert(rf, ResultFileDTO.class);
                     rfDto.setSubmissionId(submissionId);
+                    rfDto.setRelativePath(contentStorageHelper.getRelativePath(resultFilesPath, rfDto.getPath()));
                     return rfDto;
                 })
                 .collect(Collectors.toList());
@@ -392,7 +397,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
 
     @ApiOperation("Get query file of the submission by submission.")
     @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/files/{fileUuid}", method = GET)
-    public JsonResult<FileDTO> getSubmissionGroupFileInfoBySubmission(
+    public JsonResult<SubmissionFileDTO> getSubmissionGroupFileInfoBySubmission(
             @PathVariable("submissionId") Long submissionId,
             @PathVariable("fileUuid") String uuid)
             throws PermissionDeniedException, NotExistException, IOException {
@@ -404,16 +409,16 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     @ApiOperation("Get query file of the submission group.")
     @RequestMapping(value = "/api/v1/analysis-management/submission-groups/{submissionGroupId}/files/{fileUuid}",
             method = GET)
-    public JsonResult<FileDTO> getSubmissionGroupFileInfo(
+    public JsonResult<SubmissionFileDTO> getSubmissionGroupFileInfo(
             @PathVariable("submissionGroupId") Long submissionGroupId,
             @PathVariable("fileUuid") String uuid,
             @RequestParam(defaultValue = "true") Boolean withContent)
             throws PermissionDeniedException, NotExistException, IOException {
 
         final SubmissionFile submissionFile = submissionService.getSubmissionFile(submissionGroupId, uuid);
-        FileDTO fileDto = conversionService.convert(submissionFile, FileDTO.class);
+        SubmissionFileDTO fileDto = conversionService.convert(submissionFile, SubmissionFileDTO.class);
         if (withContent) {
-            fileDto = FileDtoContentHandler
+            fileDto = (SubmissionFileDTO) FileDtoContentHandler
                     .getInstance(fileDto, analysisService.getPath(submissionFile).toFile())
                     .withPdfConverter(toPdfConverter::convert)
                     .handle();
@@ -472,7 +477,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
 
     @ApiOperation("Get result file of the submission.")
     @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/results/{fileUuid}", method = GET)
-    public JsonResult<FileDTO> getResultFileInfo(
+    public JsonResult<ResultFileDTO> getResultFileInfo(
             Principal principal,
             @PathVariable("submissionId") Long submissionId,
             @RequestParam(defaultValue = "true") Boolean withContent,
@@ -480,22 +485,20 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
 
         ResultFile resultFile = getResultFile(principal, submissionId, uuid);
         ArachneFileSourced file = contentStorageService.getFileByPath(resultFile.getPath());
+        String resultFilesPath = contentStorageHelper.getResultFilesDir(Submission.class, submissionId, null);
 
-        final FileDTO fileDTO = conversionService.convert(file, FileDTO.class);
-        AnalysisFileDTO analysisFileDTO = new AnalysisFileDTO();
-
-        BeanUtils.copyProperties(fileDTO, analysisFileDTO);
-        analysisFileDTO.setAnalysisId(resultFile.getSubmission().getAnalysis().getId());
+        ResultFileDTO resultFileDTO = new ResultFileDTO(conversionService.convert(file, FileDTO.class));
+        resultFileDTO.setRelativePath(contentStorageHelper.getRelativePath(resultFilesPath, resultFileDTO.getPath()));
 
         if (withContent) {
             byte[] content = IOUtils.toByteArray(file.getInputStream());
-            analysisFileDTO = (AnalysisFileDTO) FileDtoContentHandler
-                    .getInstance(analysisFileDTO, content)
+            resultFileDTO = (ResultFileDTO) FileDtoContentHandler
+                    .getInstance(resultFileDTO, content)
                     .withPdfConverter(toPdfConverter::convert)
                     .handle();
         }
 
-        return new JsonResult<>(NO_ERROR, analysisFileDTO);
+        return new JsonResult<>(NO_ERROR, resultFileDTO);
     }
 
     @ApiOperation("Download result file of the submission.")
