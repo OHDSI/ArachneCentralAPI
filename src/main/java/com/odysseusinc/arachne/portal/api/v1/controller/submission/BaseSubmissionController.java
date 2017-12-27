@@ -58,7 +58,6 @@ import com.odysseusinc.arachne.portal.util.ContentStorageHelper;
 import com.odysseusinc.arachne.storage.service.ContentStorageService;
 import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
-import com.odysseusinc.arachne.storage.model.ArachneFileSourced;
 import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
 import com.odysseusinc.arachne.portal.util.AnalysisHelper;
@@ -484,14 +483,14 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
             @PathVariable("fileUuid") String uuid) throws PermissionDeniedException, NotExistException, IOException {
 
         ResultFile resultFile = getResultFile(principal, submissionId, uuid);
-        ArachneFileSourced file = contentStorageService.getFileByPath(resultFile.getPath());
+        ArachneFileMeta file = contentStorageService.getFileByPath(resultFile.getPath());
         String resultFilesPath = contentStorageHelper.getResultFilesDir(Submission.class, submissionId, null);
 
         ResultFileDTO resultFileDTO = new ResultFileDTO(conversionService.convert(file, FileDTO.class));
         resultFileDTO.setRelativePath(contentStorageHelper.getRelativePath(resultFilesPath, resultFileDTO.getPath()));
 
         if (withContent) {
-            byte[] content = IOUtils.toByteArray(file.getInputStream());
+            byte[] content = IOUtils.toByteArray(contentStorageService.getContentByFilepath(file.getPath()));
             resultFileDTO = (ResultFileDTO) FileDtoContentHandler
                     .getInstance(resultFileDTO, content)
                     .withPdfConverter(toPdfConverter::convert)
@@ -511,13 +510,13 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
             HttpServletResponse response) throws PermissionDeniedException, NotExistException, IOException {
 
         ResultFile resultFile = getResultFile(principal, submissionId, uuid);
-        ArachneFileSourced file = contentStorageService.getFileByPath(resultFile.getPath());
+        ArachneFileMeta file = contentStorageService.getFileByPath(resultFile.getPath());
 
         HttpUtils.putFileContentToResponse(
                 response,
                 file.getContentType(),
-                StringUtils.getFilename(file.getName()),
-                file.getInputStream());
+                file.getName(),
+                contentStorageService.getContentByFilepath(file.getPath()));
     }
 
     @ApiOperation("Download all files of the submission group.")

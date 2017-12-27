@@ -30,7 +30,7 @@ import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.commons.utils.cohortcharacterization.CohortCharacterizationDocType;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.repository.SubmissionResultFileRepository;
-import com.odysseusinc.arachne.storage.model.ArachneFileSourced;
+import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.storage.model.QuerySpec;
 import com.odysseusinc.arachne.storage.service.ContentStorageService;
 import com.odysseusinc.arachne.storage.service.JcrContentStorageServiceImpl;
@@ -130,14 +130,14 @@ public class SubmissionHelper {
             querySpec.setName("%count%.csv");
             querySpec.setNameLike(true);
 
-            final List<ArachneFileSourced> files = contentStorageService.searchFiles(querySpec);
+            final List<ArachneFileMeta> files = contentStorageService.searchFiles(querySpec);
 
             final JsonObject resultInfo = new JsonObject();
             final String jsonColumnName = "persons";
             resultInfo.add(jsonColumnName, new JsonPrimitive(0));
             files.forEach(f -> {
                 try {
-                    final CSVParser parser = CSVParser.parse(f.getInputStream(), Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
+                    final CSVParser parser = CSVParser.parse(contentStorageService.getContentByFilepath(f.getPath()), Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
                     final Integer countColumnNumber = parser.getHeaderMap().get("count");
                     final List<CSVRecord> records = parser.getRecords();
                     if (!CollectionUtils.isEmpty(records)) {
@@ -192,10 +192,10 @@ public class SubmissionHelper {
             final JsonObject resultInfo = new JsonObject();
             try {
                 final String resultsDir = contentStorageHelper.getResultFilesDir(submission);
-                ArachneFileSourced arachneFile = contentStorageService.getFileByPath(resultsDir
+                ArachneFileMeta arachneFile = contentStorageService.getFileByPath(resultsDir
                         + JcrContentStorageServiceImpl.PATH_SEPARATOR
                         + INCIDENCE_SUMMARY_FILENAME);
-                final CSVParser parser = CSVParser.parse(arachneFile.getInputStream(), Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
+                final CSVParser parser = CSVParser.parse(contentStorageService.getContentByFilepath(arachneFile.getPath()), Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
                 final Map<String, Integer> headers = parser.getHeaderMap();
 
                 final String personCountHeader = "PERSON_COUNT";
@@ -256,10 +256,10 @@ public class SubmissionHelper {
             final JsonObject resultInfo = new JsonObject();
             try {
                 final String resultsDir = contentStorageHelper.getResultFilesDir(submission);
-                final ArachneFileSourced arachneFile = contentStorageService.getFileByPath(resultsDir
+                final ArachneFileMeta arachneFile = contentStorageService.getFileByPath(resultsDir
                         + JcrContentStorageServiceImpl.PATH_SEPARATOR
                         + PLE_SUMMARY_FILENAME);
-                final CSVParser parser = CSVParser.parse(arachneFile.getInputStream(), Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
+                final CSVParser parser = CSVParser.parse(contentStorageService.getContentByFilepath(arachneFile.getPath()), Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
                 final List<CSVRecord> records = parser.getRecords();
                 if (!CollectionUtils.isEmpty(records)) {
                     final CSVRecord firstRecord = records.get(0);
@@ -291,10 +291,10 @@ public class SubmissionHelper {
 
             try {
                 final String resultsDir = contentStorageHelper.getResultFilesDir(submission);
-                final ArachneFileSourced arachneFile = contentStorageService.getFileByPath(resultsDir
+                final ArachneFileMeta arachneFile = contentStorageService.getFileByPath(resultsDir
                         + JcrContentStorageServiceImpl.PATH_SEPARATOR
                         + PLP_SUMMARY_FILENAME);
-                final CSVParser parser = CSVParser.parse(arachneFile.getInputStream(), Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
+                final CSVParser parser = CSVParser.parse(contentStorageService.getContentByFilepath(arachneFile.getPath()), Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
                 final List<CSVRecord> records = parser.getRecords();
                 for (CSVRecord record : records) {
                     final ArrayList<String> recordAsList = new ArrayList<>();
