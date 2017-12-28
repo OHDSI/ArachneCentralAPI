@@ -121,8 +121,9 @@ public class SubmissionHelper {
 
     private class CohortSubmissionExtendInfoStrategy extends SubmissionExtendInfoAnalyzeStrategy {
 
-        @Override
-        public void updateExtendInfo(final Submission submission) {
+        public String personCountColName = "persons";
+
+        public long getPersonCount(final Submission submission) {
 
             QuerySpec querySpec = new QuerySpec();
 
@@ -132,24 +133,32 @@ public class SubmissionHelper {
 
             final List<ArachneFileMeta> files = contentStorageService.searchFiles(querySpec);
 
-            final JsonObject resultInfo = new JsonObject();
-            final String jsonColumnName = "persons";
-            resultInfo.add(jsonColumnName, new JsonPrimitive(0));
-            files.forEach(f -> {
+            long sum = 0;
+
+            for (ArachneFileMeta f : files) {
                 try {
                     final CSVParser parser = CSVParser.parse(contentStorageService.getContentByFilepath(f.getPath()), Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
                     final Integer countColumnNumber = parser.getHeaderMap().get("count");
-                    final List<CSVRecord> records = parser.getRecords();
-                    if (!CollectionUtils.isEmpty(records)) {
-                        final long count = Long.parseLong(records.get(0).get(countColumnNumber));
-                        final JsonPrimitive person = resultInfo.getAsJsonPrimitive(jsonColumnName);
-                        final long asLong = person.getAsLong();
-                        resultInfo.add(jsonColumnName, new JsonPrimitive(asLong + count));
+                    if (countColumnNumber != null) {
+                        final List<CSVRecord> records = parser.getRecords();
+                        if (!CollectionUtils.isEmpty(records)) {
+                            final long count = Long.parseLong(records.get(0).get(countColumnNumber));
+                            sum += count;
+                        }
                     }
                 } catch (IOException e) {
                     LOGGER.warn("Can not open \"count\" file, ResultFile={}. Error={}", f, e.getMessage());
                 }
-            });
+            }
+
+            return sum;
+        }
+
+        @Override
+        public void updateExtendInfo(final Submission submission) {
+
+            final JsonObject resultInfo = new JsonObject();
+            resultInfo.add(personCountColName, new JsonPrimitive(getPersonCount(submission)));
             submission.setResultInfo(resultInfo);
         }
     }
@@ -160,6 +169,12 @@ public class SubmissionHelper {
         public void updateExtendInfo(final Submission submission) {
 
             final JsonObject resultInfo = new JsonObject();
+
+            // Set person count
+            CohortSubmissionExtendInfoStrategy cohortStrategy = new CohortSubmissionExtendInfoStrategy();
+            resultInfo.add(cohortStrategy.personCountColName, new JsonPrimitive(cohortStrategy.getPersonCount(submission)));
+
+            // Set amount of reports
             try {
                 final Set<String> docTypes = Arrays.stream(CohortCharacterizationDocType.values())
                         .filter(docType -> CohortCharacterizationDocType.UNKNOWN != docType)
@@ -170,6 +185,7 @@ public class SubmissionHelper {
 
                 final QuerySpec querySpec = new QuerySpec();
                 querySpec.setPath(resultsDir);
+                querySpec.setSearchSubfolders(true);
                 querySpec.setContentTypes(docTypes);
 
                 final int count = contentStorageService.searchFiles(querySpec).size();
