@@ -88,7 +88,7 @@ public class V20171219232521__ResultFilesToJcr implements ApplicationContextAwar
 
     private ArachneFileMeta migrateFile(String path, File file, Long createdBy) {
 
-        return contentStorageService.saveFile(path, file, createdBy);
+        return contentStorageService.saveFile(file, path, createdBy);
     }
 
     private void updateResultFile(LegacyResultFile lrf, ArachneFileMeta migratedFileMeta) {

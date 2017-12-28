@@ -76,6 +76,7 @@ import com.odysseusinc.arachne.portal.util.LegacyAnalysisHelper;
 import com.odysseusinc.arachne.portal.util.SubmissionHelper;
 import com.odysseusinc.arachne.portal.util.UUIDGenerator;
 import com.odysseusinc.arachne.portal.util.ZipUtil;
+import com.odysseusinc.arachne.storage.util.FileSaveRequest;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -400,6 +401,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     }
 
     protected void checkBeforeCreateSubmissionGroup(Analysis analysis) throws NoExecutableFileException {
+
     }
 
     @Override
@@ -611,6 +613,33 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         return submissionStatusHistoryRepository.findByIdIn(ids);
     }
 
+
+    @Override
+    @Transactional
+    public List<ResultFile> createResultFilesBatch(
+            List<FileSaveRequest> fileSaveRequests,
+            Submission submission,
+            Long createById
+    ) throws IOException {
+
+        fileSaveRequests.forEach(entry ->
+                entry.setDestinationFilepath(contentStorageHelper.getResultFilesDir(submission, entry.getDestinationFilepath()))
+        );
+
+        List<ArachneFileMeta> metaList = contentStorageService.saveBatch(fileSaveRequests, createById);
+
+        return metaList.stream().map(fm -> {
+
+            ResultFile resultFile = new ResultFile();
+            resultFile.setSubmission(submission);
+
+            resultFile.setUuid(fm.getUuid());
+            resultFile.setPath(fm.getPath());
+
+            return resultFile;
+        }).collect(Collectors.toList());
+    }
+
     @Override
     @Transactional
     public ResultFile createResultFile(
@@ -624,8 +653,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         resultFile.setSubmission(submission);
 
         ArachneFileMeta fileMeta = contentStorageService.saveFile(
-                contentStorageHelper.getResultFilesDir(submission, name),
-                filePath.toFile(),
+                filePath.toFile(), contentStorageHelper.getResultFilesDir(submission, name),
                 createById
         );
 
