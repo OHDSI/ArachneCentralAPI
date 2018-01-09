@@ -40,7 +40,6 @@ import com.github.springtestdbunit.annotation.ExpectedDatabases;
 import com.odysseusinc.arachne.portal.api.v1.dto.ApproveDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.CreateSubmissionsDTO;
 import com.odysseusinc.arachne.portal.model.Submission;
-import com.odysseusinc.arachne.portal.service.AnalysisPaths;
 import com.odysseusinc.arachne.portal.util.AnalysisHelper;
 import com.odysseusinc.arachne.portal.util.ContentStorageHelper;
 import com.odysseusinc.arachne.storage.service.ContentStorageService;
@@ -66,7 +65,6 @@ import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springmodules.jcr.JcrTemplate;
 
 @RunWith(SpringRunner.class)
 @DatabaseSetups({
@@ -373,7 +371,7 @@ public class AnalysisSubmissionControllerTests extends BaseControllerTest {
 
         Files.write(tempFile.toPath(), "SELECT * FROM death LIMIT 10".getBytes());
 
-        contentStorageService.saveFile(filepath, tempFile, 2L);
+        contentStorageService.saveFile(tempFile, filepath, 2L);
 
         return filepath;
     }

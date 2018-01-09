@@ -36,6 +36,7 @@ public class ArachneFileMetaToFileDTOConverter extends BaseConversionServiceAwar
         FileDTO fileDTO = new FileDTO();
 
         fileDTO.setUuid(source.getUuid());
+        fileDTO.setPath(source.getPath());
         fileDTO.setName(source.getName());
         fileDTO.setCreated(source.getCreated());
         fileDTO.setUpdated(source.getUpdated());
