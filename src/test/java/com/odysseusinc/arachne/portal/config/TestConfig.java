@@ -26,12 +26,13 @@ import static org.mockito.Mockito.mock;
 
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.jackrabbit.api.JackrabbitRepository;
-import org.apache.jackrabbit.core.JackrabbitRepositoryStub;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -44,6 +45,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupp
 @Configuration
 @EnableWebMvc
 public class TestConfig extends WebMvcConfigurationSupport {
+
+    @Value("#{'${portal.hostsWhiteList}'.toLowerCase().split(',')}")
+    private List<String> portalHostWhiteList;
 
     @Bean
     public MultipartResolver multipartResolver() {
@@ -69,17 +73,15 @@ public class TestConfig extends WebMvcConfigurationSupport {
     @Bean
     public WebSecurityConfig.HostFilter testHostFilter() {
 
-        return new TestHostFilter("localhost:0");
+        return new TestHostFilter(portalHostWhiteList);
     }
 
     public final class TestHostFilter extends WebSecurityConfig.HostFilter {
 
-        private String portalHost;
+        private String portalHost = "localhost:0";
 
-        public TestHostFilter(String portalHost) {
-
-            super(null);
-            this.portalHost = portalHost;
+        public TestHostFilter(Collection<String> portalHostWhiteList) {
+            super(portalHostWhiteList);
         }
 
         @Override

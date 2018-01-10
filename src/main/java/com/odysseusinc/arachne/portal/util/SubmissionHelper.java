@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.util;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
@@ -30,22 +31,21 @@ import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.commons.utils.cohortcharacterization.CohortCharacterizationDocType;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.repository.SubmissionResultFileRepository;
-import com.odysseusinc.arachne.storage.model.ArachneFileSourced;
+import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.storage.model.QuerySpec;
 import com.odysseusinc.arachne.storage.service.ContentStorageService;
 import com.odysseusinc.arachne.storage.service.JcrContentStorageServiceImpl;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -121,35 +121,41 @@ public class SubmissionHelper {
 
     private class CohortSubmissionExtendInfoStrategy extends SubmissionExtendInfoAnalyzeStrategy {
 
-        @Override
-        public void updateExtendInfo(final Submission submission) {
+        public final String COUNT_KEY = "count";
+        public String personCountColName = "persons";
 
-            QuerySpec querySpec = new QuerySpec();
+        public long getPersonCount(final Submission submission) {
 
-            querySpec.setPath(contentStorageHelper.getResultFilesDir(submission));
-            querySpec.setName("%count%.csv");
-            querySpec.setNameLike(true);
+            final List<ArachneFileMeta> files = searchFiles(submission, "%count%.csv");
 
-            final List<ArachneFileSourced> files = contentStorageService.searchFiles(querySpec);
+            long sum = 0;
 
-            final JsonObject resultInfo = new JsonObject();
-            final String jsonColumnName = "persons";
-            resultInfo.add(jsonColumnName, new JsonPrimitive(0));
-            files.forEach(f -> {
+            for (ArachneFileMeta f : files) {
                 try {
-                    final CSVParser parser = CSVParser.parse(f.getInputStream(), Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
-                    final Integer countColumnNumber = parser.getHeaderMap().get("count");
-                    final List<CSVRecord> records = parser.getRecords();
-                    if (!CollectionUtils.isEmpty(records)) {
-                        final long count = Long.parseLong(records.get(0).get(countColumnNumber));
-                        final JsonPrimitive person = resultInfo.getAsJsonPrimitive(jsonColumnName);
-                        final long asLong = person.getAsLong();
-                        resultInfo.add(jsonColumnName, new JsonPrimitive(asLong + count));
+                    final CSVParser parser = CSVParser.parse(contentStorageService.getContentByFilepath(f.getPath()), Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
+                    final Integer countColumnNumber = parser.getHeaderMap().containsKey(COUNT_KEY.toLowerCase())
+                            ? parser.getHeaderMap().get(COUNT_KEY.toLowerCase())
+                            : parser.getHeaderMap().get(COUNT_KEY.toUpperCase());
+                    if (countColumnNumber != null) {
+                        final List<CSVRecord> records = parser.getRecords();
+                        if (!CollectionUtils.isEmpty(records)) {
+                            final long count = Long.parseLong(records.get(0).get(countColumnNumber));
+                            sum += count;
+                        }
                     }
                 } catch (IOException e) {
                     LOGGER.warn("Can not open \"count\" file, ResultFile={}. Error={}", f, e.getMessage());
                 }
-            });
+            }
+
+            return sum;
+        }
+
+        @Override
+        public void updateExtendInfo(final Submission submission) {
+
+            final JsonObject resultInfo = new JsonObject();
+            resultInfo.add(personCountColName, new JsonPrimitive(getPersonCount(submission)));
             submission.setResultInfo(resultInfo);
         }
     }
@@ -160,6 +166,12 @@ public class SubmissionHelper {
         public void updateExtendInfo(final Submission submission) {
 
             final JsonObject resultInfo = new JsonObject();
+
+            // Set person count
+            CohortSubmissionExtendInfoStrategy cohortStrategy = new CohortSubmissionExtendInfoStrategy();
+            resultInfo.add(cohortStrategy.personCountColName, new JsonPrimitive(cohortStrategy.getPersonCount(submission)));
+
+            // Set amount of reports
             try {
                 final Set<String> docTypes = Arrays.stream(CohortCharacterizationDocType.values())
                         .filter(docType -> CohortCharacterizationDocType.UNKNOWN != docType)
@@ -170,6 +182,7 @@ public class SubmissionHelper {
 
                 final QuerySpec querySpec = new QuerySpec();
                 querySpec.setPath(resultsDir);
+                querySpec.setSearchSubfolders(true);
                 querySpec.setContentTypes(docTypes);
 
                 final int count = contentStorageService.searchFiles(querySpec).size();
@@ -192,10 +205,10 @@ public class SubmissionHelper {
             final JsonObject resultInfo = new JsonObject();
             try {
                 final String resultsDir = contentStorageHelper.getResultFilesDir(submission);
-                ArachneFileSourced arachneFile = contentStorageService.getFileByPath(resultsDir
+                ArachneFileMeta arachneFile = contentStorageService.getFileByPath(resultsDir
                         + JcrContentStorageServiceImpl.PATH_SEPARATOR
                         + INCIDENCE_SUMMARY_FILENAME);
-                final CSVParser parser = CSVParser.parse(arachneFile.getInputStream(), Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
+                final CSVParser parser = CSVParser.parse(contentStorageService.getContentByFilepath(arachneFile.getPath()), Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
                 final Map<String, Integer> headers = parser.getHeaderMap();
 
                 final String personCountHeader = "PERSON_COUNT";
@@ -253,24 +266,11 @@ public class SubmissionHelper {
         @Override
         public void updateExtendInfo(final Submission submission) {
 
-            final JsonObject resultInfo = new JsonObject();
+            JsonObject resultInfo = new JsonObject();
             try {
-                final String resultsDir = contentStorageHelper.getResultFilesDir(submission);
-                final ArachneFileSourced arachneFile = contentStorageService.getFileByPath(resultsDir
-                        + JcrContentStorageServiceImpl.PATH_SEPARATOR
-                        + PLE_SUMMARY_FILENAME);
-                final CSVParser parser = CSVParser.parse(arachneFile.getInputStream(), Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
-                final List<CSVRecord> records = parser.getRecords();
-                if (!CollectionUtils.isEmpty(records)) {
-                    final CSVRecord firstRecord = records.get(0);
-                    for (Map.Entry<String, Integer> entry : parser.getHeaderMap().entrySet()) {
-                        final String header = entry.getKey();
-                        final Integer entryValue = entry.getValue();
-                        if (Objects.nonNull(entryValue)) {
-                            final String value = firstRecord.get(entryValue);
-                            resultInfo.add(header, getJsonPrimitive(value));
-                        }
-                    }
+                final List<ArachneFileMeta> resultFiles = searchFiles(submission, PLE_SUMMARY_FILENAME);
+                if (resultFiles.size() > 0) {
+                    resultInfo = parseCsvDataframeToJson(resultFiles.get(0).getPath());
                 }
             } catch (IOException e) {
                 LOGGER.warn(CAN_NOT_PARSE_LOG, PLE_SUMMARY_FILENAME);
@@ -287,22 +287,14 @@ public class SubmissionHelper {
         @Override
         public void updateExtendInfo(final Submission submission) {
 
-            final JsonObject resultInfo = new JsonObject();
+            JsonObject resultInfo = new JsonObject();
 
             try {
                 final String resultsDir = contentStorageHelper.getResultFilesDir(submission);
-                final ArachneFileSourced arachneFile = contentStorageService.getFileByPath(resultsDir
+                final ArachneFileMeta arachneFile = contentStorageService.getFileByPath(resultsDir
                         + JcrContentStorageServiceImpl.PATH_SEPARATOR
                         + PLP_SUMMARY_FILENAME);
-                final CSVParser parser = CSVParser.parse(arachneFile.getInputStream(), Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
-                final List<CSVRecord> records = parser.getRecords();
-                for (CSVRecord record : records) {
-                    final ArrayList<String> recordAsList = new ArrayList<>();
-                    for (String s : record) {
-                        recordAsList.add(s);
-                    }
-                    get(resultInfo, recordAsList);
-                }
+                resultInfo = parseCsvDataframeToJson(arachneFile.getPath());
             } catch (IOException e) {
                 LOGGER.warn(CAN_NOT_PARSE_LOG, PLP_SUMMARY_FILENAME);
             } catch (Exception e) {
@@ -311,21 +303,49 @@ public class SubmissionHelper {
             }
             submission.setResultInfo(resultInfo);
         }
+    }
 
-        void get(JsonObject object, final List<String> record) {
+    private List<ArachneFileMeta> searchFiles(Submission submission, String fileNameLike) {
 
-            if (record.size() == 2) {
-                object.add(record.remove(0), getJsonPrimitive(record.remove(0)));
-            } else {
-                final String property = record.remove(0);
-                JsonObject jsonObject = object.getAsJsonObject(property);
-                if (Objects.isNull(jsonObject)) {
-                    jsonObject = new JsonObject();
+        QuerySpec querySpec = new QuerySpec();
+
+        querySpec.setPath(contentStorageHelper.getResultFilesDir(submission));
+        querySpec.setName(fileNameLike);
+        querySpec.setNameLike(true);
+        querySpec.setSearchSubfolders(true);
+
+        return contentStorageService.searchFiles(querySpec);
+    }
+
+    private JsonObject parseCsvDataframeToJson(String filepath) throws IOException {
+
+        final JsonObject resultInfo = new JsonObject();
+
+        final CSVParser parser = CSVParser.parse(contentStorageService.getContentByFilepath(filepath), Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
+        final Map<String, Integer> headerMap = parser.getHeaderMap();
+        final List<CSVRecord> csvRecordList = parser.getRecords();
+
+        JsonArray jsonHeaders = new JsonArray();
+        headerMap.forEach((key, value) -> jsonHeaders.add(key));
+        resultInfo.add("headers", jsonHeaders);
+
+        JsonArray jsonRecords = new JsonArray();
+        csvRecordList.forEach(record -> {
+            final JsonObject jsonRecord = new JsonObject();
+            for (Map.Entry<String, Integer> entry : headerMap.entrySet()) {
+                final String key = entry.getKey();
+                final String value = record.get(entry.getValue());
+                if (NumberUtils.isCreatable(value)) {
+                    jsonRecord.addProperty(key, Float.parseFloat(value));
+                } else {
+                    jsonRecord.addProperty(key, value);
                 }
-                object.add(property, jsonObject);
-                get(jsonObject, record);
             }
-        }
+            jsonRecords.add(jsonRecord);
+        });
+        resultInfo.add("records", jsonRecords);
+
+        return resultInfo;
     }
 
     private static JsonElement getJsonPrimitive(final String value) {

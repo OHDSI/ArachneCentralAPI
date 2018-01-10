@@ -2,7 +2,8 @@ package com.odysseusinc.arachne.portal.util;
 
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.storage.service.ContentStorageService;
-import java.nio.file.Path;
+import java.io.Serializable;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -13,16 +14,13 @@ public class ContentStorageHelper {
     public static String RESULT_FILES_DIR = "results";
 
     private ContentStorageService contentStorageService;
-    private AnalysisHelper analysisHelper;
 
     @Autowired
     public ContentStorageHelper(
-            ContentStorageService contentStorageService,
-            AnalysisHelper analysisHelper
+            ContentStorageService contentStorageService
     ) {
 
         this.contentStorageService = contentStorageService;
-        this.analysisHelper = analysisHelper;
     }
 
     public String getResultFilesDir(Submission submission, String relativeFolder) {
@@ -33,5 +31,15 @@ public class ContentStorageHelper {
     public String getResultFilesDir(Submission submission) {
 
         return getResultFilesDir(submission, null);
+    }
+
+    public String getResultFilesDir(Class domainClazz, Serializable identifier, String relativeFolder) {
+
+        return contentStorageService.getLocationForEntity(domainClazz, identifier, Arrays.asList(RESULT_FILES_DIR, relativeFolder));
+    }
+
+    public String getRelativePath(String basePath, String nodePath) {
+
+        return Paths.get(basePath).relativize(Paths.get(nodePath)).toString().replace('\\', '/');
     }
 }

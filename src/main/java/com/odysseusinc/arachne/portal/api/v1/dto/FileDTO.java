@@ -26,6 +26,7 @@ import java.util.Date;
 
 public class FileDTO {
     protected String uuid;
+    protected String path;
     protected String name;
     protected String label;
     protected Date created;
@@ -49,13 +50,14 @@ public class FileDTO {
 
     }
 
-    public FileDTO(String uuid, String name, String label, Date created, Date updated, String docType, String mimeType, UserInfoDTO author) {
+    public FileDTO(String uuid, String path, String name, String label, Date created, Date updated, String docType, String mimeType, UserInfoDTO author) {
 
-        this(name, label, created, updated, docType, mimeType, author);
+        this(name, path, label, created, updated, docType, mimeType, author);
         this.uuid = uuid;
+
     }
 
-    public FileDTO(String name, String label, Date created, Date updated, String docType, String mimeType, UserInfoDTO author) {
+    public FileDTO(String name, String path, String label, Date created, Date updated, String docType, String mimeType, UserInfoDTO author) {
 
         this.name = name;
         this.label = label;
@@ -64,6 +66,7 @@ public class FileDTO {
         this.docType = docType;
         this.mimeType = mimeType;
         this.author = author;
+        this.path = path;
     }
 
     public String getUuid() {
@@ -74,6 +77,16 @@ public class FileDTO {
     public void setUuid(String uuid) {
 
         this.uuid = uuid;
+    }
+
+    public String getPath() {
+
+        return path;
+    }
+
+    public void setPath(String path) {
+
+        this.path = path;
     }
 
     public String getLabel() {

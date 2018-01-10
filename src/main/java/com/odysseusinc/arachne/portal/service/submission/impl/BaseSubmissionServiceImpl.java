@@ -65,7 +65,6 @@ import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.storage.service.ContentStorageService;
 import com.odysseusinc.arachne.portal.service.UserService;
 import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
-import com.odysseusinc.arachne.storage.model.ArachneFileSourced;
 import com.odysseusinc.arachne.storage.model.QuerySpec;
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import com.odysseusinc.arachne.portal.service.mail.InvitationApprovalSubmissionArachneMailMessage;
@@ -77,6 +76,7 @@ import com.odysseusinc.arachne.portal.util.LegacyAnalysisHelper;
 import com.odysseusinc.arachne.portal.util.SubmissionHelper;
 import com.odysseusinc.arachne.portal.util.UUIDGenerator;
 import com.odysseusinc.arachne.portal.util.ZipUtil;
+import com.odysseusinc.arachne.storage.util.FileSaveRequest;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -401,6 +401,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     }
 
     protected void checkBeforeCreateSubmissionGroup(Analysis analysis) throws NoExecutableFileException {
+
     }
 
     @Override
@@ -604,6 +605,33 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         return submissionStatusHistoryRepository.findByIdIn(ids);
     }
 
+
+    @Override
+    @Transactional
+    public List<ResultFile> createResultFilesBatch(
+            List<FileSaveRequest> fileSaveRequests,
+            Submission submission,
+            Long createById
+    ) throws IOException {
+
+        fileSaveRequests.forEach(entry ->
+                entry.setDestinationFilepath(contentStorageHelper.getResultFilesDir(submission, entry.getDestinationFilepath()))
+        );
+
+        List<ArachneFileMeta> metaList = contentStorageService.saveBatch(fileSaveRequests, createById);
+
+        return metaList.stream().map(fm -> {
+
+            ResultFile resultFile = new ResultFile();
+            resultFile.setSubmission(submission);
+
+            resultFile.setUuid(fm.getUuid());
+            resultFile.setPath(fm.getPath());
+
+            return resultFile;
+        }).collect(Collectors.toList());
+    }
+
     @Override
     @Transactional
     public ResultFile createResultFile(
@@ -617,8 +645,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         resultFile.setSubmission(submission);
 
         ArachneFileMeta fileMeta = contentStorageService.saveFile(
-                contentStorageHelper.getResultFilesDir(submission, name),
-                filePath.toFile(),
+                filePath.toFile(), contentStorageHelper.getResultFilesDir(submission, name),
                 createById
         );
 
@@ -628,7 +655,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     }
 
     @Override
-    public List<ArachneFileSourced> getResultFiles(User user, Long submissionId, ResultFileSearch resultFileSearch) throws PermissionDeniedException {
+    public List<ArachneFileMeta> getResultFiles(User user, Long submissionId, ResultFileSearch resultFileSearch) throws PermissionDeniedException {
 
         Submission submission = submissionRepository.findById(submissionId, EntityGraphUtils.fromAttributePaths("dataSource", "dataSource.dataNode"));
         if (!(EXECUTED_PUBLISHED.equals(submission.getStatus()) || FAILED_PUBLISHED.equals(submission.getStatus()))) {
@@ -643,7 +670,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         querySpec.setName(resultFileSearch.getRealName());
         querySpec.setPath(resultFilesPath);
 
-        List<ArachneFileSourced> resultFileList = contentStorageService.searchFiles(querySpec);
+        List<ArachneFileMeta> resultFileList = contentStorageService.searchFiles(querySpec);
 
         return resultFileList;
     }
@@ -685,9 +712,8 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         Path resultFilesPath = Paths.get(contentStorageHelper.getResultFilesDir(submission));
         try (ZipOutputStream zos = new ZipOutputStream(os)) {
             for (ResultFile resultFile : submission.getResultFiles()) {
-                ArachneFileSourced arachneFile = contentStorageService.getFileByPath(resultFile.getPath());
-                Path relativePath = resultFilesPath.relativize(Paths.get(arachneFile.getPath()));
-                ZipUtil.addZipEntry(zos, relativePath.toString(), arachneFile.getInputStream());
+                Path relativePath = resultFilesPath.relativize(Paths.get(resultFile.getPath()));
+                ZipUtil.addZipEntry(zos, relativePath.toString(), contentStorageService.getContentByFilepath(resultFile.getPath()));
             }
         }
     }

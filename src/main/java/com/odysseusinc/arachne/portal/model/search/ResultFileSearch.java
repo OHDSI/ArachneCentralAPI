@@ -1,5 +1,7 @@
 package com.odysseusinc.arachne.portal.model.search;
 
+import com.odysseusinc.arachne.storage.service.ContentStorageService;
+
 public class ResultFileSearch {
 
     private String path;
@@ -12,7 +14,8 @@ public class ResultFileSearch {
 
     public void setPath(String path) {
 
-        this.path = path;
+        String relativePath = (path.length() > 1 && path.startsWith(ContentStorageService.PATH_SEPARATOR)) ? path.substring(1) : path;
+        this.path = relativePath;
     }
 
     public String getRealName() {
