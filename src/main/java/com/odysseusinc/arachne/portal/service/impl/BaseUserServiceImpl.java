@@ -162,7 +162,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     private String fileStorePath;
     @Value("${user.enabled.default}")
     private boolean userEnableDefault;
-    private Resource defaultAvatar = new ClassPathResource("avatar.png");
+    private Resource defaultAvatar = new ClassPathResource("avatar.svg");
     @Value("${portal.authMethod}")
     protected String userOrigin;
 
