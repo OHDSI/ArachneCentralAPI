@@ -35,6 +35,7 @@ public class FileDTO {
     protected String mimeType;
     protected UserInfoDTO author;
     protected String content;
+    protected Long fileId;
 
     public String getContent() {
 
@@ -50,15 +51,16 @@ public class FileDTO {
 
     }
 
-    public FileDTO(String uuid, String path, String name, String label, Date created, Date updated, String docType, String mimeType, UserInfoDTO author) {
+    public FileDTO(Long fileId, String uuid, String path, String name, String label, Date created, Date updated, String docType, String mimeType, UserInfoDTO author) {
 
-        this(name, path, label, created, updated, docType, mimeType, author);
+        this(fileId, name, path, label, created, updated, docType, mimeType, author);
         this.uuid = uuid;
 
     }
 
-    public FileDTO(String name, String path, String label, Date created, Date updated, String docType, String mimeType, UserInfoDTO author) {
+    public FileDTO(Long fileId, String name, String path, String label, Date created, Date updated, String docType, String mimeType, UserInfoDTO author) {
 
+        this.fileId = fileId;
         this.name = name;
         this.label = label;
         this.created = created;
@@ -67,6 +69,14 @@ public class FileDTO {
         this.mimeType = mimeType;
         this.author = author;
         this.path = path;
+    }
+
+    public Long getFileId() {
+        return fileId;
+    }
+
+    public void setFileId(Long fileId) {
+        this.fileId = fileId;
     }
 
     public String getUuid() {

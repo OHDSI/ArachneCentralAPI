@@ -102,7 +102,8 @@ public interface BaseSubmissionService<T extends Submission, A extends Analysis>
 
     @PreAuthorize("hasPermission(#analysisId,  'Analysis', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
-    ResultFile getResultFileAndCheckPermission(User user, Long analysisId, Long fileId) throws PermissionDeniedException;
+    ArachneFileMeta getResultFileAndCheckPermission(User user, Submission submission, Long analysisId, String fileUuid)
+            throws PermissionDeniedException;
 
     ResultFile getResultFileById(Long fileId);
 
@@ -117,7 +118,7 @@ public interface BaseSubmissionService<T extends Submission, A extends Analysis>
 
     List<SubmissionFile> getSubmissionFiles(Long submissionGroupId);
 
-    SubmissionFile getSubmissionFile(Long submissionGroupId, String uuid);
+    SubmissionFile getSubmissionFile(Long submissionGroupId, Long fileId);
 
     SubmissionGroup getSubmissionGroupById(Long id) throws NotExistException;
 

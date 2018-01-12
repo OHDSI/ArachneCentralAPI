@@ -48,6 +48,8 @@ public class ResultFileToCommentableResultFileDTOConverter extends BaseConversio
         dto.setCommentTopicId(source.getCommentTopic().getId());
         dto.setCommentCount(source.getCommentTopic().getCount());
         dto.setDocType(arachneFileMeta.getContentType());
+        dto.setFileId(source.getId());
+        dto.setUuid(arachneFileMeta.getUuid());
         return dto;
     }
 }
