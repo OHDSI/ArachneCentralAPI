@@ -40,7 +40,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Api(hidden = true)
 @RestController
-@Secured("ROLE_ADMIN")
 public class AdminController extends BaseAdminController<Study, DataSource, StudySearch, StudyViewItem, Analysis, Paper, PaperSearch, Submission> {
 
     @Autowired
