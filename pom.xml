@@ -18,6 +18,7 @@
 
     <properties>
         <arachne.commons.version>1.10.0</arachne.commons.version>
+        <arachne.resources.version>1.10.0</arachne.resources.version>
         <spring.boot.version>1.5.4.RELEASE</spring.boot.version>
         <spring.security.acl.version>4.2.1.RELEASE</spring.security.acl.version>
         <start-class>com.odysseusinc.arachne.portal.PortalStarter</start-class>
@@ -321,7 +322,7 @@
                                 <artifactItem>
                                     <groupId>com.odysseusinc.arachne</groupId>
                                     <artifactId>portal-resources</artifactId>
-                                    <version>${project.version}</version>
+                                    <version>${arachne.resources.version}</version>
                                     <type>zip</type>
                                     <overWrite>false</overWrite>
                                     <outputDirectory>${project.basedir}/src/main/resources/public/</outputDirectory>
