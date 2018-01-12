@@ -226,7 +226,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/v1/data-nodes/cohorts**").hasRole(Roles.ROLE_DATA_NODE)
                 .antMatchers("/api/v1/data-sources/byuuid/**").hasRole(Roles.ROLE_DATA_NODE)
 
-                .antMatchers("/api/v1/admin/users", "/api/v1/admin/users/**").hasRole("ADMIN")
                 // Next 2 are used by Data node (authed by query param, manually)
                 .antMatchers("/api/v1/analysis-management/submissions/**/files**").permitAll()
                 .antMatchers("/api/v1/analysis-management/submissions/result/upload**").permitAll()
