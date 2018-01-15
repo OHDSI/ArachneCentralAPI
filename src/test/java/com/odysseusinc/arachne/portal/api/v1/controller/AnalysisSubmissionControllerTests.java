@@ -434,7 +434,7 @@ public class AnalysisSubmissionControllerTests extends BaseControllerTest {
         prepareResultFile(1L);
 
         mvc.perform(
-                delete("/api/v1/analysis-management/submissions/{submissionId}/result/byid/{fileId}",
+                delete("/api/v1/analysis-management/submissions/{submissionId}/result/{fileId}",
                         submissionId, id)
         ).andExpect(NO_ERROR_CODE);
 
