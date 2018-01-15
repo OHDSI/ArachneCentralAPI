@@ -30,5 +30,5 @@ public interface SubmissionFileRepository extends CrudRepository<SubmissionFile,
 
     List<SubmissionFile> findBySubmissionGroupId(Long submissionGroupId);
 
-    SubmissionFile findBySubmissionGroupIdAndUuid(Long submissionGroupId, String uuid);
+    SubmissionFile findBySubmissionGroupIdAndId(Long submissionGroupId, Long fileId);
 }

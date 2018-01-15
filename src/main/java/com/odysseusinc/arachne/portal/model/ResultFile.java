@@ -44,10 +44,6 @@ public class ResultFile implements JcrStored {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "result_files_pk_sequence")
     private Long id;
 
-    @Deprecated
-    @Column
-    protected String uuid;
-
     @Column
     private String path;
 
@@ -69,18 +65,6 @@ public class ResultFile implements JcrStored {
     public void setId(Long id) {
 
         this.id = id;
-    }
-
-    @Deprecated
-    public String getUuid() {
-
-        return uuid;
-    }
-
-    @Deprecated
-    public void setUuid(String uuid) {
-
-        this.uuid = uuid;
     }
 
     public String getPath() {
