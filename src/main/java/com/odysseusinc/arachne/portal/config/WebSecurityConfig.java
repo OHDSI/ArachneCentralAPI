@@ -30,12 +30,16 @@ import com.odysseusinc.arachne.portal.security.EntryPointUnauthorizedHandler;
 import com.odysseusinc.arachne.portal.security.HostNameIsNotInServiceException;
 import com.odysseusinc.arachne.portal.security.Roles;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
+import edu.vt.middleware.password.AlphabeticalCharacterRule;
+import edu.vt.middleware.password.DigitCharacterRule;
+import edu.vt.middleware.password.IllegalCharacterRule;
 import edu.vt.middleware.password.LengthRule;
 import edu.vt.middleware.password.MessageResolver;
 import edu.vt.middleware.password.PasswordValidator;
 import edu.vt.middleware.password.QwertySequenceRule;
 import edu.vt.middleware.password.RepeatCharacterRegexRule;
 import edu.vt.middleware.password.Rule;
+import edu.vt.middleware.password.UsernameRule;
 import edu.vt.middleware.password.WhitespaceRule;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -121,16 +125,18 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public PasswordValidator passwordValidator() throws IOException {
-
-        LengthRule lengthRule = new LengthRule(8, 16);
-        WhitespaceRule whitespaceRule = new WhitespaceRule();
-        QwertySequenceRule qwertySeqRule = new QwertySequenceRule();
-        RepeatCharacterRegexRule repeatRule = new RepeatCharacterRegexRule(4);
+        // based on the novel
+        // https://www.paypalobjects.com/en_US/vhelp/paypalmanager_help/password_guidelines.htm
+        final char[] illegalCharacters = new char[] {'‘', '\"', '&', ' '};
         List<Rule> ruleList = new ArrayList<>();
-        ruleList.add(lengthRule);
-        ruleList.add(whitespaceRule);
-        ruleList.add(qwertySeqRule);
-        ruleList.add(repeatRule);
+        ruleList.add(new LengthRule(7, 32));
+        ruleList.add(new WhitespaceRule());
+        ruleList.add(new QwertySequenceRule());
+        ruleList.add(new RepeatCharacterRegexRule(4));
+        ruleList.add(new UsernameRule(true, true));
+        ruleList.add(new DigitCharacterRule(2));
+        ruleList.add(new AlphabeticalCharacterRule(2));
+        ruleList.add(new IllegalCharacterRule(illegalCharacters));
         Properties props = new Properties();
 
         props.load(new ClassPathResource("password_messages.properties").getInputStream());
