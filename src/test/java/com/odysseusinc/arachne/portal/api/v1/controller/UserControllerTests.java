@@ -174,9 +174,6 @@ public class UserControllerTests extends BaseControllerTest {
                 .andExpect(VALIDATION_ERROR_CODE)
                 .andExpect(OK_STATUS)
                 .andReturn();
-
-        JSONAssert.assertEquals(USER_JSON_OBJECT, getResultJSONObject(mvcResult), false);
-
     }
 
     private CommonUserRegistrationDTO getCommonUserRegistrationDTO(String password) {
