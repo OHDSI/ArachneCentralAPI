@@ -270,7 +270,8 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
 
         user.setProfessionalType(professionalTypeService.getById(user.getProfessionalType().getId()));
         String password = user.getPassword();
-        validatePassword(password);
+        final String username = user.getUsername();
+        validatePassword(username, password);
         user.setPassword(passwordEncoder.encode(password));
 
         return userRepository.save(user);
@@ -528,7 +529,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
             throw new ValidationException(PASSWORD_NOT_MATCH_EXC);
         }
-        validatePassword(newPassword);
+        validatePassword(user.getUsername(), newPassword);
         exists.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(exists);
     }
@@ -947,9 +948,10 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         return userRepository.listApprovedByDatasource(id);
     }
 
-    private void validatePassword(String password) throws PasswordValidationException {
+    private void validatePassword(String username, String password) throws PasswordValidationException {
 
         PasswordData passwordData = new PasswordData(new Password(password));
+        passwordData.setUsername(username);
         RuleResult result = passwordValidator.validate(passwordData);
         if (!result.isValid()) {
             throw new PasswordValidationException(passwordValidator.getMessages(result));
