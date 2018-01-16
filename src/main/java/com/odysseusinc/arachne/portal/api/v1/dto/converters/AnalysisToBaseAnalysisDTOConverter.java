@@ -23,14 +23,11 @@
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.BaseAnalysisDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.OptionDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.PermissionsDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.ShortBaseAnalysisDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.StudyShortDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserInfoDTO;
 import com.odysseusinc.arachne.portal.model.Analysis;
-import org.springframework.beans.factory.annotation.Autowired;
-import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
-import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -39,15 +36,13 @@ public class AnalysisToBaseAnalysisDTOConverter extends BaseConversionServiceAwa
     @Override
     public BaseAnalysisDTO convert(Analysis source) {
 
-        BaseAnalysisDTO analysisDTO = new BaseAnalysisDTO();
-        analysisDTO.setId(source.getId());
+        ShortBaseAnalysisDTO baseDTO = conversionService.convert(source, ShortBaseAnalysisDTO.class);
+        BaseAnalysisDTO analysisDTO = new BaseAnalysisDTO(baseDTO);
         analysisDTO.setAuthor(conversionService.convert(source.getAuthor(), UserInfoDTO.class));
         analysisDTO.setTitle(source.getTitle());
         analysisDTO.setDescription(source.getDescription());
-        analysisDTO.setCreated(source.getCreated());
         analysisDTO.setUpdated(source.getUpdated());
         analysisDTO.setStudy(conversionService.convert(source.getStudy(), StudyShortDTO.class));
-        analysisDTO.setType(new OptionDTO(source.getType().name(), source.getType().getTitle()));
 
         analysisDTO.setPermissions(conversionService.convert(source, PermissionsDTO.class));
         return analysisDTO;
