@@ -209,24 +209,12 @@ public abstract class BaseAnalysisController<T extends Analysis,
 
     @ApiOperation("Get short analysis info.")
     @RequestMapping(value = "/api/v1/analysis-management/analyses/{analysisId}/short", method = GET)
-    public JsonResult<ShortBaseAnalysisDTO> getShortAnalysis(
-            Principal principal,
+    public ShortBaseAnalysisDTO getShortAnalysis(
             @PathVariable("analysisId") Long analysisId)
-            throws PermissionDeniedException, NotExistException, NotUniqueException {
+            throws NotExistException, NotUniqueException {
 
-        JsonResult<ShortBaseAnalysisDTO> result;
-        User user = getUser(principal);
-        if (analysisId == null) {
-            result = new JsonResult<>(VALIDATION_ERROR);
-            result.getValidatorErrors().put("analysisId", "cannot be null");
-        } else if (user == null) {
-            result = new JsonResult<>(PERMISSION_DENIED);
-        } else {
-            T analysis = analysisService.getById(analysisId);
-            result = new JsonResult<>(NO_ERROR);
-            result.setResult(conversionService.convert(analysis, ShortBaseAnalysisDTO.class));
-        }
-        return result;
+       T analysis = analysisService.getById(analysisId);
+       return conversionService.convert(analysis, ShortBaseAnalysisDTO.class);
     }
 
     abstract protected Class<T> getAnalysisClass();
