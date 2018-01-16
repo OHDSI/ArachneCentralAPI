@@ -548,7 +548,7 @@ public abstract class BaseAnalysisServiceImpl<
         final AnalysisUnlockRequest savedUnlockRequest = analysisUnlockRequestRepository.save(analysisUnlockRequest);
         studyService.findLeads((S)savedUnlockRequest.getAnalysis().getStudy()).forEach(lead ->
                 mailSender.send(new UnlockAnalysisRequestMailMessage(
-                        WebSecurityConfig.portalHost.get(), lead, savedUnlockRequest)
+                        WebSecurityConfig.getDefaultPortalURI(), lead, savedUnlockRequest)
                 )
         );
         return savedUnlockRequest;

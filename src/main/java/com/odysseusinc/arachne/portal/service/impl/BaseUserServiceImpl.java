@@ -496,7 +496,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
 
         RegistrationMailMessage mail = new RegistrationMailMessage(
                 user,
-                WebSecurityConfig.portalHost.get(),
+                WebSecurityConfig.portalUrl.get(),
                 user.getRegistrationCode()
         );
         userRegistrant.ifPresent(registrant ->
@@ -752,7 +752,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
 
         RemindPasswordMailMessage mail = new RemindPasswordMailMessage(
                 user,
-                WebSecurityConfig.portalHost.get(),
+                WebSecurityConfig.portalUrl.get(),
                 token);
 
         Optional<UserRegistrant> userRegistrant = userRegistrantService.findByToken(registrantToken);

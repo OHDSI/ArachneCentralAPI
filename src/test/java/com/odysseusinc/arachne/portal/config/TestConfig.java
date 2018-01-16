@@ -26,8 +26,9 @@ import static org.mockito.Mockito.mock;
 
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import java.io.IOException;
-import java.util.Collection;
+import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -46,8 +47,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupp
 @EnableWebMvc
 public class TestConfig extends WebMvcConfigurationSupport {
 
-    @Value("#{'${portal.hostsWhiteList}'.toLowerCase().split(',')}")
-    private List<String> portalHostWhiteList;
+    @Value("#{'${portal.urlWhiteList}'.toLowerCase().split(',')}")
+    private List<String> portalUrlWhiteList;
 
     @Bean
     public MultipartResolver multipartResolver() {
@@ -73,23 +74,23 @@ public class TestConfig extends WebMvcConfigurationSupport {
     @Bean
     public WebSecurityConfig.HostFilter testHostFilter() {
 
-        return new TestHostFilter(portalHostWhiteList);
+        return new TestHostFilter(WebSecurityConfig.urlToHostUrlMapConverter(portalUrlWhiteList));
     }
 
     public final class TestHostFilter extends WebSecurityConfig.HostFilter {
 
-        private String portalHost = "localhost:0";
+        private String portalURL = "http://localhost:0";
 
-        public TestHostFilter(Collection<String> portalHostWhiteList) {
-            super(portalHostWhiteList);
+        public TestHostFilter(Map<String, URI> portalUrlWhiteList) {
+
+            super(portalUrlWhiteList);
         }
 
         @Override
         protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-            WebSecurityConfig.portalHost.set(portalHost);
+            WebSecurityConfig.portalUrl.set(portalURL);
             filterChain.doFilter(request, response);
         }
     }
-
 }

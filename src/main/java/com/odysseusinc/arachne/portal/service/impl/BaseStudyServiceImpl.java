@@ -481,7 +481,7 @@ public abstract class BaseStudyServiceImpl<
 
         userStudyRepository.save(studyLink);
         arachneMailSender.send(
-                new InvitationCollaboratorMailSender(WebSecurityConfig.portalHost.get(), participant, studyLink)
+                new InvitationCollaboratorMailSender(WebSecurityConfig.getDefaultPortalURI(), participant, studyLink)
         );
         return studyLink;
     }
