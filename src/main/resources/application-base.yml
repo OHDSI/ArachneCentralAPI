@@ -1,5 +1,6 @@
 # suppress inspection "SpringBootApplicationProperties" for whole file
 server:
+  port: 8080
   ssl:
     enabled: true
     key-store: classpath:keystore.jks
@@ -114,7 +115,7 @@ user:
 # NATIVE
 portal:
   authMethod: NATIVE
-  hostsWhiteList: community.arachnenetwork.com
+  urlWhiteList: https://community.arachnenetwork.com:443
   useQueryInterceptor: false
 datanode:
   messaging:

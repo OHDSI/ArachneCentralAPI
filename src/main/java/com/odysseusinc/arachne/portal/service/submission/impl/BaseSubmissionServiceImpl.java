@@ -253,7 +253,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         try {
             for (User owner : dnOwners) {
                 mailSender.send(new InvitationApprovalSubmissionArachneMailMessage(
-                        WebSecurityConfig.portalHost.get(), owner, submission)
+                        WebSecurityConfig.getDefaultPortalURI(), owner, submission)
                 );
             }
         } catch (Exception ignore) {
