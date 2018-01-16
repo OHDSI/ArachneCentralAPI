@@ -65,7 +65,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -84,11 +83,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Autowired
-    Environment env;
-
-    private final static Logger log = LoggerFactory.getLogger(WebSecurityConfig.class);
-    public static final ThreadLocal<String> portalUrl = new ThreadLocal<>();
+    private static final Logger log = LoggerFactory.getLogger(WebSecurityConfig.class);
+    private static final ThreadLocal<String> portalUrl = new ThreadLocal<>();
     public static String defaultPortalURI;
 
     @Value("#{'${portal.urlWhiteList}'.toLowerCase().split(',')}")
