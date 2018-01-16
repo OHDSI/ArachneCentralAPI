@@ -32,6 +32,8 @@ import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisExecutionStatusD
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.api.v1.controller.BaseController;
 import com.odysseusinc.arachne.portal.api.v1.dto.ApproveDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.BaseSubmissionAndAnalysisTypeDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.BaseSubmissionDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.CreateSubmissionsDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.FileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ResultFileDTO;
@@ -54,15 +56,27 @@ import com.odysseusinc.arachne.portal.model.SubmissionStatusHistoryElement;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.ResultFileSearch;
 import com.odysseusinc.arachne.portal.service.ToPdfConverter;
-import com.odysseusinc.arachne.portal.util.ContentStorageHelper;
-import com.odysseusinc.arachne.storage.service.ContentStorageService;
-import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
-import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
+import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightService;
 import com.odysseusinc.arachne.portal.util.AnalysisHelper;
+import com.odysseusinc.arachne.portal.util.ContentStorageHelper;
 import com.odysseusinc.arachne.portal.util.HttpUtils;
+import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
+import com.odysseusinc.arachne.storage.service.ContentStorageService;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.util.StringUtils;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -72,19 +86,6 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
-import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.util.StringUtils;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 public abstract class BaseSubmissionController<T extends Submission, A extends Analysis, DTO extends SubmissionDTO>
         extends BaseController {
@@ -142,6 +143,27 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
         return result;
     }
 
+    @ApiOperation("Get submission.")
+    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}", method = GET)
+    public JsonResult<BaseSubmissionAndAnalysisTypeDTO> getSubmission(
+            Principal principal,
+            @PathVariable("submissionId") Long submissionId)
+            throws PermissionDeniedException, NotExistException {
+
+        if (principal == null) {
+            throw new PermissionDeniedException();
+        }
+        User user = userService.getByEmail(principal.getName());
+        if (user == null) {
+            throw new PermissionDeniedException();
+        }
+        T submission = submissionService.getSubmissionById(submissionId);
+        BaseSubmissionDTO dto = conversionService.convert(submission, BaseSubmissionDTO.class);
+
+        final JsonResult<BaseSubmissionAndAnalysisTypeDTO> result = new JsonResult<>(NO_ERROR);
+        result.setResult(new BaseSubmissionAndAnalysisTypeDTO(dto, submission.getAnalysis().getType()));
+        return result;
+    }
 
     @ApiOperation("Approve submission for execute")
     @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/approve", method = POST)
