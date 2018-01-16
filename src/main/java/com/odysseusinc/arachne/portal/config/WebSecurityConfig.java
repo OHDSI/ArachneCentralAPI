@@ -84,8 +84,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private static final Logger log = LoggerFactory.getLogger(WebSecurityConfig.class);
-    private static final ThreadLocal<String> portalUrl = new ThreadLocal<>();
-    public static String defaultPortalURI;
+    public static final ThreadLocal<String> portalUrl = new ThreadLocal<>();
+    private static String defaultPortalURI;
 
     @Value("#{'${portal.urlWhiteList}'.toLowerCase().split(',')}")
     private List<String> portalUrlWhiteList;
