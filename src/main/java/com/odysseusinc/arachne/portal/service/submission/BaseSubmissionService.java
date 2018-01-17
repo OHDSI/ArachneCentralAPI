@@ -79,6 +79,8 @@ public interface BaseSubmissionService<T extends Submission, A extends Analysis>
 
     T changeSubmissionState(Long id, String status);
 
+    T getSubmissionByIdUnsecured(Long id) throws NotExistException;
+
     T getSubmissionById(Long id) throws NotExistException;
 
     T getSubmissionById(Long id, EntityGraph entityGraph) throws NotExistException;

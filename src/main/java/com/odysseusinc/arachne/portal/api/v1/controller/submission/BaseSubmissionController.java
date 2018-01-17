@@ -145,24 +145,11 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
 
     @ApiOperation("Get submission.")
     @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}", method = GET)
-    public JsonResult<BaseSubmissionAndAnalysisTypeDTO> getSubmission(
-            Principal principal,
-            @PathVariable("submissionId") Long submissionId)
-            throws PermissionDeniedException, NotExistException {
+    public BaseSubmissionAndAnalysisTypeDTO getSubmission(@PathVariable("submissionId") Long submissionId) throws NotExistException {
 
-        if (principal == null) {
-            throw new PermissionDeniedException();
-        }
-        User user = userService.getByEmail(principal.getName());
-        if (user == null) {
-            throw new PermissionDeniedException();
-        }
         T submission = submissionService.getSubmissionById(submissionId);
         BaseSubmissionDTO dto = conversionService.convert(submission, BaseSubmissionDTO.class);
-
-        final JsonResult<BaseSubmissionAndAnalysisTypeDTO> result = new JsonResult<>(NO_ERROR);
-        result.setResult(new BaseSubmissionAndAnalysisTypeDTO(dto, submission.getAnalysis().getType()));
-        return result;
+        return new BaseSubmissionAndAnalysisTypeDTO(dto, submission.getSubmissionGroup().getAnalysisType());
     }
 
     @ApiOperation("Approve submission for execute")
@@ -286,7 +273,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
         response.setHeader("Content-Disposition",
                 "attachment; filename=" + archiveName);
 
-        Submission submission = submissionService.getSubmissionById(submissionId);
+        Submission submission = submissionService.getSubmissionByIdUnsecured(submissionId);
         User user = userService.getByEmail(principal.getName());
         submissionService
                 .getSubmissionResultAllFiles(user, submission.getSubmissionGroup().getAnalysis().getId(),
@@ -302,7 +289,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
             @PathVariable("fileId") Long fileId,
             HttpServletResponse response) throws PermissionDeniedException, NotExistException, IOException {
 
-        Submission submission = submissionService.getSubmissionById(submissionId);
+        Submission submission = submissionService.getSubmissionByIdUnsecured(submissionId);
         downloadSubmissionGroupFile(submission.getSubmissionGroup().getId(), fileId, response);
     }
 
@@ -375,7 +362,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     public JsonResult<List<SubmissionStatusHistoryElementDTO>> getStatusHistory(
             @PathVariable("submissionId") Long submissionId) throws NotExistException {
 
-        Submission submission = submissionService.getSubmissionById(submissionId);
+        Submission submission = submissionService.getSubmissionByIdUnsecured(submissionId);
         List<SubmissionStatusHistoryElement> submissionStatusHistory =
                 submissionService.getSubmissionStatusHistory(submission.getSubmissionGroup().getAnalysis().getId(), submissionId);
         List<SubmissionStatusHistoryElementDTO> convert = new LinkedList<>();
@@ -395,7 +382,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
             @PathVariable("fileId") Long fileId)
             throws NotExistException, IOException {
 
-        Submission submission = submissionService.getSubmissionById(submissionId);
+        Submission submission = submissionService.getSubmissionByIdUnsecured(submissionId);
         return getSubmissionGroupFileInfo(submission.getSubmissionGroup().getId(), fileId, Boolean.TRUE);
     }
 
@@ -463,7 +450,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     private ArachneFileMeta getResultFile(Principal principal, Long submissionId, String fileUuid)
             throws NotExistException, PermissionDeniedException {
 
-        Submission submission = submissionService.getSubmissionById(submissionId);
+        Submission submission = submissionService.getSubmissionByIdUnsecured(submissionId);
         User user = userService.getByEmail(principal.getName());
         return submissionService.getResultFileAndCheckPermission(user, submission, submission.getSubmissionGroup().getAnalysis().getId(), fileUuid);
     }
