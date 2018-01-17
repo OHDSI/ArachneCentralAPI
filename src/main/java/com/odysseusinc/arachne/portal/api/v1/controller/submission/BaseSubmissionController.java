@@ -145,24 +145,11 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
 
     @ApiOperation("Get submission.")
     @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}", method = GET)
-    public JsonResult<BaseSubmissionAndAnalysisTypeDTO> getSubmission(
-            Principal principal,
-            @PathVariable("submissionId") Long submissionId)
-            throws PermissionDeniedException, NotExistException {
+    public BaseSubmissionAndAnalysisTypeDTO getSubmission(@PathVariable("submissionId") Long submissionId) throws NotExistException {
 
-        if (principal == null) {
-            throw new PermissionDeniedException();
-        }
-        User user = userService.getByEmail(principal.getName());
-        if (user == null) {
-            throw new PermissionDeniedException();
-        }
         T submission = submissionService.getSubmissionById(submissionId);
         BaseSubmissionDTO dto = conversionService.convert(submission, BaseSubmissionDTO.class);
-
-        final JsonResult<BaseSubmissionAndAnalysisTypeDTO> result = new JsonResult<>(NO_ERROR);
-        result.setResult(new BaseSubmissionAndAnalysisTypeDTO(dto, submission.getAnalysis().getType()));
-        return result;
+        return new BaseSubmissionAndAnalysisTypeDTO(dto, submission.getSubmissionGroup().getAnalysisType());
     }
 
     @ApiOperation("Approve submission for execute")
