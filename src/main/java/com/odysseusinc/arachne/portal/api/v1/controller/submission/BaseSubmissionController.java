@@ -301,7 +301,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
         response.setHeader("Content-Disposition",
                 "attachment; filename=" + archiveName);
 
-        Submission submission = submissionService.getSubmissionById(submissionId);
+        Submission submission = submissionService.getSubmissionByIdUnsecured(submissionId);
         User user = userService.getByEmail(principal.getName());
         submissionService
                 .getSubmissionResultAllFiles(user, submission.getSubmissionGroup().getAnalysis().getId(),
@@ -317,7 +317,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
             @PathVariable("fileUuid") String uuid,
             HttpServletResponse response) throws PermissionDeniedException, NotExistException, IOException {
 
-        Submission submission = submissionService.getSubmissionById(submissionId);
+        Submission submission = submissionService.getSubmissionByIdUnsecured(submissionId);
         downloadSubmissionGroupFile(submission.getSubmissionGroup().getId(), uuid, response);
     }
 
@@ -390,7 +390,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     public JsonResult<List<SubmissionStatusHistoryElementDTO>> getStatusHistory(
             @PathVariable("submissionId") Long submissionId) throws NotExistException {
 
-        Submission submission = submissionService.getSubmissionById(submissionId);
+        Submission submission = submissionService.getSubmissionByIdUnsecured(submissionId);
         List<SubmissionStatusHistoryElement> submissionStatusHistory =
                 submissionService.getSubmissionStatusHistory(submission.getSubmissionGroup().getAnalysis().getId(), submissionId);
         List<SubmissionStatusHistoryElementDTO> convert = new LinkedList<>();
@@ -410,7 +410,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
             @PathVariable("fileUuid") String uuid)
             throws PermissionDeniedException, NotExistException, IOException {
 
-        Submission submission = submissionService.getSubmissionById(submissionId);
+        Submission submission = submissionService.getSubmissionByIdUnsecured(submissionId);
         return getSubmissionGroupFileInfo(submission.getSubmissionGroup().getId(), uuid, Boolean.TRUE);
     }
 
@@ -478,7 +478,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     private ResultFile getResultFile(Principal principal, Long submissionId, String uuid)
             throws NotExistException, PermissionDeniedException {
 
-        Submission submission = submissionService.getSubmissionById(submissionId);
+        Submission submission = submissionService.getSubmissionByIdUnsecured(submissionId);
         User user = userService.getByEmail(principal.getName());
         return submissionService.getResultFileAndCheckPermission(user, submission.getSubmissionGroup().getAnalysis().getId(), uuid);
     }

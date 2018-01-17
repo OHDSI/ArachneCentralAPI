@@ -106,6 +106,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.DigestUtils;
@@ -304,11 +306,20 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     }
 
     @Override
-    public T getSubmissionById(Long id) throws NotExistException {
+    public T getSubmissionByIdUnsecured(Long id) throws NotExistException {
 
         T submission = submissionRepository.findOne(id);
         throwNotExistExceptionIfNull(submission, id);
         return submission;
+    }
+
+    @Override
+    @PreAuthorize("hasPermission(#id,  'Submission', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
+    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
+    public T getSubmissionById(Long id) throws NotExistException {
+
+        return getSubmissionByIdUnsecured(id);
     }
 
     @Override
