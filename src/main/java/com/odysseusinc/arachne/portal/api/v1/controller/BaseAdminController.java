@@ -51,6 +51,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.SortDefault;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -69,6 +70,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 
+@Secured("ROLE_ADMIN")
 public abstract class BaseAdminController<
         S extends Study,
         DS extends DataSource,
