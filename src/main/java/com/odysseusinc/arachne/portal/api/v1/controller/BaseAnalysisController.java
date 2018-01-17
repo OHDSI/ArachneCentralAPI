@@ -47,6 +47,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.Commentable;
 import com.odysseusinc.arachne.portal.api.v1.dto.DataReferenceDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.FileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.OptionDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.ShortBaseAnalysisDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightUpdateDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdateNotificationDTO;
@@ -203,6 +204,16 @@ public abstract class BaseAnalysisController<T extends Analysis,
         }
 
         return result;
+    }
+
+    @ApiOperation("Get short analysis info.")
+    @RequestMapping(value = "/api/v1/analysis-management/analyses/{analysisId}/short", method = GET)
+    public ShortBaseAnalysisDTO getShortAnalysis(
+            @PathVariable("analysisId") Long analysisId)
+            throws NotExistException, NotUniqueException {
+
+       T analysis = analysisService.getById(analysisId);
+       return conversionService.convert(analysis, ShortBaseAnalysisDTO.class);
     }
 
     abstract protected Class<T> getAnalysisClass();
