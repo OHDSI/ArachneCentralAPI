@@ -67,7 +67,7 @@ public class BreadcrumbServiceImpl implements BreadcrumbService {
             case SUBMISSION_GROUP:
                 return submissionService.getSubmissionGroupById(id);
             case SUBMISSION:
-                return submissionService.getSubmissionByIdUnsecured(id);
+                return submissionService.getSubmissionById(id);
             case INSIGHT:
                 return submissionInsightService.getSubmissionInsight(id);
         }
