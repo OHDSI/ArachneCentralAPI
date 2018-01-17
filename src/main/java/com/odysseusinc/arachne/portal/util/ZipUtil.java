@@ -71,12 +71,7 @@ public class ZipUtil {
 
     public static void addZipEntry(ZipOutputStream zos, String realName, InputStream data) throws IOException {
 
-        addZipEntry(zos, realName, new InputStreamReader(data));
-    }
-
-    public static void addZipEntry(ZipOutputStream zos, String realName, Reader data) throws IOException {
-
-        byte[] bytes = IOUtils.toByteArray(data, "UTF-8");
+        byte[] bytes = IOUtils.toByteArray(data);
         ZipEntry entry = new ZipEntry(realName);
         entry.setSize((long) bytes.length);
         zos.putNextEntry(entry);

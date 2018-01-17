@@ -548,7 +548,7 @@ public abstract class BaseAnalysisServiceImpl<
         final AnalysisUnlockRequest savedUnlockRequest = analysisUnlockRequestRepository.save(analysisUnlockRequest);
         studyService.findLeads((S)savedUnlockRequest.getAnalysis().getStudy()).forEach(lead ->
                 mailSender.send(new UnlockAnalysisRequestMailMessage(
-                        WebSecurityConfig.portalHost.get(), lead, savedUnlockRequest)
+                        WebSecurityConfig.getDefaultPortalURI(), lead, savedUnlockRequest)
                 )
         );
         return savedUnlockRequest;
@@ -588,21 +588,6 @@ public abstract class BaseAnalysisServiceImpl<
             } catch (IOException e) {
                 LOGGER.error("Failed to get submission file", e);
                 throw new FileNotFoundException(e.getMessage());
-            }
-        }
-        return file;
-    }
-
-    @Override
-    public Path getResultFile(ResultFile resultFile) throws FileNotFoundException {
-
-        Optional.of(resultFile).orElseThrow(FileNotFoundException::new);
-        Path file = analysisHelper.getResultFile(resultFile);
-        if (Files.notExists(file)) {
-
-            file = legacyAnalysisHelper.getOldResultFile(resultFile);
-            if (Files.notExists(file)) {
-                throw new FileNotFoundException();
             }
         }
         return file;

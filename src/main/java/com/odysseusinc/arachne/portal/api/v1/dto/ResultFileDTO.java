@@ -35,6 +35,7 @@ public class ResultFileDTO extends FileDTO {
     public ResultFileDTO(FileDTO fileDTO) {
 
         super(
+                fileDTO.getFileId(),
                 fileDTO.getUuid(),
                 fileDTO.getPath(),
                 fileDTO.getName(),

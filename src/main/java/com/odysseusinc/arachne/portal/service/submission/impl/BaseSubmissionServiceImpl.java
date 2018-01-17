@@ -62,6 +62,7 @@ import com.odysseusinc.arachne.portal.repository.SubmissionResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionStatusHistoryRepository;
 import com.odysseusinc.arachne.portal.repository.submission.BaseSubmissionRepository;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
+import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
 import com.odysseusinc.arachne.storage.service.ContentStorageService;
 import com.odysseusinc.arachne.portal.service.UserService;
 import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
@@ -139,7 +140,6 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     protected final ContentStorageService contentStorageService;
     protected final UserService userService;
     protected final ContentStorageHelper contentStorageHelper;
-
 
     @Value("${files.store.path}")
     private String fileStorePath;
@@ -255,7 +255,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         try {
             for (User owner : dnOwners) {
                 mailSender.send(new InvitationApprovalSubmissionArachneMailMessage(
-                        WebSecurityConfig.portalHost.get(), owner, submission)
+                        WebSecurityConfig.getDefaultPortalURI(), owner, submission)
                 );
             }
         } catch (Exception ignore) {
@@ -419,14 +419,6 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     public List<SubmissionStatusHistoryElement> getSubmissionStatusHistory(Long analysisId, Long submissionId) {
 
         return submissionStatusHistoryRepository.findBySubmissionIdOrderByDate(submissionId);
-    }
-
-    @Override
-    public boolean deleteSubmissionResultFileByUuid(Long submissionId, String fileUuid)
-            throws NotExistException, ValidationException {
-
-        ResultFile resultFile = submissionResultFileRepository.findByUuid(fileUuid);
-        return deleteSubmissionResultFile(submissionId, resultFile.getId());
     }
 
     @Override
@@ -644,7 +636,6 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
             ResultFile resultFile = new ResultFile();
             resultFile.setSubmission(submission);
 
-            resultFile.setUuid(fm.getUuid());
             resultFile.setPath(fm.getPath());
 
             return resultFile;
@@ -668,7 +659,6 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
                 createById
         );
 
-        resultFile.setUuid(fileMeta.getUuid());
         resultFile.setPath(fileMeta.getPath());
 
         return resultFile;
@@ -678,11 +668,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     public List<ArachneFileMeta> getResultFiles(User user, Long submissionId, ResultFileSearch resultFileSearch) throws PermissionDeniedException {
 
         Submission submission = submissionRepository.findById(submissionId, EntityGraphUtils.fromAttributePaths("dataSource", "dataSource.dataNode"));
-        if (!(EXECUTED_PUBLISHED.equals(submission.getStatus()) || FAILED_PUBLISHED.equals(submission.getStatus()))) {
-            if (user == null || !isDataNodeOwner(submission.getDataSource().getDataNode(), user)) {
-                throw new PermissionDeniedException();
-            }
-        }
+        checkSubmissionPermission(user, submission);
 
         String resultFilesPath = contentStorageHelper.getResultFilesDir(submission, resultFileSearch.getPath());
 
@@ -690,28 +676,30 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         querySpec.setName(resultFileSearch.getRealName());
         querySpec.setPath(resultFilesPath);
 
-        List<ArachneFileMeta> resultFileList = contentStorageService.searchFiles(querySpec);
-
-        return resultFileList;
+        return contentStorageService.searchFiles(querySpec);
     }
 
     @Override
-    public ResultFile getResultFileAndCheckPermission(User user, Long analysisId, String uuid) throws PermissionDeniedException {
+    public ArachneFileMeta getResultFileAndCheckPermission(User user, Submission submission, Long analysisId,
+                                                           String fileUuid) throws PermissionDeniedException {
 
-        ResultFile byUuid = getResultFileByUUID(uuid);
-        Submission submission = byUuid.getSubmission();
+        ArachneFileMeta byFileUuid = contentStorageService.getFileByIdentifier(fileUuid);
+        checkSubmissionPermission(user, submission);
+        return byFileUuid;
+    }
+
+    private void checkSubmissionPermission(User user, Submission submission) throws PermissionDeniedException {
+
         if (!(EXECUTED_PUBLISHED.equals(submission.getStatus()) || FAILED_PUBLISHED.equals(submission.getStatus()))) {
             if (user == null || !isDataNodeOwner(submission.getDataSource().getDataNode(), user)) {
                 throw new PermissionDeniedException();
             }
         }
-        return byUuid;
     }
 
-    @Override
-    public ResultFile getResultFileByUUID(String uuid) {
+    public ResultFile getResultFileById(Long fileId) {
 
-        return resultFileRepository.findByUuid(uuid);
+        return resultFileRepository.findById(fileId);
     }
 
     @Override
@@ -724,11 +712,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
             IOException, PermissionDeniedException {
 
         Submission submission = submissionRepository.findOne(submissionId);
-        if (!(EXECUTED_PUBLISHED.equals(submission.getStatus()) || FAILED_PUBLISHED.equals(submission.getStatus()))) {
-            if (user == null || !isDataNodeOwner(submission.getDataSource().getDataNode(), user)) {
-                throw new PermissionDeniedException();
-            }
-        }
+        checkSubmissionPermission(user, submission);
 
         Path resultFilesPath = Paths.get(contentStorageHelper.getResultFilesDir(submission));
         try (ZipOutputStream zos = new ZipOutputStream(os)) {
@@ -746,9 +730,9 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     }
 
     @Override
-    public SubmissionFile getSubmissionFile(Long submissionGroupId, String uuid) {
+    public SubmissionFile getSubmissionFile(Long submissionGroupId, Long fileId) {
 
-        return submissionFileRepository.findBySubmissionGroupIdAndUuid(submissionGroupId, uuid);
+        return submissionFileRepository.findBySubmissionGroupIdAndId(submissionGroupId, fileId);
     }
 
     protected SubmissionStatus getApproveForExecutionSubmissionStatus(Submission submission, Boolean isApproved) {

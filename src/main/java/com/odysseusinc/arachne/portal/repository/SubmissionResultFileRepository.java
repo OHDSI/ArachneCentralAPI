@@ -33,5 +33,5 @@ import org.springframework.data.repository.query.Param;
 
 public interface SubmissionResultFileRepository extends CrudRepository<ResultFile, Long> {
 
-    ResultFile findByUuid(String uuid);
+    ResultFile findById(Long id);
 }

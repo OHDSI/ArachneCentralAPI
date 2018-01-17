@@ -4,7 +4,7 @@ server:
 logging:
   level: debug
 portal:
-  hostsWhiteList: testcommunity.arachnenetwork.com
+  urlWhiteList: https://testcommunity.arachnenetwork.com:443
   useQueryInterceptor: true
 achilles:
   executor:

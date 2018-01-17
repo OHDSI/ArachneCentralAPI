@@ -162,7 +162,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     private String fileStorePath;
     @Value("${user.enabled.default}")
     private boolean userEnableDefault;
-    private Resource defaultAvatar = new ClassPathResource("avatar.png");
+    private Resource defaultAvatar = new ClassPathResource("avatar.svg");
     @Value("${portal.authMethod}")
     protected String userOrigin;
 
@@ -270,7 +270,8 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
 
         user.setProfessionalType(professionalTypeService.getById(user.getProfessionalType().getId()));
         String password = user.getPassword();
-        validatePassword(password);
+        final String username = user.getUsername();
+        validatePassword(username, password);
         user.setPassword(passwordEncoder.encode(password));
 
         return userRepository.save(user);
@@ -495,7 +496,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
 
         RegistrationMailMessage mail = new RegistrationMailMessage(
                 user,
-                WebSecurityConfig.portalHost.get(),
+                WebSecurityConfig.portalUrl.get(),
                 user.getRegistrationCode()
         );
         userRegistrant.ifPresent(registrant ->
@@ -528,7 +529,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
             throw new ValidationException(PASSWORD_NOT_MATCH_EXC);
         }
-        validatePassword(newPassword);
+        validatePassword(user.getUsername(), newPassword);
         exists.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(exists);
     }
@@ -751,7 +752,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
 
         RemindPasswordMailMessage mail = new RemindPasswordMailMessage(
                 user,
-                WebSecurityConfig.portalHost.get(),
+                WebSecurityConfig.portalUrl.get(),
                 token);
 
         Optional<UserRegistrant> userRegistrant = userRegistrantService.findByToken(registrantToken);
@@ -947,9 +948,10 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         return userRepository.listApprovedByDatasource(id);
     }
 
-    private void validatePassword(String password) throws PasswordValidationException {
+    private void validatePassword(String username, String password) throws PasswordValidationException {
 
         PasswordData passwordData = new PasswordData(new Password(password));
+        passwordData.setUsername(username);
         RuleResult result = passwordValidator.validate(passwordData);
         if (!result.isValid()) {
             throw new PasswordValidationException(passwordValidator.getMessages(result));

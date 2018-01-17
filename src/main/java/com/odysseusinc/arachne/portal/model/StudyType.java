@@ -73,11 +73,11 @@ public class StudyType {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (o == null || !(o instanceof StudyType)) {
             return false;
         }
         StudyType studyType = (StudyType) o;
-        return Objects.equal(id, studyType.id);
+        return Objects.equal(id, studyType.getId());
     }
 
     @Override

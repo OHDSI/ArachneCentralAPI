@@ -47,6 +47,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.Commentable;
 import com.odysseusinc.arachne.portal.api.v1.dto.DataReferenceDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.FileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.OptionDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.ShortBaseAnalysisDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightUpdateDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdateNotificationDTO;
@@ -73,19 +74,18 @@ import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.DataReferenceService;
 import com.odysseusinc.arachne.portal.service.ImportService;
-import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightService;
 import com.odysseusinc.arachne.portal.service.ToPdfConverter;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.service.messaging.MessagingUtils;
 import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
+import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightService;
 import com.odysseusinc.arachne.portal.util.ImportedFile;
 import com.odysseusinc.arachne.portal.util.ZipUtil;
 import io.swagger.annotations.ApiOperation;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Reader;
-import java.io.StringReader;
 import java.net.URISyntaxException;
 import java.security.Principal;
 import java.util.ArrayList;
@@ -204,6 +204,16 @@ public abstract class BaseAnalysisController<T extends Analysis,
         }
 
         return result;
+    }
+
+    @ApiOperation("Get short analysis info.")
+    @RequestMapping(value = "/api/v1/analysis-management/analyses/{analysisId}/short", method = GET)
+    public ShortBaseAnalysisDTO getShortAnalysis(
+            @PathVariable("analysisId") Long analysisId)
+            throws NotExistException, NotUniqueException {
+
+       T analysis = analysisService.getById(analysisId);
+       return conversionService.convert(analysis, ShortBaseAnalysisDTO.class);
     }
 
     abstract protected Class<T> getAnalysisClass();
@@ -360,19 +370,15 @@ public abstract class BaseAnalysisController<T extends Analysis,
                                 final String fileName = baseName + "."
                                         + dialect.getLabel().replaceAll(" ", "-")
                                         + "." + extension;
-                                try (final Reader reader = new StringReader(sql)) {
-                                    ZipUtil.addZipEntry(zos, fileName, reader);
-                                }
+                                ZipUtil.addZipEntry(zos, fileName, new ByteArrayInputStream(sql.getBytes("UTF-8")));
                             }
                             final String shortBaseName = baseName.replaceAll("\\.ohdsi", "");
                             if (!generatedFileName.value.contains(shortBaseName)) {
                                 generatedFileName.value += "_" + shortBaseName;
                             }
                         } else {
-                            try (final Reader reader = new StringReader(org.apache.commons.io.IOUtils.toString(file.getInputStream(), "UTF-8"))) {
-                                String fileName = file.getName();
-                                ZipUtil.addZipEntry(zos, fileName, reader);
-                            }
+                            String fileName = file.getName();
+                            ZipUtil.addZipEntry(zos, fileName, file.getInputStream());
                         }
                     } catch (IOException e) {
                         LOGGER.error("Failed to add file to archive", e);
@@ -723,7 +729,9 @@ public abstract class BaseAnalysisController<T extends Analysis,
         }
     }
 
-    protected void afterCreate(T analysis, A_C_DTO analysisDTO) {}
+    protected void afterCreate(T analysis, A_C_DTO analysisDTO) {
+
+    }
 
     protected abstract void attachPredictionFiles(List<MultipartFile> files) throws IOException;
 

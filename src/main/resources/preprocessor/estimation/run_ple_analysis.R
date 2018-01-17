@@ -1,5 +1,5 @@
 run_ple_analysis <- function(analysiDescriptionFile, outputFolder, targetCohortDefinitionPath, comparatorCohortDefinitionPath,  outcomeCohortDefinitionPath, dbms,  connectionString, user, password, cdmDatabaseSchema, resultsDatabaseSchema, exposureTable = "cohort", outcomeTable = "cohort", cdmVersion = 5, maxCores = 1){
-
+  
   # This function read description of Population Level Estimation Analysis from json file execute code with approparate settings and saves results to file system
   
   #Inputs:
@@ -11,8 +11,8 @@ run_ple_analysis <- function(analysiDescriptionFile, outputFolder, targetCohortD
   
   # Outputs: 
   # None
-    
-    
+  
+  
   library(packrat)
   packrat::status()
   # Load the Cohort Method library
@@ -26,14 +26,16 @@ run_ple_analysis <- function(analysiDescriptionFile, outputFolder, targetCohortD
                                                user=user,
                                                password=password)
   connection <- connect(connectionDetails) 
-
+  
   analysisSettings <- CohortMethod::loadCmAnalysisList(analysiDescriptionFile)
-
-  targetCohortId <- 0
-  comparatorCohortId <- 1
-  outcomeCohortId <- 2
+  
+  randId <- sample(1e6, 3) # generating array of random integers in range from 0 to 1e6
+  targetCohortId <- randId[1]
+  comparatorCohortId <- randId[2]
+  outcomeCohortId <- randId[3]
+  
   outcomeList <- c(outcomeCohortId)
-
+  
   sql <- readSql(targetCohortDefinitionPath)
   sql <- renderSql(sql,
                    cdm_database_schema = cdmDatabaseSchema,
@@ -41,9 +43,8 @@ run_ple_analysis <- function(analysiDescriptionFile, outputFolder, targetCohortD
                    target_cohort_table = "cohort",
                    target_cohort_id = targetCohortId)$sql
   sql <- translateSql(sql, targetDialect = connectionDetails$dbms)$sql
+  executeSql(connection, sql)
   
-  # executeSql(connection, sql)
-
   sql <- readSql(comparatorCohortDefinitionPath)
   sql <- renderSql(sql,
                    cdm_database_schema = cdmDatabaseSchema,
@@ -51,8 +52,8 @@ run_ple_analysis <- function(analysiDescriptionFile, outputFolder, targetCohortD
                    target_cohort_table = "cohort",
                    target_cohort_id = comparatorCohortId)$sql
   sql <- translateSql(sql, targetDialect = connectionDetails$dbms)$sql
-  # executeSql(connection, sql)
-
+  executeSql(connection, sql)
+  
   sql <- readSql(outcomeCohortDefinitionPath)
   sql <- renderSql(sql,
                    cdm_database_schema = cdmDatabaseSchema,
@@ -60,9 +61,9 @@ run_ple_analysis <- function(analysiDescriptionFile, outputFolder, targetCohortD
                    target_cohort_table = "cohort",
                    target_cohort_id = outcomeCohortId)$sql
   sql <- translateSql(sql, targetDialect = connectionDetails$dbms)$sql
-  # executeSql(connection, sql)
+  executeSql(connection, sql)
   
-
+  
   # Default Prior & Control settings ----
   defaultPrior <- createPrior("laplace", 
                               exclude = c(0),
@@ -91,7 +92,7 @@ run_ple_analysis <- function(analysiDescriptionFile, outputFolder, targetCohortD
     excludedConcepts <- querySql(connection, sql)
     excludedConcepts <- excludedConcepts$CONCEPT_ID
   }
-      
+  
   
   # Get all  Concept IDs for inclusion ----
   if (length(analysisSettings$psInclusionConceptSet) == 0){
@@ -541,10 +542,11 @@ run_ple_analysis <- function(analysiDescriptionFile, outputFolder, targetCohortD
         # View the outcome model -----
         outcomeModelOutput <- capture.output(outcomeModel)
         outcomeModelOutput <- head(outcomeModelOutput,n=length(outcomeModelOutput)-2)
+        write.table(outcomeSummaryOutput, file = file.path(outputFolder,"PLE_summary.csv"), row.names = FALSE, col.names = TRUE, sep = ",")
+        
         outcomeSummaryOutput <- capture.output(printCoefmat(outcomeSummaryOutput))
         outcomeModelOutput <- c(outcomeModelOutput, outcomeSummaryOutput)
         writeLines(outcomeModelOutput)
-        write.table(outcomeModelOutput, file = file.path(outputFolder,"PLE_summary"), row.names = FALSE, col.names = FALSE)
       }
     }
   }

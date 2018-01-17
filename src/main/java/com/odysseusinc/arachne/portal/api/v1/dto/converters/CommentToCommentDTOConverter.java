@@ -25,10 +25,6 @@ package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 import com.odysseusinc.arachne.portal.api.v1.dto.CommentDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserInfoDTO;
 import com.odysseusinc.arachne.portal.model.Comment;
-import java.util.List;
-import java.util.stream.Collectors;
-import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
-import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -42,11 +38,16 @@ public class CommentToCommentDTOConverter extends BaseConversionServiceAwareConv
         commentDTO.setDate(source.getDate());
         commentDTO.setComment(source.getComment());
         commentDTO.setAuthor(conversionService.convert(source.getAuthor(), UserInfoDTO.class));
+
+        // Comments can not have childs in current flow.
+        // After uncommenting code is below it will be needed to Initialize comments recursively
+        /*
         final List<CommentDTO> commentDTOS = source.getComments()
                 .stream()
                 .map(c -> conversionService.convert(c, CommentDTO.class))
                 .collect(Collectors.toList());
         commentDTO.setComments(commentDTOS);
+        */
         return commentDTO;
     }
 }

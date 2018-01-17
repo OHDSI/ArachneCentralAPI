@@ -37,9 +37,9 @@ run_plp_analysis <-function(basicDir, analysisDescriptionFile, cohortDefinitionP
   plpModelPath = file.path(basicDir, "plp_model")
   plpResultsPath = file.path(basicDir, "plp_results")
 
-  
-  targetCohortId <- analysisSettings$treatmentId # import from json
-  outcomeCohortId <- analysisSettings$outcomeId # import from json
+  randId <- sample(1e6, 2) # generating array of random integers in range from 0 to 1e6
+  targetCohortId <- randId[1]
+  outcomeCohortId <- randId[2]
   outcomeList <- c(outcomeCohortId)
   
   # PLEASE NOTE ----
@@ -267,9 +267,9 @@ run_plp_analysis <-function(basicDir, analysisDescriptionFile, cohortDefinitionP
   PatientLevelPrediction::savePlpModel(results$model, dirPath = plpModelPath)
   PatientLevelPrediction::savePlpResult(results, dirPath = plpResultsPath)
   
-  plp_summary <- data.frame(plpResults$performanceEvaluation$evaluationStatistics)
+  plp_summary <- data.frame(results$performanceEvaluation$evaluationStatistics)
   plp_summary <- subset(plp_summary, select = c(Metric, Eval, Value))
-  write.table(plp_summary, file = file.path(basicDir, "PLP_summary"), row.names = FALSE)
+  write.table(plp_summary, file = file.path(basicDir, "PLP_summary.csv"), row.names = FALSE, sep = ",")
   
   end.time <- Sys.time()
   time.taken <- end.time - start.time
