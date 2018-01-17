@@ -23,9 +23,15 @@
 package com.odysseusinc.arachne.portal.model.search;
 
 import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
+import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem_;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyStatus;
+import com.odysseusinc.arachne.portal.model.StudyStatus_;
 import com.odysseusinc.arachne.portal.model.StudyType;
+import com.odysseusinc.arachne.portal.model.StudyType_;
+import com.odysseusinc.arachne.portal.model.Study_;
+import com.odysseusinc.arachne.portal.model.User;
+import com.odysseusinc.arachne.portal.model.User_;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -37,9 +43,9 @@ import javax.persistence.criteria.Root;
 import org.springframework.data.jpa.domain.Specification;
 
 public class StudySpecification<T extends AbstractUserStudyListItem> implements Specification<T> {
-    private StudySearch criteria;
+    private final StudySearch criteria;
 
-    public StudySpecification(StudySearch criteria) {
+    public StudySpecification(final StudySearch criteria) {
 
         this.criteria = criteria;
     }
@@ -48,18 +54,23 @@ public class StudySpecification<T extends AbstractUserStudyListItem> implements 
     public Predicate toPredicate(final Root<T> root, final CriteriaQuery<?> query,
                                  final CriteriaBuilder cb) {
 
-        final Path<Study> user = root.get("user");
-        final Path<Study> study = root.get("study");
-        final Path<String> title = study.get("title");
-        final Path<StudyStatus> studyStatus = study.get("status");
-        final Path<Long> studyStatusId = studyStatus.get("id");
-        final Path<StudyType> studyType = study.get("type");
-        final Path<Long> studyTypeId = studyType.get("id");
-        final Path<Boolean> favourite = root.get("favourite");
+        final Path<User> user = root.get(AbstractUserStudyListItem_.user);
+        if (Long.class != query.getResultType()) {
+            // presence of this code while *count query is executing leads to error: query specified join fetching, but the owner of...
+            // because we don't want to fetch data, we just want to fetch count of entities
+            root.fetch(AbstractUserStudyListItem_.study);
+        }
+        final Path<Study> study = root.get(AbstractUserStudyListItem_.study);
+        final Path<String> title = study.get(Study_.title);
+        final Path<StudyStatus> studyStatus = study.get(Study_.status);
+        final Path<Long> studyStatusId = studyStatus.get(StudyStatus_.id);
+        final Path<StudyType> studyType = study.get(Study_.type);
+        final Path<Long> studyTypeId = studyType.get(StudyType_.id);
+        final Path<Boolean> favourite = root.get(AbstractUserStudyListItem_.favourite);
 
-        List<Predicate> predicates = new LinkedList<>();
+        final List<Predicate> predicates = new LinkedList<>();
         if (criteria.getUserId() != null) {
-            predicates.add(cb.equal(user.get("id"), criteria.getUserId()));
+            predicates.add(cb.equal(user.get(User_.id), criteria.getUserId()));
         }
         final Boolean criteriaFavourite = criteria.getFavourite();
         if (criteriaFavourite != null) {
@@ -75,7 +86,7 @@ public class StudySpecification<T extends AbstractUserStudyListItem> implements 
         }
         final Boolean my = criteria.getMy();
         if (my) {
-            predicates.add(cb.isNotNull(root.get("role")));
+            predicates.add(cb.isNotNull(root.get(AbstractUserStudyListItem_.role)));
         }
         if (criteria.getQuery() != null) {
             predicates.add(cb.like(cb.lower(title), "%" + criteria.getQuery().toLowerCase() + "%"));
@@ -83,7 +94,7 @@ public class StudySpecification<T extends AbstractUserStudyListItem> implements 
 
         final Boolean privacy = criteria.getPrivacy();
         if (privacy != null) {
-            predicates.add(cb.equal(study.get("privacy"), privacy));
+            predicates.add(cb.equal(study.get(Study_.privacy), privacy));
         }
 
         getAdditionalPredicate(root, query, cb).map(predicates::add);
@@ -91,7 +102,7 @@ public class StudySpecification<T extends AbstractUserStudyListItem> implements 
         return cb.and(predicates.toArray(new Predicate[predicates.size()]));
     }
 
-    protected Optional<Predicate> getAdditionalPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+    protected Optional<Predicate> getAdditionalPredicate(final Root<T> root, final CriteriaQuery<?> query, final CriteriaBuilder cb) {
 
         return Optional.empty();
     }

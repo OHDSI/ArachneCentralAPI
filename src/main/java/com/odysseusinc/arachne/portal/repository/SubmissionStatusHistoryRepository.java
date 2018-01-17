@@ -31,4 +31,6 @@ import org.springframework.data.repository.CrudRepository;
 public interface SubmissionStatusHistoryRepository extends CrudRepository<SubmissionStatusHistoryElement, Long> {
 
     List<SubmissionStatusHistoryElement> findBySubmissionIdOrderByDate(Long submissionId);
+
+    List<SubmissionStatusHistoryElement> findByIdIn(List<Long> ids);
 }

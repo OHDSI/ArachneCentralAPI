@@ -36,6 +36,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -52,7 +53,7 @@ import org.springframework.util.CollectionUtils;
 
 @Entity
 @Table(name = "papers")
-@DiscriminatorFormula("'Entity'")
+@DiscriminatorFormula("'PAPER_ENTITY'")
 public class Paper implements HasArachnePermissions, Breadcrumb {
 
     @Id
@@ -60,14 +61,14 @@ public class Paper implements HasArachnePermissions, Breadcrumb {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "papers_pk_sequence")
     private Long id;
 
-    @OneToOne(optional = false)
+    @OneToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "study_id")
     private Study study;
 
-    @OneToMany(mappedBy = "paper", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "paper", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<PaperProtocolFile> protocols = new ArrayList<>();
 
-    @OneToMany(mappedBy = "paper", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "paper", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<PaperPaperFile> papers = new ArrayList<>();
 
     @ManyToMany

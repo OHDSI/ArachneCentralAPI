@@ -16,25 +16,12 @@
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
  * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: June 28, 2017
+ * Created: January 13, 2017
  *
  */
 
-package com.odysseusinc.arachne.portal.api.v1.controller;
+ALTER TABLE submission_groups
+  ADD COLUMN IF NOT EXISTS analysis_type VARCHAR NOT NULL DEFAULT 'CUSTOM';
 
-import com.odysseusinc.arachne.portal.model.DataNode;
-import com.odysseusinc.arachne.portal.service.DataNodeService;
-import com.odysseusinc.arachne.portal.service.messaging.DataNodeMessageService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RestController;
-
-@RestController
-public class DataNodeCohortController extends BaseDataNodeCohortController<DataNode> {
-
-    @Autowired
-    public DataNodeCohortController(DataNodeService dataNodeService,
-                                    DataNodeMessageService dataNodeMessageService) {
-
-        super(dataNodeService, dataNodeMessageService);
-    }
-}
+ALTER TABLE submissions
+  ADD COLUMN IF NOT EXISTS result_info JSONB;

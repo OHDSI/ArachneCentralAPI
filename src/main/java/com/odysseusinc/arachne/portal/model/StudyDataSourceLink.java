@@ -28,6 +28,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -50,12 +51,12 @@ public class StudyDataSourceLink implements Invitationable {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "studies_data_sources_pk_sequence")
     private Long id;
 
-    @ManyToOne(optional = false, targetEntity = Study.class)
+    @ManyToOne(optional = false, targetEntity = Study.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "study_id")
     private Study study;
 
 
-    @ManyToOne(optional = false, targetEntity = DataSource.class)
+    @ManyToOne(optional = false, targetEntity = DataSource.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "data_source_id")
     private DataSource dataSource;
 
@@ -69,7 +70,7 @@ public class StudyDataSourceLink implements Invitationable {
     @Column
     private String token;
 
-    @ManyToOne(optional = false, targetEntity = User.class)
+    @ManyToOne(optional = false, targetEntity = User.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
     private User createdBy;
 

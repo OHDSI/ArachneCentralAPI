@@ -27,13 +27,16 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
+import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.BooleanDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.CreatePaperDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.FileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.PaperDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.PaperFileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ShortPaperDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdatePaperDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UploadFileDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.converters.FileDtoContentHandler;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.NotUniqueException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
@@ -44,17 +47,25 @@ import com.odysseusinc.arachne.portal.model.PaperFileType;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.PaperSearch;
 import com.odysseusinc.arachne.portal.service.BasePaperService;
+import com.odysseusinc.arachne.portal.service.ToPdfConverter;
 import com.odysseusinc.arachne.portal.service.StudyFileService;
+import com.odysseusinc.arachne.portal.util.FileUtils;
 import io.swagger.annotations.ApiOperation;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.Principal;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.domain.Page;
@@ -86,6 +97,9 @@ public abstract class BasePaperController
         this.fileService = fileService;
     }
 
+    @Autowired
+    private ToPdfConverter toPdfConverter;
+
     @ApiOperation("Get Papers")
     @RequestMapping(method = GET)
     public Page<S_P_DTO> getPapers(
@@ -96,11 +110,12 @@ public abstract class BasePaperController
         handleInputParams(paperSearch);
         final User user = getUser(principal);
         final Page<P> paperPage = paperService.getPapersAccordingToCurrentUser(paperSearch, user);
-        return paperPage.map(paper -> {
+        Page<S_P_DTO> result = paperPage.map(paper -> {
             final S_P_DTO dto = convertPaperToShortPaperDTO(paper);
             dto.setFavourite(paper.getFollowers().contains(user));
             return dto;
         });
+        return result;
     }
 
     protected abstract S_P_DTO convertPaperToShortPaperDTO(P paper);
@@ -178,19 +193,22 @@ public abstract class BasePaperController
 
     @ApiOperation("Get file of the Paper")
     @RequestMapping(value = "/{id}/files/{fileUuid}", method = GET)
-    public PaperFileDTO getFile(
+    public FileDTO getFile(
             @PathVariable("id") Long id,
             @PathVariable("fileUuid") String uuid,
             @RequestParam("type") PaperFileType type,
             @RequestParam(defaultValue = "true") Boolean withContent) throws PermissionDeniedException, IOException {
 
         final AbstractPaperFile paperFile = paperService.getFile(id, uuid, type);
-        final PaperFileDTO fileDto = conversionService.convert(paperFile, PaperFileDTO.class);
+        FileDTO fileDto = conversionService.convert(paperFile, PaperFileDTO.class);
 
         if (withContent) {
-            final String content = new String(fileService.getAllBytes(paperFile));
-            fileDto.setContent(content);
+            fileDto = FileDtoContentHandler
+                    .getInstance(fileDto, fileService.getPathToFile(paperFile).toFile())
+                    .withPdfConverter(toPdfConverter::convert)
+                    .handle();
         }
+
 
         return fileDto;
     }

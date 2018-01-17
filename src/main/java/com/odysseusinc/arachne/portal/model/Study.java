@@ -48,7 +48,7 @@ import org.hibernate.annotations.DiscriminatorFormula;
 
 @Entity
 @Table(name = "studies")
-@DiscriminatorFormula("'Entity'")
+@DiscriminatorFormula("'STUDY_ENTITY'")
 public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyStatus> {
     public Study() {
 
@@ -83,7 +83,7 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
     @Column(length = 10000)
     private String description;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     private StudyType type;
 
     @Column
@@ -92,27 +92,27 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
     @Column
     private Date updated;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     private StudyStatus status;
 
-    @OneToMany(mappedBy = "study")
-    private List<UserStudyExtended> participants;
+    @OneToMany(mappedBy = "study", fetch = FetchType.LAZY)
+    private List<UserStudyExtended> participants = new ArrayList<>();
 
     @Transient
     private Set<ArachnePermission> permissions;
 
-    @OneToMany(mappedBy = "study", targetEntity = Analysis.class)
+    @OneToMany(mappedBy = "study", targetEntity = Analysis.class, fetch = FetchType.LAZY)
     @OrderBy("ord ASC")
     private List<Analysis> analyses = new ArrayList<>();
 
-    @OneToMany(mappedBy = "study", targetEntity = StudyFile.class)
-    private List<StudyFile> files;
+    @OneToMany(mappedBy = "study", targetEntity = StudyFile.class, fetch = FetchType.LAZY)
+    private List<StudyFile> files = new ArrayList<>();
 
-    @OneToMany(targetEntity = StudyDataSourceLink.class, mappedBy = "study")
+    @OneToMany(targetEntity = StudyDataSourceLink.class, mappedBy = "study", fetch = FetchType.LAZY)
     @OrderBy("deleted_at DESC, created ASC")
-    private List<StudyDataSourceLink> dataSources;
+    private List<StudyDataSourceLink> dataSources = new ArrayList<>();
 
-    @OneToOne(mappedBy = "study")
+    @OneToOne(mappedBy = "study", fetch = FetchType.LAZY)
     private Paper paper;
 
     @Column
@@ -309,5 +309,24 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
     public void setPrivacy(Boolean privacy) {
 
         this.privacy = privacy;
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+
+        if (this == obj) {
+            return true;
+        }
+
+        if (obj == null || !(obj instanceof Study)) return false;
+
+        final Study s = (Study) obj;
+        return java.util.Objects.equals(id, s.id);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return java.util.Objects.hashCode(this.id);
     }
 }

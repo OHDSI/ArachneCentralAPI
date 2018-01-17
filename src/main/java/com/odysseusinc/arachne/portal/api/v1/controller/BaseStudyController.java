@@ -40,6 +40,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.CreateStudyDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.CreateVirtualDataSourceDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.DataSourceDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.EntityLinkDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.FileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.MoveAnalysisDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ShortUserDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.StudyDTO;
@@ -49,6 +50,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdateNotificationDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdateParticipantDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UploadFileDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.converters.FileDtoContentHandler;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
@@ -71,7 +73,9 @@ import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.model.statemachine.study.StudyStateMachine;
 import com.odysseusinc.arachne.portal.model.statemachine.study.StudyTransition;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
+import com.odysseusinc.arachne.portal.service.ToPdfConverter;
 import com.odysseusinc.arachne.portal.service.StudyFileService;
+import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import io.swagger.annotations.ApiOperation;
 import java.io.FileNotFoundException;
@@ -89,6 +93,7 @@ import javax.validation.constraints.NotNull;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -119,13 +124,19 @@ public abstract class BaseStudyController<
     protected GenericConversionService conversionService;
     private BaseAnalysisService<A> analysisService;
     private SimpMessagingTemplate wsTemplate;
+    private SubmissionInsightService submissionInsightService;
+
+    @Autowired
+    private ToPdfConverter toPdfConverter;
+
 
     public BaseStudyController(BaseStudyService<T, DS, SS, SU> studyService,
                                BaseAnalysisService<A> analysisService,
                                GenericConversionService conversionService,
                                SimpMessagingTemplate wsTemplate,
                                StudyFileService fileService,
-                               StudyStateMachine studyStateMachine) {
+                               StudyStateMachine studyStateMachine,
+                               SubmissionInsightService submissionInsightService) {
 
         this.studyService = studyService;
         this.analysisService = analysisService;
@@ -133,6 +144,7 @@ public abstract class BaseStudyController<
         this.wsTemplate = wsTemplate;
         this.fileService = fileService;
         this.studyStateMachine = studyStateMachine;
+        this.submissionInsightService = submissionInsightService;
     }
 
     public abstract T convert(CreateStudyDTO studyDTO);
@@ -168,7 +180,7 @@ public abstract class BaseStudyController<
     @RequestMapping(value = "/api/v1/study-management/studies/{studyId}/available-state-transitions", method = RequestMethod.GET)
     public List<StudyTransition> getAvailableTransitions(@PathVariable Long studyId) {
 
-        return studyStateMachine.getAvailableStates(studyService.getById(studyId));
+        return studyStateMachine.getAvailableStates(studyService.getByIdUnsecured(studyId));
     }
 
     @RequestMapping(value = "/api/v1/study-management/studies/{studyId}", method = GET)
@@ -391,21 +403,23 @@ public abstract class BaseStudyController<
 
     @ApiOperation("Get file of the study.")
     @RequestMapping(value = "/api/v1/study-management/studies/{studyId}/files/{fileUuid}", method = GET)
-    public StudyFileContentDTO getFile(
+    public FileDTO getFile(
             @PathVariable("studyId") Long studyId,
             @PathVariable("fileUuid") String uuid,
             @RequestParam(defaultValue = "true") Boolean withContent
     ) throws PermissionDeniedException, NotExistException, IOException {
 
         StudyFile studyFile = studyService.getStudyFile(studyId, uuid);
-        StudyFileContentDTO studyFileDTO = conversionService.convert(studyFile, StudyFileContentDTO.class);
+        FileDTO fileDto = conversionService.convert(studyFile, StudyFileContentDTO.class);
 
         if (withContent) {
-            final String content = new String(fileService.getAllBytes(studyFile));
-            studyFileDTO.setContent(content);
+            fileDto = FileDtoContentHandler
+                    .getInstance(fileDto, fileService.getPathToFile(studyFile).toFile())
+                    .withPdfConverter(toPdfConverter::convert)
+                    .handle();
         }
 
-        return studyFileDTO;
+        return fileDto;
     }
 
     @ApiOperation("Download file of the study.")
@@ -603,11 +617,11 @@ public abstract class BaseStudyController<
         List<SubmissionInsightDTO> submissionInsightDTOS = new ArrayList<>();
 
         Pageable pageRequest = new PageRequest(0, size, new Sort(order, "created"));
-        final Page<SubmissionInsight> page = analysisService.getInsightsByStudyId(studyId, pageRequest);
+        final Page<SubmissionInsight> page = submissionInsightService.getInsightsByStudyId(studyId, pageRequest);
         final List<SubmissionInsight> insights = page.getContent();
         for (int i = 0; i < insights.size(); i++) {
             final SubmissionInsight insight = insights.get(i);
-            final Set<CommentTopic> recentTopics = analysisService.getInsightComments(insight,
+            final Set<CommentTopic> recentTopics = submissionInsightService.getInsightComments(insight,
                     commentsPerInsight, new Sort(Sort.Direction.DESC, "id"));
             final SubmissionInsightDTO insightDTO = conversionService.convert(insight, SubmissionInsightDTO.class);
             final List<Commentable> recentCommentables = getRecentCommentables(conversionService, recentTopics,

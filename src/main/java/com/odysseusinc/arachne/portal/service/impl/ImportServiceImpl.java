@@ -43,7 +43,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class ImportServiceImpl implements ImportService {
 
-    private static final String ESTIMATION_RUNNER_NAME = "run_estimation_analysis.R";
+    private static final String ESTIMATION_RUNNER_NAME = "run_ple_analysis.R";
     private static final String ESTIMATION_RUNNER_PATH = "preprocessor/estimation/" + ESTIMATION_RUNNER_NAME;
 
     private final GenericConversionService conversionService;

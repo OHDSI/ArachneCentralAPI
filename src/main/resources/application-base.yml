@@ -1,5 +1,6 @@
 # suppress inspection "SpringBootApplicationProperties" for whole file
 server:
+  port: 8080
   ssl:
     enabled: true
     key-store: classpath:keystore.jks
@@ -53,8 +54,8 @@ spring:
     enabled: false
   http:
     multipart:
-      max-file-size: 128MB
-      max-request-size: 128MB
+      max-file-size: 256MB
+      max-request-size: 256MB
   resources:
     add-mappings: false
   activemq:
@@ -73,6 +74,8 @@ flyway:
   baseline-on-migrate: true
   placeholderReplacement: false
   out-of-order: true
+  validateOnMigrate: false
+  #locations: db/migration,classpath:com.odysseusinc.arachne.portal.db.migration
 arachne:
   token:
     secret: sssshhhh!
@@ -97,6 +100,7 @@ project:
 files:
   store:
     path: /var/arachne/files
+    jcr-path: /var/arachne/files/jcr
   stdout:
     name: stdout.txt
 
@@ -111,7 +115,8 @@ user:
 # NATIVE
 portal:
   authMethod: NATIVE
-  hostsWhiteList: community.arachnenetwork.com
+  urlWhiteList: https://community.arachnenetwork.com:443
+  useQueryInterceptor: false
 datanode:
   messaging:
     importTimeout: 60000
@@ -124,3 +129,5 @@ achilles:
     maxPoolSize: 8
     queueCapacity: 200
 #logging.level.org.hibernate.SQL=DEBUG
+jodconverter:
+  enabled: true

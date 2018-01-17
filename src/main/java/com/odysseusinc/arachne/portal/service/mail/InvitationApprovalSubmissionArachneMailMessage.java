@@ -33,7 +33,7 @@ public class InvitationApprovalSubmissionArachneMailMessage extends InvitationAr
     private final Submission submission;
 
     public InvitationApprovalSubmissionArachneMailMessage(String portalUrl, User user, Submission submission) {
-        super(portalUrl, user, submission.getToken());
+        super(portalUrl, user, submission.getToken(), null);
 
         this.submission = submission;
 

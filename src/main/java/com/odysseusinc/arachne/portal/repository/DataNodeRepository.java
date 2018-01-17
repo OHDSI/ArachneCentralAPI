@@ -22,16 +22,18 @@
 
 package com.odysseusinc.arachne.portal.repository;
 
+import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
+import com.cosium.spring.data.jpa.entity.graph.repository.EntityGraphJpaRepository;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface DataNodeRepository<DN extends DataNode> extends JpaRepository<DN, Long> {
+public interface DataNodeRepository<DN extends DataNode> extends EntityGraphJpaRepository<DN, Long> {
     DN findBySid(String sid);
 
-    Optional<DN> findByToken(String token);
+    Optional<DN> findByToken(String token, EntityGraph entityGraph);
 
     List<DN> findAllByVirtualIsFalse();
 }

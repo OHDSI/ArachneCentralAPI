@@ -1,5 +1,4 @@
 /*
- *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,35 +14,16 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: January 13, 2017
- *
+ * Authors: Anton Gackovka
+ * Created: December 13, 2017
  */
 
-package com.odysseusinc.arachne.portal.api.v1.dto;
+package com.odysseusinc.arachne.portal.model;
 
-public class FileContentDTO extends FileDTO {
+import javax.persistence.metamodel.SingularAttribute;
+import javax.persistence.metamodel.StaticMetamodel;
 
-    private Long analysisId;
-    private String content;
-
-    public String getContent() {
-
-        return content;
-    }
-
-    public void setContent(String content) {
-
-        this.content = content;
-    }
-
-    public Long getAnalysisId() {
-
-        return analysisId;
-    }
-
-    public void setAnalysisId(Long analysisId) {
-
-        this.analysisId = analysisId;
-    }
+@StaticMetamodel(StudyStatus.class)
+public class StudyStatus_ {
+    public static volatile SingularAttribute<StudyStatus, Long> id;
 }

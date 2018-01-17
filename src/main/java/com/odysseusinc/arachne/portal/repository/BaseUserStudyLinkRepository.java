@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.repository;
 
+import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
 import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -30,5 +31,5 @@ import org.springframework.data.repository.NoRepositoryBean;
 
 @NoRepositoryBean
 public interface BaseUserStudyLinkRepository<T extends AbstractUserStudyListItem> extends JpaRepository<T, Long>, JpaSpecificationExecutor<T> {
-    Optional<T> findFirstByUserIdAndStudyId(Long userId, Long studyId);
+    Optional<T> findFirstByUserIdAndStudyId(Long userId, Long studyId, EntityGraph entityGraph);
 }

@@ -38,6 +38,8 @@ public class AnalysisCreateDTO extends DTO {
 
     private String description;
 
+    private Boolean attachDefaultCodeFiles;
+
     public Long getStudyId() {
 
         return studyId;
@@ -76,5 +78,15 @@ public class AnalysisCreateDTO extends DTO {
     public void setDescription(String description) {
 
         this.description = description;
+    }
+
+    public Boolean getAttachDefaultCodeFiles() {
+
+        return attachDefaultCodeFiles;
+    }
+
+    public void setAttachDefaultCodeFiles(Boolean attachDefaultCodeFiles) {
+
+        this.attachDefaultCodeFiles = attachDefaultCodeFiles;
     }
 }

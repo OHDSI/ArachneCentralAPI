@@ -22,7 +22,6 @@
 
 package com.odysseusinc.arachne.portal.util;
 
-import com.odysseusinc.arachne.portal.model.ResultFile;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
 import com.odysseusinc.arachne.portal.service.AnalysisPaths;
@@ -43,13 +42,6 @@ public class LegacyAnalysisHelper {
     public LegacyAnalysisHelper(AnalysisHelper analysisHelper) {
 
         this.analysisHelper = analysisHelper;
-    }
-
-    public Path getOldResultFile(ResultFile resultFile) {
-
-        Submission submission = resultFile.getSubmission();
-        Path submissionFolder = getOldSubmissionResultFolder(submission);
-        return submissionFolder.resolve(resultFile.getUuid());
     }
 
     public Path getOldSubmissionFolder(Submission submission) {

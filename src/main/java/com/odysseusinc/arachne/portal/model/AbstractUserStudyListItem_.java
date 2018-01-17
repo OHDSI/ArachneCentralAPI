@@ -15,7 +15,7 @@
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
  * Authors: Anton Gackovka
- * Created: October 24, 2017
+ * Created: December 13, 2017
  */
 
 package com.odysseusinc.arachne.portal.model;
@@ -23,15 +23,11 @@ package com.odysseusinc.arachne.portal.model;
 import javax.persistence.metamodel.SingularAttribute;
 import javax.persistence.metamodel.StaticMetamodel;
 
-@StaticMetamodel(AbstractResultFile.class)
-public class AbstractResultFile_ extends ArachneFile_ {
-
-    public static volatile SingularAttribute<AbstractResultFile, Long> id;
-
-    public static volatile SingularAttribute<AbstractResultFile, Submission> submission;
-
-    public static volatile SingularAttribute<AbstractResultFile, CommentTopic> commentTopic;
-
-    public static volatile SingularAttribute<AbstractResultFile, Boolean> manuallyUploaded;
-
+@StaticMetamodel(AbstractUserStudyListItem.class)
+public class AbstractUserStudyListItem_ {
+    public static volatile SingularAttribute<AbstractUserStudyListItem, Long> id;
+    public static volatile SingularAttribute<AbstractUserStudyListItem, Study> study;
+    public static volatile SingularAttribute<AbstractUserStudyListItem, User> user;
+    public static volatile SingularAttribute<AbstractUserStudyListItem, Boolean> favourite;
+    public static volatile SingularAttribute<AbstractUserStudyListItem, String> role;
 }

@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal;
 
+import com.cosium.spring.data.jpa.entity.graph.repository.support.EntityGraphJpaRepositoryFactoryBean;
 import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
 import com.odysseusinc.arachne.portal.exception.SecurityConfigException;
 import com.odysseusinc.arachne.portal.security.AuthenticationTokenFilter;
@@ -62,12 +63,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @SpringBootApplication
-@ComponentScan(basePackages = {"com.odysseusinc.arachne.portal"},
+@ComponentScan(basePackages = {"com.odysseusinc.arachne.portal", "com.odysseusinc.arachne.storage"},
         excludeFilters = {
                 @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = PortalStarter.class),
                 @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = WebSecurityConfig.class)
         })
-@EnableJpaRepositories(basePackages = {"com.odysseusinc.arachne.*"})
+@EnableJpaRepositories(
+        repositoryFactoryBeanClass = EntityGraphJpaRepositoryFactoryBean.class,
+        basePackages = {"com.odysseusinc.arachne.*"}
+)
 @EntityScan(basePackages = {"com.odysseusinc.arachne.*"})
 @EnableAspectJAutoProxy
 public class TestApplication {

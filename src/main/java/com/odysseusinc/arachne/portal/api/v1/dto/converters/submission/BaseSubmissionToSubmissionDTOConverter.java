@@ -22,36 +22,22 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto.converters.submission;
 
-import com.odysseusinc.arachne.portal.api.v1.dto.DataSourceDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.PermissionsDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionStatusDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionStatusHistoryElementDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
-import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionInsight;
-import com.odysseusinc.arachne.portal.model.SubmissionStatus;
-import com.odysseusinc.arachne.portal.model.SubmissionStatusHistoryElement;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
 import com.odysseusinc.arachne.portal.util.DataNodeUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 public abstract class BaseSubmissionToSubmissionDTOConverter<T extends Submission, DTO extends SubmissionDTO>
-        extends BaseConversionServiceAwareConverter<T, DTO> {
-    private static final String NOT_EXISTS_SUBMISSION_STATUS
-            = "There is no '%s' status in submission with id '%s'";
+        extends BaseSubmissionToBaseSubmissionDTOConverter<T, DTO> {
 
     @Override
     public DTO convert(T source) {
 
-        DTO dto = createResultObject();
-        dto.setConversionSource(source);
-        dto.setId(source.getId());
-        dto.setStatus(getStatusDTO(source));
-        dto.setCreatedAt(source.getCreated());
+        DTO dto = super.convert(source);
         dto.setInsight(insightDTO(source.getSubmissionInsight()));
         final Status status = statusConverter(source.getStatus());
         final Boolean execConfirmed = status.isExecConfirmed();
@@ -60,30 +46,10 @@ public abstract class BaseSubmissionToSubmissionDTOConverter<T extends Submissio
         dto.setIsResultConfirmed(resultConfirmed);
         dto.setAction(source.getStatus().toString());
         DataSource dataSource = source.getDataSource();
-        dto.setDataSource(conversionService.convert(dataSource, DataSourceDTO.class));
         Long loggedUserId = ((ArachneUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         final boolean isOwner = DataNodeUtils.isDataNodeOwner(dataSource.getDataNode(), loggedUserId);
         dto.setIsOwner(isOwner);
-        if (isOwner || (resultConfirmed != null && resultConfirmed)) {
-            dto.setResultFilesCount(source.getResultFiles().size());
-        }
-        dto.setPermissions(conversionService.convert(source, PermissionsDTO.class));
-        proceedAdditionalFields(dto, source);
         return dto;
-    }
-
-    private SubmissionStatusDTO getStatusDTO(Submission source) {
-
-        SubmissionStatus status = source.getStatus();
-        if (status.isDeclined()) {
-            SubmissionStatusHistoryElement element = source.getStatusHistory().stream()
-                    .filter(e -> e.getStatus() == status).findFirst()
-                    .orElseThrow(() ->
-                            new NotExistException(String.format(NOT_EXISTS_SUBMISSION_STATUS, status, source.getId()),
-                                    SubmissionStatus.class));
-            return conversionService.convert(element, SubmissionStatusHistoryElementDTO.class);
-        }
-        return new SubmissionStatusDTO(source.getStatus());
     }
 
     private SubmissionInsightDTO insightDTO(SubmissionInsight insight) {
@@ -97,61 +63,4 @@ public abstract class BaseSubmissionToSubmissionDTOConverter<T extends Submissio
         return insightDTO;
     }
 
-    private Status statusConverter(SubmissionStatus status) {
-
-        Boolean isExecConfirmed = null;
-        Boolean isResultConfirmed = null;
-        switch (status) {
-            case NOT_APPROVED: {
-                isExecConfirmed = false;
-                break;
-            }
-            case STARTING:
-            case QUEUE_PROCESSING:
-            case IN_PROGRESS:
-            case EXECUTED:
-            case FAILED: {
-                isExecConfirmed = true;
-                break;
-            }
-            case EXECUTED_REJECTED:
-            case FAILED_REJECTED: {
-                isExecConfirmed = true;
-                isResultConfirmed = false;
-                break;
-            }
-            case EXECUTED_PUBLISHED:
-            case FAILED_PUBLISHED: {
-                isExecConfirmed = true;
-                isResultConfirmed = true;
-                break;
-            }
-            default: {
-
-            }
-        }
-        return new Status(isExecConfirmed, isResultConfirmed);
-    }
-
-    private class Status {
-
-        private Boolean isExecConfirmed = null;
-        private Boolean isResultConfirmed = null;
-
-        Status(Boolean isExecConfirmed, Boolean isResultConfirmed) {
-
-            this.isExecConfirmed = isExecConfirmed;
-            this.isResultConfirmed = isResultConfirmed;
-        }
-
-        Boolean isExecConfirmed() {
-
-            return isExecConfirmed;
-        }
-
-        Boolean isResultConfirmed() {
-
-            return isResultConfirmed;
-        }
-    }
 }

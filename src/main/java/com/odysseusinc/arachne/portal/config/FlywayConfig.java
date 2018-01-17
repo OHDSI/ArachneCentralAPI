@@ -22,39 +22,24 @@
 
 package com.odysseusinc.arachne.portal.config;
 
-import javax.sql.DataSource;
+import com.odysseusinc.arachne.portal.config.flyway.ApplicationContextAwareSpringJdbcMigrationResolver;
 import org.flywaydb.core.Flyway;
-import org.springframework.boot.autoconfigure.flyway.FlywayDataSource;
-import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.autoconfigure.flyway.FlywayMigrationInitializer;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.ApplicationContext;
 
 @Configuration
+@ComponentScan("org.springframework.boot.autoconfigure.flyway")
 public class FlywayConfig {
-    @Bean
-    @ConfigurationProperties(prefix = "flyway.datasource")
-    @FlywayDataSource
-    public DataSource secondaryDataSource() {
-
-        return DataSourceBuilder.create().build();
-    }
 
     @Bean
-    public FlywayMigrationStrategy flywayMigrationStrategy() {
+    public FlywayMigrationInitializer flywayInitializer(ApplicationContext context, Flyway flyway) {
 
-        return new ArachneMigrationStrategy();
-    }
+        ApplicationContextAwareSpringJdbcMigrationResolver contextAwareResolver = new ApplicationContextAwareSpringJdbcMigrationResolver(context);
+        flyway.setResolvers(contextAwareResolver);
 
-    public static class ArachneMigrationStrategy implements FlywayMigrationStrategy {
-
-        @Override
-        public void migrate(Flyway flyway) {
-
-            flyway.setIgnoreMissingMigrations(true);
-            flyway.repair();
-            flyway.migrate();
-        }
+        return new FlywayMigrationInitializer(flyway, null);
     }
 }

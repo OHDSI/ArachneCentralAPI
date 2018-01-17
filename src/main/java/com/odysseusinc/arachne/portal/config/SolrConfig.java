@@ -15,14 +15,23 @@
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
  * Authors: Anton Gackovka
- * Created: October 24, 2017
+ * Created: December 12, 2017
  */
 
-package com.odysseusinc.arachne.portal.model;
+package com.odysseusinc.arachne.portal.config;
 
-import javax.persistence.metamodel.SingularAttribute;
-import javax.persistence.metamodel.StaticMetamodel;
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.impl.HttpSolrClient;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-@StaticMetamodel(ResultEntity.class)
-public class ResultEntity_ extends AbstractResultFile_ {
+@Configuration
+public class SolrConfig {
+
+    @Bean(destroyMethod = "close")
+    public SolrClient solrClient( @Value("${arachne.solrServerUrl}") String serverUrl) {
+
+        return new HttpSolrClient.Builder(serverUrl).build();
+    }
 }

@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto.converters.study;
 
+import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraphUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.BaseAnalysisDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.DataSourceDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ParticipantDTO;
@@ -35,15 +36,30 @@ import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
 import com.odysseusinc.arachne.portal.model.StudyFile;
+import com.odysseusinc.arachne.portal.service.StudyService;
+import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
+import java.util.List;
 import java.util.stream.Collectors;
-import org.springframework.core.convert.support.GenericConversionService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 
 public abstract class BaseStudyToStudyDTOConverter<S extends Study, DTO extends StudyDTO> extends BaseConversionServiceAwareConverter<S, DTO> {
 
-    @Override
-    public DTO convert(S source) {
 
-        DTO studyDTO = createResultObject();
+    private final StudyService studyService;
+    protected final AnalysisService analysisService;
+
+    @Autowired
+    public BaseStudyToStudyDTOConverter(StudyService studyService, AnalysisService analysisService) {
+
+        this.studyService = studyService;
+        this.analysisService = analysisService;
+    }
+
+    @Override
+    public DTO convert(final S source) {
+
+        final DTO studyDTO = createResultObject();
         studyDTO.setStatus(conversionService.convert(source.getStatus(), StudyStatusDTO.class));
         studyDTO.setTitle(source.getTitle());
         studyDTO.setType(conversionService.convert(source.getType(), StudyTypeDTO.class));
@@ -51,31 +67,41 @@ public abstract class BaseStudyToStudyDTOConverter<S extends Study, DTO extends 
         studyDTO.setStartDate(source.getStartDate());
         studyDTO.setDescription(source.getDescription());
 
-        if (source.getParticipants() != null) {
+        if (!CollectionUtils.isEmpty(source.getParticipants())) {
             studyDTO.setParticipants(source.getParticipants()
                     .stream()
                     .map(link -> conversionService.convert(link, ParticipantDTO.class))
                     .collect(Collectors.toList()));
         }
 
-        if (source.getDataSources() != null) {
 
-            for (StudyDataSourceLink studyDataSourceLink : source.getDataSources()) {
-                DataSourceDTO dataSourceDTO = conversionService.convert(studyDataSourceLink,
-                        DataSourceDTO.class);
-                studyDTO.getDataSources().add(dataSourceDTO);
-            }
+        final List<StudyDataSourceLink> foundLinks = studyService.getLinksByStudyId(
+                source.getId(),
+                EntityGraphUtils.fromAttributePaths(
+                    "dataSource.dataNode.dataNodeUsers.user",
+                    "dataSource.dataNode.dataNodeUsers.dataNodeRole"
+                )
+        );
+
+        for (final StudyDataSourceLink studyDataSourceLink : foundLinks) {
+            final DataSourceDTO dataSourceDTO = conversionService.convert(studyDataSourceLink,
+                    DataSourceDTO.class);
+            studyDTO.getDataSources().add(dataSourceDTO);
         }
-        if (source.getAnalyses() != null) {
-            for (Analysis analysis : source.getAnalyses()) {
-                studyDTO.getAnalyses().add(conversionService.convert(analysis, BaseAnalysisDTO.class));
-            }
+
+        List<Analysis> analyses = getAnalyses(source);
+        for (final Analysis analysis : analyses) {
+            studyDTO.getAnalyses().add(conversionService.convert(analysis, BaseAnalysisDTO.class));
         }
-        if (source.getFiles() != null) {
-            for (StudyFile studyFile : source.getFiles()) {
-                studyDTO.getFiles().add(conversionService.convert(studyFile, StudyFileDTO.class));
-            }
+
+        List<StudyFile> files = studyService.getFilesByStudyId(
+                source.getId(),
+                EntityGraphUtils.fromAttributePaths("author")
+        );
+        for (final StudyFile studyFile : files) {
+            studyDTO.getFiles().add(conversionService.convert(studyFile, StudyFileDTO.class));
         }
+
         studyDTO.setCreated(source.getCreated());
         studyDTO.setUpdated(source.getUpdated());
         studyDTO.setId(source.getId());
@@ -87,5 +113,13 @@ public abstract class BaseStudyToStudyDTOConverter<S extends Study, DTO extends 
         proceedAdditionalFields(studyDTO, source);
 
         return studyDTO;
+    }
+
+    protected List<Analysis> getAnalyses(S source) {
+
+        return analysisService.getByStudyId(
+                source.getId(),
+                EntityGraphUtils.fromAttributePaths("author")
+        );
     }
 }

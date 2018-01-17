@@ -16,7 +16,7 @@
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
  * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: July 18, 2017
+ * Created: June 28, 2017
  *
  */
 
@@ -25,12 +25,15 @@ package com.odysseusinc.arachne.portal.api.v1.controller;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.service.DataNodeService;
 import com.odysseusinc.arachne.portal.service.messaging.DataNodeMessageService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class DataNodeEstimationController extends BaseDataNodeEstimationController<DataNode> {
-    public DataNodeEstimationController(DataNodeService dataNodeService,
-                                        DataNodeMessageService dataNodeMessageService) {
+public class DataNodeCommonAnalysisController extends BaseDataNodeCommonAnalysisController<DataNode> {
+
+    @Autowired
+    public DataNodeCommonAnalysisController(DataNodeService dataNodeService,
+                                            DataNodeMessageService dataNodeMessageService) {
 
         super(dataNodeService, dataNodeMessageService);
     }

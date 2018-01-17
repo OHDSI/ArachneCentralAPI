@@ -66,6 +66,7 @@ import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataNodeRole;
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.Invitationable;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.StateProvince;
@@ -302,7 +303,7 @@ public abstract class BaseUserController<
             @PathVariable("id") Long id,
             HttpServletResponse response) throws IOException {
 
-        U user = userService.getById(id);
+        U user = userService.getByIdAndInitializeCollections(id);
         userService.putAvatarToResponse(response, user);
     }
 
@@ -364,7 +365,7 @@ public abstract class BaseUserController<
 
         User logginedUser = userService.getByEmail(principal.getName());
         JsonResult<UserProfileDTO> result;
-        User user = userService.getById(userId);
+        User user = userService.getByIdAndInitializeCollections(userId);
         UserProfileDTO userProfileDTO = conversionService.convert(user, UserProfileDTO.class);
         userProfileDTO.setIsEditable(logginedUser.getId().equals(userId));
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
@@ -457,7 +458,7 @@ public abstract class BaseUserController<
     ) {
 
         JsonResult<CommonUserDTO> result;
-        U user = userService.getById(id);
+        U user = userService.getByIdAndInitializeCollections(id);
         CommonUserDTO userDTO = conversionService.convert(user, CommonUserDTO.class);
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
         result.setResult(userDTO);
@@ -582,24 +583,30 @@ public abstract class BaseUserController<
     @ApiOperation("Get user's invitations.")
     @RequestMapping(value = "/api/v1/user-management/users/invitations", method = RequestMethod.GET)
     public JsonResult<List<InvitationDTO>> invitations(
-            Principal principal
+            Principal principal,
+            @RequestParam(value = "studyId", required = false) Long studyId
     ) throws NotExistException {
 
-        JsonResult<List<InvitationDTO>> result;
         U user = userService.getByEmail(principal.getName());
 
-        Stream<InvitationDTO> invitationStream = getInvitations(user)
-                .stream()
-                .flatMap(Collection::stream)
+        Stream<? extends Invitationable> invitationables;
+        if (studyId != null) {
+            invitationables = userService.getInvitationsForStudy(user, studyId).stream();
+        } else {
+            invitationables = getInvitations(user).stream().flatMap(Collection::stream);
+        }
+
+        Stream<InvitationDTO> invitationStream = invitationables
                 .map(o -> conversionService.convert(o, InvitationDTO.class))
                 .sorted(Comparator.comparing(InvitationDTO::getDate).reversed());
+
         return new JsonResult<>(NO_ERROR, invitationStream.collect(Collectors.toList()));
     }
 
     private List<Collection> getInvitations(U user) {
 
         return Arrays.asList(
-                userService.getInvitations(user),
+                userService.getCollaboratorInvitations(user),
                 analysisService.getWaitingForApprovalSubmissions(user),
                 userService.getDataSourceInvitations(user),
                 userService.getUnlockAnalysisRequests(user)
@@ -684,7 +691,7 @@ public abstract class BaseUserController<
             case InvitationType.UNLOCK_ANALYSIS:
             case InvitationType.APPROVE_PUBLISH_SUBMISSION:
             case InvitationType.APPROVE_EXECUTE_SUBMISSION: {
-                user = userService.getById(userId);
+                user = userService.getByIdAndInitializeCollections(userId);
                 break;
             }
             default: {
@@ -745,7 +752,7 @@ public abstract class BaseUserController<
             }
         }
         return new JsonResult<>(NO_ERROR,
-                conversionService.convert(userService.getById(user.getId()), UserProfileDTO.class));
+                conversionService.convert(userService.getByIdAndInitializeCollections(user.getId()), UserProfileDTO.class));
     }
 
     private void checkIfUserExists(U user) {
@@ -909,7 +916,7 @@ public abstract class BaseUserController<
                                       @PathVariable("confirmed") Boolean confirm)
             throws IOException, NoSuchFieldException, SolrServerException, IllegalAccessException {
 
-        U user = userService.getById(userId);
+        U user = userService.getByIdAndInitializeCollections(userId);
         user.setEmailConfirmed(confirm);
         userService.update(user);
         return conversionService.convert(user, CommonUserDTO.class);

@@ -25,5 +25,4 @@ package com.odysseusinc.arachne.portal.service.analysis;
 import com.odysseusinc.arachne.portal.model.Analysis;
 
 public interface AnalysisService extends BaseAnalysisService<Analysis> {
-
 }

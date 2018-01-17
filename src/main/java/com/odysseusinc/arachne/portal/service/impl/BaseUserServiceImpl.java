@@ -31,6 +31,7 @@ import static com.odysseusinc.arachne.portal.service.RoleService.ROLE_ADMIN;
 import static java.lang.Boolean.TRUE;
 import static org.springframework.data.jpa.domain.Specifications.where;
 
+import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraphUtils;
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Metadata;
@@ -161,7 +162,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     private String fileStorePath;
     @Value("${user.enabled.default}")
     private boolean userEnableDefault;
-    private Resource defaultAvatar = new ClassPathResource("avatar.png");
+    private Resource defaultAvatar = new ClassPathResource("avatar.svg");
     @Value("${portal.authMethod}")
     protected String userOrigin;
 
@@ -229,7 +230,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     @Override
     public U getByUnverifiedEmail(final String email) {
 
-        return userRepository.findByEmail(email);
+        return userRepository.findByEmail(email, EntityGraphUtils.fromAttributePaths("roles", "professionalType"));
     }
 
     @Override
@@ -269,7 +270,8 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
 
         user.setProfessionalType(professionalTypeService.getById(user.getProfessionalType().getId()));
         String password = user.getPassword();
-        validatePassword(password);
+        final String username = user.getUsername();
+        validatePassword(username, password);
         user.setPassword(passwordEncoder.encode(password));
 
         return userRepository.save(user);
@@ -327,10 +329,17 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     }
 
     @Override
+    public U getByIdAndInitializeCollections(Long id) {
+
+        return initUserCollections(getById(id));
+    }
+
+    @Override
     public U getById(Long id) {
 
-        return initUserCollections(userRepository.findOne(id));
+        return userRepository.findOne(id);
     }
+
 
     @Override
     public List<U> getAllByIDs(List<Long> ids) {
@@ -487,7 +496,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
 
         RegistrationMailMessage mail = new RegistrationMailMessage(
                 user,
-                WebSecurityConfig.portalHost.get(),
+                WebSecurityConfig.portalUrl.get(),
                 user.getRegistrationCode()
         );
         userRegistrant.ifPresent(registrant ->
@@ -520,7 +529,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
             throw new ValidationException(PASSWORD_NOT_MATCH_EXC);
         }
-        validatePassword(newPassword);
+        validatePassword(user.getUsername(), newPassword);
         exists.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(exists);
     }
@@ -564,11 +573,6 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     private U initUserCollections(U user) {
 
         if (user != null) {
-            try {
-                user.setProfessionalType(professionalTypeService.getById(user.getProfessionalType().getId()));
-            } catch (NotExistException ex) {
-                LOGGER.error(ex.getMessage(), ex);
-            }
             user.setRoles(roleRepository.findByUser(user.getId()));
             user.setLinks(userLinkService.findByUser(user));
             user.setPublications(userPublicationService.findByUser(user));
@@ -686,7 +690,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     }
 
     @Override
-    public List<? extends Invitationable> getInvitations(U user) {
+    public List<? extends Invitationable> getCollaboratorInvitations(U user) {
 
         return userStudyRepository.findByUserAndStatus(user, ParticipantStatus.PENDING);
     }
@@ -695,6 +699,25 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     public List<? extends Invitationable> getDataSourceInvitations(U user) {
 
         return studyDataSourceLinkRepository.findByOwnerAndStatus(user, DataSourceStatus.PENDING);
+    }
+
+    @Override
+    public List<? extends Invitationable> getInvitationsForStudy(U user, final Long studyId) {
+
+        List<? extends Invitationable> collaboratorInvitations = userStudyRepository.findByUserAndStudyIdAndStatus(
+                user,
+                studyId,
+                ParticipantStatus.PENDING
+        );
+        List<? extends Invitationable> dataSourceInvitations = studyDataSourceLinkRepository.findByOwnerAndStudyIdAndStatus(
+                user,
+                studyId,
+                DataSourceStatus.PENDING
+        );
+
+        return Stream
+                .concat(collaboratorInvitations.stream(), dataSourceInvitations.stream())
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -729,7 +752,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
 
         RemindPasswordMailMessage mail = new RemindPasswordMailMessage(
                 user,
-                WebSecurityConfig.portalHost.get(),
+                WebSecurityConfig.portalUrl.get(),
                 token);
 
         Optional<UserRegistrant> userRegistrant = userRegistrantService.findByToken(registrantToken);
@@ -925,9 +948,10 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         return userRepository.listApprovedByDatasource(id);
     }
 
-    private void validatePassword(String password) throws PasswordValidationException {
+    private void validatePassword(String username, String password) throws PasswordValidationException {
 
         PasswordData passwordData = new PasswordData(new Password(password));
+        passwordData.setUsername(username);
         RuleResult result = passwordValidator.validate(passwordData);
         if (!result.isValid()) {
             throw new PasswordValidationException(passwordValidator.getMessages(result));
