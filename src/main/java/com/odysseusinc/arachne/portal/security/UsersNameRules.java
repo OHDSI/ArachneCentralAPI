@@ -32,6 +32,8 @@ import java.util.Map;
 
 public class UsersNameRules implements Rule {
 
+    private static final String ERROR_CODE = "ILLEGAL_PERSONAL_DATA";
+
     @Override
     public RuleResult validate(PasswordData passwordData) {
 
@@ -49,7 +51,7 @@ public class UsersNameRules implements Rule {
                     result.setValid(false);
                     result.getDetails().add(
                             new RuleResultDetail(
-                                    "users names",
+                                    ERROR_CODE,
                                     createRuleResultDetailParameters(entry.getKey(), value)));
                 }
             }
