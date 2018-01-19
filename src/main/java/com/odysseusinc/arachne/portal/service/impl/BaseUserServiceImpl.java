@@ -70,6 +70,7 @@ import com.odysseusinc.arachne.portal.repository.StateProvinceRepository;
 import com.odysseusinc.arachne.portal.repository.StudyDataSourceLinkRepository;
 import com.odysseusinc.arachne.portal.repository.UserSpecifications;
 import com.odysseusinc.arachne.portal.repository.UserStudyRepository;
+import com.odysseusinc.arachne.portal.security.ArachnePasswordData;
 import com.odysseusinc.arachne.portal.service.BaseSkillService;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
@@ -84,7 +85,6 @@ import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import com.odysseusinc.arachne.portal.service.mail.RegistrationMailMessage;
 import com.odysseusinc.arachne.portal.service.mail.RemindPasswordMailMessage;
 import edu.vt.middleware.password.Password;
-import edu.vt.middleware.password.PasswordData;
 import edu.vt.middleware.password.PasswordValidator;
 import edu.vt.middleware.password.RuleResult;
 import java.awt.image.BufferedImage;
@@ -264,7 +264,10 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         user.setProfessionalType(professionalTypeService.getById(user.getProfessionalType().getId()));
         String password = user.getPassword();
         final String username = user.getUsername();
-        validatePassword(username, password);
+        final String firstName = user.getFirstname();
+        final String lastName = user.getLastname();
+        final String middleName = user.getMiddlename();
+        validatePassword(username, firstName, lastName, middleName, password);
         user.setPassword(passwordEncoder.encode(password));
 
         // The existing user check should come last:
@@ -532,7 +535,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
             throw new ValidationException(PASSWORD_NOT_MATCH_EXC);
         }
-        validatePassword(user.getUsername(), newPassword);
+        validatePassword(user.getUsername(), user.getFirstname(), user.getLastname(), user.getMiddlename(), newPassword);
         exists.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(exists);
     }
@@ -681,6 +684,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     }
 
     private File getUserAvatarFile(U user) {
+
         File filesStoreDir = new File(fileStorePath);
         if (!filesStoreDir.exists()) {
             filesStoreDir.mkdirs();
@@ -951,10 +955,13 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         return userRepository.listApprovedByDatasource(id);
     }
 
-    private void validatePassword(String username, String password) throws PasswordValidationException {
+    private void validatePassword(String username, String firstName, String lastName, String middleName, String password) throws PasswordValidationException {
 
-        PasswordData passwordData = new PasswordData(new Password(password));
+        ArachnePasswordData passwordData = new ArachnePasswordData(new Password(password));
         passwordData.setUsername(username);
+        passwordData.setFirstName(firstName);
+        passwordData.setLastName(lastName);
+        passwordData.setMiddleName(middleName);
         RuleResult result = passwordValidator.validate(passwordData);
         if (!result.isValid()) {
             throw new PasswordValidationException(passwordValidator.getMessages(result));
@@ -988,6 +995,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         final InputStream inputStream;
 
         private AvatarResolver(final U user) throws IOException {
+
             final File userAvatarFile = getUserAvatarFile(user);
             if (user != null && userAvatarFile.exists()) {
                 this.contentType = CommonFileUtils.getMimeType(userAvatarFile.getName(), userAvatarFile.getAbsolutePath());
@@ -999,15 +1007,18 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         }
 
         public String getContentType() {
+
             return this.contentType;
         }
 
         public InputStream getInputStream() {
+
             return this.inputStream;
         }
 
         @Override
         public void close() throws IOException {
+
             inputStream.close();
         }
     }
