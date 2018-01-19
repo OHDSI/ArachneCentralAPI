@@ -99,8 +99,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Value("#{'${portal.urlWhiteList}'.toLowerCase().split(',')}")
     private List<String> portalUrlWhiteList;
 
-    @Value("${arachne.passwordBlackList}")
-    private String[] passwordBlackList;
+    @Value("${arachne.passwordBlacklist}")
+    private String[] passwordBlacklist;
 
     private static Map<String, URI> urls = new LinkedHashMap<>();
 
@@ -181,7 +181,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public PasswordValidator passwordValidator() throws IOException {
-        final WordListDictionary dictionary = new WordListDictionary(new ArrayWordList(passwordBlackList));
+
+        Arrays.sort(passwordBlacklist);
+        final WordListDictionary dictionary = new WordListDictionary(new ArrayWordList(passwordBlacklist));
         List<Rule> ruleList = new ArrayList<>();
 
         ruleList.add(new LengthRule(10, 128));
