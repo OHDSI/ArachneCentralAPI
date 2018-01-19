@@ -88,6 +88,7 @@ arachne:
   loginAttempts:
     count: 3
     resetMinutes: 3
+  passwordBlackList: password,secret
   solrServerUrl: http://localhost:8983/solr
   mail:
     notifier: odysseusinc.notifier@gmail.com
