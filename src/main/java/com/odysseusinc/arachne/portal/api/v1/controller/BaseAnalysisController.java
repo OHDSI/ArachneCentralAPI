@@ -47,6 +47,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.Commentable;
 import com.odysseusinc.arachne.portal.api.v1.dto.DataReferenceDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.FileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.OptionDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.PageDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ShortBaseAnalysisDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionGroupDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightDTO;
@@ -118,8 +119,10 @@ import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.SortDefault;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.destination.DestinationResolver;
@@ -128,6 +131,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -242,13 +246,11 @@ public abstract class BaseAnalysisController<T extends Analysis,
     @RequestMapping(value = "/api/v1/analysis-management/analyses/{analysisId}/submission-groups", method = GET)
     public Page<SubmissionGroupDTO> getSubmissionGroups(
             @PathVariable("analysisId") Long id,
-            @SortDefault.SortDefaults({
-                    @SortDefault(sort = "created", direction = Sort.Direction.DESC)
-            })
-                    Pageable pageable
+            @ModelAttribute PageDTO pageDTO
     ) {
 
-        Page<SubmissionGroup> submissionGroupList = submissionService.getSubmissionGroups(id, pageable);
+        PageRequest pageRequest = new PageRequest(pageDTO.getPageablePage(), pageDTO.getPageSize(), new Sort(Sort.Direction.DESC, "created"));
+        Page<SubmissionGroup> submissionGroupList = submissionService.getSubmissionGroups(id, pageRequest);
 
         return submissionGroupList.map(sg -> {
             SubmissionGroupDTO sgDTO = conversionService.convert(sg, SubmissionGroupDTO.class);
