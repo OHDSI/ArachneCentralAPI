@@ -44,6 +44,11 @@ public class PageDTO extends DTO {
         return page;
     }
 
+    public Integer getPageablePage() {
+
+        return page == null ? 0 : (page - 1);
+    }
+
     public void setPage(Integer page) {
 
         this.page = page;

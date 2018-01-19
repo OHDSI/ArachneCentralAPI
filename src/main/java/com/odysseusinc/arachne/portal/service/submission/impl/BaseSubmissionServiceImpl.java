@@ -32,6 +32,8 @@ import static com.odysseusinc.arachne.portal.model.SubmissionStatus.IN_PROGRESS;
 import static com.odysseusinc.arachne.portal.model.SubmissionStatus.NOT_APPROVED;
 import static com.odysseusinc.arachne.portal.model.SubmissionStatus.PENDING;
 import static com.odysseusinc.arachne.portal.model.SubmissionStatus.valueOf;
+import static com.odysseusinc.arachne.portal.service.impl.submission.SubmissionActionType.EXECUTE;
+import static com.odysseusinc.arachne.portal.service.impl.submission.SubmissionActionType.PUBLISH;
 import static com.odysseusinc.arachne.portal.util.DataNodeUtils.isDataNodeOwner;
 
 import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
@@ -62,7 +64,8 @@ import com.odysseusinc.arachne.portal.repository.SubmissionResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionStatusHistoryRepository;
 import com.odysseusinc.arachne.portal.repository.submission.BaseSubmissionRepository;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
-import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
+import com.odysseusinc.arachne.portal.service.impl.submission.SubmissionAction;
+import com.odysseusinc.arachne.portal.service.impl.submission.SubmissionActionType;
 import com.odysseusinc.arachne.storage.service.ContentStorageService;
 import com.odysseusinc.arachne.portal.service.UserService;
 import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
@@ -89,6 +92,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
@@ -106,6 +110,8 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -409,6 +415,14 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         submissionGroup.setChecksum(calculateMD5Hash(submissionGroupFolder, files));
         submissionGroupRepository.save(submissionGroup);
         return submissionGroup;
+    }
+
+    @Override
+    @PreAuthorize("hasPermission(#analysisId,  'Analysis', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
+    public Page<SubmissionGroup> getSubmissionGroups(Long analysisId, Pageable pageRequest) {
+
+        return submissionGroupRepository.findAllByAnalysisId(analysisId, pageRequest);
     }
 
     protected void checkBeforeCreateSubmissionGroup(Analysis analysis) throws NoExecutableFileException {
@@ -764,5 +778,68 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         try (final SequenceInputStream in = new SequenceInputStream(Collections.enumeration(inputStreams))) {
             return DigestUtils.md5DigestAsHex(in);
         }
+    }
+
+    @Override
+    public List<SubmissionAction> getSubmissionActions(Submission submission) {
+
+        // Approve execution
+        SubmissionAction execApproveAction = getExecApproveAction(submission);
+
+        // Manually upload files
+        SubmissionAction manualResultUploadAction = getManualResultUploadAction(submission);
+
+        // Publish submission
+        SubmissionAction publishAction = getPublishAction(submission);
+
+        return Arrays.asList(execApproveAction, manualResultUploadAction, publishAction);
+    }
+
+    protected SubmissionAction getPublishAction(Submission submission) {
+
+        SubmissionAction publishAction = new SubmissionAction(PUBLISH.name());
+        publishAction.setAvailable(
+                Arrays.asList(EXECUTED, FAILED, IN_PROGRESS).contains(submission.getStatus()));
+        switch (submission.getStatus()) {
+            case EXECUTED_PUBLISHED:
+            case FAILED_PUBLISHED:
+                publishAction.setResult(true);
+                break;
+            case EXECUTED_REJECTED:
+            case FAILED_REJECTED:
+                publishAction.setResult(false);
+                break;
+            default:
+                publishAction.setResult(null);
+                break;
+        }
+        return publishAction;
+    }
+
+    protected SubmissionAction getExecApproveAction(Submission submission) {
+
+        SubmissionAction execApproveAction = new SubmissionAction(EXECUTE.name());
+        execApproveAction.setAvailable(submission.getStatus().equals(PENDING));
+        switch (submission.getStatus()) {
+            case PENDING:
+                execApproveAction.setResult(null);
+                break;
+            case NOT_APPROVED:
+                execApproveAction.setResult(false);
+                break;
+            default:
+                execApproveAction.setResult(true);
+                break;
+        }
+        return execApproveAction;
+    }
+
+    protected SubmissionAction getManualResultUploadAction(Submission submission) {
+
+        SubmissionAction manualResultUploadAction = new SubmissionAction(SubmissionActionType.MANUAL_UPLOAD.name());
+        manualResultUploadAction.setAvailable(
+                submission.getStatus().equals(SubmissionStatus.IN_PROGRESS)
+        );
+        return manualResultUploadAction;
     }
 }

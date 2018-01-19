@@ -37,8 +37,11 @@ import com.odysseusinc.arachne.portal.model.SubmissionStatus;
 import com.odysseusinc.arachne.portal.model.SubmissionStatusHistoryElement;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.ResultFileSearch;
+import com.odysseusinc.arachne.portal.service.impl.submission.SubmissionAction;
 import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.storage.util.FileSaveRequest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -61,6 +64,8 @@ public interface BaseSubmissionService<T extends Submission, A extends Analysis>
     @PreAuthorize("hasPermission(#analysis, "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).CREATE_SUBMISSION)")
     SubmissionGroup createSubmissionGroup(User user, Analysis analysis) throws IOException, NoExecutableFileException;
+
+    Page<SubmissionGroup> getSubmissionGroups(Long analysisId, Pageable pageRequest);
 
     @PreAuthorize("hasPermission(#submissionId, 'Submission', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).APPROVE_SUBMISSION)")
@@ -148,4 +153,6 @@ public interface BaseSubmissionService<T extends Submission, A extends Analysis>
             Submission submission,
             Long createById
     ) throws IOException;
+
+    List<SubmissionAction> getSubmissionActions(Submission submission);
 }
