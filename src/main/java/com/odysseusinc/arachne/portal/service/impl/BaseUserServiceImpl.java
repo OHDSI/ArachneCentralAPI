@@ -70,7 +70,8 @@ import com.odysseusinc.arachne.portal.repository.StateProvinceRepository;
 import com.odysseusinc.arachne.portal.repository.StudyDataSourceLinkRepository;
 import com.odysseusinc.arachne.portal.repository.UserSpecifications;
 import com.odysseusinc.arachne.portal.repository.UserStudyRepository;
-import com.odysseusinc.arachne.portal.security.ArachnePasswordData;
+import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordData;
+import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
 import com.odysseusinc.arachne.portal.service.BaseSkillService;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
@@ -173,7 +174,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
                                MessageSource messageSource,
                                ProfessionalTypeService professionalTypeService,
                                JavaMailSender javaMailSender,
-                               @Qualifier("passwordValidator") PasswordValidator passwordValidator,
+                               @Qualifier("passwordValidator") ArachnePasswordValidator passwordValidator,
                                BaseUserRepository<U> userRepository,
                                CountryRepository countryRepository,
                                BaseSolrService<SF> solrService,
