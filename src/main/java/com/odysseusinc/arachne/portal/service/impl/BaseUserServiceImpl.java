@@ -252,13 +252,6 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     public U create(final @NotNull U user)
             throws NotUniqueException, NotExistException, PasswordValidationException {
 
-        U byEmail = getByUnverifiedEmail(user.getEmail());
-        if (byEmail != null) {
-            throw new NotUniqueException(
-                    "email",
-                    messageSource.getMessage("validation.email.already.used", null, null)
-            );
-        }
         user.setUsername(user.getEmail());
         if (Objects.isNull(user.getEnabled())) {
             user.setEnabled(userEnableDefault);
@@ -273,6 +266,16 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         final String username = user.getUsername();
         validatePassword(username, password);
         user.setPassword(passwordEncoder.encode(password));
+
+        // The existing user check should come last:
+        // it is muted in public registration form, so we need to show other errors ahead
+        U byEmail = getByUnverifiedEmail(user.getEmail());
+        if (byEmail != null) {
+            throw new NotUniqueException(
+                    "email",
+                    messageSource.getMessage("validation.email.already.used", null, null)
+            );
+        }
 
         return userRepository.save(user);
     }
