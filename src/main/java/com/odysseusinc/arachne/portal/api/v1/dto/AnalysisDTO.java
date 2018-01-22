@@ -37,7 +37,6 @@ public class AnalysisDTO extends BaseAnalysisDTO {
     }
 
     private List<AnalysisFileDTO> files = new LinkedList<>();
-    private List<SubmissionGroupDTO> submissionGroup = new LinkedList<>();
     private Boolean locked;
 
     public List<AnalysisFileDTO> getFiles() {
@@ -48,16 +47,6 @@ public class AnalysisDTO extends BaseAnalysisDTO {
     public void setFiles(List<AnalysisFileDTO> files) {
 
         this.files = files;
-    }
-
-    public List<SubmissionGroupDTO> getSubmissionGroup() {
-
-        return submissionGroup;
-    }
-
-    public void setSubmissionGroup(List<SubmissionGroupDTO> submissionGroup) {
-
-        this.submissionGroup = submissionGroup;
     }
 
     public Boolean getLocked() {
