@@ -23,7 +23,20 @@
 package com.odysseusinc.arachne.portal.repository;
 
 import com.odysseusinc.arachne.portal.model.SubmissionGroup;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 
 public interface SubmissionGroupRepository extends CrudRepository<SubmissionGroup, Long> {
+
+    @Query(
+            value = "SELECT sg FROM SubmissionGroup sg " +
+                    "INNER JOIN FETCH sg.submissions s " +
+                    "LEFT JOIN FETCH s.submissionInsight " +
+                    "WHERE sg.analysis.id = :analysisId",
+            countQuery = "SELECT COUNT(sg) FROM SubmissionGroup sg WHERE sg.analysis.id = :analysisId"
+    )
+    Page<SubmissionGroup> findAllByAnalysisId(@Param("analysisId") Long analysisId, Pageable pageable);
 }

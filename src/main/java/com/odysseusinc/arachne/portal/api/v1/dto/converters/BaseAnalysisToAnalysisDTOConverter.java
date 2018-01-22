@@ -53,12 +53,6 @@ public abstract class BaseAnalysisToAnalysisDTOConverter<A extends Analysis, AD 
                 analysisDTO.getFiles().add(conversionService.convert(analysisFile, AnalysisFileDTO.class));
             }
         }
-        if (source.getSubmissionGroups() != null) {
-            List<SubmissionGroupDTO> groups = source.getSubmissionGroups().stream()
-                    .map(g -> conversionService.convert(g, SubmissionGroupDTO.class))
-                    .collect(Collectors.toList());
-            analysisDTO.setSubmissionGroup(groups);
-        }
 
         analysisDTO.setPermissions(conversionService.convert(source, PermissionsDTO.class));
         analysisDTO.setLocked(source.getLocked());
