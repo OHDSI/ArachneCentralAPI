@@ -20,7 +20,7 @@
  *
  */
 
-package com.odysseusinc.arachne.portal.security;
+package com.odysseusinc.arachne.portal.security.passwordvalidator;
 
 import edu.vt.middleware.password.Password;
 import edu.vt.middleware.password.PasswordData;

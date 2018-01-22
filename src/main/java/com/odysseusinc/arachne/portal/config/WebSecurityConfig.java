@@ -28,35 +28,15 @@ import com.odysseusinc.arachne.portal.security.AuthenticationTokenFilter;
 import com.odysseusinc.arachne.portal.security.DataNodeAuthenticationProvider;
 import com.odysseusinc.arachne.portal.security.EntryPointUnauthorizedHandler;
 import com.odysseusinc.arachne.portal.security.HostNameIsNotInServiceException;
+import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
+import com.odysseusinc.arachne.portal.security.passwordvalidator.PasswordValidatorBuilder;
 import com.odysseusinc.arachne.portal.security.Roles;
-import com.odysseusinc.arachne.portal.security.UsersNameRules;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
-import edu.vt.middleware.dictionary.ArrayWordList;
-import edu.vt.middleware.dictionary.WordListDictionary;
-import edu.vt.middleware.password.AlphabeticalCharacterRule;
-import edu.vt.middleware.password.CharacterCharacteristicsRule;
-import edu.vt.middleware.password.DictionarySubstringRule;
-import edu.vt.middleware.password.DigitCharacterRule;
-import edu.vt.middleware.password.IllegalCharacterRule;
-import edu.vt.middleware.password.LengthRule;
-import edu.vt.middleware.password.LowercaseCharacterRule;
-import edu.vt.middleware.password.MessageResolver;
-import edu.vt.middleware.password.NonAlphanumericCharacterRule;
-import edu.vt.middleware.password.PasswordValidator;
-import edu.vt.middleware.password.QwertySequenceRule;
-import edu.vt.middleware.password.RepeatCharacterRegexRule;
-import edu.vt.middleware.password.Rule;
-import edu.vt.middleware.password.UppercaseCharacterRule;
-import edu.vt.middleware.password.UsernameRule;
-import edu.vt.middleware.password.WhitespaceRule;
 import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -180,38 +160,27 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public PasswordValidator passwordValidator() throws IOException {
+    public ArachnePasswordValidator passwordValidator() throws IOException {
 
-        Arrays.sort(passwordBlacklist);
-        final WordListDictionary dictionary = new WordListDictionary(new ArrayWordList(passwordBlacklist));
-        List<Rule> ruleList = new ArrayList<>();
-
-        ruleList.add(new LengthRule(10, 128));
-
-        final CharacterCharacteristicsRule characterCharacteristicsRule = new CharacterCharacteristicsRule();
-        characterCharacteristicsRule.setNumberOfCharacteristics(3);
-        characterCharacteristicsRule.setRules(Arrays.asList(new UppercaseCharacterRule(1),
-                new LowercaseCharacterRule(1), new DigitCharacterRule(1), new NonAlphanumericCharacterRule(1)));
-        ruleList.add(characterCharacteristicsRule);
-
-        ruleList.add(new WhitespaceRule());
-        ruleList.add(new QwertySequenceRule());
-
-        ruleList.add(new UsernameRule(true, true));
-        ruleList.add(new UsersNameRules());
-        ruleList.add(new DictionarySubstringRule(dictionary));
-        ruleList.add(new RepeatCharacterRegexRule(3));
-
-        ruleList.add(new AlphabeticalCharacterRule(2));
-
-        final char[] illegalCharacters = new char[]{'‘', '\"', '&', ' '};
-        ruleList.add(new IllegalCharacterRule(illegalCharacters));
-
-        Properties props = new Properties();
-
-        props.load(new ClassPathResource("password_messages.properties").getInputStream());
-        MessageResolver resolver = new MessageResolver(props);
-        return new PasswordValidator(resolver, ruleList);
+        return PasswordValidatorBuilder.create()
+                .withComplexRules()
+                .withUppercaseCharacter(1)
+                .withLowercaseCharacter(1)
+                .withDigitCharacter(1)
+                .withNonAlphanumericCharacter(1)
+                .withNumberOfCharacteristics(3)
+                .done()
+                .withLength(10, 128)
+                .withWhitespace()
+                .withQuerty()
+                .withUsername(true, true)
+                .withUsersNames()
+                .withBlacklist(passwordBlacklist)
+                .withRepeatChars(3)
+                .withAlphabeticalChars(2)
+                .withIllegalChars(new char[]{'‘', '\"', '&', ' '})
+                .withMessages(new ClassPathResource("password_messages.properties"))
+                .build();
     }
 
     @Bean
