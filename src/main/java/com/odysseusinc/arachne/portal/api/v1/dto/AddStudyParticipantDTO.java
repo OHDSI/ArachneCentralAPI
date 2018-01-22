@@ -25,10 +25,23 @@ package com.odysseusinc.arachne.portal.api.v1.dto;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import javax.validation.constraints.NotNull;
 
-public class AddStudyParticipantDTO extends AddSimpleParticipantDTO {
+public class AddStudyParticipantDTO {
 
     @NotNull
     private ParticipantRole role;
+    @NotNull
+    private String userId;
+
+
+    public String getUserId() {
+
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+
+        this.userId = userId;
+    }
 
     public ParticipantRole getRole() {
 

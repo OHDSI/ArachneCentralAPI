@@ -25,6 +25,7 @@
             email = "admin@odysseusinc.com"
             email_confirmed = "true"
             professional_type_id = "1"
+            uuid="b66e95f072974369815bd7538de58d44"
     />
     <users
             id="2"
@@ -36,6 +37,7 @@
             email = "user@mail.com"
             email_confirmed = "true"
             professional_type_id = "1"
+            uuid="9ebdb833735f46408c4b090f8e8d6d4a"
     />
     <studies_users
             study_id = "1"

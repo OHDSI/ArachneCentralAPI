@@ -85,6 +85,7 @@ import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import com.odysseusinc.arachne.portal.service.mail.RegistrationMailMessage;
 import com.odysseusinc.arachne.portal.service.mail.RemindPasswordMailMessage;
+import com.odysseusinc.arachne.portal.util.UUIDGenerator;
 import edu.vt.middleware.password.Password;
 import edu.vt.middleware.password.PasswordValidator;
 import edu.vt.middleware.password.RuleResult;
@@ -335,7 +336,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     @Override
     public U getByIdAndInitializeCollections(Long id) {
 
-        return initUserCollections(getById(id));
+        return initUserCollections(ensureUuidAssigned(getById(id)));
     }
 
     @Override
@@ -432,6 +433,12 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         } else {
             throw new IllegalArgumentException("Given uuid is blank");
         }
+    }
+
+    @Override
+    public U getByUuidAndInitializeCollections(String uuid) {
+
+        return initUserCollections(getByUuid(uuid));
     }
 
     @Override
@@ -572,6 +579,16 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         link.setUser(forUpdate);
         userLinkService.create(link);
         return initUserCollections(forUpdate);
+    }
+
+    private U ensureUuidAssigned(final U user) {
+
+        U updated = user;
+        if (Objects.isNull(user.getUuid())) {
+            updated.setUuid(UUIDGenerator.generateUUID());
+            updated = userRepository.saveAndFlush(updated);
+        }
+        return updated;
     }
 
     private U initUserCollections(U user) {
@@ -815,7 +832,9 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
                 .collect(Collectors.toList());
 
         userList = userRepository.findByIdIn(docIdList);
-        Collections.sort(userList, Comparator.comparing(item -> docIdList.indexOf(item.getId())));
+        userList = userList.stream().map(this::ensureUuidAssigned)
+                .sorted(Comparator.comparing(item -> docIdList.indexOf(item.getId())))
+                .collect(Collectors.toList());
 
         SearchResult<U> searchResult = new SearchResult<>(solrQuery, solrResponse, userList);
         searchResult.setExcludedOptions(getExcludedOptions());

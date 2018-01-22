@@ -312,10 +312,10 @@ public abstract class BaseUserController<
     @ApiOperation("Download user avatar")
     @RequestMapping(value = "/api/v1/user-management/users/{id}/avatar", method = GET)
     public void getUserAvatar(
-            @PathVariable("id") Long id,
+            @PathVariable("id") String id,
             HttpServletResponse response) throws IOException {
 
-        U user = userService.getByIdAndInitializeCollections(id);
+        U user = userService.getByUuidAndInitializeCollections(id);
         userService.putAvatarToResponse(response, user);
     }
 
@@ -373,11 +373,11 @@ public abstract class BaseUserController<
     @RequestMapping(value = "/api/v1/user-management/users/{userId}/profile", method = GET)
     public JsonResult<UserProfileDTO> viewProfile(
             Principal principal,
-            @PathVariable("userId") Long userId) {
+            @PathVariable("userId") String userId) {
 
         User logginedUser = userService.getByEmail(principal.getName());
         JsonResult<UserProfileDTO> result;
-        User user = userService.getByIdAndInitializeCollections(userId);
+        User user = userService.getByUuidAndInitializeCollections(userId);
         UserProfileDTO userProfileDTO = conversionService.convert(user, UserProfileDTO.class);
         userProfileDTO.setIsEditable(logginedUser.getId().equals(userId));
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);

@@ -99,6 +99,8 @@ public interface BaseUserService<U extends User, S extends Skill> {
 
     U getByUuid(String uuid);
 
+    U getByUuidAndInitializeCollections(String uuid);
+
     List<U> suggestUser(String query, List<String> emailsList, Integer limit);
 
     List<U> suggestUserToStudy(String query, Long studyId, int limit);
