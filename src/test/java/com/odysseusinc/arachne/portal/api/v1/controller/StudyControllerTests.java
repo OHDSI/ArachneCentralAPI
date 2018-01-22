@@ -406,7 +406,7 @@ public class StudyControllerTests extends BaseControllerTest {
     public void testAddParticipant() throws Exception {
 
         AddStudyParticipantDTO participantDTO = new AddStudyParticipantDTO();
-        participantDTO.setUserId("2L");
+        participantDTO.setUserId("9ebdb833735f46408c4b090f8e8d6d4a");
         participantDTO.setRole(CONTRIBUTOR);
 
         mvc.perform(
