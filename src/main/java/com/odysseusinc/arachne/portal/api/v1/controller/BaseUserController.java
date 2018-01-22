@@ -26,6 +26,7 @@ import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCo
 import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.VALIDATION_ERROR;
 import static com.odysseusinc.arachne.portal.api.v1.controller.util.ControllerUtils.emulateEmailSent;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 import com.drew.imaging.ImageProcessingException;
@@ -82,6 +83,8 @@ import com.odysseusinc.arachne.portal.model.UserStudy;
 import com.odysseusinc.arachne.portal.model.search.PaperSearch;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.security.TokenUtils;
+import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordInfo;
+import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
 import com.odysseusinc.arachne.portal.service.AnalysisUnlockRequestService;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.BasePaperService;
@@ -92,7 +95,6 @@ import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
 import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.security.Principal;
 import java.util.Arrays;
@@ -142,7 +144,7 @@ public abstract class BaseUserController<
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseUserController.class);
     private static final String AVATAR_CONTENT_TYPE = "image/*";
     private static final String DATA_NODE_NOT_FOUND_EXCEPTION = "dataNode %s not found";
-    private static final String INVITATION_HOME_PAGE ="/study-manager/studies/";
+    private static final String INVITATION_HOME_PAGE = "/study-manager/studies/";
 
     protected final TokenUtils tokenUtils;
     protected final BaseUserService<U, SK> userService;
@@ -153,6 +155,7 @@ public abstract class BaseUserController<
     protected final AnalysisUnlockRequestService analysisUnlockRequestService;
     protected final BasePaperService<P, PS> paperService;
     protected final BaseSubmissionService<SB, A> submissionService;
+    protected final ArachnePasswordValidator passwordValidator;
 
     public BaseUserController(TokenUtils tokenUtils,
                               BaseUserService<U, SK> userService,
@@ -162,7 +165,8 @@ public abstract class BaseUserController<
                               BaseAnalysisService<A> analysisService,
                               AnalysisUnlockRequestService analysisUnlockRequestService,
                               BasePaperService<P, PS> paperService,
-                              BaseSubmissionService<SB, A> submissionService) {
+                              BaseSubmissionService<SB, A> submissionService,
+                              ArachnePasswordValidator passwordValidator) {
 
         this.tokenUtils = tokenUtils;
         this.userService = userService;
@@ -173,6 +177,14 @@ public abstract class BaseUserController<
         this.analysisUnlockRequestService = analysisUnlockRequestService;
         this.paperService = paperService;
         this.submissionService = submissionService;
+        this.passwordValidator = passwordValidator;
+    }
+
+    @ApiOperation("Password restrictions")
+    @RequestMapping(value = "/api/v1/auth/password-policies", method = GET)
+    public ArachnePasswordInfo getPasswordPolicies() {
+
+        return passwordValidator.getPasswordInfo();
     }
 
     @ApiOperation("Register new user via form.")
@@ -213,7 +225,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Get status of registered user")
-    @RequestMapping(value = "/api/v1/auth/status/{userUuid}", method = RequestMethod.GET)
+    @RequestMapping(value = "/api/v1/auth/status/{userUuid}", method = GET)
     public JsonResult<CommonArachneUserStatusDTO> findUserStatus(@PathVariable("userUuid") String uuid)
             throws UserNotFoundException {
 
@@ -283,7 +295,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Download user avatar")
-    @RequestMapping(value = "/api/v1/user-management/users/avatar", method = RequestMethod.GET)
+    @RequestMapping(value = "/api/v1/user-management/users/avatar", method = GET)
     public void getUserAvatar(
             Principal principal,
             HttpServletResponse response) throws IOException {
@@ -294,7 +306,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Download user avatar")
-    @RequestMapping(value = "/api/v1/user-management/users/{id}/avatar", method = RequestMethod.GET)
+    @RequestMapping(value = "/api/v1/user-management/users/{id}/avatar", method = GET)
     public void getUserAvatar(
             @PathVariable("id") Long id,
             HttpServletResponse response) throws IOException {
@@ -354,7 +366,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("View user profile.")
-    @RequestMapping(value = "/api/v1/user-management/users/{userId}/profile", method = RequestMethod.GET)
+    @RequestMapping(value = "/api/v1/user-management/users/{userId}/profile", method = GET)
     public JsonResult<UserProfileDTO> viewProfile(
             Principal principal,
             @PathVariable("userId") Long userId) {
@@ -411,7 +423,7 @@ public abstract class BaseUserController<
 
     @Deprecated
     @ApiOperation("Suggests user according to query.")
-    @RequestMapping(value = "/api/v1/user-management/users/search-user", method = RequestMethod.GET)
+    @RequestMapping(value = "/api/v1/user-management/users/search-user", method = GET)
     public JsonResult<List<CommonUserDTO>> suggestUsers(
             @RequestParam(value = "studyId", required = false) Long studyId,
             @RequestParam(value = "paperId", required = false) Long paperId,
@@ -436,7 +448,7 @@ public abstract class BaseUserController<
 
     @Deprecated
     @ApiOperation("Suggests user according to query.")
-    @RequestMapping(value = "/api/v1/user-management/users/suggests-user", method = RequestMethod.GET)
+    @RequestMapping(value = "/api/v1/user-management/users/suggests-user", method = GET)
     public JsonResult<List<CommonUserDTO>> get(
             @RequestParam("query") String query,
             @RequestParam("email") List<String> emails,
@@ -448,7 +460,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Get user by id")
-    @RequestMapping(value = "/api/v1/user-management/users/{id}", method = RequestMethod.GET)
+    @RequestMapping(value = "/api/v1/user-management/users/{id}", method = GET)
     public JsonResult<CommonUserDTO> get(
             @PathVariable("id") Long id
     ) {
@@ -577,7 +589,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Get user's invitations.")
-    @RequestMapping(value = "/api/v1/user-management/users/invitations", method = RequestMethod.GET)
+    @RequestMapping(value = "/api/v1/user-management/users/invitations", method = GET)
     public JsonResult<List<InvitationDTO>> invitations(
             Principal principal,
             @RequestParam(value = "studyId", required = false) Long studyId
@@ -610,7 +622,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Accept invitations via mail.")
-    @RequestMapping(value = "/api/v1/user-management/users/invitations/mail", method = RequestMethod.GET)
+    @RequestMapping(value = "/api/v1/user-management/users/invitations/mail", method = GET)
     public JsonResult<UserProfileDTO> invitationAcceptViaMail(
             @RequestParam("id") Long id,
             @RequestParam("accepted") Boolean accepted,
@@ -760,7 +772,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Get expert list")
-    @RequestMapping(value = "/api/v1/user-management/users", method = RequestMethod.GET)
+    @RequestMapping(value = "/api/v1/user-management/users", method = GET)
     public JsonResult<ExpertListSearchResultDTO> list(
             @ModelAttribute SearchExpertListDTO searchDTO
     ) throws IOException, SolrServerException {
@@ -780,7 +792,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Suggests country.")
-    @RequestMapping(value = "/api/v1/user-management/countries/search", method = RequestMethod.GET)
+    @RequestMapping(value = "/api/v1/user-management/countries/search", method = GET)
     public JsonResult<List<CountryDTO>> suggestCountries(
             @RequestParam("query") String query,
             @RequestParam("limit") Integer limit,
@@ -799,7 +811,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Suggests state or province.")
-    @RequestMapping(value = "/api/v1/user-management/state-province/search", method = RequestMethod.GET)
+    @RequestMapping(value = "/api/v1/user-management/state-province/search", method = GET)
     public JsonResult<List<StateProvinceDTO>> suggestStateProvince(
             @RequestParam("countryId") Long countryId,
             @RequestParam("query") String query,

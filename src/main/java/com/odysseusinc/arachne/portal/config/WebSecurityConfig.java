@@ -28,26 +28,15 @@ import com.odysseusinc.arachne.portal.security.AuthenticationTokenFilter;
 import com.odysseusinc.arachne.portal.security.DataNodeAuthenticationProvider;
 import com.odysseusinc.arachne.portal.security.EntryPointUnauthorizedHandler;
 import com.odysseusinc.arachne.portal.security.HostNameIsNotInServiceException;
+import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
+import com.odysseusinc.arachne.portal.security.passwordvalidator.PasswordValidatorBuilder;
 import com.odysseusinc.arachne.portal.security.Roles;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
-import edu.vt.middleware.password.AlphabeticalCharacterRule;
-import edu.vt.middleware.password.DigitCharacterRule;
-import edu.vt.middleware.password.IllegalCharacterRule;
-import edu.vt.middleware.password.LengthRule;
-import edu.vt.middleware.password.MessageResolver;
-import edu.vt.middleware.password.PasswordValidator;
-import edu.vt.middleware.password.QwertySequenceRule;
-import edu.vt.middleware.password.RepeatCharacterRegexRule;
-import edu.vt.middleware.password.Rule;
-import edu.vt.middleware.password.UsernameRule;
-import edu.vt.middleware.password.WhitespaceRule;
 import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -89,6 +78,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Value("#{'${portal.urlWhiteList}'.toLowerCase().split(',')}")
     private List<String> portalUrlWhiteList;
+
+    @Value("${arachne.passwordBlacklist}")
+    private String[] passwordBlacklist;
 
     private static Map<String, URI> urls = new LinkedHashMap<>();
 
@@ -168,24 +160,27 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public PasswordValidator passwordValidator() throws IOException {
-        // based on the novel
-        // https://www.paypalobjects.com/en_US/vhelp/paypalmanager_help/password_guidelines.htm
-        final char[] illegalCharacters = new char[] {'‘', '\"', '&', ' '};
-        List<Rule> ruleList = new ArrayList<>();
-        ruleList.add(new LengthRule(7, 32));
-        ruleList.add(new WhitespaceRule());
-        ruleList.add(new QwertySequenceRule());
-        ruleList.add(new RepeatCharacterRegexRule(4));
-        ruleList.add(new UsernameRule(true, true));
-        ruleList.add(new DigitCharacterRule(2));
-        ruleList.add(new AlphabeticalCharacterRule(2));
-        ruleList.add(new IllegalCharacterRule(illegalCharacters));
-        Properties props = new Properties();
+    public ArachnePasswordValidator passwordValidator() throws IOException {
 
-        props.load(new ClassPathResource("password_messages.properties").getInputStream());
-        MessageResolver resolver = new MessageResolver(props);
-        return new PasswordValidator(resolver, ruleList);
+        return PasswordValidatorBuilder.create()
+                .withComplexRules()
+                .withUppercaseCharacter(1)
+                .withLowercaseCharacter(1)
+                .withDigitCharacter(1)
+                .withNonAlphanumericCharacter(1)
+                .withNumberOfCharacteristics(3)
+                .done()
+                .withLength(10, 128)
+                .withWhitespace()
+                .withQuerty()
+                .withUsername(true, true)
+                .withUsersNames()
+                .withBlacklist(passwordBlacklist)
+                .withRepeatChars(3)
+                .withAlphabeticalChars(2)
+                .withIllegalChars(new char[]{'‘', '\"', '&', ' '})
+                .withMessages(new ClassPathResource("password_messages.properties"))
+                .build();
     }
 
     @Bean

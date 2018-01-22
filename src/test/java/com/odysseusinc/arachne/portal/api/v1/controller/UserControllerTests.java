@@ -82,7 +82,7 @@ public class UserControllerTests extends BaseControllerTest {
 
     private static final String EMAIL = "mail@mail.com";
     private static final String MIDDLE_NAME = "middleName";
-    private static final String PASSWORD = "password12";
+    private static final String PASSWORD = "XJHCRr7BJv87";
     private static final String BAD_PASSWORD = "password";
 
     private static final Long PROFESSIONAL_TYPE_ID = 1L;
