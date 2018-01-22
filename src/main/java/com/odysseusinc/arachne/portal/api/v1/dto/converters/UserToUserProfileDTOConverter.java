@@ -33,7 +33,6 @@ import com.odysseusinc.arachne.portal.model.UserLink;
 import com.odysseusinc.arachne.portal.model.UserPublication;
 import java.util.HashSet;
 import java.util.LinkedList;
-import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
 import org.springframework.stereotype.Component;
 
 
@@ -45,7 +44,7 @@ public class UserToUserProfileDTOConverter extends BaseConversionServiceAwareCon
     public UserProfileDTO convert(User user) {
 
         UserProfileDTO dto = new UserProfileDTO();
-        dto.setId(user.getId());
+        dto.setId(user.getUuid());
         dto.setEnabled(user.getEnabled());
         dto.setCreated(user.getCreated());
         dto.setUpdated(user.getUpdated());
