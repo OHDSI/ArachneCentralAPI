@@ -93,6 +93,7 @@ public class UserControllerTests extends BaseControllerTest {
     private static final String USER_LINK_URL = "userLinkUrl";
 
     private static final String PUBLISHER = "userPublicationPublisher";
+    public static final String USER_2_UUID = "9ebdb833735f46408c4b090f8e8d6d4a";
 
     private final JSONObject ADMIN_JSON_OBJECT = new JSONObject()
             .put("firstname", ADMIN_FIRST_NAME)
@@ -289,7 +290,7 @@ public class UserControllerTests extends BaseControllerTest {
     public void testGetProfile() throws Exception {
 
         MvcResult mvcResult = mvc.perform(
-                get("/api/v1/user-management/users/" + 2L + "/profile"))
+                get("/api/v1/user-management/users/" + USER_2_UUID + "/profile"))
                 .andExpect(NO_ERROR_CODE)
                 .andExpect(OK_STATUS)
                 .andReturn();
