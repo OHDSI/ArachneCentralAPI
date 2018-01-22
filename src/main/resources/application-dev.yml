@@ -17,4 +17,6 @@ achilles:
     corePoolSize: 1
     maxPoolSize: 2
     queueCapacity: 10
-
+arachne:
+  token:
+    expiration: 604800

@@ -80,7 +80,7 @@ arachne:
   token:
     secret: sssshhhh!
     header: Arachne-Auth-Token
-    expiration: 604800
+    expiration: 900
   systemToken:
     header: Arachne-System-Token
   resetPasswordToken:
