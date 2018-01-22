@@ -420,6 +420,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     @Override
     @PreAuthorize("hasPermission(#analysisId,  'Analysis', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
+   @PostAuthorize("@ArachnePermissionEvaluator.addPermissionsToSubmissions(principal, returnObject )")
     public Page<SubmissionGroup> getSubmissionGroups(Long analysisId, Pageable pageRequest) {
 
         return submissionGroupRepository.findAllByAnalysisId(analysisId, pageRequest);
