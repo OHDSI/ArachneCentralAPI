@@ -43,6 +43,7 @@ import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.exception.WrongFileFormatException;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -160,12 +161,10 @@ public class ExceptionHandlingController extends BaseController {
     @ExceptionHandler(PasswordValidationException.class)
     public ResponseEntity<JsonResult> exceptionHandler(PasswordValidationException ex) {
 
-        LOGGER.error(ex.getMessage(), ex);
+        LOGGER.error(ex.getMessages().stream().collect(Collectors.joining(" ")));
         JsonResult result = new JsonResult<>(VALIDATION_ERROR);
         result.setErrorMessage("You have provided a weak password");
-        for (String message : ex.getMessages()) {
-            result.getValidatorErrors().put("password", message);
-        }
+        result.getValidatorErrors().put("password", ex.getMessages());
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
@@ -242,12 +241,13 @@ public class ExceptionHandlingController extends BaseController {
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
-    @ExceptionHandler({ NoHandlerFoundException.class })
+    @ExceptionHandler({NoHandlerFoundException.class})
     public void handleNotFoundError(HttpServletRequest request, HttpServletResponse response) throws Exception {
 
         ResourceHttpRequestHandler handler = new ResourceHttpRequestHandler() {
             @Override
             protected Resource getResource(HttpServletRequest request) throws IOException {
+
                 String requestPath = request.getRequestURI().substring(request.getContextPath().length());
 
                 ClassPathResource resource = new ClassPathResource(STATIC_CONTENT_FOLDER + requestPath);
