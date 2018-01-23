@@ -31,6 +31,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.MetadataException;
+import com.odysseusinc.arachne.commons.api.v1.dto.ArachnePasswordInfoDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonArachneUserStatusDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonLinkUserToDataNodeDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserDTO;
@@ -182,9 +183,9 @@ public abstract class BaseUserController<
 
     @ApiOperation("Password restrictions")
     @RequestMapping(value = "/api/v1/auth/password-policies", method = GET)
-    public ArachnePasswordInfo getPasswordPolicies() {
+    public ArachnePasswordInfoDTO getPasswordPolicies() {
 
-        return passwordValidator.getPasswordInfo();
+        return conversionService.convert(passwordValidator.getPasswordInfo(), ArachnePasswordInfoDTO.class);
     }
 
     @ApiOperation("Register new user via form.")
