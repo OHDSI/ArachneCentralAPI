@@ -197,7 +197,7 @@ public class PasswordValidatorBuilder {
 
         if (Objects.nonNull(repeatCharsLength)) {
             rules.add(new RepeatCharacterRegexRule(repeatCharsLength));
-            ruleInfos.add(new RuleInfo(String.format("Character sequence more than '3' chars is not allowed", repeatCharsLength)));
+            ruleInfos.add(new RuleInfo(String.format("Character sequence more than %s chars is not allowed", repeatCharsLength)));
         }
 
         if (Objects.nonNull(alphabeticalCharsNum)) {
@@ -248,7 +248,7 @@ public class PasswordValidatorBuilder {
             final Integer nonAlphanumericCharacterNum = complexRulesBuilder.nonAlphanumericCharacterNum;
             if (Objects.nonNull(nonAlphanumericCharacterNum)) {
                 characterRules.add(new NonAlphanumericCharacterRule(nonAlphanumericCharacterNum));
-                complexRules.add(new RuleInfo(String.format("at least %s special character (punctuation)", lowercaseCharacterNum)));
+                complexRules.add(new RuleInfo(String.format("At least %s special character (punctuation)", lowercaseCharacterNum)));
             }
             characteristicsRule.setRules(characterRules);
             rules.add(characteristicsRule);
