@@ -89,7 +89,7 @@ public class SolrField {
         } else if (dataType.isAssignableFrom(List.class) || dataType.isAssignableFrom(Set.class)) {
             postfix = "_ts";
         } else {
-            postfix = "_t";
+            postfix = "_txt";
         }
         return postfix;
     }
