@@ -47,7 +47,7 @@ import javax.persistence.Table;
 @Table(name = "users")
 public class User implements Serializable {
 
-    @ManyToMany(targetEntity = Role.class)
+    @ManyToMany(targetEntity = Role.class, fetch = FetchType.LAZY)
     @JoinTable(name = "users_roles",
             joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
@@ -95,7 +95,7 @@ public class User implements Serializable {
     private Date lastPasswordReset;
 
     @SolrFieldAnno(query = true, filter = true)
-    @ManyToMany(targetEntity = Skill.class, fetch = FetchType.EAGER)
+    @ManyToMany(targetEntity = Skill.class, fetch = FetchType.LAZY)
     @JoinTable(name = "users_skills",
             joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "skill_id", referencedColumnName = "id"))
@@ -166,7 +166,7 @@ public class User implements Serializable {
     @Column
     private String username;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<DataNodeUser> dataNodeUsers = new HashSet<>();
 
 

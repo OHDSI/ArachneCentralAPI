@@ -30,7 +30,7 @@ public class UnlockAnalysisRequestMailMessage extends InvitationArachneMailMessa
 
     public UnlockAnalysisRequestMailMessage(String portalUrl, User user, AnalysisUnlockRequest request) {
 
-        super(portalUrl, user, request.getToken());
+        super(portalUrl, user, request.getToken(), request.getAuthor());
         final Analysis analysis = request.getAnalysis();
         parameters.put("analysisUrl", portalUrl + "/analysis-execution/analyses/" + analysis.getId());
         parameters.put("analysisTitle", analysis.getTitle());

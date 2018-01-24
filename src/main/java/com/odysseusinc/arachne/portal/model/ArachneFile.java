@@ -24,6 +24,7 @@ package com.odysseusinc.arachne.portal.model;
 
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
+import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import java.util.Date;
 import java.util.Set;
 import javax.persistence.Access;
@@ -34,7 +35,7 @@ import javax.persistence.Transient;
 
 @MappedSuperclass
 @Access(AccessType.FIELD)
-public class ArachneFile implements HasArachnePermissions {
+public class ArachneFile implements ArachneFileMeta, HasArachnePermissions {
 
     @Column
     protected String uuid;
@@ -74,7 +75,13 @@ public class ArachneFile implements HasArachnePermissions {
         this.uuid = uuid;
     }
 
+    @Deprecated
     public String getRealName() {
+
+        return realName;
+    }
+
+    public String getName() {
 
         return realName;
     }

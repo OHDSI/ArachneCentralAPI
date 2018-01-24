@@ -48,6 +48,7 @@ public class SubmissionInsightSubmissionFileToCommentableSubmissionFileDTOConver
         dto.setCommentCount(submissionInsightSubmissionFile.getCommentTopic().getCount());
         dto.setAuthor(conversionService.convert(submissionFile.getAuthor(), UserInfoDTO.class));
         dto.setDocType(submissionInsightSubmissionFile.getSubmissionFile().getContentType());
+        dto.setFileId(submissionFile.getId());
         return dto;
     }
 }

@@ -76,11 +76,11 @@ public class StudyStatus implements IsState {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (o == null || !(o instanceof StudyStatus)) {
             return false;
         }
         StudyStatus that = (StudyStatus) o;
-        return Objects.equal(id, that.id);
+        return Objects.equal(id, that.getId());
     }
 
     @Override

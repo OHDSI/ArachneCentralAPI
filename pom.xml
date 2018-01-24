@@ -6,19 +6,17 @@
 
     <artifactId>portal</artifactId>
     <groupId>com.odysseusinc.arachne</groupId>
-    <version>1.10.1</version>
+    <version>1.11.0-QA</version>
     <packaging>jar</packaging>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>1.5.4.RELEASE</version>
+        <version>1.5.9.RELEASE</version>
         <relativePath/>
     </parent>
 
     <properties>
-        <arachne.commons.version>1.10.0</arachne.commons.version>
-        <arachne.resources.version>1.10.0</arachne.resources.version>
         <spring.boot.version>1.5.4.RELEASE</spring.boot.version>
         <spring.security.acl.version>4.2.1.RELEASE</spring.security.acl.version>
         <start-class>com.odysseusinc.arachne.portal.PortalStarter</start-class>
@@ -34,6 +32,8 @@
         <build.number>${BUILD_NUMBER}</build.number>
         <build.id>${BUILD_TIMESTAMP}</build.id>
         <dockerImagePrefix>hub.arachnenetwork.com</dockerImagePrefix>
+        <jodConverter.version>4.1.0</jodConverter.version>
+        <hibernate.version>5.2.12.Final</hibernate.version>
     </properties>
 
     <profiles>
@@ -42,6 +42,13 @@
             <properties>
                 <env>integration</env>
                 <latestSuffix>-snapshot</latestSuffix>
+            </properties>
+        </profile>
+        <profile>
+            <id>selenium-test</id>
+            <properties>
+                <env>selenium-test</env>
+                <latestSuffix>-selenium-test</latestSuffix>
             </properties>
         </profile>
         <profile>
@@ -94,19 +101,25 @@
         <dependency>
             <groupId>com.odysseusinc.arachne</groupId>
             <artifactId>arachne-commons</artifactId>
-            <version>${arachne.commons.version}</version>
+            <version>${project.version}</version>
             <type>jar</type>
         </dependency>
         <dependency>
             <artifactId>arachne-sys-settings</artifactId>
             <groupId>com.odysseusinc.arachne</groupId>
-            <version>${arachne.commons.version}</version>
+            <version>${project.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.flywaydb</groupId>
                     <artifactId>flyway-core</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.odysseusinc.arachne</groupId>
+            <artifactId>arachne-storage</artifactId>
+            <version>${project.version}</version>
+            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -209,7 +222,11 @@
             <artifactId>vt-password</artifactId>
             <version>3.1.2</version>
         </dependency>
-
+        <dependency>
+            <groupId>edu.vt.middleware</groupId>
+            <artifactId>vt-dictionary</artifactId>
+            <version>3.0</version>
+        </dependency>
         <dependency>
             <artifactId>solr-solrj</artifactId>
             <groupId>org.apache.solr</groupId>
@@ -279,12 +296,32 @@
         <dependency>
             <groupId>com.odysseusinc.arachne</groupId>
             <artifactId>execution-engine-commons</artifactId>
-            <version>${arachne.commons.version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.ohdsi.sql</groupId>
             <artifactId>SqlRender</artifactId>
             <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.cosium.spring.data</groupId>
+            <artifactId>spring-data-jpa-entity-graph</artifactId>
+            <version>1.11.03</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jodconverter</groupId>
+            <artifactId>jodconverter-local</artifactId>
+            <version>${jodConverter.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jodconverter</groupId>
+            <artifactId>jodconverter-spring-boot-starter</artifactId>
+            <version>${jodConverter.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-csv</artifactId>
+            <version>1.5</version>
         </dependency>
     </dependencies>
 
@@ -322,7 +359,7 @@
                                 <artifactItem>
                                     <groupId>com.odysseusinc.arachne</groupId>
                                     <artifactId>portal-resources</artifactId>
-                                    <version>${arachne.resources.version}</version>
+                                    <version>${project.version}</version>
                                     <type>zip</type>
                                     <overWrite>false</overWrite>
                                     <outputDirectory>${project.basedir}/src/main/resources/public/</outputDirectory>

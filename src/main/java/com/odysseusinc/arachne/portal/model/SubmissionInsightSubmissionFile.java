@@ -24,6 +24,7 @@ package com.odysseusinc.arachne.portal.model;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -41,13 +42,13 @@ public class SubmissionInsightSubmissionFile {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "submission_insight_submission_files_pk_sequence")
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private SubmissionInsight submissionInsight;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     private SubmissionFile submissionFile;
 
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private CommentTopic commentTopic;
 
     public SubmissionInsightSubmissionFile() {

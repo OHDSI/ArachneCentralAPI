@@ -35,11 +35,13 @@ import static com.odysseusinc.arachne.portal.service.impl.submission.SubmissionA
 import static com.odysseusinc.arachne.portal.service.impl.submission.SubmissionActionType.PUBLISH;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
+import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
+import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraphUtils;
 import com.google.common.base.Objects;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.ApproveDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.FileContentDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.FileDTO;
 import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.IORuntimeException;
@@ -53,7 +55,6 @@ import com.odysseusinc.arachne.portal.model.AnalysisFile;
 import com.odysseusinc.arachne.portal.model.AnalysisUnlockRequest;
 import com.odysseusinc.arachne.portal.model.AnalysisUnlockRequestStatus;
 import com.odysseusinc.arachne.portal.model.ArachneFile;
-import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.DataReference;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.Invitationable;
@@ -61,8 +62,6 @@ import com.odysseusinc.arachne.portal.model.ResultFile;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
-import com.odysseusinc.arachne.portal.model.SubmissionInsight;
-import com.odysseusinc.arachne.portal.model.SubmissionInsightSubmissionFile;
 import com.odysseusinc.arachne.portal.model.SubmissionStatus;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
@@ -73,13 +72,10 @@ import com.odysseusinc.arachne.portal.repository.AnalysisUnlockRequestRepository
 import com.odysseusinc.arachne.portal.repository.BaseAnalysisRepository;
 import com.odysseusinc.arachne.portal.repository.ResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionFileRepository;
-import com.odysseusinc.arachne.portal.repository.SubmissionInsightRepository;
-import com.odysseusinc.arachne.portal.repository.SubmissionInsightSubmissionFileRepository;
-import com.odysseusinc.arachne.portal.repository.SubmissionResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionStatusHistoryRepository;
 import com.odysseusinc.arachne.portal.repository.submission.BaseSubmissionRepository;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
-import com.odysseusinc.arachne.portal.service.CommentService;
+import com.odysseusinc.arachne.portal.service.ToPdfConverter;
 import com.odysseusinc.arachne.portal.service.StudyFileService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.service.impl.AnalysisPreprocessorService;
@@ -98,7 +94,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.math.BigInteger;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -107,13 +102,9 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipOutputStream;
 import org.apache.commons.collections.CollectionUtils;
@@ -123,9 +114,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.support.GenericConversionService;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -151,11 +139,6 @@ public abstract class BaseAnalysisServiceImpl<
 
     public static final String ILLEGAL_SUBMISSION_STATE_EXCEPTION = "Submission must be in EXECUTED or FAILED state before approve result";
     protected static final Logger LOGGER = LoggerFactory.getLogger(BaseAnalysisServiceImpl.class);
-    private static final String CREATING_INSIGHT_LOG = "Creating Insight for Submission with id='{}'";
-    private static final String UPDATING_INSIGHT_LOG = "Updating Insight for Submission with id='{}'";
-    private static final String SUBMISSION_NOT_EXIST_EXCEPTION = "Submission with id='%s' does not exist";
-    private static final String INSIGHT_NOT_EXIST_EXCEPTION = "Insight for Submission with id='%s' does not exist";
-    private static final String INSIGHT_ALREADY_EXISTS_EXCEPTION = "Insight for Submission with id='%s' already exists";
     private static final String ANALYSIS_NOT_FOUND_EXCEPTION = "Analysis with id='%s' is not found";
     private static final String RESULT_FILE_NOT_EXISTS_EXCEPTION = "Result file with uuid='%s' for submission with "
             + "id='%s' does not exist";
@@ -165,17 +148,14 @@ public abstract class BaseAnalysisServiceImpl<
     private static final String UNLOCK_REQUEST_NOT_EXIST_EXCEPTION
             = "Unlock request with id='%s' for User with id='%s' does not exist";
 
+    protected final ToPdfConverter docToPdfConverter;
     protected final GenericConversionService conversionService;
     protected final BaseAnalysisRepository<A> analysisRepository;
     protected final BaseSubmissionRepository<Submission> submissionRepository;
     protected final AnalysisFileRepository analysisFileRepository;
     protected final SubmissionFileRepository submissionFileRepository;
-    protected final SubmissionResultFileRepository submissionResultFileRepository;
     protected final ResultFileRepository resultFileRepository;
     protected final SubmissionStatusHistoryRepository submissionStatusHistoryRepository;
-    protected final SubmissionInsightRepository submissionInsightRepository;
-    protected final SubmissionInsightSubmissionFileRepository submissionInsightSubmissionFileRepository;
-    protected final CommentService commentService;
     protected final RestTemplate restTemplate;
     protected final LegacyAnalysisHelper legacyAnalysisHelper;
     protected final AnalysisUnlockRequestRepository analysisUnlockRequestRepository;
@@ -194,12 +174,8 @@ public abstract class BaseAnalysisServiceImpl<
                                    BaseSubmissionRepository submissionRepository,
                                    AnalysisFileRepository analysisFileRepository,
                                    SubmissionFileRepository submissionFileRepository,
-                                   SubmissionResultFileRepository submissionResultFileRepository,
                                    ResultFileRepository resultFileRepository,
                                    SubmissionStatusHistoryRepository submissionStatusHistoryRepository,
-                                   SubmissionInsightRepository submissionInsightRepository,
-                                   SubmissionInsightSubmissionFileRepository submissionInsightSubmissionFileRepository,
-                                   CommentService commentService,
                                    @SuppressWarnings("SpringJavaAutowiringInspection")
                                    @Qualifier("restTemplate") RestTemplate restTemplate,
                                    LegacyAnalysisHelper legacyAnalysisHelper,
@@ -210,19 +186,18 @@ public abstract class BaseAnalysisServiceImpl<
                                    StudyStateMachine studyStateMachine,
                                    BaseStudyService<S, DS, SS, SU> studyService,
                                    AnalysisHelper analysisHelper,
-                                   StudyFileService fileService) {
+                                   StudyFileService fileService,
+                                   ToPdfConverter docToPdfConverter) {
+
+        this.docToPdfConverter = docToPdfConverter;
 
         this.conversionService = conversionService;
         this.analysisRepository = analysisRepository;
         this.submissionRepository = submissionRepository;
         this.analysisFileRepository = analysisFileRepository;
         this.submissionFileRepository = submissionFileRepository;
-        this.submissionResultFileRepository = submissionResultFileRepository;
         this.resultFileRepository = resultFileRepository;
         this.submissionStatusHistoryRepository = submissionStatusHistoryRepository;
-        this.submissionInsightRepository = submissionInsightRepository;
-        this.submissionInsightSubmissionFileRepository = submissionInsightSubmissionFileRepository;
-        this.commentService = commentService;
         this.restTemplate = restTemplate;
         this.legacyAnalysisHelper = legacyAnalysisHelper;
         this.analysisUnlockRequestRepository = analysisUnlockRequestRepository;
@@ -329,8 +304,17 @@ public abstract class BaseAnalysisServiceImpl<
     @Override
     public A getById(Long id) throws NotExistException {
 
-        return super.getById(id);
+        return analysisRepository.findById(
+                id,
+                EntityGraphUtils.fromAttributePaths(
+                        "submissions",
+                        "submissions.author",
+                        "submissions.submissionGroup",
+                        "submissions.submissionInsight",
+                        "submissions.dataSource")
+        );
     }
+
 
     @Override
     public List<A> list(User user, Long studyId) throws PermissionDeniedException, NotExistException {
@@ -521,6 +505,12 @@ public abstract class BaseAnalysisServiceImpl<
     @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
     public AnalysisFile getAnalysisFile(Long analysisId, String uuid) {
 
+        return getAnalysisFileUnsecured(uuid);
+    }
+
+    @Override
+    public AnalysisFile getAnalysisFileUnsecured(String uuid) {
+
         return analysisFileRepository.findByUuid(uuid);
     }
 
@@ -558,7 +548,7 @@ public abstract class BaseAnalysisServiceImpl<
         final AnalysisUnlockRequest savedUnlockRequest = analysisUnlockRequestRepository.save(analysisUnlockRequest);
         studyService.findLeads((S)savedUnlockRequest.getAnalysis().getStudy()).forEach(lead ->
                 mailSender.send(new UnlockAnalysisRequestMailMessage(
-                        WebSecurityConfig.portalHost.get(), lead, savedUnlockRequest)
+                        WebSecurityConfig.getDefaultPortalURI(), lead, savedUnlockRequest)
                 )
         );
         return savedUnlockRequest;
@@ -598,21 +588,6 @@ public abstract class BaseAnalysisServiceImpl<
             } catch (IOException e) {
                 LOGGER.error("Failed to get submission file", e);
                 throw new FileNotFoundException(e.getMessage());
-            }
-        }
-        return file;
-    }
-
-    @Override
-    public Path getResultFile(ResultFile resultFile) throws FileNotFoundException {
-
-        Optional.of(resultFile).orElseThrow(FileNotFoundException::new);
-        Path file = analysisHelper.getResultFile(resultFile);
-        if (Files.notExists(file)) {
-
-            file = legacyAnalysisHelper.getOldResultFile(resultFile);
-            if (Files.notExists(file)) {
-                throw new FileNotFoundException();
             }
         }
         return file;
@@ -673,7 +648,7 @@ public abstract class BaseAnalysisServiceImpl<
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).DELETE_ANALYSIS_FILES)")
     public void writeToFile(
             AnalysisFile analysisFile,
-            FileContentDTO fileContentDTO,
+            FileDTO fileContentDTO,
             User updatedBy) throws IOException {
 
         Analysis analysis = analysisFile.getAnalysis();
@@ -715,14 +690,7 @@ public abstract class BaseAnalysisServiceImpl<
     public byte[] getAllBytes(ArachneFile arachneFile) throws IOException {
 
         Path path = getPath(arachneFile);
-        return FileUtils.getBytes(path, checkIfBase64EncodingNeeded(arachneFile));
-    }
-
-    private boolean checkIfBase64EncodingNeeded(ArachneFile arachneFile) {
-
-        String contentType = arachneFile.getContentType();
-        return Stream.of(CommonFileUtils.TYPE_IMAGE, CommonFileUtils.TYPE_PDF)
-                .anyMatch(type -> org.apache.commons.lang3.StringUtils.containsIgnoreCase(contentType, type));
+        return FileUtils.getBytes(path, arachneFile.getContentType());
     }
 
     @Override
@@ -737,7 +705,8 @@ public abstract class BaseAnalysisServiceImpl<
         submissionFileRepository.delete(file);
     }
 
-    protected Path getPath(ArachneFile arachneFile) throws FileNotFoundException {
+    @Override
+    public Path getPath(ArachneFile arachneFile) throws FileNotFoundException {
 
         if (arachneFile == null) {
             throw new FileNotFoundException();
@@ -748,8 +717,6 @@ public abstract class BaseAnalysisServiceImpl<
                     .resolve(arachneFile.getUuid());
         } else if (arachneFile instanceof SubmissionFile) {
             path = analysisHelper.getSubmissionFile((SubmissionFile) arachneFile);
-        } else if (arachneFile instanceof ResultFile) {
-            path = analysisHelper.getResultFile((ResultFile) arachneFile);
         }
         if (Files.notExists(path)) {
             throw new FileNotFoundException();
@@ -834,84 +801,6 @@ public abstract class BaseAnalysisServiceImpl<
         }
     }
 
-    protected SubmissionStatus getApproveForExecutionSubmissionStatus(Submission submission, Boolean isApproved) {
-
-        return isApproved ? IN_PROGRESS : NOT_APPROVED;
-    }
-
-    private String generateUUID() {
-
-        return UUID.randomUUID().toString().replace("-", "");
-    }
-
-    protected SubmissionStatus calculateSubmissionStatusAccordingToDatasourceOwnership(DataSource dataSource, User user) {
-
-        return PENDING;
-    }
-
-    @Override
-    public List<SubmissionAction> getSubmissionActions(Submission submission) {
-
-        // Approve execution
-        SubmissionAction execApproveAction = getExecApproveAction(submission);
-
-        // Manually upload files
-        SubmissionAction manualResultUploadAction = getManualResultUploadAction(submission);
-
-        // Publish submission
-        SubmissionAction publishAction = getPublishAction(submission);
-
-        return Arrays.asList(execApproveAction, manualResultUploadAction, publishAction);
-    }
-
-    protected SubmissionAction getPublishAction(Submission submission) {
-
-        SubmissionAction publishAction = new SubmissionAction(PUBLISH.name());
-        publishAction.setAvailable(
-                Arrays.asList(EXECUTED, FAILED, IN_PROGRESS).contains(submission.getStatus()));
-        switch (submission.getStatus()) {
-            case EXECUTED_PUBLISHED:
-            case FAILED_PUBLISHED:
-                publishAction.setResult(true);
-                break;
-            case EXECUTED_REJECTED:
-            case FAILED_REJECTED:
-                publishAction.setResult(false);
-                break;
-            default:
-                publishAction.setResult(null);
-                break;
-        }
-        return publishAction;
-    }
-
-    protected SubmissionAction getExecApproveAction(Submission submission) {
-
-        SubmissionAction execApproveAction = new SubmissionAction(EXECUTE.name());
-        execApproveAction.setAvailable(submission.getStatus().equals(PENDING));
-        switch (submission.getStatus()) {
-            case PENDING:
-                execApproveAction.setResult(null);
-                break;
-            case NOT_APPROVED:
-                execApproveAction.setResult(false);
-                break;
-            default:
-                execApproveAction.setResult(true);
-                break;
-        }
-        return execApproveAction;
-    }
-
-    protected SubmissionAction getManualResultUploadAction(Submission submission) {
-
-        SubmissionAction manualResultUploadAction = new SubmissionAction(SubmissionActionType.MANUAL_UPLOAD.name());
-        manualResultUploadAction.setAvailable(
-                submission.getStatus().equals(SubmissionStatus.IN_PROGRESS)
-        );
-        return manualResultUploadAction;
-    }
-
     @Override
     public void getAnalysisAllFiles(Long analysisId, String archiveName, OutputStream os) throws IOException {
 
@@ -926,118 +815,11 @@ public abstract class BaseAnalysisServiceImpl<
         }
     }
 
-    @Override
-    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
-    public SubmissionInsight getSubmissionInsight(Long submissionId) throws NotExistException {
-
-        final SubmissionInsight insight = submissionInsightRepository.findOneBySubmissionId(submissionId);
-        throwNotExistExceptionIfNull(insight, submissionId);
-        return insight;
-    }
-
-    @Override
-    public Set<CommentTopic> getInsightComments(SubmissionInsight insight, Integer size, Sort sort) {
-
-        final Set<CommentTopic> topics = extractCommentTopics(insight);
-        return commentService.list(topics, size, sort);
-    }
-
-    @Override
-    @PreAuthorize("hasPermission(#submissionId,  'Submission', "
-            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_ANALYSIS)")
-    public SubmissionInsight createSubmissionInsight(Long submissionId, SubmissionInsight insight)
-            throws AlreadyExistException, NotExistException {
-
-        LOGGER.info(CREATING_INSIGHT_LOG, submissionId);
-        final SubmissionInsight submissionInsight = submissionInsightRepository.findOneBySubmissionId(submissionId);
-        if (submissionInsight != null) {
-            final String message = String.format(INSIGHT_ALREADY_EXISTS_EXCEPTION, submissionId);
-            throw new AlreadyExistException(message);
-        }
-        final List<String> allowedStatuses = Arrays.asList(EXECUTED_PUBLISHED.name(), FAILED_PUBLISHED.name());
-        final Submission submission = submissionRepository.findByIdAndStatusIn(submissionId, allowedStatuses);
-        throwNotExistExceptionIfNull(submission, submissionId);
-        insight.setId(null);
-        insight.setCreated(new Date());
-        insight.setSubmission(submission);
-        final SubmissionInsight savedInsight = submissionInsightRepository.save(insight);
-        final List<SubmissionInsightSubmissionFile> submissionInsightSubmissionFiles
-                = submission.getSubmissionGroup().getFiles()
-                .stream()
-                .map(sf -> new SubmissionInsightSubmissionFile(savedInsight, sf, new CommentTopic()))
-                .collect(Collectors.toList());
-        submissionInsightSubmissionFileRepository.save(submissionInsightSubmissionFiles);
-        final List<ResultFile> resultFiles = submission.getResultFiles();
-        resultFiles.forEach(resultFile -> resultFile.setCommentTopic(new CommentTopic()));
-        submissionResultFileRepository.save(resultFiles);
-        return savedInsight;
-    }
-
-    @Override
-    public SubmissionInsightSubmissionFile findInsightByTopic(CommentTopic topic) {
-
-        return submissionInsightSubmissionFileRepository.findByCommentTopic(topic);
-    }
-
-    @Override
-    public void deleteSubmissionInsightSubmissionFileLinks(List<SubmissionInsightSubmissionFile> links) {
-
-        submissionInsightSubmissionFileRepository.delete(links);
-    }
-
-    @Override
-    @PreAuthorize("hasPermission(#insight, "
-            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_INSIGHT)")
-    public SubmissionInsight updateSubmissionInsight(Long submissionId, SubmissionInsight insight)
-            throws NotExistException {
-
-        LOGGER.info(UPDATING_INSIGHT_LOG, submissionId);
-        final SubmissionInsight exist = submissionInsightRepository.findOneBySubmissionId(submissionId);
-        throwNotExistExceptionIfNull(exist, submissionId);
-        if (insight.getName() != null) {
-            exist.setName(insight.getName());
-        }
-        if (insight.getDescription() != null) {
-            exist.setDescription(insight.getDescription());
-        }
-        return submissionInsightRepository.save(exist);
-    }
-
-    @Override
-    public Page<SubmissionInsight> getInsightsByStudyId(Long studyId, Pageable pageable) {
-
-        final Page<SubmissionInsight> page = submissionInsightRepository.findAllWithCommentsOrDescIsNotEmpty(studyId, pageable);
-        final List<SubmissionInsight> insights = page.getContent();
-        if (!insights.isEmpty()) {
-            final List<Long> ids = insights.stream().map(SubmissionInsight::getId).collect(Collectors.toList());
-            final Map<Long, Long> counts = submissionInsightRepository.countCommentsByTopicIds(ids)
-                    .stream()
-                    .collect(Collectors.toMap(o -> ((BigInteger) o[0]).longValue(), o -> ((BigInteger) o[1]).longValue()));
-            insights.forEach(insight -> insight.setCommentsCount(counts.getOrDefault(insight.getId(), 0L)));
-        }
-        return page;
-    }
 
     @Override
     public List<User> findLeads(Analysis analysis) {
 
         return studyService.findLeads((S)analysis.getStudy());
-    }
-
-    private void throwNotExistExceptionIfNull(SubmissionInsight submissionInsight, Long submissionId) throws NotExistException {
-
-        if (submissionInsight == null) {
-            final String message = String.format(INSIGHT_NOT_EXIST_EXCEPTION, submissionId);
-            throw new NotExistException(message, SubmissionInsight.class);
-        }
-    }
-
-    private void throwNotExistExceptionIfNull(Submission submission, Long submissionId) throws NotExistException {
-
-        if (submission == null) {
-            String message = String.format(SUBMISSION_NOT_EXIST_EXCEPTION, submissionId);
-            throw new NotExistException(message, Submission.class);
-        }
     }
 
     private void throwAccessDeniedExceptionIfLocked(Analysis analysis) {
@@ -1047,21 +829,6 @@ public abstract class BaseAnalysisServiceImpl<
             final String message = String.format(ANALYSIS_LOCKE_EXCEPTION, analysis.getId());
             throw new AccessDeniedException(message);
         }
-    }
-
-    private Set<CommentTopic> extractCommentTopics(SubmissionInsight insight) {
-
-        final Stream<CommentTopic> submissionFilesTopics = insight.getSubmissionInsightSubmissionFiles()
-                .stream()
-                .map(SubmissionInsightSubmissionFile::getCommentTopic);
-        final Submission submission = insight.getSubmission();
-        final Stream<CommentTopic> resultFileTopics = submission.getResultFiles()
-                .stream()
-                .map(ResultFile::getCommentTopic);
-        return Stream.concat(submissionFilesTopics, resultFileTopics).map(commentTopic -> {
-            commentTopic.setComments(new LinkedList<>());
-            return commentTopic;
-        }).collect(Collectors.toSet());
     }
 
     @Override
@@ -1089,5 +856,17 @@ public abstract class BaseAnalysisServiceImpl<
     public List<A> findByStudyIds(List<Long> ids) {
 
         return analysisRepository.findByStudyIdIn(ids);
+    }
+
+    @Override
+    public List<A> getByIdIn(List<Long> ids) {
+
+        return analysisRepository.findByIdIn(ids);
+    }
+
+    @Override
+    public List<A> getByStudyId(Long id, EntityGraph graph) {
+
+        return analysisRepository.findByStudyId(id, graph);
     }
 }

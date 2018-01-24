@@ -49,17 +49,17 @@ public class DataNodeUser {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "datanodes_users_pk_sequence")
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "datanode_id")
     private DataNode dataNode;
 
     @Column(name = "datanode_role")
     @Enumerated(EnumType.STRING)
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "datanodes_users_roles", joinColumns = @JoinColumn(name = "datanode_user_id"))
     private Set<DataNodeRole> dataNodeRole = new HashSet<>();
 

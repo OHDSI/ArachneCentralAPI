@@ -24,13 +24,15 @@ package com.odysseusinc.arachne.portal.repository;
 
 import com.odysseusinc.arachne.portal.model.AnalysisFile;
 import java.util.List;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface AnalysisFileRepository extends CrudRepository<AnalysisFile, Long> {
+public interface AnalysisFileRepository extends JpaRepository<AnalysisFile, Long> {
 
     AnalysisFile findByUuid(String uuid);
 
     List<AnalysisFile> findAllByAnalysisIdAndRealName(Long analysisId, String name);
 
     List<AnalysisFile> findAllByAnalysisIdAndDataReferenceId(Long analysisId, Long dataReferenceId);
+
+    List<AnalysisFile> findByIdIn(List<Long> ids);
 }

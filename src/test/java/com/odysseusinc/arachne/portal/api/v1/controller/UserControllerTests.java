@@ -82,7 +82,8 @@ public class UserControllerTests extends BaseControllerTest {
 
     private static final String EMAIL = "mail@mail.com";
     private static final String MIDDLE_NAME = "middleName";
-    private static final String PASSWORD = "password";
+    private static final String PASSWORD = "XJHCRr7BJv87";
+    private static final String BAD_PASSWORD = "password";
 
     private static final Long PROFESSIONAL_TYPE_ID = 1L;
     private static final Long USER_ID = 2L;
@@ -140,32 +141,42 @@ public class UserControllerTests extends BaseControllerTest {
     @ExpectedDatabase(value = "/data/user/registered-user-and-admin.xml", assertionMode = DatabaseAssertionMode.NON_STRICT)
     public void testCreateUser() throws Exception {
 
-        CommonUserRegistrationDTO inputDTO = getCommonUserRegistrationDTO();
+        CommonUserRegistrationDTO inputDTO = getCommonUserRegistrationDTO(PASSWORD);
 
         MvcResult mvcResult = mvc.perform(
                 post("/api/v1/auth/registration")
                         .contentType(APPLICATION_JSON)
                         .content(objectMapper.writeValueAsBytes(inputDTO))
                         .with(anonymous()))
-                .andExpect(NO_ERROR_CODE)
                 .andExpect(OK_STATUS)
-
-                .andExpect(jsonPath("$.result.enabled").value(FALSE))
-                .andExpect(jsonPath("$.result.id").isNotEmpty())
                 .andReturn();
-
-        JSONAssert.assertEquals(USER_JSON_OBJECT, getResultJSONObject(mvcResult), false);
-
     }
 
-    private CommonUserRegistrationDTO getCommonUserRegistrationDTO() {
+    @Test
+    @DatabaseSetup("/data/user/admin-user.xml")
+    @ExpectedDatabase(value = "/data/user/admin-user.xml", assertionMode = DatabaseAssertionMode.NON_STRICT)
+    public void testCreateUserWithBadPassword() throws Exception {
+
+        CommonUserRegistrationDTO inputDTO = getCommonUserRegistrationDTO(BAD_PASSWORD);
+
+        MvcResult mvcResult = mvc.perform(
+                post("/api/v1/auth/registration")
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsBytes(inputDTO))
+                        .with(anonymous()))
+                .andExpect(VALIDATION_ERROR_CODE)
+                .andExpect(OK_STATUS)
+                .andReturn();
+    }
+
+    private CommonUserRegistrationDTO getCommonUserRegistrationDTO(String password) {
 
         CommonUserRegistrationDTO inputDTO = new CommonUserRegistrationDTO();
         inputDTO.setEmail(EMAIL);
         inputDTO.setFirstname(FIRST_NAME);
         inputDTO.setLastname(LAST_NAME);
         inputDTO.setMiddlename(MIDDLE_NAME);
-        inputDTO.setPassword(PASSWORD);
+        inputDTO.setPassword(password);
         inputDTO.setProfessionalTypeId(PROFESSIONAL_TYPE_ID);
         return inputDTO;
     }

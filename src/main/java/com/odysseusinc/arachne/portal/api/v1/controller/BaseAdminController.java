@@ -109,7 +109,7 @@ public abstract class BaseAdminController<
             NoSuchFieldException {
 
         JsonResult<Boolean> result;
-        User user = userService.getById(id);
+        User user = userService.getByIdAndInitializeCollections(id);
         user.setEnabled(isEnabled);
         userService.update(user);
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);

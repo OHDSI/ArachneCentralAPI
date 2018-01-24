@@ -29,7 +29,8 @@ public class InvitationCollaboratorMailSender extends InvitationArachneMailMessa
 
     public InvitationCollaboratorMailSender(String portalUrl, User user, UserStudy userStudy) {
 
-        super(portalUrl, user, userStudy.getToken());
+        super(portalUrl, user, userStudy.getToken(), userStudy.getCreatedBy());
+
         parameters.put("studyUrl", portalUrl + "/study-manager/studies/"
                 + String.valueOf(userStudy.getStudy().getId()));
         parameters.put("userFirstName", userStudy.getUser().getFirstname());

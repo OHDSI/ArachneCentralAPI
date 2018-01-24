@@ -27,9 +27,7 @@ import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotBlank;
 
-public class BaseAnalysisDTO extends DTO {
-
-    private Long id;
+public class BaseAnalysisDTO extends ShortBaseAnalysisDTO {
 
     @NotBlank
     @Length.List({
@@ -39,10 +37,6 @@ public class BaseAnalysisDTO extends DTO {
     private String title;
 
     private String description;
-
-    private OptionDTO type;
-
-    private Date created;
 
     private Date updated;
 
@@ -59,25 +53,18 @@ public class BaseAnalysisDTO extends DTO {
 
     public BaseAnalysisDTO(BaseAnalysisDTO other) {
 
-        this.id = other.id;
+        super(other);
         this.title = other.title;
         this.description = other.description;
-        this.created = other.created;
         this.updated = other.updated;
         this.study = other.study;
         this.permissions = other.permissions;
         this.author = other.author;
-        this.type = other.type;
     }
 
-    public Long getId() {
+    public BaseAnalysisDTO(ShortBaseAnalysisDTO other) {
 
-        return id;
-    }
-
-    public void setId(Long id) {
-
-        this.id = id;
+        super(other);
     }
 
     public String getTitle() {
@@ -110,16 +97,6 @@ public class BaseAnalysisDTO extends DTO {
         this.description = description;
     }
 
-    public Date getCreated() {
-
-        return created;
-    }
-
-    public void setCreated(Date created) {
-
-        this.created = created;
-    }
-
     public Date getUpdated() {
 
         return updated;
@@ -150,13 +127,4 @@ public class BaseAnalysisDTO extends DTO {
         this.author = author;
     }
 
-    public OptionDTO getType() {
-
-        return type;
-    }
-
-    public void setType(OptionDTO type) {
-
-        this.type = type;
-    }
 }

@@ -24,6 +24,7 @@ package com.odysseusinc.arachne.portal.model;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -40,16 +41,16 @@ public class AnalysisFile extends ArachneFile {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "analysis_file_pk_sequence")
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     protected Analysis analysis;
 
     @Column(nullable = false)
     private Boolean executable;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private User author;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "updated_by")
     private User updatedBy;
 
@@ -59,7 +60,7 @@ public class AnalysisFile extends ArachneFile {
     @Column(name = "entry_point")
     private String entryPoint;
 
-    @ManyToOne(targetEntity = DataReference.class)
+    @ManyToOne(targetEntity = DataReference.class, fetch = FetchType.LAZY)
     private DataReference dataReference;
 
     public Long getId() {

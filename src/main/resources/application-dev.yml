@@ -8,7 +8,7 @@ spring:
 logging:
   level: debug
 portal:
-  hostsWhiteList: localhost
+   urlWhiteList: https://localhost:${server.port}
 build:
   number: no_build_number
   id: no_build_id
@@ -17,3 +17,6 @@ achilles:
     corePoolSize: 1
     maxPoolSize: 2
     queueCapacity: 10
+arachne:
+  token:
+    expiration: 604800

@@ -27,4 +27,7 @@ import javax.persistence.metamodel.StaticMetamodel;
 public class Study_ {
     public static volatile SingularAttribute<Study, Long> id;
     public static volatile SingularAttribute<Study, String> title;
+    public static volatile SingularAttribute<Study, StudyStatus> status;
+    public static volatile SingularAttribute<Study, StudyType> type;
+    public static volatile SingularAttribute<Study, Boolean> privacy;
 }

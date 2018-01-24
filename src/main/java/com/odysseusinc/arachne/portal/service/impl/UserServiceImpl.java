@@ -31,6 +31,7 @@ import com.odysseusinc.arachne.portal.repository.RoleRepository;
 import com.odysseusinc.arachne.portal.repository.StateProvinceRepository;
 import com.odysseusinc.arachne.portal.repository.StudyDataSourceLinkRepository;
 import com.odysseusinc.arachne.portal.repository.UserStudyRepository;
+import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
 import com.odysseusinc.arachne.portal.service.SkillService;
 import com.odysseusinc.arachne.portal.service.SolrService;
@@ -40,7 +41,6 @@ import com.odysseusinc.arachne.portal.service.UserRegistrantService;
 import com.odysseusinc.arachne.portal.service.UserService;
 import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
-import edu.vt.middleware.password.PasswordValidator;
 import org.springframework.context.MessageSource;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -55,7 +55,7 @@ public class UserServiceImpl extends BaseUserServiceImpl<User, Skill, SolrField>
                            MessageSource messageSource,
                            ProfessionalTypeService professionalTypeService,
                            JavaMailSender javaMailSender,
-                           PasswordValidator passwordValidator,
+                           ArachnePasswordValidator passwordValidator,
                            BaseUserRepository<User> userRepository,
                            CountryRepository countryRepository,
                            SolrService solrService,

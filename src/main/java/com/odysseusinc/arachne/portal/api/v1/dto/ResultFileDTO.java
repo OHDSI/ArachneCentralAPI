@@ -24,8 +24,30 @@ package com.odysseusinc.arachne.portal.api.v1.dto;
 
 public class ResultFileDTO extends FileDTO {
     protected Long submissionId;
+    protected String relativePath;
 
     private Boolean manuallyUploaded;
+
+    public ResultFileDTO() {
+
+    }
+
+    public ResultFileDTO(FileDTO fileDTO) {
+
+        super(
+                fileDTO.getFileId(),
+                fileDTO.getUuid(),
+                fileDTO.getPath(),
+                fileDTO.getName(),
+                fileDTO.getLabel(),
+                fileDTO.getCreated(),
+                fileDTO.getUpdated(),
+                fileDTO.getDocType(),
+                fileDTO.getMimeType(),
+                fileDTO.getAuthor()
+        );
+    }
+
 
     public Long getSubmissionId() {
 
@@ -35,6 +57,16 @@ public class ResultFileDTO extends FileDTO {
     public void setSubmissionId(Long submissionId) {
 
         this.submissionId = submissionId;
+    }
+
+    public String getRelativePath() {
+
+        return relativePath;
+    }
+
+    public void setRelativePath(String relativePath) {
+
+        this.relativePath = relativePath;
     }
 
     public Boolean getManuallyUploaded() {

@@ -45,6 +45,8 @@ public abstract class BasePaperToShortPaperDTOConverter<P extends Paper, SPD ext
         final StudyMediumDTO studyDTO = conversionService.convert(study, StudyMediumDTO.class);
         paperDTO.setStudy(studyDTO);
 
+        proceedAdditionalFields(paperDTO, paper);
+
         return paperDTO;
     }
 }

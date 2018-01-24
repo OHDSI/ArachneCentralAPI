@@ -24,36 +24,18 @@ package com.odysseusinc.arachne.portal.api.v1.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.odysseusinc.arachne.portal.service.impl.submission.SubmissionAction;
-import java.util.Date;
 import java.util.List;
 
-public class SubmissionDTO extends DTO {
+public class SubmissionDTO extends BaseSubmissionDTO {
 
-    private Long id;
     private Integer order;
-    private DataSourceDTO dataSource;
-    private SubmissionStatusDTO status;
     private String action;
-    private Integer resultFilesCount;
     private Boolean isOwner;
     private Boolean isExecConfirmed;
     private Boolean isResultConfirmed;
-    private PermissionsDTO permissions;
-    private Date createdAt;
     private SubmissionInsightDTO insight;
-    private ShortUserDTO author;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<SubmissionAction> availableActionList;
-
-    public Long getId() {
-
-        return id;
-    }
-
-    public void setId(Long id) {
-
-        this.id = id;
-    }
 
     public Integer getOrder() {
 
@@ -65,26 +47,6 @@ public class SubmissionDTO extends DTO {
         this.order = order;
     }
 
-    public SubmissionStatusDTO getStatus() {
-
-        return status;
-    }
-
-    public void setStatus(SubmissionStatusDTO status) {
-
-        this.status = status;
-    }
-
-    public DataSourceDTO getDataSource() {
-
-        return dataSource;
-    }
-
-    public void setDataSource(DataSourceDTO dataSource) {
-
-        this.dataSource = dataSource;
-    }
-
     public String getAction() {
 
         return action;
@@ -93,16 +55,6 @@ public class SubmissionDTO extends DTO {
     public void setAction(String action) {
 
         this.action = action;
-    }
-
-    public Integer getResultFilesCount() {
-
-        return resultFilesCount;
-    }
-
-    public void setResultFilesCount(Integer resultFilesCount) {
-
-        this.resultFilesCount = resultFilesCount;
     }
 
     public Boolean getIsOwner() {
@@ -135,26 +87,6 @@ public class SubmissionDTO extends DTO {
         this.isResultConfirmed = isResultConfirmed;
     }
 
-    public PermissionsDTO getPermissions() {
-
-        return permissions;
-    }
-
-    public void setPermissions(PermissionsDTO permissions) {
-
-        this.permissions = permissions;
-    }
-
-    public Date getCreatedAt() {
-
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-
-        this.createdAt = createdAt;
-    }
-
     public SubmissionInsightDTO getInsight() {
 
         return insight;
@@ -163,16 +95,6 @@ public class SubmissionDTO extends DTO {
     public void setInsight(SubmissionInsightDTO insight) {
 
         this.insight = insight;
-    }
-
-    public ShortUserDTO getAuthor() {
-
-        return author;
-    }
-
-    public void setAuthor(ShortUserDTO author) {
-        
-        this.author = author;
     }
 
     public List<SubmissionAction> getAvailableActionList() {
@@ -184,4 +106,5 @@ public class SubmissionDTO extends DTO {
 
         this.availableActionList = availableActionList;
     }
+
 }

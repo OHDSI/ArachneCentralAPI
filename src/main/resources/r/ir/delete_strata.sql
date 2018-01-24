@@ -1,0 +1,1 @@
+DELETE FROM @tableQualifier.ir_strata WHERE analysis_id = @analysis_id

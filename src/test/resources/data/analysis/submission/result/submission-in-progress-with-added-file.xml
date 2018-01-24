@@ -45,6 +45,6 @@
     />
 
     <result_files
-            real_name="test.sql"
+            path="/entities/submissions/1/results/test.sql"
     />
 </dataset>

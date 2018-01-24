@@ -26,10 +26,14 @@ import static org.mockito.Mockito.mock;
 
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import java.io.IOException;
+import java.net.URI;
+import java.util.List;
+import java.util.Map;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -42,6 +46,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupp
 @Configuration
 @EnableWebMvc
 public class TestConfig extends WebMvcConfigurationSupport {
+
+    @Value("#{'${portal.urlWhiteList}'.toLowerCase().split(',')}")
+    private List<String> portalUrlWhiteList;
 
     @Bean
     public MultipartResolver multipartResolver() {
@@ -67,25 +74,23 @@ public class TestConfig extends WebMvcConfigurationSupport {
     @Bean
     public WebSecurityConfig.HostFilter testHostFilter() {
 
-        return new TestHostFilter("localhost:0");
+        return new TestHostFilter(WebSecurityConfig.urlToHostUrlMapConverter(portalUrlWhiteList));
     }
 
     public final class TestHostFilter extends WebSecurityConfig.HostFilter {
 
-        private String portalHost;
+        private String portalURL = "http://localhost:0";
 
-        public TestHostFilter(String portalHost) {
+        public TestHostFilter(Map<String, URI> portalUrlWhiteList) {
 
-            super(null);
-            this.portalHost = portalHost;
+            super(portalUrlWhiteList);
         }
 
         @Override
         protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-            WebSecurityConfig.portalHost.set(portalHost);
+            WebSecurityConfig.portalUrl.set(portalURL);
             filterChain.doFilter(request, response);
         }
     }
-
 }
