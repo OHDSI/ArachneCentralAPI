@@ -132,3 +132,6 @@ achilles:
 #logging.level.org.hibernate.SQL=DEBUG
 jodconverter:
   enabled: true
+antivirus:
+  host: localhost
+  port: 3310
