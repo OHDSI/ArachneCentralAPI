@@ -22,36 +22,37 @@
 
 package com.odysseusinc.arachne.portal.service.impl;
 
+import static com.odysseusinc.arachne.portal.service.impl.solr.SolrField.META_PREFIX;
+
 import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
 import com.odysseusinc.arachne.portal.model.solr.SolrValue;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
-import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.HttpSolrClient;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.client.solrj.response.UpdateResponse;
-import org.apache.solr.common.SolrInputDocument;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.response.UpdateResponse;
+import org.apache.solr.common.SolrInputDocument;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSolrService<T> {
     public static final String DATA_SOURCE_COLLECTION = "data-sources";
     public static final String USER_COLLECTION = "users";
     private static final String QUERY_FIELD_PREFIX = "query_";
+    public static final String MULTI_METADATA_PREFIX = "multi_" + META_PREFIX;
     private static final String ID = "id";
 
     @Autowired
@@ -181,8 +182,17 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
                     document.addField(QUERY_FIELD_PREFIX + solrField.getName(), queryValue);
                 }
             }
-
-            document.addField(solrField.getSolrName(), value);
+            if (solrField.isMultiValuesType()) {
+                String valueForSort = null;
+                if (!StringUtils.isEmpty((String) queryValue)) {
+                    List<String> list = Arrays.asList(StringUtils.split(((String) queryValue)));
+                    Collections.sort(list);
+                    valueForSort = String.join(" ", list);
+                }
+                document.addField(solrField.getMultiValuesTypeFieldName(), valueForSort);
+            } else {
+                document.addField(solrField.getSolrName(), value);
+            }
         }
 
         document.addField(ID, id);
