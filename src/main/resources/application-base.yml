@@ -54,8 +54,8 @@ spring:
     enabled: false
   http:
     multipart:
-      max-file-size: 256MB
-      max-request-size: 256MB
+      max-file-size: 512MB
+      max-request-size: 512MB
   resources:
     add-mappings: false
   activemq:
