@@ -50,6 +50,8 @@ public class AnalysisFileToAnalysisFileDTOConverter extends BaseConversionServic
         analysisFileDTO.setDocType(source.getContentType());
         analysisFileDTO.setVersion(source.getVersion());
         analysisFileDTO.setPermissions(conversionService.convert(source, PermissionsDTO.class));
+        analysisFileDTO.setAntivirusStatus(source.getAntivirusStatus());
+        analysisFileDTO.setAntivirusDescription(source.getAntivirusDescription());
         return analysisFileDTO;
     }
 }

@@ -399,6 +399,8 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
             submissionFile.setUuid(uuid);
             submissionFile.setAuthor(analysisFile.getAuthor());
             submissionFile.setVersion(analysisFile.getVersion());
+            submissionFile.setAntivirusStatus(analysisFile.getAntivirusStatus());
+            submissionFile.setAntivirusDescription(analysisFile.getAntivirusDescription());
             Boolean isExecutable = analysisFile.getExecutable();
             submissionFile.setExecutable(isExecutable != null && isExecutable);
             Path analysisFileContent = Paths.get(storeFilesPath, analysis.getStudy().getId().toString(),
