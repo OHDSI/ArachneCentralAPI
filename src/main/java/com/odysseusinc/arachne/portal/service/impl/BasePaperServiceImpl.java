@@ -29,6 +29,7 @@ import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.AbstractPaperFile;
+import com.odysseusinc.arachne.portal.model.AntivirusFile;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.PaperFavourite;
 import com.odysseusinc.arachne.portal.model.PaperFileType;
@@ -49,6 +50,13 @@ import com.odysseusinc.arachne.portal.service.BasePaperService;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
 import com.odysseusinc.arachne.portal.service.StudyFileService;
+import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJob;
+import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobEvent;
+import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobFileType;
+import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobResponseEventBase;
+import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobPaperPaperFileResponseEvent;
+import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobPaperProtocolFileResponseEvent;
+import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobResponse;
 import java.util.Arrays;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.solr.common.StringUtils;
@@ -56,8 +64,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -101,7 +112,8 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
     @Autowired
     @Qualifier("restTemplate")
     private RestTemplate restTemplate;
-
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
 
     @Transactional(rollbackFor = Exception.class)
@@ -224,6 +236,19 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
         final String contentType = CommonFileUtils.getContentType(realName, file);
         AbstractPaperFile paperFile = savePaperFile(fileType, label, user, paper, contentType, realName, null);
         fileService.saveFile(file, paperFile);
+
+        AntivirusJobFileType antivirusJobFileType;
+        switch (fileType) {
+            case PAPER:
+                antivirusJobFileType = AntivirusJobFileType.PAPER_PAPER_FILE;
+                break;
+            case PROTOCOL:
+                antivirusJobFileType = AntivirusJobFileType.PAPER_PROTOCOL_FILE;
+                break;
+            default:
+                throw new IllegalArgumentException();
+        }
+        eventPublisher.publishEvent(new AntivirusJobEvent(this, new AntivirusJob(paperFile.getId(), paperFile.getRealName(), fileService.getFileInputStream(paperFile), antivirusJobFileType)));
         return paperFile.getUuid();
     }
 
@@ -385,7 +410,8 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
             String link,
             PaperFileType type,
             Long id
-    ) throws PermissionDeniedException,IOException,ValidationException {
+    ) throws PermissionDeniedException, IOException, ValidationException {
+
         final User user = userService.getUser(principal);
         if (multipartFile != null) {
             this.saveFile(id, multipartFile, type, label, user);
@@ -419,11 +445,38 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
         paperRepository.delete(papers);
     }
 
-    private boolean validatePublishStateTransition(PublishState state ,P exists) {
+    @EventListener
+    @Transactional
+    @Override
+    public void processAntivirusResponse(AntivirusJobPaperPaperFileResponseEvent event) {
+
+        update(event, paperPaperFileRepository);
+    }
+
+    @EventListener
+    @Transactional
+    @Override
+    public void processAntivirusResponse(AntivirusJobPaperProtocolFileResponseEvent event) {
+
+        update(event, paperProtocolFileRepository);
+    }
+
+    private void update(AntivirusJobResponseEventBase event, JpaRepository repository) {
+
+        final AntivirusJobResponse antivirusJobResponse = event.getAntivirusJobResponse();
+        final AntivirusFile file = (AntivirusFile) repository.findOne(antivirusJobResponse.getFileId());
+        if (file != null) {
+            file.setAntivirusStatus(antivirusJobResponse.getStatus());
+            file.setAntivirusDescription(antivirusJobResponse.getDescription());
+            repository.save(file);
+        }
+    }
+
+    private boolean validatePublishStateTransition(PublishState state, P exists) {
 
         return !state.equals(PublishState.PUBLISHED)
                 || Arrays.asList(StudyState.valueOf(exists.getStudy().getState().getName().toUpperCase())
-                    .getActions()).contains(StudyStateActions.PUBLISH_PAPER);
+                .getActions()).contains(StudyStateActions.PUBLISH_PAPER);
     }
 
 }

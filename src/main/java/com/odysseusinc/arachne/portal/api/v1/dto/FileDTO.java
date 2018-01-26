@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto;
 
+import com.odysseusinc.arachne.portal.model.AntivirusStatus;
 import java.util.Date;
 
 public class FileDTO {
@@ -36,6 +37,8 @@ public class FileDTO {
     protected UserInfoDTO author;
     protected String content;
     protected Long fileId;
+    protected AntivirusStatus antivirusStatus;
+    private String antivirusDescription;
 
     public String getContent() {
 
@@ -168,5 +171,25 @@ public class FileDTO {
     public void setAuthor(UserInfoDTO author) {
 
         this.author = author;
+    }
+
+    public AntivirusStatus getAntivirusStatus() {
+
+        return antivirusStatus;
+    }
+
+    public void setAntivirusStatus(AntivirusStatus antivirusStatus) {
+
+        this.antivirusStatus = antivirusStatus;
+    }
+
+    public String getAntivirusDescription() {
+
+        return antivirusDescription;
+    }
+
+    public void setAntivirusDescription(String antivirusDescription) {
+
+        this.antivirusDescription = antivirusDescription;
     }
 }
