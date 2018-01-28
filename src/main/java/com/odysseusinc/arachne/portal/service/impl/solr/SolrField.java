@@ -22,10 +22,14 @@
 
 package com.odysseusinc.arachne.portal.service.impl.solr;
 
+import static com.odysseusinc.arachne.portal.service.impl.BaseSolrServiceImpl.MULTI_METADATA_PREFIX;
+
 import java.util.List;
 import java.util.Set;
 
 public class SolrField {
+
+    public static final String META_PREFIX = "metadata_";
 
     private String name;
     private Class dataType;
@@ -86,12 +90,22 @@ public class SolrField {
         // NOTE: sort on multiValued fields is not available
         if (dataType.equals(Integer.class)) {
             postfix = "_i";
-        } else if (dataType.isAssignableFrom(List.class) || dataType.isAssignableFrom(Set.class)) {
+        } else if (isMultiValuesType()) {
             postfix = "_ts";
         } else {
             postfix = "_txt";
         }
         return postfix;
+    }
+
+    public boolean isMultiValuesType(){
+
+        return dataType.isAssignableFrom(List.class) || dataType.isAssignableFrom(Set.class);
+    }
+
+    public String getMultiValuesTypeFieldName () {
+
+        return MULTI_METADATA_PREFIX + getName() + "_txt";
     }
 
     public String getSolrName() {
