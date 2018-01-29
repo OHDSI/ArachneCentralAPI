@@ -260,7 +260,7 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
     @Transactional
     @PreAuthorize("hasPermission(#studyId, 'Study', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).INVITE_DATANODE)")
-    public DataSource addVirtualDataSource(User createdBy, Long studyId, String dataSourceName, List<Long> dataOwnerIds)
+    public DataSource addVirtualDataSource(User createdBy, Long studyId, String dataSourceName, List<String> dataOwnerIds)
             throws NotExistException, AlreadyExistException, NoSuchFieldException, IOException, ValidationException, FieldException, IllegalAccessException, SolrServerException {
 
         return super.addVirtualDataSource(createdBy, studyId, dataSourceName, dataOwnerIds);

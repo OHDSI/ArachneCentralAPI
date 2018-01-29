@@ -379,7 +379,7 @@ public abstract class BaseUserController<
         JsonResult<UserProfileDTO> result;
         User user = userService.getByUuidAndInitializeCollections(userId);
         UserProfileDTO userProfileDTO = conversionService.convert(user, UserProfileDTO.class);
-        userProfileDTO.setIsEditable(logginedUser.getId().equals(userId));
+        userProfileDTO.setIsEditable(logginedUser.getUuid().equals(userId));
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
         result.setResult(userProfileDTO);
         return result;

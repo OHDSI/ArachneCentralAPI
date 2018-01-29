@@ -28,7 +28,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ParticipantDTO {
-    protected Long id;
+    protected String id;
     protected String fullName;
     protected OptionDTO role;
     protected String status;
@@ -46,12 +46,12 @@ public class ParticipantDTO {
         this.status = other.status;
     }
 
-    public Long getId() {
+    public String getId() {
 
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
 
         this.id = id;
     }

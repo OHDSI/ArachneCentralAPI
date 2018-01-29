@@ -43,7 +43,7 @@ public class ParticipantLinkToParticipantExtendedDTOConverter
 
         ParticipantRole role = participantLink.getRole();
         final User user = participantLink.getUser();
-        participantDTO.setId(user.getId());
+        participantDTO.setId(user.getUuid());
         participantDTO.setFullName(user.getFullName());
         participantDTO.setRole(new OptionDTO(role.name(), role.toString()));
         participantDTO.setStatus(participantLink.getStatus().toString());

@@ -527,7 +527,7 @@ public abstract class BaseStudyController<
                 .map(dnu -> {
                     final User user = dnu.getUser();
                     final ShortUserDTO userDTO = new ShortUserDTO();
-                    userDTO.setId(user.getId());
+                    userDTO.setId(user.getUuid());
                     userDTO.setFirstname(user.getFirstname());
                     userDTO.setLastname(user.getLastname());
                     return userDTO;

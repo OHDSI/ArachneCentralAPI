@@ -190,7 +190,7 @@ public interface BaseUserService<U extends User, S extends Skill> {
 
     U findOne(Long participantId);
 
-    List<U> findUsersByIdsIn(List<Long> dataOwnerIds);
+    List<U> findUsersByUuidsIn(List<String> dataOwnerIds);
 
     List<U> findUsersApprovedInDataSource(Long id);
 

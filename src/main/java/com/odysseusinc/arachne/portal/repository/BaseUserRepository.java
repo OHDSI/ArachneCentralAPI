@@ -43,6 +43,8 @@ public interface BaseUserRepository<U extends User> extends EntityGraphJpaReposi
 
     List<U> findByIdIn(List<Long> idList);
 
+    List<U> findByUuidIn(List<String> uuidList);
+
     U findByEmailAndEnabledTrue(String email);
 
     U findByEmailAndEnabledFalse(String email);

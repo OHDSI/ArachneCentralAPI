@@ -961,9 +961,9 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     }
 
     @Override
-    public List<U> findUsersByIdsIn(List<Long> ids) {
+    public List<U> findUsersByUuidsIn(List<String> ids) {
 
-        return userRepository.findByIdIn(ids);
+        return userRepository.findByUuidIn(ids);
     }
 
     @Override

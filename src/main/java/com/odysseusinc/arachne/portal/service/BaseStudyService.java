@@ -98,14 +98,14 @@ public interface BaseStudyService<
     StudyDataSourceLink addDataSource(User createdBy, Long id, Long dataSourceId)
             throws NotExistException, AlreadyExistException;
 
-    DS addVirtualDataSource(User createdBy, Long studyId, String dataSourceName, List<Long> dataOwnerIdList)
+    DS addVirtualDataSource(User createdBy, Long studyId, String dataSourceName, List<String> dataOwnerIdList)
             throws NotExistException, AlreadyExistException, NoSuchFieldException,
             IOException, ValidationException, FieldException, IllegalAccessException,
             SolrServerException;
 
     DS getStudyDataSource(User user, Long studyId, Long dataSourceId);
 
-    DS updateVirtualDataSource(User user, Long studyId, Long dataSourceId, String name, List<Long> dataOwnerIds)
+    DS updateVirtualDataSource(User user, Long studyId, Long dataSourceId, String name, List<String> dataOwnerIds)
             throws IllegalAccessException, IOException, NoSuchFieldException, SolrServerException, ValidationException;
 
     void removeDataSource(Long id, Long dataSourceId) throws NotExistException;
