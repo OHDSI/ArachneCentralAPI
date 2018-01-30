@@ -114,6 +114,8 @@ public interface BaseSubmissionService<T extends Submission, A extends Analysis>
 
     ResultFile getResultFileByPath(String path);
 
+    ResultFile getResultFileById(Long fileId);
+
     void getSubmissionResultAllFiles(User user, Long analysisId, Long submissionId, String archiveName, OutputStream os)
             throws IOException, PermissionDeniedException;
 

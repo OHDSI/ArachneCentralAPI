@@ -716,6 +716,11 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         return resultFileRepository.findByPath(path);
     }
 
+    public ResultFile getResultFileById(Long fileId) {
+
+        return resultFileRepository.findById(fileId);
+    }
+
     @Override
     public void getSubmissionResultAllFiles(
             User user,
