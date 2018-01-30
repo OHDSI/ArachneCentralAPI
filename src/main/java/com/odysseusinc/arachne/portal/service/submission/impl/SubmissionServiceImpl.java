@@ -142,9 +142,9 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
     @Override
     @PreAuthorize("hasPermission(#submissionId, 'Submission', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).APPROVE_SUBMISSION)")
-    public boolean deleteSubmissionResultFile(Long submissionId, Long fileId) throws NotExistException, ValidationException {
+    public boolean deleteSubmissionResultFile(Long submissionId, ResultFile resultFile) throws NotExistException, ValidationException {
 
-        return super.deleteSubmissionResultFile(submissionId, fileId);
+        return super.deleteSubmissionResultFile(submissionId, resultFile);
     }
 
     @Override

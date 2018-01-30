@@ -222,18 +222,18 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     }
 
     @ApiOperation("Delete manually uploaded submission result file")
-    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/result/{fileId}",
+    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/result/{fileUuid}",
             method = DELETE)
-    public JsonResult<Boolean> deleteSubmissionResultsById(
+    public JsonResult<Boolean> deleteSubmissionResultsByUuid(
             @PathVariable("submissionId") Long id,
-            @PathVariable("fileId") Long fileId
+            @PathVariable("fileUuid") String fileUuid
     ) {
 
-        LOGGER.info("deleting result file for submission with id={} having id={}", id, fileId);
+        LOGGER.info("deleting result file for submission with id={} having uuid={}", id, fileUuid);
         JsonResult.ErrorCode errorCode;
         Boolean hasResult;
         try {
-            hasResult = submissionService.deleteSubmissionResultFile(id, fileId);
+            hasResult = submissionService.deleteSubmissionResultFile(id, submissionService.getResultFileByUuid(fileUuid));
             errorCode = JsonResult.ErrorCode.NO_ERROR;
         } catch (NotExistException e) {
             LOGGER.warn("Submission was not found, id: {}", id);

@@ -437,19 +437,18 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     }
 
     @Override
-    public boolean deleteSubmissionResultFile(Long submissionId, Long fileId)
+    public boolean deleteSubmissionResultFile(Long submissionId, ResultFile resultFile)
             throws NotExistException, ValidationException {
 
         final T submission = submissionRepository.findByIdAndStatusIn(submissionId,
                 Collections.singletonList(IN_PROGRESS.name()));
         throwNotExistExceptionIfNull(submission, submissionId);
-        ResultFile resultFile = submissionResultFileRepository.findOne(fileId);
         Optional.ofNullable(resultFile).orElseThrow(() ->
                 new NotExistException(String.format(RESULT_FILE_NOT_EXISTS_EXCEPTION,
-                        fileId, submission.getId()), ResultFile.class));
+                        resultFile.getId(), submission.getId()), ResultFile.class));
         ArachneFileMeta fileMeta = contentStorageService.getFileByPath(resultFile.getPath());
         if (fileMeta.getCreatedBy() == null) { // not manually uploaded
-            throw new ValidationException(String.format(FILE_NOT_UPLOADED_MANUALLY_EXCEPTION, fileId));
+            throw new ValidationException(String.format(FILE_NOT_UPLOADED_MANUALLY_EXCEPTION, resultFile.getId()));
         }
         deleteSubmissionResultFile(resultFile);
         submission.getResultFiles().remove(resultFile);
@@ -712,9 +711,9 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         }
     }
 
-    public ResultFile getResultFileById(Long fileId) {
+    public ResultFile getResultFileByUuid(String fileUuid) {
 
-        return resultFileRepository.findById(fileId);
+        return resultFileRepository.findByUuid(fileUuid);
     }
 
     @Override

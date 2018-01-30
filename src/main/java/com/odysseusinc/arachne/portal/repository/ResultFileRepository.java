@@ -29,7 +29,7 @@ import org.springframework.data.repository.CrudRepository;
 
 public interface ResultFileRepository extends CrudRepository<ResultFile, Long> {
 
-    ResultFile findById(Long id);
+    ResultFile findByUuid(String fileUuid);
 
     ResultFile findByCommentTopic(CommentTopic topic);
 }
