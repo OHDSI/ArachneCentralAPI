@@ -85,7 +85,7 @@ public class StudyDataSourceControllerTests extends BaseControllerTest {
 
         final CreateVirtualDataSourceDTO createVirtualDataSourceDTO = new CreateVirtualDataSourceDTO();
         createVirtualDataSourceDTO.setName("virtual");
-        createVirtualDataSourceDTO.setDataOwnersIds(Arrays.asList(1L));
+        createVirtualDataSourceDTO.setDataOwnersIds(Arrays.asList("b66e95f072974369815bd7538de58d44"));
         mvc.perform(
                 post("/api/v1/study-management/studies/{studyId}/data-sources",
                         STUDY_ID)

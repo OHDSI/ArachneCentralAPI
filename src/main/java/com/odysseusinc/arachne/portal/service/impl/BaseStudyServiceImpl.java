@@ -711,7 +711,7 @@ public abstract class BaseStudyServiceImpl<
             User createdBy,
             Long studyId,
             String dataSourceName,
-            List<Long> dataOwnerIds
+            List<String> dataOwnerIds
     )
             throws NotExistException, AlreadyExistException, NoSuchFieldException, IOException, ValidationException,
             FieldException, IllegalAccessException, SolrServerException {
@@ -734,7 +734,7 @@ public abstract class BaseStudyServiceImpl<
         return registeredDataSource;
     }
 
-    private List<User> validateVirtualDataSourceOwners(Study study, List<Long> dataOwnerIds) {
+    private List<User> validateVirtualDataSourceOwners(Study study, List<String> dataOwnerIds) {
 
         if (study == null) {
             throw new NotExistException("study not exist", Study.class);
@@ -744,7 +744,7 @@ public abstract class BaseStudyServiceImpl<
             throw new IllegalArgumentException(VIRTUAL_DATASOURCE_OWNERS_IS_EMPTY_EXC);
         }
 
-        final List<User> dataOwners = userService.findUsersByIdsIn(dataOwnerIds);
+        final List<User> dataOwners = userService.findUsersByUuidsIn(dataOwnerIds);
 
         Set<Long> pendingUserIdsSet = study.getParticipants().stream()
                 .filter(link -> Objects.equals(link.getStatus(), ParticipantStatus.PENDING))
@@ -777,7 +777,7 @@ public abstract class BaseStudyServiceImpl<
     @Transactional
     @PreAuthorize("hasPermission(#dataSourceId, 'DataSource', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).DELETE_DATASOURCE)")
-    public DS updateVirtualDataSource(User user, Long studyId, Long dataSourceId, String name, List<Long> dataOwnerIds) throws IllegalAccessException, IOException, NoSuchFieldException, SolrServerException, ValidationException {
+    public DS updateVirtualDataSource(User user, Long studyId, Long dataSourceId, String name, List<String> dataOwnerIds) throws IllegalAccessException, IOException, NoSuchFieldException, SolrServerException, ValidationException {
 
         Study study = studyRepository.findOne(studyId);
 

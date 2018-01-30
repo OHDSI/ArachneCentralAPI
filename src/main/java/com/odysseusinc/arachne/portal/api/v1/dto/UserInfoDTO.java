@@ -26,7 +26,7 @@ package com.odysseusinc.arachne.portal.api.v1.dto;
  * Created by AKrutov on 25.10.2016.
  */
 public class UserInfoDTO extends DTO {
-    private Long id;
+    private String id;
     private String email;
     private String firstname;
     private String lastname;
@@ -34,12 +34,12 @@ public class UserInfoDTO extends DTO {
     private Integer notificationsCount;
     private Boolean isAdmin;
 
-    public Long getId() {
+    public String getId() {
 
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
 
         this.id = id;
     }
