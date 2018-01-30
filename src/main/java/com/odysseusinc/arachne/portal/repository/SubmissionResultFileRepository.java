@@ -35,5 +35,5 @@ public interface SubmissionResultFileRepository extends CrudRepository<ResultFil
 
     ResultFile findById(Long id);
 
-    ResultFile findByUuid(String fileUuid);
+    ResultFile findByPath(String path);
 }

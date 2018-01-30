@@ -711,9 +711,9 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         }
     }
 
-    public ResultFile getResultFileByUuid(String fileUuid) {
+    public ResultFile getResultFileByPath(String path) {
 
-        return resultFileRepository.findByUuid(fileUuid);
+        return resultFileRepository.findByPath(path);
     }
 
     @Override

@@ -112,7 +112,7 @@ public interface BaseSubmissionService<T extends Submission, A extends Analysis>
     ArachneFileMeta getResultFileAndCheckPermission(User user, Submission submission, Long analysisId, String fileUuid)
             throws PermissionDeniedException;
 
-    ResultFile getResultFileByUuid(String fileUuid);
+    ResultFile getResultFileByPath(String path);
 
     void getSubmissionResultAllFiles(User user, Long analysisId, Long submissionId, String archiveName, OutputStream os)
             throws IOException, PermissionDeniedException;

@@ -233,7 +233,11 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
         JsonResult.ErrorCode errorCode;
         Boolean hasResult;
         try {
-            hasResult = submissionService.deleteSubmissionResultFile(id, submissionService.getResultFileByUuid(fileUuid));
+
+            ResultFile resultFile = submissionService.getResultFileByPath(
+                    contentStorageService.getFileByIdentifier(fileUuid).getPath());
+
+            hasResult = submissionService.deleteSubmissionResultFile(id, resultFile);
             errorCode = JsonResult.ErrorCode.NO_ERROR;
         } catch (NotExistException e) {
             LOGGER.warn("Submission was not found, id: {}", id);
