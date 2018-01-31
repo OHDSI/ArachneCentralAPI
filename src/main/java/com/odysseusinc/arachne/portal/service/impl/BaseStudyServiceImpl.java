@@ -42,6 +42,7 @@ import com.odysseusinc.arachne.portal.exception.NotUniqueException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
+import com.odysseusinc.arachne.portal.model.AntivirusStatus;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
 import com.odysseusinc.arachne.portal.model.DataSource;
@@ -621,6 +622,8 @@ public abstract class BaseStudyServiceImpl<
                 studyFile.setCreated(created);
                 studyFile.setUpdated(created);
                 studyFile.setAuthor(user);
+                studyFile.setAntivirusStatus(AntivirusStatus.WILL_NOT_SCAN);
+                studyFile.setAntivirusDescription("External links are not scanned");
                 studyFileRepository.save(studyFile);
                 return fileNameLowerCase;
             }
