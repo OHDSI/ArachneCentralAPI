@@ -49,6 +49,7 @@ import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.AnalysisFile;
 import com.odysseusinc.arachne.portal.model.AnalysisUnlockRequest;
 import com.odysseusinc.arachne.portal.model.AnalysisUnlockRequestStatus;
+import com.odysseusinc.arachne.portal.model.AntivirusStatus;
 import com.odysseusinc.arachne.portal.model.ArachneFile;
 import com.odysseusinc.arachne.portal.model.DataReference;
 import com.odysseusinc.arachne.portal.model.DataSource;
@@ -673,7 +674,10 @@ public abstract class BaseAnalysisServiceImpl<
             analysisFile.setContentType(CommonFileUtils.getContentType(analysisFile.getRealName(), targetPath.toString()));
 
             analysisFile.incrementVersion();
-            analysisFileRepository.save(analysisFile);
+            analysisFile.setAntivirusStatus(AntivirusStatus.SCANNING);
+            analysisFile.setAntivirusDescription(null);
+            final AnalysisFile saved = analysisFileRepository.save(analysisFile);
+            eventPublisher.publishEvent(new AntivirusJobEvent(this, new AntivirusJob(saved.getId(), saved.getRealName(), new FileInputStream(targetPath.toString()), AntivirusJobFileType.ANALYSIS_FILE)));
 
         } catch (IOException | RuntimeException ex) {
 
