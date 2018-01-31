@@ -161,7 +161,7 @@ public class ExceptionHandlingController extends BaseController {
     @ExceptionHandler(PasswordValidationException.class)
     public ResponseEntity<JsonResult> exceptionHandler(PasswordValidationException ex) {
 
-        LOGGER.error(ex.getMessages().stream().collect(Collectors.joining(" ")));
+        LOGGER.error(ex.getMessages().stream().collect(Collectors.joining(", ")));
         JsonResult result = new JsonResult<>(VALIDATION_ERROR);
         result.setErrorMessage("You have provided a weak password");
         result.getValidatorErrors().put("password", ex.getMessages());
