@@ -43,6 +43,7 @@ import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.exception.WrongFileFormatException;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -160,7 +161,7 @@ public class ExceptionHandlingController extends BaseController {
     @ExceptionHandler(PasswordValidationException.class)
     public ResponseEntity<JsonResult> exceptionHandler(PasswordValidationException ex) {
 
-        LOGGER.error(ex.getMessage(), ex);
+        LOGGER.error(ex.getMessages().stream().collect(Collectors.joining(", ")));
         JsonResult result = new JsonResult<>(VALIDATION_ERROR);
         result.setErrorMessage("You have provided a weak password");
         for (String message : ex.getMessages()) {
