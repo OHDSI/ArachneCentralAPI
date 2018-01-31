@@ -38,6 +38,7 @@ import com.drew.metadata.Metadata;
 import com.drew.metadata.MetadataException;
 import com.drew.metadata.exif.ExifIFD0Directory;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
+import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchExpertListDTO;
 import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
 import com.odysseusinc.arachne.portal.exception.ArachneSystemRuntimeException;
@@ -85,7 +86,6 @@ import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import com.odysseusinc.arachne.portal.service.mail.RegistrationMailMessage;
 import com.odysseusinc.arachne.portal.service.mail.RemindPasswordMailMessage;
-import com.odysseusinc.arachne.portal.util.UUIDGenerator;
 import edu.vt.middleware.password.Password;
 import edu.vt.middleware.password.PasswordValidator;
 import edu.vt.middleware.password.RuleResult;
@@ -336,7 +336,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     @Override
     public U getByIdAndInitializeCollections(Long id) {
 
-        return initUserCollections(ensureUuidAssigned(getById(id)));
+        return initUserCollections(getById(id));
     }
 
     @Override
@@ -429,7 +429,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     public U getByUuid(String uuid) {
 
         if (uuid != null && !uuid.isEmpty()) {
-            return userRepository.findByUuid(uuid);
+            return userRepository.findById(UserIdUtils.uuidToId(uuid));
         } else {
             throw new IllegalArgumentException("Given uuid is blank");
         }
@@ -579,16 +579,6 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         link.setUser(forUpdate);
         userLinkService.create(link);
         return initUserCollections(forUpdate);
-    }
-
-    private U ensureUuidAssigned(final U user) {
-
-        U updated = user;
-        if (Objects.isNull(user.getUuid())) {
-            updated.setUuid(UUIDGenerator.generateUUID());
-            updated = userRepository.saveAndFlush(updated);
-        }
-        return updated;
     }
 
     private U initUserCollections(U user) {
@@ -832,7 +822,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
                 .collect(Collectors.toList());
 
         userList = userRepository.findByIdIn(docIdList);
-        userList = userList.stream().map(this::ensureUuidAssigned)
+        userList = userList.stream()
                 .sorted(Comparator.comparing(item -> docIdList.indexOf(item.getId())))
                 .collect(Collectors.toList());
 
@@ -963,7 +953,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     @Override
     public List<U> findUsersByUuidsIn(List<String> ids) {
 
-        return userRepository.findByUuidIn(ids);
+        return userRepository.findByIdIn(UserIdUtils.uuidsToIds(ids));
     }
 
     @Override

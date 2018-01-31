@@ -31,7 +31,6 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.NoRepositoryBean;
@@ -42,8 +41,6 @@ public interface BaseUserRepository<U extends User> extends EntityGraphJpaReposi
         JpaSpecificationExecutor<U> {
 
     List<U> findByIdIn(List<Long> idList);
-
-    List<U> findByUuidIn(List<String> uuidList);
 
     U findByEmailAndEnabledTrue(String email);
 
@@ -111,8 +108,7 @@ public interface BaseUserRepository<U extends User> extends EntityGraphJpaReposi
             + " LIMIT :limit")
     List<U> suggestNotAdmin(@Param("suggestRequest") String suggestRequest, @Param("limit") Integer limit);
 
-
-    U findByUuid(String uuid);
+    U findById(Long id);
 
     List<U> findAllByEnabledIsTrue();
 
