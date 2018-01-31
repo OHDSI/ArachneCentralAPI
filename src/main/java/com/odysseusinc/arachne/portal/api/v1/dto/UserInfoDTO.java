@@ -34,6 +34,13 @@ public class UserInfoDTO extends DTO {
     private Integer notificationsCount;
     private Boolean isAdmin;
 
+    public UserInfoDTO() {
+    }
+
+    public UserInfoDTO(String id) {
+        this.id = id;
+    }
+
     public String getId() {
 
         return id;

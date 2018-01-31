@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.model;
 
+import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
 import java.io.Serializable;
 import java.util.Date;
@@ -156,9 +157,6 @@ public class User implements Serializable {
     @SolrFieldAnno(query = true, filter = true)
     @ManyToOne(targetEntity = Country.class)
     private Country country;
-
-    @Column
-    private String uuid;
 
     @Column
     private String origin;
@@ -355,12 +353,7 @@ public class User implements Serializable {
 
     public String getUuid() {
 
-        return uuid;
-    }
-
-    public void setUuid(String uuid) {
-
-        this.uuid = uuid;
+        return UserIdUtils.idToUuid(getId());
     }
 
     public List<UserLink> getLinks() {
