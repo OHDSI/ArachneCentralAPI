@@ -45,6 +45,7 @@ import com.github.springtestdbunit.annotation.ExpectedDatabase;
 import com.github.springtestdbunit.assertion.DatabaseAssertionMode;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonProfessionalTypeDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserRegistrationDTO;
+import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserLinkDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserProfileGeneralDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserPublicationDTO;
@@ -93,7 +94,7 @@ public class UserControllerTests extends BaseControllerTest {
     private static final String USER_LINK_URL = "userLinkUrl";
 
     private static final String PUBLISHER = "userPublicationPublisher";
-    public static final String USER_2_UUID = "9ebdb833735f46408c4b090f8e8d6d4a";
+    public static final String USER_2_UUID = UserIdUtils.idToUuid(USER_ID);
 
     private final JSONObject ADMIN_JSON_OBJECT = new JSONObject()
             .put("firstname", ADMIN_FIRST_NAME)

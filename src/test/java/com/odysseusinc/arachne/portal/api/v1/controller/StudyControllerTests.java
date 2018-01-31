@@ -26,6 +26,7 @@ import static com.github.springtestdbunit.assertion.DatabaseAssertionMode.NON_ST
 import static com.github.springtestdbunit.assertion.DatabaseAssertionMode.NON_STRICT_UNORDERED;
 import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.ALREADY_EXIST;
 import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.VALIDATION_ERROR;
+import static com.odysseusinc.arachne.portal.api.v1.controller.UserControllerTests.USER_2_UUID;
 import static com.odysseusinc.arachne.portal.api.v1.dto.InvitationType.COLLABORATOR;
 import static com.odysseusinc.arachne.portal.model.ParticipantRole.CONTRIBUTOR;
 import static com.odysseusinc.arachne.portal.model.ParticipantRole.DATA_SET_OWNER;
@@ -406,7 +407,7 @@ public class StudyControllerTests extends BaseControllerTest {
     public void testAddParticipant() throws Exception {
 
         AddStudyParticipantDTO participantDTO = new AddStudyParticipantDTO();
-        participantDTO.setUserId("9ebdb833735f46408c4b090f8e8d6d4a");
+        participantDTO.setUserId(USER_2_UUID);
         participantDTO.setRole(CONTRIBUTOR);
 
         mvc.perform(
@@ -511,7 +512,7 @@ public class StudyControllerTests extends BaseControllerTest {
     public void testAddExistedParticipant() throws Exception {
 
         AddStudyParticipantDTO participantDTO = new AddStudyParticipantDTO();
-        participantDTO.setUserId("9ebdb833735f46408c4b090f8e8d6d4a");
+        participantDTO.setUserId(USER_2_UUID);
         participantDTO.setRole(CONTRIBUTOR);
 
         mvc.perform(

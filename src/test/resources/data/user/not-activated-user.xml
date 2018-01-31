@@ -11,7 +11,6 @@
             enabled="true"
             email="admin@odysseusinc.com"
             email_confirmed="true"
-            uuid="b66e95f072974369815bd7538de58d44"
             professional_type_id="1"/>
 
     <users
@@ -24,7 +23,6 @@
             email="mail@mail.com"
             email_confirmed="false"
             professional_type_id="1"
-            uuid="9ebdb833735f46408c4b090f8e8d6d4a"
             registration_code="activationCode"/>
 
     <studies_users/>
