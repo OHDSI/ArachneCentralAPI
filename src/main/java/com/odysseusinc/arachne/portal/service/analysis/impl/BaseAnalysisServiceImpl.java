@@ -360,11 +360,11 @@ public abstract class BaseAnalysisServiceImpl<
             analysisFile.setDataReference(dataReference);
             analysisFile.setUuid(fileNameLowerCase);
             analysisFile.setAnalysis(analysis);
-            analysisFile.setContentType(CommonFileUtils.getContentType(originalFilename, targetPath.toString()));
             analysisFile.setLabel(label);
             analysisFile.setAuthor(user);
             analysisFile.setUpdatedBy(user);
             analysisFile.setExecutable(false);
+            analysisFile.setContentType(CommonFileUtils.getContentType(originalFilename, targetPath.toString(), false, analysis.getType()));
             analysisFile.setRealName(originalFilename);
             Date created = new Date();
             analysisFile.setCreated(created);
@@ -628,7 +628,7 @@ public abstract class BaseAnalysisServiceImpl<
                 }
                 Path targetPath = analysisFolder.resolve(uuid);
                 Files.copy(file.getInputStream(), targetPath, REPLACE_EXISTING);
-                String contentType = CommonFileUtils.getContentType(file.getOriginalFilename(), targetPath.toString());
+                String contentType = CommonFileUtils.getContentType(file.getOriginalFilename(), targetPath.toString(), isExecutable, analysis.getType());
                 analysisFile.setContentType(contentType);
             }
             Date updated = new Date();
@@ -667,7 +667,7 @@ public abstract class BaseAnalysisServiceImpl<
             analysisFile.setUpdated(new Date());
             analysisFile.setEntryPoint(analysisFile.getEntryPoint());
             analysisFile.setUpdatedBy(updatedBy);
-            analysisFile.setContentType(CommonFileUtils.getContentType(analysisFile.getRealName(), targetPath.toString()));
+            analysisFile.setContentType(CommonFileUtils.getContentType(analysisFile.getRealName(), targetPath.toString(), analysisFile.getExecutable(), analysis.getType()));
 
             analysisFile.incrementVersion();
             analysisFileRepository.save(analysisFile);
