@@ -28,7 +28,6 @@ import static java.nio.file.StandardOpenOption.READ;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
-import com.odysseusinc.arachne.execution_engine_common.util.CommonFileUtils;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.achilles.AchillesFile;
@@ -37,8 +36,11 @@ import com.odysseusinc.arachne.portal.repository.AchillesFileRepository;
 import com.odysseusinc.arachne.portal.repository.CharacterizationRepository;
 import com.odysseusinc.arachne.portal.service.AchillesImportService;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -47,13 +49,15 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import javax.persistence.EntityManager;
 import javax.persistence.FlushModeType;
 import javax.transaction.Transactional;
-import net.lingala.zip4j.exception.ZipException;
+import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -133,6 +137,7 @@ public class AchillesImportServiceImpl implements AchillesImportService {
 
     private void unzipData(File archivedFile, Path destination) throws IOException {
 
+        /*
         Objects.requireNonNull(archivedFile);
         if (Files.notExists(destination)) {
             Files.createDirectories(destination);
@@ -142,6 +147,28 @@ public class AchillesImportServiceImpl implements AchillesImportService {
             FileUtils.deleteQuietly(archivedFile);
         } catch (ZipException e) {
             throw new java.util.zip.ZipException(e.getMessage());
+        }
+        */
+        // Alternate unzip implementation. Code is below unzips achilles loosing jsons
+        java.util.zip.ZipFile zipFile = new ZipFile(archivedFile);
+        try {
+            Enumeration<? extends ZipEntry> entries = zipFile.entries();
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = entries.nextElement();
+                File entryDestination = new File(destination.toString(), entry.getName());
+                if (entry.isDirectory()) {
+                    entryDestination.mkdirs();
+                } else {
+                    entryDestination.getParentFile().mkdirs();
+                    InputStream in = zipFile.getInputStream(entry);
+                    OutputStream out = new FileOutputStream(entryDestination);
+                    IOUtils.copy(in, out);
+                    IOUtils.closeQuietly(in);
+                    out.close();
+                }
+            }
+        } finally {
+            zipFile.close();
         }
     }
 

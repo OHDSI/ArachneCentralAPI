@@ -422,6 +422,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     @Override
     @PreAuthorize("hasPermission(#analysisId,  'Analysis', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
+   @PostAuthorize("@ArachnePermissionEvaluator.addPermissionsToSubmissions(principal, returnObject )")
     public Page<SubmissionGroup> getSubmissionGroups(Long analysisId, Pageable pageRequest) {
 
         return submissionGroupRepository.findAllByAnalysisId(analysisId, pageRequest);
@@ -438,19 +439,18 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     }
 
     @Override
-    public boolean deleteSubmissionResultFile(Long submissionId, Long fileId)
+    public boolean deleteSubmissionResultFile(Long submissionId, ResultFile resultFile)
             throws NotExistException, ValidationException {
 
         final T submission = submissionRepository.findByIdAndStatusIn(submissionId,
                 Collections.singletonList(IN_PROGRESS.name()));
         throwNotExistExceptionIfNull(submission, submissionId);
-        ResultFile resultFile = submissionResultFileRepository.findOne(fileId);
         Optional.ofNullable(resultFile).orElseThrow(() ->
                 new NotExistException(String.format(RESULT_FILE_NOT_EXISTS_EXCEPTION,
-                        fileId, submission.getId()), ResultFile.class));
+                        resultFile.getId(), submission.getId()), ResultFile.class));
         ArachneFileMeta fileMeta = contentStorageService.getFileByPath(resultFile.getPath());
         if (fileMeta.getCreatedBy() == null) { // not manually uploaded
-            throw new ValidationException(String.format(FILE_NOT_UPLOADED_MANUALLY_EXCEPTION, fileId));
+            throw new ValidationException(String.format(FILE_NOT_UPLOADED_MANUALLY_EXCEPTION, resultFile.getId()));
         }
         deleteSubmissionResultFile(resultFile);
         submission.getResultFiles().remove(resultFile);
@@ -711,6 +711,11 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
                 throw new PermissionDeniedException();
             }
         }
+    }
+
+    public ResultFile getResultFileByPath(String path) {
+
+        return resultFileRepository.findByPath(path);
     }
 
     public ResultFile getResultFileById(Long fileId) {
