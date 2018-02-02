@@ -24,12 +24,14 @@ package com.odysseusinc.arachne.portal.api.v1.controller;
 
 import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.NO_ERROR;
 import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.VALIDATION_ERROR;
+import static com.odysseusinc.arachne.portal.api.v1.controller.util.ControllerUtils.emulateEmailSent;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.MetadataException;
+import com.odysseusinc.arachne.commons.api.v1.dto.ArachnePasswordInfoDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonArachneUserStatusDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonLinkUserToDataNodeDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserDTO;
@@ -181,32 +183,27 @@ public abstract class BaseUserController<
 
     @ApiOperation("Password restrictions")
     @RequestMapping(value = "/api/v1/auth/password-policies", method = GET)
-    public ArachnePasswordInfo getPasswordPolicies() {
+    public ArachnePasswordInfoDTO getPasswordPolicies() {
 
-        return passwordValidator.getPasswordInfo();
+        return conversionService.convert(passwordValidator.getPasswordInfo(), ArachnePasswordInfoDTO.class);
     }
 
     @ApiOperation("Register new user via form.")
     @RequestMapping(value = "/api/v1/auth/registration", method = RequestMethod.POST)
-    public JsonResult<CommonUserDTO> register(@RequestBody @Valid CommonUserRegistrationDTO dto, BindingResult binding)
-            throws NotExistException, NotUniqueException, PermissionDeniedException, PasswordValidationException {
+    public void register(@RequestBody @Valid CommonUserRegistrationDTO dto)
+            throws NotExistException, PermissionDeniedException, PasswordValidationException, InterruptedException {
 
-        JsonResult<CommonUserDTO> result;
-        if (binding.hasErrors()) {
-            result = new JsonResult<>(VALIDATION_ERROR);
-            for (FieldError fieldError : binding.getFieldErrors()) {
-                result.getValidatorErrors().put(fieldError.getField(), fieldError.getDefaultMessage());
-            }
-        } else {
+        try {
             U user = convertRegistrationDTO(dto);
             user.setUsername(user.getEmail());
             user.setOrigin(UserOrigin.NATIVE);
             user.setEmailConfirmed(false);
-            user = userService.register(user, dto.getRegistrantToken(), dto.getCallbackUrl());
-            result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
-            result.setResult(conversionService.convert(user, CommonUserDTO.class));
+            userService.register(user, dto.getRegistrantToken(), dto.getCallbackUrl());
+        } catch (NotUniqueException ex) {
+            // If user with such email already exists,
+            // mute exception to prevent "Unauthenticated Email Address Enumeration" security issue
+            emulateEmailSent();
         }
-        return result;
     }
 
     protected abstract U convertRegistrationDTO(CommonUserRegistrationDTO dto);

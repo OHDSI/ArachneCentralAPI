@@ -69,7 +69,7 @@ public interface BaseSubmissionService<T extends Submission, A extends Analysis>
 
     @PreAuthorize("hasPermission(#submissionId, 'Submission', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).APPROVE_SUBMISSION)")
-    boolean deleteSubmissionResultFile(Long submissionId, Long fileId)
+    boolean deleteSubmissionResultFile(Long submissionId, ResultFile resultFile)
             throws NotExistException, ValidationException;
 
     void deleteSubmissionResultFile(ResultFile resultFile);
@@ -111,6 +111,8 @@ public interface BaseSubmissionService<T extends Submission, A extends Analysis>
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
     ArachneFileMeta getResultFileAndCheckPermission(User user, Submission submission, Long analysisId, String fileUuid)
             throws PermissionDeniedException;
+
+    ResultFile getResultFileByPath(String path);
 
     ResultFile getResultFileById(Long fileId);
 
