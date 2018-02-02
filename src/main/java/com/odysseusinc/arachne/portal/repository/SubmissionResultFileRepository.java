@@ -23,9 +23,17 @@
 package com.odysseusinc.arachne.portal.repository;
 
 import com.odysseusinc.arachne.portal.model.ResultFile;
+import com.odysseusinc.arachne.portal.model.Submission;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 
 public interface SubmissionResultFileRepository extends CrudRepository<ResultFile, Long> {
 
-    ResultFile findByUuid(String uuid);
+    ResultFile findById(Long id);
+
+    ResultFile findByPath(String path);
 }

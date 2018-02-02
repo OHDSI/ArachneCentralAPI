@@ -23,6 +23,7 @@
 package com.odysseusinc.arachne.portal.model;
 
 import com.google.common.base.Objects;
+import com.google.gson.JsonObject;
 import com.odysseusinc.arachne.portal.api.v1.dto.InvitationType;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
@@ -52,6 +53,7 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
+import org.hibernate.annotations.Type;
 
 @Entity
 @Table(name = "submissions")
@@ -62,16 +64,16 @@ public class Submission implements HasArachnePermissions, Breadcrumb, Invitation
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "submissions_pk_sequence")
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private SubmissionGroup submissionGroup;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private Analysis analysis;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private User author;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private DataSource dataSource;
 
     @LazyCollection(LazyCollectionOption.EXTRA)
@@ -104,6 +106,23 @@ public class Submission implements HasArachnePermissions, Breadcrumb, Invitation
 
     @Column
     private String token;
+
+    @Column
+    @Type(type = "com.odysseusinc.arachne.portal.repository.hibernate.JsonbType")
+    private JsonObject resultInfo;
+
+    @Override
+    public boolean equals(Object obj) {
+
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        Submission s = (Submission) obj;
+        return java.util.Objects.equals(id, s.id);
+    }
 
     @Transient
     private Set<ArachnePermission> permissions;
@@ -265,6 +284,7 @@ public class Submission implements HasArachnePermissions, Breadcrumb, Invitation
         this.submissionGroup = submissionGroup;
     }
 
+    //TODO should be moved to service
     @PostLoad
     @PostPersist
     @PostUpdate
@@ -299,6 +319,16 @@ public class Submission implements HasArachnePermissions, Breadcrumb, Invitation
     public void setToken(String token) {
 
         this.token = token;
+    }
+
+    public JsonObject getResultInfo() {
+
+        return resultInfo;
+    }
+
+    public void setResultInfo(JsonObject resultInfo) {
+
+        this.resultInfo = resultInfo;
     }
 
     @Override

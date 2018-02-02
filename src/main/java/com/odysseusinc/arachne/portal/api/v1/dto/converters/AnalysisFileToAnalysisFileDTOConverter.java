@@ -26,7 +26,6 @@ import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisFileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.PermissionsDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserInfoDTO;
 import com.odysseusinc.arachne.portal.model.AnalysisFile;
-import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -38,6 +37,7 @@ public class AnalysisFileToAnalysisFileDTOConverter extends BaseConversionServic
         AnalysisFileDTO analysisFileDTO = new AnalysisFileDTO();
         analysisFileDTO.setImported(source.getDataReference() != null);
         analysisFileDTO.setUuid(source.getUuid());
+        analysisFileDTO.setFileId(source.getId());
         analysisFileDTO.setName(source.getRealName());
         analysisFileDTO.setCreated(source.getCreated());
         analysisFileDTO.setUpdated(source.getUpdated());

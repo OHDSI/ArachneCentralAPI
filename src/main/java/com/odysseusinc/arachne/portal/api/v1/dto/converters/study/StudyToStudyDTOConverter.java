@@ -24,10 +24,17 @@ package com.odysseusinc.arachne.portal.api.v1.dto.converters.study;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.StudyDTO;
 import com.odysseusinc.arachne.portal.model.Study;
+import com.odysseusinc.arachne.portal.service.StudyService;
+import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
 import org.springframework.stereotype.Component;
 
 @Component
 public class StudyToStudyDTOConverter extends BaseStudyToStudyDTOConverter<Study, StudyDTO> {
+
+    public StudyToStudyDTOConverter(StudyService studyService, AnalysisService analysisService) {
+
+        super(studyService, analysisService);
+    }
 
     @Override
     protected StudyDTO createResultObject() {

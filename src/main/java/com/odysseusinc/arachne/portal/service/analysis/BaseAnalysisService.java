@@ -22,7 +22,8 @@
 
 package com.odysseusinc.arachne.portal.service.analysis;
 
-import com.odysseusinc.arachne.portal.api.v1.dto.FileContentDTO;
+import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
+import com.odysseusinc.arachne.portal.api.v1.dto.FileDTO;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.NotUniqueException;
@@ -32,14 +33,11 @@ import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.AnalysisFile;
 import com.odysseusinc.arachne.portal.model.AnalysisUnlockRequest;
 import com.odysseusinc.arachne.portal.model.ArachneFile;
-import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.DataReference;
 import com.odysseusinc.arachne.portal.model.Invitationable;
 import com.odysseusinc.arachne.portal.model.ResultFile;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
-import com.odysseusinc.arachne.portal.model.SubmissionInsight;
-import com.odysseusinc.arachne.portal.model.SubmissionInsightSubmissionFile;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.service.AnalysisPaths;
 import com.odysseusinc.arachne.portal.service.CRUDLService;
@@ -49,11 +47,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Set;
-import org.apache.commons.compress.archivers.ArchiveException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>, AnalysisPaths {
@@ -79,6 +72,8 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
 
     AnalysisFile getAnalysisFile(Long analysisId, String uuid);
 
+    AnalysisFile getAnalysisFileUnsecured(String uuid);
+
     void lockAnalysisFiles(Long analysisId, Boolean locked) throws NotExistException;
 
     AnalysisUnlockRequest sendAnalysisUnlockRequest(
@@ -91,8 +86,6 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
 
     Path getSubmissionFile(SubmissionFile submissionFile) throws FileNotFoundException;
 
-    Path getResultFile(ResultFile resultFile) throws FileNotFoundException;
-
     Boolean deleteAnalysisFile(T analysis,
                                AnalysisFile analysisFile);
 
@@ -102,7 +95,7 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
             throws IOException;
 
     void writeToFile(AnalysisFile analysisFile,
-                     FileContentDTO fileContentDTO, User updatedBy) throws IOException;
+                     FileDTO fileContentDTO, User updatedBy) throws IOException;
 
     AnalysisFile saveAnalysisFile(AnalysisFile file);
 
@@ -110,27 +103,11 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
 
     void deleteSubmissionFile(SubmissionFile file);
 
+    Path getPath(ArachneFile arachneFile) throws FileNotFoundException;
+
     void setIsExecutable(String uuid);
 
-    List<SubmissionAction> getSubmissionActions(Submission submission);
-
     void getAnalysisAllFiles(Long analysisId, String archiveName, OutputStream os) throws IOException;
-
-    SubmissionInsight getSubmissionInsight(Long submissionId) throws NotExistException;
-
-    Set<CommentTopic> getInsightComments(SubmissionInsight insight, Integer size, Sort sort);
-
-    SubmissionInsight createSubmissionInsight(Long submissionId, SubmissionInsight insight)
-            throws AlreadyExistException, NotExistException;
-
-    SubmissionInsightSubmissionFile findInsightByTopic(CommentTopic topic);
-
-    void deleteSubmissionInsightSubmissionFileLinks(List<SubmissionInsightSubmissionFile> links);
-
-    SubmissionInsight updateSubmissionInsight(Long submissionId, SubmissionInsight insight)
-            throws NotExistException;
-
-    Page<SubmissionInsight> getInsightsByStudyId(Long studyId, Pageable pageable);
 
     List<User> findLeads(T analysis);
 
@@ -139,4 +116,8 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
     void fullDelete(List<T> analyses);
 
     List<T> findByStudyIds(List<Long> ids);
+
+    List<T> getByIdIn(List<Long> longs);
+
+    List<T> getByStudyId(Long id, EntityGraph author);
 }

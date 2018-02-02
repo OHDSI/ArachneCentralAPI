@@ -29,9 +29,6 @@ import com.odysseusinc.arachne.portal.model.SubmissionGroup;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
-import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
-import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.stereotype.Component;
 
 
@@ -52,7 +49,7 @@ public class SubmissionGroupToSubmissionGroupDTOConverter extends BaseConversion
         }
         dto.setQueryFilesCount(submissionGroup.getFiles().size());
         dto.setChecksum(submissionGroup.getChecksum());
-
+        dto.setAnalysisType(submissionGroup.getAnalysisType());
         return dto;
     }
 

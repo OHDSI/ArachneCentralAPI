@@ -34,6 +34,7 @@ import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.io.IOException;
@@ -53,8 +54,8 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
     private static final String QUERY_FIELD_PREFIX = "query_";
     private static final String ID = "id";
 
-    @Value("${arachne.solrServerUrl}")
-    private String serverUrl;
+    @Autowired
+    private SolrClient solrClient;
 
     public T getSolrField(Field field) {
 
@@ -135,10 +136,7 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
             Map<T, Object> values
     ) throws IOException, SolrServerException {
 
-        SolrClient solr = new HttpSolrClient.Builder(serverUrl + "/" + collection).build();
         SolrInputDocument document = new SolrInputDocument();
-
-        List<String> queryString = new ArrayList<>();
 
         for (Map.Entry<T, Object> field : values.entrySet()) {
             SolrField solrField = field.getKey();
@@ -194,10 +192,10 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
         // updateRequest.setCommitWithin(1000);
         // updateRequest.setParam("update.chain", "query_agg");
         // updateRequest.add(document);
-        // UpdateResponse updateResponse = updateRequest.process(solr);
+        // UpdateResponse updateResponse = updateRequest.process(solrClient);
 
-        UpdateResponse updateResponse = solr.add(document);
-        UpdateResponse commitResponse = solr.commit();
+        UpdateResponse updateResponse = solrClient.add(collection, document);
+        UpdateResponse commitResponse = solrClient.commit(collection);
 
         if (commitResponse.getStatus() != 0 || updateResponse.getStatus() != 0) {
             throw new SolrServerException("Cannot index by Solr");
@@ -210,15 +208,13 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
             SolrQuery solrQuery
     ) throws IOException, SolrServerException {
 
-        SolrClient solr = new HttpSolrClient.Builder(serverUrl + "/" + collection).build();
-        return solr.query(solrQuery);
+        return solrClient.query(collection, solrQuery);
     }
 
     @Override
     public void deleteByQuery(String collection, String query) throws IOException, SolrServerException {
 
-        SolrClient solrClient = new HttpSolrClient.Builder(serverUrl + "/" + collection).build();
-        solrClient.deleteByQuery(query);
-        solrClient.commit();
+        solrClient.deleteByQuery(collection, query);
+        solrClient.commit(collection);
     }
 }

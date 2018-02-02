@@ -23,6 +23,7 @@
 package com.odysseusinc.arachne.portal.model;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -37,7 +38,7 @@ public class StudyFile extends AbstractStudyFile {
     @SequenceGenerator(name = "study_file_pk_sequence", sequenceName = "studies_files_id_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "study_file_pk_sequence")
     private Long id;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     protected Study study;
 
     public Long getId() {

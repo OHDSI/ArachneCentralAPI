@@ -22,8 +22,8 @@
 
 package com.odysseusinc.arachne.portal.repository.submission;
 
+import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
 import com.odysseusinc.arachne.portal.model.Submission;
 
 public interface SubmissionRepository extends BaseSubmissionRepository<Submission> {
-
 }

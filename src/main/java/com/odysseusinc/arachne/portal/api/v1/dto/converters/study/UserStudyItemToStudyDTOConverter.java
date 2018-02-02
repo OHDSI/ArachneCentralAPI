@@ -32,4 +32,10 @@ public class UserStudyItemToStudyDTOConverter extends BaseUserStudyItemToStudyDT
 
         return new StudyDTO();
     }
+
+    @Override
+    protected Class<StudyDTO> getDtoClass() {
+
+        return StudyDTO.class;
+    }
 }

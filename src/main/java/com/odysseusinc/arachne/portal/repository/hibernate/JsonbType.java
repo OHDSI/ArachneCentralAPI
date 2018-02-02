@@ -33,6 +33,7 @@ import java.sql.Types;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionImplementor;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.type.SerializationException;
 import org.hibernate.usertype.UserType;
 
@@ -71,11 +72,8 @@ public class JsonbType implements UserType {
     }
 
     @Override
-    public Object nullSafeGet(ResultSet resultSet, String[] names,
-                              SessionImplementor sessionImplementor,
-                              Object o) throws HibernateException, SQLException {
-
-        final String json = resultSet.getString(names[0]);
+    public Object nullSafeGet(ResultSet resultSet, String[] strings, SharedSessionContractImplementor sharedSessionContractImplementor, Object o) throws HibernateException, SQLException {
+        final String json = resultSet.getString(strings[0]);
         if (json == null) {
             return null;
         }
@@ -85,9 +83,7 @@ public class JsonbType implements UserType {
     }
 
     @Override
-    public void nullSafeSet(PreparedStatement st, Object value, int index,
-                            SessionImplementor sessionImplementor)
-            throws HibernateException, SQLException {
+    public void nullSafeSet(PreparedStatement st, Object value, int index, SharedSessionContractImplementor sharedSessionContractImplementor) throws HibernateException, SQLException {
 
         if (value == null) {
             st.setNull(index, Types.OTHER);

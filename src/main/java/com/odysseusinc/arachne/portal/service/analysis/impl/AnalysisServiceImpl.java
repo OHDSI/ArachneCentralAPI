@@ -22,7 +22,6 @@
 
 package com.odysseusinc.arachne.portal.service.analysis.impl;
 
-import com.github.jknack.handlebars.Template;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.NotUniqueException;
@@ -49,6 +48,7 @@ import com.odysseusinc.arachne.portal.repository.SubmissionResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionStatusHistoryRepository;
 import com.odysseusinc.arachne.portal.repository.submission.SubmissionRepository;
 import com.odysseusinc.arachne.portal.service.CommentService;
+import com.odysseusinc.arachne.portal.service.ToPdfConverter;
 import com.odysseusinc.arachne.portal.service.StudyFileService;
 import com.odysseusinc.arachne.portal.service.StudyService;
 import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
@@ -85,12 +85,8 @@ public class AnalysisServiceImpl extends BaseAnalysisServiceImpl<Analysis, Study
                                SubmissionRepository submissionRepository,
                                AnalysisFileRepository analysisFileRepository,
                                SubmissionFileRepository submissionFileRepository,
-                               SubmissionResultFileRepository submissionResultFileRepository,
                                ResultFileRepository resultFileRepository,
                                SubmissionStatusHistoryRepository submissionStatusHistoryRepository,
-                               SubmissionInsightRepository submissionInsightRepository,
-                               SubmissionInsightSubmissionFileRepository submissionInsightSubmissionFileRepository,
-                               CommentService commentService,
                                @SuppressWarnings("SpringJavaAutowiringInspection")
                                @Qualifier("restTemplate") RestTemplate restTemplate,
                                LegacyAnalysisHelper legacyAnalysisHelper,
@@ -101,19 +97,17 @@ public class AnalysisServiceImpl extends BaseAnalysisServiceImpl<Analysis, Study
                                StudyStateMachine studyStateMachine,
                                StudyService studyService,
                                AnalysisHelper analysisHelper,
-                               StudyFileService fileService) {
+                               StudyFileService fileService,
+                               ToPdfConverter docToPdfConverter) {
+
 
         super(conversionService,
                 analysisRepository,
                 submissionRepository,
                 analysisFileRepository,
                 submissionFileRepository,
-                submissionResultFileRepository,
                 resultFileRepository,
                 submissionStatusHistoryRepository,
-                submissionInsightRepository,
-                submissionInsightSubmissionFileRepository,
-                commentService,
                 restTemplate,
                 legacyAnalysisHelper,
                 analysisUnlockRequestRepository,
@@ -123,7 +117,8 @@ public class AnalysisServiceImpl extends BaseAnalysisServiceImpl<Analysis, Study
                 studyStateMachine,
                 studyService,
                 analysisHelper,
-                fileService);
+                fileService,
+                docToPdfConverter);
     }
 
     @Override

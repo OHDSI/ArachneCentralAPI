@@ -31,11 +31,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.github.springtestdbunit.DbUnitTestExecutionListener;
 import com.github.springtestdbunit.annotation.DatabaseOperation;
 import com.github.springtestdbunit.annotation.DatabaseSetup;
 import com.github.springtestdbunit.annotation.DatabaseTearDown;
-import com.github.springtestdbunit.annotation.DbUnitConfiguration;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
@@ -46,18 +44,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithSecurityContextTestExecutionListener;
 import org.springframework.security.test.context.support.WithUserDetails;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.io.IOException;
@@ -66,16 +56,8 @@ import java.util.Arrays;
 import java.util.List;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest
-@ActiveProfiles("test")
-@TestPropertySource("/application.properties")
-
-@TestExecutionListeners({DependencyInjectionTestExecutionListener.class,
-        DbUnitTestExecutionListener.class,
-        WithSecurityContextTestExecutionListener.class})
-@DbUnitConfiguration(databaseConnection = {"primaryDataSource"})
 @DatabaseTearDown(value = "/data/empty.xml", type = DatabaseOperation.DELETE_ALL)
-public class AchillesControllerTest {
+public class AchillesControllerTest extends BaseControllerTest {
     private static final String API_DATASOURCE = "/api/v1/achilles/datasource/";
 
     private static final String API_REPORTS = "/api/v1/achilles/datasource/%s/reports";
@@ -108,18 +90,10 @@ public class AchillesControllerTest {
             "person.json",
             "procedure_treemap.json",
             "visit_treemap.json");
-    private MockMvc mvc;
 
     private static final String RESTRICTED_DS = "2";
     private static final String PUBLIC_DS = "1";
     private static final String PRIVATE_DS = "3";
-
-
-    @Before
-    public void setUp() throws Exception {
-
-        mvc = MockMvcBuilders.webAppContextSetup(wac).build();
-    }
 
     @Test
     @WithUserDetails(value = "admin@odysseusinc.com")

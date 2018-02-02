@@ -26,10 +26,14 @@ import com.odysseusinc.arachne.portal.model.User;
 
 public abstract class InvitationArachneMailMessage extends ArachneMailMessage{
 
-    protected InvitationArachneMailMessage(String portalUrl, User user, String token) {
+    protected InvitationArachneMailMessage(String portalUrl, User user, String token, User createdBy) {
 
         super(user);
         parameters.put("token", token);
         parameters.put("invitationUrl", portalUrl + "/api/v1/user-management/users/invitations/mail");
+        if (createdBy != null) {
+            parameters.put("createdByUrl", portalUrl + "/expert-finder/profile/" + String.valueOf(createdBy.getId()));
+            parameters.put("createdByName", createdBy.getFirstname() + " " + createdBy.getLastname());
+        }
     }
 }

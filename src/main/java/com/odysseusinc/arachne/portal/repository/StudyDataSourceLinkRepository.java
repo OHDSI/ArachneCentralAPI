@@ -22,6 +22,8 @@
 
 package com.odysseusinc.arachne.portal.repository;
 
+import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
+import com.cosium.spring.data.jpa.entity.graph.repository.EntityGraphJpaRepository;
 import com.odysseusinc.arachne.portal.model.DataSourceStatus;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
 import com.odysseusinc.arachne.portal.model.User;
@@ -30,13 +32,20 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
-public interface StudyDataSourceLinkRepository extends CrudRepository<StudyDataSourceLink, Long> {
+public interface StudyDataSourceLinkRepository extends EntityGraphJpaRepository<StudyDataSourceLink, Long> {
 
     @Query("SELECT l FROM StudyDataSourceLink l "
             + " JOIN l.dataSource.dataNode.dataNodeUsers u "
             + " JOIN u.dataNodeRole r"
             + " WHERE :owner = u.user AND r = 'ADMIN' AND l.status=:status")
     List<StudyDataSourceLink> findByOwnerAndStatus(@Param("owner") User owner, @Param("status") DataSourceStatus status);
+
+    @Query("SELECT l FROM StudyDataSourceLink l "
+            + " JOIN l.study s"
+            + " JOIN l.dataSource.dataNode.dataNodeUsers u "
+            + " JOIN u.dataNodeRole r"
+            + " WHERE :owner = u.user AND r = 'ADMIN' AND s.id = :studyId AND l.status=:status")
+    List<StudyDataSourceLink> findByOwnerAndStudyIdAndStatus(@Param("owner") User owner, @Param("studyId") Long studyId, @Param("status") DataSourceStatus status);
 
     @Query("SELECT l FROM StudyDataSourceLink l "
             + " JOIN l.dataSource.dataNode.dataNodeUsers u "
@@ -72,4 +81,5 @@ public interface StudyDataSourceLinkRepository extends CrudRepository<StudyDataS
             + " and l.status = 'APPROVED'")
     List<StudyDataSourceLink> findNotDeletedByDataSourceId(@Param("dataSourceId") Long dataSourceId);
 
+    List<StudyDataSourceLink> findByStudyId(Long id, EntityGraph graph);
 }

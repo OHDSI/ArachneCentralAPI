@@ -24,12 +24,13 @@ package com.odysseusinc.arachne.portal.api.v1.dto;
 
 import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Email;
+import org.hibernate.validator.constraints.NotBlank;
 
 /**
  * Created by PGrafkin on 30.12.2016.
  */
 public class RemindPasswordDTO extends DTO {
-    @NotNull
+    @NotBlank
     @Email
     private String email;
 

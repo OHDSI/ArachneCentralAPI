@@ -28,6 +28,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -51,11 +52,11 @@ public class UserStudy implements Invitationable {
     private Long id;
 
 
-    @ManyToOne(optional = false, targetEntity = User.class)
+    @ManyToOne(optional = false, targetEntity = User.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
-    @ManyToOne(optional = false, targetEntity = Study.class)
+    @ManyToOne(optional = false, targetEntity = Study.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "study_id")
     private Study study;
 
@@ -73,7 +74,7 @@ public class UserStudy implements Invitationable {
     @Column
     private String token;
 
-    @ManyToOne(optional = false, targetEntity = User.class)
+    @ManyToOne(optional = false, targetEntity = User.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
     private User createdBy;
 

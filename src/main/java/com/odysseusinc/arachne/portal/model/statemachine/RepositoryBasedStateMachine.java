@@ -45,6 +45,9 @@ abstract public class RepositoryBasedStateMachine<O extends HasState<S>, S exten
     public RepositoryBasedStateMachine(ObjectRepository<O> objectRepository, StateRepository<S> stateRepository) {
         this.objectRepository = objectRepository;
         this.stateRepository = stateRepository;
+    }
+
+    public void loadStates() {
 
         this.states = new States<>(stateRepository.findAll());
     }

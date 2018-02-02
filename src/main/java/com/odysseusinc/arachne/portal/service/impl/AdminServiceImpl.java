@@ -34,6 +34,7 @@ import com.odysseusinc.arachne.portal.service.AdminService;
 import com.odysseusinc.arachne.portal.service.CommentService;
 import com.odysseusinc.arachne.portal.service.PaperService;
 import com.odysseusinc.arachne.portal.service.StudyService;
+import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightService;
 import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
 import com.odysseusinc.arachne.portal.service.submission.SubmissionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,8 +49,9 @@ public class AdminServiceImpl extends BaseAdminServiceImpl<Study, DataSource, St
             AnalysisService analysisService,
             PaperService paperService,
             SubmissionService submissionService,
-            CommentService commentService) {
+            CommentService commentService,
+            SubmissionInsightService submissionInsightService) {
 
-        super(studyService, analysisService, paperService, submissionService, commentService);
+        super(studyService, analysisService, paperService, submissionService, commentService, submissionInsightService);
     }
 }

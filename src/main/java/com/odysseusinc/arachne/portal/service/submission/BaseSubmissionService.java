@@ -22,14 +22,13 @@
 
 package com.odysseusinc.arachne.portal.service.submission;
 
+import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
 import com.odysseusinc.arachne.portal.api.v1.dto.ApproveDTO;
 import com.odysseusinc.arachne.portal.exception.NoExecutableFileException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
-import com.odysseusinc.arachne.portal.model.AbstractResultFile;
 import com.odysseusinc.arachne.portal.model.Analysis;
-import com.odysseusinc.arachne.portal.model.ResultEntity;
 import com.odysseusinc.arachne.portal.model.ResultFile;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
@@ -38,6 +37,11 @@ import com.odysseusinc.arachne.portal.model.SubmissionStatus;
 import com.odysseusinc.arachne.portal.model.SubmissionStatusHistoryElement;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.ResultFileSearch;
+import com.odysseusinc.arachne.portal.service.impl.submission.SubmissionAction;
+import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
+import com.odysseusinc.arachne.storage.util.FileSaveRequest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -61,13 +65,11 @@ public interface BaseSubmissionService<T extends Submission, A extends Analysis>
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).CREATE_SUBMISSION)")
     SubmissionGroup createSubmissionGroup(User user, Analysis analysis) throws IOException, NoExecutableFileException;
 
-    void deleteSubmissionInsight(Long submissionId) throws NotExistException;
-
-    void tryDeleteSubmissionInsight(Long submissionInsightId);
+    Page<SubmissionGroup> getSubmissionGroups(Long analysisId, Pageable pageRequest);
 
     @PreAuthorize("hasPermission(#submissionId, 'Submission', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).APPROVE_SUBMISSION)")
-    boolean deleteSubmissionResultFile(Long submissionId, String fileUuid)
+    boolean deleteSubmissionResultFile(Long submissionId, ResultFile resultFile)
             throws NotExistException, ValidationException;
 
     void deleteSubmissionResultFile(ResultFile resultFile);
@@ -82,9 +84,15 @@ public interface BaseSubmissionService<T extends Submission, A extends Analysis>
 
     T changeSubmissionState(Long id, String status);
 
+    T getSubmissionByIdUnsecured(Long id) throws NotExistException;
+
     T getSubmissionById(Long id) throws NotExistException;
 
+    T getSubmissionById(Long id, EntityGraph entityGraph) throws NotExistException;
+
     T getSubmissionByIdAndStatus(Long id, SubmissionStatus status) throws NotExistException;
+
+    T getSubmissionByIdAndStatus(Long id, List<SubmissionStatus> statusList) throws NotExistException;
 
     T getSubmissionByIdAndUpdatePasswordAndStatus(Long id, String updatePassword, List<SubmissionStatus> status)
             throws NotExistException;
@@ -93,15 +101,20 @@ public interface BaseSubmissionService<T extends Submission, A extends Analysis>
 
     void notifyOwnersAboutSubmissionUpdateViaSocket(T submission);
 
-    ResultFile uploadResultsByDataOwner(Long submissionId, MultipartFile file) throws NotExistException, IOException;
+    ResultFile uploadResultsByDataOwner(Long submissionId, String name, MultipartFile file) throws NotExistException, IOException;
 
     @PreAuthorize("hasPermission(#submissionId, 'Submission', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
-    List<ResultEntity> getResultFiles(User user, Long submissionId, ResultFileSearch resultFileSearch) throws PermissionDeniedException;
+    List<ArachneFileMeta> getResultFiles(User user, Long submissionId, ResultFileSearch resultFileSearch) throws PermissionDeniedException;
 
     @PreAuthorize("hasPermission(#analysisId,  'Analysis', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
-    ResultFile getResultFile(User user, Long analysisId, String uuid) throws PermissionDeniedException;
+    ArachneFileMeta getResultFileAndCheckPermission(User user, Submission submission, Long analysisId, String fileUuid)
+            throws PermissionDeniedException;
+
+    ResultFile getResultFileByPath(String path);
+
+    ResultFile getResultFileById(Long fileId);
 
     void getSubmissionResultAllFiles(User user, Long analysisId, Long submissionId, String archiveName, OutputStream os)
             throws IOException, PermissionDeniedException;
@@ -114,13 +127,34 @@ public interface BaseSubmissionService<T extends Submission, A extends Analysis>
 
     List<SubmissionFile> getSubmissionFiles(Long submissionGroupId);
 
-    SubmissionFile getSubmissionFile(Long submissionGroupId, String uuid);
+    SubmissionFile getSubmissionFile(Long submissionGroupId, Long fileId);
 
     SubmissionGroup getSubmissionGroupById(Long id) throws NotExistException;
 
     void deleteSubmissionStatusHistory(List<SubmissionStatusHistoryElement> statusHistory);
 
+    SubmissionStatusHistoryElement getSubmissionStatusHistoryElementById(Long id);
+
     void deleteSubmissions(List<T> submission);
 
     void deleteSubmissionGroups(List<SubmissionGroup> groups);
+
+    List<T> getByIdIn(List<Long> ids);
+
+    List<SubmissionStatusHistoryElement> getSubmissionStatusHistoryElementsByIdsIn(List<Long> longs);
+
+    List<ResultFile> createResultFilesBatch(
+            List<FileSaveRequest> fileSaveRequests,
+            Submission submission,
+            Long createById
+    ) throws IOException;
+
+    ResultFile createResultFile(
+            Path filePath,
+            String name,
+            Submission submission,
+            Long createById
+    ) throws IOException;
+
+    List<SubmissionAction> getSubmissionActions(Submission submission);
 }

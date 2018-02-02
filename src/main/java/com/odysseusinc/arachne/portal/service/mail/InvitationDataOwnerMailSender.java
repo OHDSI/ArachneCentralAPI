@@ -29,7 +29,8 @@ public class InvitationDataOwnerMailSender extends InvitationArachneMailMessage 
 
     public InvitationDataOwnerMailSender(String portalUrl, User user, StudyDataSourceLink link) {
 
-        super(portalUrl, user, link.getToken());
+        super(portalUrl, user, link.getToken(), link.getAuthor());
+
         parameters.put("studyUrl", portalUrl + "/study-manager/studies/" + String.valueOf(link.getStudy().getId()));
         parameters.put("studyTitle", link.getStudy().getTitle());
         parameters.put("studyDataSourceLinkId", link.getId());

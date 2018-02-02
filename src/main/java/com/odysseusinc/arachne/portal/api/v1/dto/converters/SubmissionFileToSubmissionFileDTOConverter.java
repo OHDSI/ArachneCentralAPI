@@ -22,9 +22,11 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
+import com.odysseusinc.arachne.portal.api.v1.dto.FileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionFileDTO;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
 import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -35,14 +37,15 @@ public class SubmissionFileToSubmissionFileDTOConverter
     @Override
     public SubmissionFileDTO convert(SubmissionFile source) {
 
+        FileDTO fileDTO = conversionService.convert(source, FileDTO.class);
+        fileDTO.setFileId(source.getId());
         SubmissionFileDTO submissionFileDTO = new SubmissionFileDTO();
+        BeanUtils.copyProperties(fileDTO, submissionFileDTO);
+
         submissionFileDTO.setLabel(source.getLabel());
-        submissionFileDTO.setUuid(source.getUuid());
-        submissionFileDTO.setName(source.getRealName());
-        submissionFileDTO.setCreated(source.getCreated());
         submissionFileDTO.setVersion(source.getVersion());
         submissionFileDTO.setChecksum(source.getChecksum());
-        submissionFileDTO.setDocType(source.getContentType());
+
         return submissionFileDTO;
     }
 }

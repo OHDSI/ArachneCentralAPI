@@ -24,6 +24,8 @@ package com.odysseusinc.arachne.portal.repository;
 
 import static com.odysseusinc.arachne.portal.service.RoleService.ROLE_ADMIN;
 
+import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
+import com.cosium.spring.data.jpa.entity.graph.repository.EntityGraphJpaRepository;
 import com.odysseusinc.arachne.portal.model.User;
 import java.util.List;
 import org.springframework.data.domain.Page;
@@ -36,7 +38,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.query.Param;
 
 @NoRepositoryBean
-public interface BaseUserRepository<U extends User> extends JpaRepository<U, Long>,
+public interface BaseUserRepository<U extends User> extends EntityGraphJpaRepository<U, Long>,
         JpaSpecificationExecutor<U> {
 
     List<U> findByIdIn(List<Long> idList);
@@ -51,7 +53,7 @@ public interface BaseUserRepository<U extends User> extends JpaRepository<U, Lon
 
     U findByRegistrationCode(String activateCode);
 
-    U findByEmail(String email);
+    U findByEmail(String email, EntityGraph entityGraph);
 
     @Query(nativeQuery = true, value = "SELECT * FROM users "
             + " WHERE "

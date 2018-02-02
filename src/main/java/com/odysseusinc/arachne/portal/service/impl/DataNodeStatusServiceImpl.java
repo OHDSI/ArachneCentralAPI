@@ -54,7 +54,7 @@ public class DataNodeStatusServiceImpl implements DataNodeStatusService {
     @Override
     public Optional<DataNodeStatus> getById(Long id) {
 
-        checkNotNull(id, "getById: dataNodeStatus with id=null not exist");
+        checkNotNull(id, "getByIdAndInitializeCollections: dataNodeStatus with id=null not exist");
         return Optional.ofNullable(dataNodeStatusRepository.findOne(id));
     }
 

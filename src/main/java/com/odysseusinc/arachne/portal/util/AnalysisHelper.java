@@ -127,24 +127,6 @@ public class AnalysisHelper implements AnalysisPaths {
                 .resolve(file.getUuid());
     }
 
-    public Path getResultFile(ResultFile resultFile) {
-
-        return getResultFolder(resultFile.getSubmission()).resolve(resultFile.getUuid());
-    }
-
-    public Path getResultFolder(Submission source) {
-
-        Path resultFolder = getSubmissionFolder(source).resolve(RESULT_DIR);
-        File file = resultFolder.toFile();
-        if (!file.exists()) {
-            if (!file.mkdirs()) {
-                throw new ConverterRuntimeException("Cann't create folder \"" + RESULT_DIR + "\" ");
-            }
-        }
-        return resultFolder;
-    }
-
-
     public Path getArchiveFolder(SubmissionGroup source) {
 
         Path archiveFolderPath = getSubmissionGroupFolder(source).resolve(

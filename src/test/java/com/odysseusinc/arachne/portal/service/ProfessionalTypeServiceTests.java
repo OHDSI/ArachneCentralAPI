@@ -30,6 +30,8 @@ import com.github.springtestdbunit.annotation.DatabaseSetup;
 import com.github.springtestdbunit.annotation.DatabaseTearDown;
 import com.github.springtestdbunit.annotation.DbUnitConfiguration;
 import com.github.springtestdbunit.annotation.ExpectedDatabase;
+import com.odysseusinc.arachne.portal.SingleContextTest;
+import com.odysseusinc.arachne.portal.api.v1.controller.BaseControllerTest;
 import org.hibernate.exception.ConstraintViolationException;
 import org.junit.Assert;
 import org.junit.FixMethodOrder;
@@ -44,16 +46,9 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 
-@SuppressWarnings(value = "unchecked")
 @RunWith(SpringRunner.class)
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@ActiveProfiles("test")
-@TestPropertySource(locations = "classpath:application.properties")
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@TestExecutionListeners({DependencyInjectionTestExecutionListener.class, DbUnitTestExecutionListener.class})
-@DbUnitConfiguration(databaseConnection = {"primaryDataSource"})
 @DatabaseTearDown(value = "/data/empty.xml", type = DatabaseOperation.DELETE_ALL)
-public class ProfessionalTypeServiceTests {
+public class ProfessionalTypeServiceTests extends SingleContextTest {
 
     private static final Long PROFESSIONAL_TYPE_ID = 1L;
 

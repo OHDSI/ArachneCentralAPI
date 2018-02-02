@@ -25,8 +25,13 @@ package com.odysseusinc.arachne.portal.api.v1.controller.submission;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionDTO;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.Submission;
+import com.odysseusinc.arachne.portal.service.ToPdfConverter;
+import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
+import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.service.submission.SubmissionService;
+import com.odysseusinc.arachne.portal.util.ContentStorageHelper;
+import com.odysseusinc.arachne.storage.service.ContentStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -35,9 +40,13 @@ public class SubmissionController extends BaseSubmissionController<Submission, A
 
     @Autowired
     public SubmissionController(BaseAnalysisService<Analysis> analysisService,
-                                SubmissionService submissionService) {
+                                SubmissionService submissionService,
+                                ToPdfConverter toPdfConverter,
+                                SubmissionInsightService submissionInsightService,
+                                ContentStorageService contentStorageService,
+                                ContentStorageHelper contentStorageHelper) {
 
-        super(analysisService, submissionService);
+        super(analysisService, submissionService, toPdfConverter, submissionInsightService, contentStorageService, contentStorageHelper);
     }
 
     @Override

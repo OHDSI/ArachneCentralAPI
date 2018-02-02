@@ -37,7 +37,6 @@ import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.commons.service.messaging.ProducerConsumerTemplate;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.execution_engine_common.api.v1.dto.DBMSType;
-import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisContentFileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisCreateDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisFileDTO;
@@ -46,12 +45,16 @@ import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisUnlockRequestDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisUpdateDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.Commentable;
 import com.odysseusinc.arachne.portal.api.v1.dto.DataReferenceDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.FileContentDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.FileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.OptionDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.PageDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.ShortBaseAnalysisDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionGroupDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightUpdateDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdateNotificationDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UploadFileDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.converters.FileDtoContentHandler;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.NotEmptyException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
@@ -67,23 +70,25 @@ import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataReference;
 import com.odysseusinc.arachne.portal.model.Submission;
+import com.odysseusinc.arachne.portal.model.SubmissionGroup;
 import com.odysseusinc.arachne.portal.model.SubmissionInsight;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.DataReferenceService;
 import com.odysseusinc.arachne.portal.service.ImportService;
+import com.odysseusinc.arachne.portal.service.ToPdfConverter;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.service.messaging.MessagingUtils;
 import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
+import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightService;
 import com.odysseusinc.arachne.portal.util.ImportedFile;
 import com.odysseusinc.arachne.portal.util.ZipUtil;
 import io.swagger.annotations.ApiOperation;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Reader;
-import java.io.StringReader;
 import java.net.URISyntaxException;
 import java.security.Principal;
 import java.util.ArrayList;
@@ -113,15 +118,20 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.SortDefault;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.destination.DestinationResolver;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -148,11 +158,23 @@ public abstract class BaseAnalysisController<T extends Analysis,
     protected final DestinationResolver destinationResolver;
     protected final ImportService importService;
     protected final BaseSubmissionService<Submission, Analysis> submissionService;
+    protected final ToPdfConverter toPdfConverter;
+    protected final SubmissionInsightService submissionInsightService;
 
     @Value("${datanode.messaging.importTimeout}")
     private Long datanodeImportTimeout;
 
-    public BaseAnalysisController(BaseAnalysisService analysisService, BaseSubmissionService submissionService, DataReferenceService dataReferenceService, JmsTemplate jmsTemplate, GenericConversionService conversionService, BaseDataNodeService baseDataNodeService, BaseDataSourceService dataSourceService, ImportService importService, SimpMessagingTemplate wsTemplate) {
+    public BaseAnalysisController(BaseAnalysisService analysisService,
+                                  BaseSubmissionService submissionService,
+                                  DataReferenceService dataReferenceService,
+                                  JmsTemplate jmsTemplate,
+                                  GenericConversionService conversionService,
+                                  BaseDataNodeService baseDataNodeService,
+                                  BaseDataSourceService dataSourceService,
+                                  ImportService importService,
+                                  SimpMessagingTemplate wsTemplate,
+                                  ToPdfConverter toPdfConverter,
+                                  SubmissionInsightService submissionInsightService) {
 
         this.analysisService = analysisService;
         this.submissionService = submissionService;
@@ -164,6 +186,8 @@ public abstract class BaseAnalysisController<T extends Analysis,
         this.dataSourceService = dataSourceService;
         this.importService = importService;
         this.wsTemplate = wsTemplate;
+        this.submissionInsightService = submissionInsightService;
+        this.toPdfConverter = toPdfConverter;
     }
 
     @ApiOperation("Create analysis.")
@@ -171,26 +195,34 @@ public abstract class BaseAnalysisController<T extends Analysis,
     public JsonResult<D> create(
             Principal principal,
             @RequestBody @Valid A_C_DTO analysisDTO,
-            BindingResult binding)
+            BindingResult bindingResult)
             throws PermissionDeniedException, NotExistException, NotUniqueException {
 
         JsonResult<D> result;
         User user = getUser(principal);
 
-        if (binding.hasErrors()) {
-            result = new JsonResult<>(VALIDATION_ERROR);
-            for (FieldError fieldError : binding.getFieldErrors()) {
-                result.getValidatorErrors().put(fieldError.getField(), fieldError.getDefaultMessage());
-            }
+        if (bindingResult.hasErrors()) {
+            return setValidationErrors(bindingResult);
         } else {
             T analysis = conversionService.convert(analysisDTO, getAnalysisClass());
             analysis.setAuthor(user);
             analysis = analysisService.create(analysis);
+            afterCreate(analysis, analysisDTO);
             result = new JsonResult<>(NO_ERROR);
             result.setResult(conversionService.convert(analysis, getAnalysisDTOClass()));
         }
 
         return result;
+    }
+
+    @ApiOperation("Get short analysis info.")
+    @RequestMapping(value = "/api/v1/analysis-management/analyses/{analysisId}/short", method = GET)
+    public ShortBaseAnalysisDTO getShortAnalysis(
+            @PathVariable("analysisId") Long analysisId)
+            throws NotExistException, NotUniqueException {
+
+       T analysis = analysisService.getById(analysisId);
+       return conversionService.convert(analysis, ShortBaseAnalysisDTO.class);
     }
 
     abstract protected Class<T> getAnalysisClass();
@@ -199,22 +231,35 @@ public abstract class BaseAnalysisController<T extends Analysis,
 
     @ApiOperation("Get analysis.")
     @RequestMapping(value = "/api/v1/analysis-management/analyses/{analysisId}", method = GET)
-    public JsonResult<D> get(Principal principal, @PathVariable("analysisId") Long id)
+    public JsonResult<D> get(@PathVariable("analysisId") Long id)
             throws NotExistException, PermissionDeniedException {
 
         JsonResult<D> result;
         T analysis = analysisService.getById(id);
         result = new JsonResult<>(NO_ERROR);
         D analysisDTO = conversionService.convert(analysis, getAnalysisDTOClass());
-        analysisDTO.getSubmissionGroup()
-                .stream()
-                .flatMap(sgd -> sgd.getSubmissions().stream())
-                .forEach(sd -> {
-                    Submission s = ((Submission) sd.getConversionSource());
-                    sd.setAvailableActionList(analysisService.getSubmissionActions(s));
-                });
         result.setResult(analysisDTO);
         return result;
+    }
+
+    @ApiOperation("Get submission groups.")
+    @RequestMapping(value = "/api/v1/analysis-management/analyses/{analysisId}/submission-groups", method = GET)
+    public Page<SubmissionGroupDTO> getSubmissionGroups(
+            @PathVariable("analysisId") Long id,
+            @ModelAttribute PageDTO pageDTO
+    ) {
+
+        PageRequest pageRequest = new PageRequest(pageDTO.getPageablePage(), pageDTO.getPageSize(), new Sort(Sort.Direction.DESC, "created"));
+        Page<SubmissionGroup> submissionGroupList = submissionService.getSubmissionGroups(id, pageRequest);
+
+        return submissionGroupList.map(sg -> {
+            SubmissionGroupDTO sgDTO = conversionService.convert(sg, SubmissionGroupDTO.class);
+            sgDTO.getSubmissions().forEach(sd -> {
+                Submission s = ((Submission) sd.getConversionSource());
+                sd.setAvailableActionList(submissionService.getSubmissionActions(s));
+            });
+            return sgDTO;
+        });
     }
 
     @ApiOperation("Update analysis.")
@@ -347,19 +392,15 @@ public abstract class BaseAnalysisController<T extends Analysis,
                                 final String fileName = baseName + "."
                                         + dialect.getLabel().replaceAll(" ", "-")
                                         + "." + extension;
-                                try (final Reader reader = new StringReader(sql)) {
-                                    ZipUtil.addZipEntry(zos, fileName, reader);
-                                }
+                                ZipUtil.addZipEntry(zos, fileName, new ByteArrayInputStream(sql.getBytes("UTF-8")));
                             }
                             final String shortBaseName = baseName.replaceAll("\\.ohdsi", "");
                             if (!generatedFileName.value.contains(shortBaseName)) {
                                 generatedFileName.value += "_" + shortBaseName;
                             }
                         } else {
-                            try (final Reader reader = new StringReader(org.apache.commons.io.IOUtils.toString(file.getInputStream(), "UTF-8"))) {
-                                String fileName = file.getName();
-                                ZipUtil.addZipEntry(zos, fileName, reader);
-                            }
+                            String fileName = file.getName();
+                            ZipUtil.addZipEntry(zos, fileName, file.getInputStream());
                         }
                     } catch (IOException e) {
                         LOGGER.error("Failed to add file to archive", e);
@@ -468,9 +509,9 @@ public abstract class BaseAnalysisController<T extends Analysis,
         if (order == null) {
             order = Sort.Direction.ASC;
         }
-        final SubmissionInsight insight = analysisService.getSubmissionInsight(submissionId);
+        final SubmissionInsight insight = submissionInsightService.getSubmissionInsight(submissionId);
         final SubmissionInsightDTO insightDTO = conversionService.convert(insight, SubmissionInsightDTO.class);
-        final Set<CommentTopic> recentTopics = analysisService.getInsightComments(insight, size, new Sort(order, "id"));
+        final Set<CommentTopic> recentTopics = submissionInsightService.getInsightComments(insight, size, new Sort(order, "id"));
         final List<Commentable> recentCommentables = getRecentCommentables(conversionService, recentTopics, insightDTO);
         insightDTO.setRecentCommentEntities(recentCommentables);
         final JsonResult<SubmissionInsightDTO> result = new JsonResult<>(NO_ERROR);
@@ -487,7 +528,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
     ) throws AlreadyExistException, NotExistException {
 
         final SubmissionInsight insight = conversionService.convert(insightDTO, SubmissionInsight.class);
-        final SubmissionInsight savedInsight = analysisService.createSubmissionInsight(submissionId, insight);
+        final SubmissionInsight savedInsight = submissionInsightService.createSubmissionInsight(submissionId, insight);
         final SubmissionInsightDTO savedInsightDTO = conversionService.convert(savedInsight, SubmissionInsightDTO.class);
         final JsonResult<SubmissionInsightDTO> result = new JsonResult<>(NO_ERROR);
         result.setResult(savedInsightDTO);
@@ -502,7 +543,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
     ) throws NotExistException {
 
         final SubmissionInsight insight = conversionService.convert(insightDTO, SubmissionInsight.class);
-        final SubmissionInsight updatedInsight = analysisService.updateSubmissionInsight(submissionId, insight);
+        final SubmissionInsight updatedInsight = submissionInsightService.updateSubmissionInsight(submissionId, insight);
         final SubmissionInsightDTO updatedInsightDTO = conversionService.convert(updatedInsight, SubmissionInsightDTO.class);
         final JsonResult<SubmissionInsightDTO> result = new JsonResult<>(NO_ERROR);
         result.setResult(updatedInsightDTO);
@@ -549,7 +590,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
 
     @ApiOperation("Get analysis code file.")
     @RequestMapping(value = "/api/v1/analysis-management/analyses/{analysisId}/code-files/{fileUuid}", method = GET)
-    public JsonResult<AnalysisContentFileDTO> getFileContent(
+    public JsonResult<AnalysisFileDTO> getFileContent(
             @PathVariable("analysisId") Long analysisId,
             @RequestParam(defaultValue = "true") Boolean withContent,
             @PathVariable("fileUuid") String uuid)
@@ -557,20 +598,20 @@ public abstract class BaseAnalysisController<T extends Analysis,
 
         AnalysisFile analysisFile = analysisService.getAnalysisFile(analysisId, uuid);
         AnalysisFileDTO analysisFileDTO = conversionService.convert(analysisFile, AnalysisFileDTO.class);
-        AnalysisContentFileDTO contentDTO = new AnalysisContentFileDTO();
-        ReflectionUtils.shallowCopyFieldState(analysisFileDTO, contentDTO);
 
         if (withContent) {
-            String content = new String(analysisService.getAllBytes(analysisFile));
-            contentDTO.setContent(content);
+            analysisFileDTO = (AnalysisFileDTO) FileDtoContentHandler
+                    .getInstance(analysisFileDTO, analysisService.getPath(analysisFile).toFile())
+                    .withPdfConverter(toPdfConverter::convert)
+                    .handle();
         }
 
-        return new JsonResult<>(NO_ERROR, contentDTO);
+        return new JsonResult<>(NO_ERROR, analysisFileDTO);
     }
 
     @ApiOperation("Lock/unlock analysis files")
     @RequestMapping(value = "/api/v1/analysis-management/analyses/{analysisId}/lock", method = POST)
-    public JsonResult<FileContentDTO> setAnalysisLock(
+    public JsonResult<FileDTO> setAnalysisLock(
             @PathVariable("analysisId") Long analysisId,
             @RequestBody AnalysisLockDTO lockFileDTO
     )
@@ -582,7 +623,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
 
     @ApiOperation("Send analysis unlock request")
     @RequestMapping(value = "/api/v1/analysis-management/analyses/{analysisId}/unlock-request", method = POST)
-    public JsonResult<FileContentDTO> sendUnlockRequest(
+    public JsonResult<FileDTO> sendUnlockRequest(
             Principal principal,
             @PathVariable("analysisId") Long analysisId,
             @RequestBody AnalysisUnlockRequestDTO analysisUnlockRequestDTO
@@ -640,7 +681,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
             method = PUT)
     public JsonResult<Boolean> putFileContent(
             Principal principal,
-            @RequestBody FileContentDTO fileContentDTO,
+            @RequestBody FileDTO fileContentDTO,
             @PathVariable("analysisId") Long analysisId,
             @PathVariable("fileUuid") String uuid)
             throws PermissionDeniedException, NotExistException, IOException, URISyntaxException {
@@ -694,14 +735,24 @@ public abstract class BaseAnalysisController<T extends Analysis,
         if (entityType.equals(CommonAnalysisType.COHORT_CHARACTERIZATION)) {
             attachCohortCharacterizationFiles(files);
         }
+        if (entityType.equals(CommonAnalysisType.INCIDENCE)) {
+            attachIncidenceRatesFiles(files);
+        }
         return files;
     }
 
+    protected abstract void attachIncidenceRatesFiles(List<MultipartFile> files) throws IOException;
+
     protected byte[] readResource(final String path) throws IOException {
+
         Resource resource = new ClassPathResource(path);
         try (InputStream in = resource.getInputStream()) {
             return IOUtils.toByteArray(in);
         }
+    }
+
+    protected void afterCreate(T analysis, A_C_DTO analysisDTO) {
+
     }
 
     protected abstract void attachPredictionFiles(List<MultipartFile> files) throws IOException;
