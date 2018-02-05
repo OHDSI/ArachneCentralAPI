@@ -21,6 +21,7 @@
 
 package com.odysseusinc.arachne.portal.service.domain;
 
+import com.odysseusinc.arachne.portal.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.support.Repositories;
 import org.springframework.stereotype.Service;
@@ -43,7 +44,13 @@ public class DomainObjectLoaderFactory {
 
     public DomainObjectLoader getDomainObjectLoader(Class domainClazz) {
 
-        DomainObjectLoader domainObjectLoader = new GenericDomainObjectLoader(domainClazz);
+        DomainObjectLoader domainObjectLoader;
+
+        if (User.class.isAssignableFrom(domainClazz))
+            domainObjectLoader = new UserDomainObjectLoader(domainClazz);
+        else
+            domainObjectLoader = new GenericDomainObjectLoader(domainClazz);
+
         return domainObjectLoader.withServices(repositories, entityManagerFactory);
     }
 }

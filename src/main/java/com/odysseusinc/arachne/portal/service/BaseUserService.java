@@ -51,6 +51,7 @@ import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface BaseUserService<U extends User, S extends Skill> {
@@ -97,8 +98,12 @@ public interface BaseUserService<U extends User, S extends Skill> {
             NotExistException,
             NoSuchFieldException;
 
+    @PreAuthorize("hasPermission(#uuid, 'User', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_USER)")
     U getByUuid(String uuid);
 
+    @PreAuthorize("hasPermission(#uuid, 'User', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_USER)")
     U getByUuidAndInitializeCollections(String uuid);
 
     List<U> suggestUser(String query, List<String> emailsList, Integer limit);

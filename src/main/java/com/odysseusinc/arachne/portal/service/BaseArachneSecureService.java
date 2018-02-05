@@ -32,8 +32,11 @@ import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionGroup;
 import com.odysseusinc.arachne.portal.model.SubmissionInsight;
+import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
+import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import java.util.List;
+import java.util.Set;
 
 public interface BaseArachneSecureService<P extends Paper, DS extends DataSource> {
     List<ParticipantRole> getRolesByStudy(ArachneUser user, Study study);
@@ -55,4 +58,6 @@ public interface BaseArachneSecureService<P extends Paper, DS extends DataSource
     List<ParticipantRole> getRolesByInsight(ArachneUser user, SubmissionInsight domainObject);
 
     List<ParticipantRole> getRolesByCommentTopic(ArachneUser user, CommentTopic topic);
+
+    Set<ArachnePermission> getPermissionsForUser(ArachneUser user, User targetUser);
 }

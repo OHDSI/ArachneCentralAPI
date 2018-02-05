@@ -22,6 +22,8 @@
 
 package com.odysseusinc.arachne.portal.service.impl;
 
+import static com.odysseusinc.arachne.portal.security.ArachnePermission.ACCESS_STUDY;
+
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.DataNode;
@@ -43,14 +45,17 @@ import com.odysseusinc.arachne.portal.repository.AnalysisRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeUserRepository;
 import com.odysseusinc.arachne.portal.repository.ResultFileRepository;
+import com.odysseusinc.arachne.portal.repository.SecurityGroupRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionInsightSubmissionFileRepository;
 import com.odysseusinc.arachne.portal.repository.UserStudyExtendedRepository;
 import com.odysseusinc.arachne.portal.repository.UserStudyGroupedRepository;
 import com.odysseusinc.arachne.portal.repository.submission.SubmissionRepository;
+import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.util.DataNodeUtils;
+import java.security.Permission;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -73,6 +78,7 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends D
     protected final UserStudyExtendedRepository userStudyExtendedRepository;
     protected final SubmissionInsightSubmissionFileRepository submissionInsightSubmissionFileRepository;
     protected final ResultFileRepository resultFileRepository;
+    protected final SecurityGroupRepository securityGroupRepository;
 
     @Autowired
     public BaseArachneSecureServiceImpl(UserStudyGroupedRepository userStudyGroupedRepository,
@@ -82,7 +88,8 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends D
                                         DataNodeUserRepository dataNodeUserRepository,
                                         UserStudyExtendedRepository userStudyExtendedRepository,
                                         SubmissionInsightSubmissionFileRepository submissionInsightSubmissionFileRepository,
-                                        ResultFileRepository resultFileRepository) {
+                                        ResultFileRepository resultFileRepository,
+                                        SecurityGroupRepository securityGroupRepository) {
 
         this.userStudyGroupedRepository = userStudyGroupedRepository;
         this.analysisRepository = analysisRepository;
@@ -92,13 +99,24 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends D
         this.userStudyExtendedRepository = userStudyExtendedRepository;
         this.submissionInsightSubmissionFileRepository = submissionInsightSubmissionFileRepository;
         this.resultFileRepository = resultFileRepository;
+        this.securityGroupRepository = securityGroupRepository;
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ParticipantRole> getRolesByStudy(ArachneUser user, Study study) {
 
-        return study != null ? getParticipantRoles(user.getId(), study) : new LinkedList<>();
+        List<ParticipantRole> participantRoles = new LinkedList<>();
+
+        if (study != null && study.getSecurityGroup().getId().equals(user.getActiveSecurityGroupId())) {
+
+            if (!study.getPrivacy()) {
+                participantRoles.add(ParticipantRole.STUDY_READER);
+            }
+            participantRoles.addAll(getParticipantRoles(user.getId(), study));
+        }
+
+        return participantRoles;
     }
 
     @Override
@@ -155,7 +173,10 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends D
     public List<ParticipantRole> getRolesByDataSource(ArachneUser user, DS dataSource) {
 
         List<ParticipantRole> participantRoles = getRolesByDataNode(user, dataSource.getDataNode());
-        participantRoles.add(ParticipantRole.DATA_SET_USER);
+
+        if (securityGroupRepository.findAnyByDataSourceIdAndUserId(dataSource.getId(), user.getId()).isPresent()) {
+            participantRoles.add(ParticipantRole.DATA_SET_USER);
+        }
         return participantRoles;
     }
 
@@ -170,8 +191,6 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends D
                     final Set<DataNodeRole> dataNodeRoles = dataNodeUser.getDataNodeRole();
                     if (dataNodeRoles != null && !dataNodeRoles.isEmpty() && dataNodeRoles.contains(DataNodeRole.ADMIN)) {
                         participantRoles.add(ParticipantRole.DATA_SET_OWNER);
-                    } else {
-                        participantRoles.add(ParticipantRole.DATA_SET_USER);
                     }
                 });
         return participantRoles;
@@ -210,6 +229,16 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends D
         }
 
         return getRolesByInsight(user, insight);
+    }
+
+    @Override
+    public Set<ArachnePermission> getPermissionsForUser(ArachneUser user, User targetUser) {
+
+        Set<ArachnePermission> permissions = new HashSet<>();
+        if (securityGroupRepository.findCommonForUsers(user.getId(), targetUser.getId()).isPresent()) {
+            permissions.add(ArachnePermission.ACCESS_USER);
+        }
+        return permissions;
     }
 
     public List<ParticipantRole> getParticipantRoles(final Long userId, final Study study) {

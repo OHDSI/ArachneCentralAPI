@@ -23,6 +23,7 @@
 package com.odysseusinc.arachne.portal.model;
 
 import com.odysseusinc.arachne.commons.utils.UserIdUtils;
+import com.odysseusinc.arachne.portal.model.security.SecurityGroup;
 import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
 import java.io.Serializable;
 import java.util.Date;
@@ -41,6 +42,7 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
@@ -167,6 +169,12 @@ public class User implements Serializable {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<DataNodeUser> dataNodeUsers = new HashSet<>();
 
+    @ManyToMany(targetEntity = SecurityGroup.class, fetch = FetchType.LAZY)
+    private Set<SecurityGroup> securityGroups;
+
+    @OneToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "active_security_group_id")
+    private SecurityGroup activeSecurityGroup;
 
     public Long getId() {
 
@@ -489,5 +497,25 @@ public class User implements Serializable {
     public String getFullName() {
 
         return firstname + " " + (middlename != null ? middlename : "") + " " + lastname;
+    }
+
+    public Set<SecurityGroup> getSecurityGroups() {
+
+        return securityGroups;
+    }
+
+    public void setSecurityGroups(Set<SecurityGroup> securityGroups) {
+
+        this.securityGroups = securityGroups;
+    }
+
+    public SecurityGroup getActiveSecurityGroup() {
+
+        return activeSecurityGroup;
+    }
+
+    public void setActiveSecurityGroup(SecurityGroup activeSecurityGroup) {
+
+        this.activeSecurityGroup = activeSecurityGroup;
     }
 }
