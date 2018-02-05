@@ -49,6 +49,7 @@ import com.github.springtestdbunit.annotation.DatabaseSetups;
 import com.github.springtestdbunit.annotation.DatabaseTearDown;
 import com.github.springtestdbunit.annotation.ExpectedDatabase;
 import com.github.springtestdbunit.annotation.ExpectedDatabases;
+import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.AddStudyParticipantDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.CreateStudyDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.InvitationActionDTO;
@@ -432,7 +433,7 @@ public class StudyControllerTests extends BaseControllerTest {
         participantDTO.setRole(LEAD_INVESTIGATOR.name());
 
         mvc.perform(
-                put("/api/v1/study-management/studies/" + STUDY_ID + "/participants/" + 2L)
+                put("/api/v1/study-management/studies/" + STUDY_ID + "/participants/" + UserIdUtils.idToUuid(2L))
                         .contentType(APPLICATION_JSON)
                         .content(objectMapper.writeValueAsBytes(participantDTO)))
                 .andExpect(NO_ERROR_CODE)
@@ -474,7 +475,7 @@ public class StudyControllerTests extends BaseControllerTest {
         participantDTO.setRole(CONTRIBUTOR.name());
 
         mvc.perform(
-                put("/api/v1/study-management/studies/" + STUDY_ID + "/participants/" + ADMIN_ID)
+                put("/api/v1/study-management/studies/" + STUDY_ID + "/participants/" + UserIdUtils.idToUuid(ADMIN_ID))
                         .contentType(APPLICATION_JSON)
                         .content(objectMapper.writeValueAsBytes(participantDTO)))
                 .andExpect(jsonPath("$.errorCode").value(VALIDATION_ERROR.getCode()));
@@ -494,7 +495,7 @@ public class StudyControllerTests extends BaseControllerTest {
         participantDTO.setRole(CONTRIBUTOR.name());
 
         mvc.perform(
-                put("/api/v1/study-management/studies/" + STUDY_ID + "/participants/" + ADMIN_ID)
+                put("/api/v1/study-management/studies/" + STUDY_ID + "/participants/" + UserIdUtils.idToUuid(ADMIN_ID))
                         .contentType(APPLICATION_JSON)
                         .content(objectMapper.writeValueAsBytes(participantDTO)))
                 .andExpect(NO_ERROR_CODE)
@@ -587,7 +588,7 @@ public class StudyControllerTests extends BaseControllerTest {
 
         Long participantId = 2L;
         mvc.perform(
-                delete("/api/v1/study-management/studies/" + STUDY_ID + "/participants/" + participantId))
+                delete("/api/v1/study-management/studies/" + STUDY_ID + "/participants/" + UserIdUtils.idToUuid(participantId)))
                 .andExpect(NO_ERROR_CODE);
     }
 
