@@ -26,6 +26,7 @@ import com.google.common.base.Objects;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
+import javax.persistence.JoinColumn;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.persistence.CascadeType;
@@ -97,6 +98,10 @@ public class DataNode implements HasArachnePermissions {
 
     @Column(name = "atlas_version")
     private String atlasVersion;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "organization_id")
+    private Organization organization;
 
     @Transient
     private Set<ArachnePermission> permissions;
@@ -234,6 +239,16 @@ public class DataNode implements HasArachnePermissions {
     public void setAtlasVersion(String atlasVersion) {
 
         this.atlasVersion = atlasVersion;
+    }
+
+    public Organization getOrganization() {
+
+        return organization;
+    }
+
+    public void setOrganization(Organization organization) {
+
+        this.organization = organization;
     }
 
     @Override
