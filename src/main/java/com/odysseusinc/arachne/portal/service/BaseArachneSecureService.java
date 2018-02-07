@@ -26,6 +26,7 @@ import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.Organization;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import com.odysseusinc.arachne.portal.model.Study;
@@ -55,4 +56,6 @@ public interface BaseArachneSecureService<P extends Paper, DS extends DataSource
     List<ParticipantRole> getRolesByInsight(ArachneUser user, SubmissionInsight domainObject);
 
     List<ParticipantRole> getRolesByCommentTopic(ArachneUser user, CommentTopic topic);
+
+    List<ParticipantRole> getRolesByOrganization(ArachneUser user, Organization organization);
 }

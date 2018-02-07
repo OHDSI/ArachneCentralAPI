@@ -27,6 +27,7 @@ import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataNodeRole;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.Organization;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import com.odysseusinc.arachne.portal.model.ParticipantStatus;
@@ -44,13 +45,13 @@ import com.odysseusinc.arachne.portal.repository.DataNodeRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeUserRepository;
 import com.odysseusinc.arachne.portal.repository.ResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionInsightSubmissionFileRepository;
+import com.odysseusinc.arachne.portal.repository.UserRepository;
 import com.odysseusinc.arachne.portal.repository.UserStudyExtendedRepository;
 import com.odysseusinc.arachne.portal.repository.UserStudyGroupedRepository;
 import com.odysseusinc.arachne.portal.repository.submission.SubmissionRepository;
 import com.odysseusinc.arachne.portal.util.DataNodeUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -59,11 +60,15 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.Transactional;
 
 public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends DataSource> implements com.odysseusinc.arachne.portal.service.BaseArachneSecureService<P, DS> {
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(com.odysseusinc.arachne.portal.service.BaseArachneSecureService.class);
+
+    @Value("${portal.organizations.enableCreateByNonAdmin}")
+    private Boolean canUserCreateOrganization;
 
     protected final UserStudyGroupedRepository userStudyGroupedRepository;
     protected final AnalysisRepository analysisRepository;
@@ -73,6 +78,7 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends D
     protected final UserStudyExtendedRepository userStudyExtendedRepository;
     protected final SubmissionInsightSubmissionFileRepository submissionInsightSubmissionFileRepository;
     protected final ResultFileRepository resultFileRepository;
+    protected final UserRepository userRepository;
 
     @Autowired
     public BaseArachneSecureServiceImpl(UserStudyGroupedRepository userStudyGroupedRepository,
@@ -82,7 +88,8 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends D
                                         DataNodeUserRepository dataNodeUserRepository,
                                         UserStudyExtendedRepository userStudyExtendedRepository,
                                         SubmissionInsightSubmissionFileRepository submissionInsightSubmissionFileRepository,
-                                        ResultFileRepository resultFileRepository) {
+                                        ResultFileRepository resultFileRepository,
+                                        UserRepository userRepository) {
 
         this.userStudyGroupedRepository = userStudyGroupedRepository;
         this.analysisRepository = analysisRepository;
@@ -92,6 +99,7 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends D
         this.userStudyExtendedRepository = userStudyExtendedRepository;
         this.submissionInsightSubmissionFileRepository = submissionInsightSubmissionFileRepository;
         this.resultFileRepository = resultFileRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -210,6 +218,15 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends D
         }
 
         return getRolesByInsight(user, insight);
+    }
+
+    @Override
+    public List<ParticipantRole> getRolesByOrganization(ArachneUser user, Organization organization) {
+
+        final User standardUser = userRepository.findByEmailAndEnabledTrue(user.getUsername());
+        final boolean admin = standardUser.getRoles().stream().anyMatch(r -> r.getName().equals("ROLE_ADMIN"));
+        ParticipantRole role = admin ? ParticipantRole.ORGANIZATION_ADMIN : canUserCreateOrganization ? ParticipantRole.ORGANIZATION_CREATOR : ParticipantRole.ORGANIZATION_READER;
+        return Arrays.asList(role);
     }
 
     public List<ParticipantRole> getParticipantRoles(final Long userId, final Study study) {

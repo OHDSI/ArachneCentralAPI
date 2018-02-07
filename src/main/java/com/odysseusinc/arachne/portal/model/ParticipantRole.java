@@ -23,15 +23,18 @@
 package com.odysseusinc.arachne.portal.model;
 
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.ACCESS_DATASOURCE;
+import static com.odysseusinc.arachne.portal.security.ArachnePermission.ACCESS_ORGANIZATION;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.ACCESS_PAPER;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.ACCESS_STUDY;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.APPROVE_SUBMISSION;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.CREATE_ANALYSIS;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.CREATE_DATASOURCE;
+import static com.odysseusinc.arachne.portal.security.ArachnePermission.CREATE_ORGANIZATION;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.CREATE_SUBMISSION;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.DELETE_ANALYSIS;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.DELETE_ANALYSIS_FILES;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.DELETE_DATASOURCE;
+import static com.odysseusinc.arachne.portal.security.ArachnePermission.DELETE_ORGANIZATION;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.EDIT_ANALYSIS;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.EDIT_DATANODE;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.EDIT_INSIGHT;
@@ -43,6 +46,7 @@ import static com.odysseusinc.arachne.portal.security.ArachnePermission.LIMITED_
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.LOCK_ANALYSIS_FILE;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.SENDING_UNLOCK_ANALYSIS_REQUEST;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.UNLINK_DATASOURCE;
+import static com.odysseusinc.arachne.portal.security.ArachnePermission.UPDATE_ORGANIZATION;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.UPLOAD_ANALYSIS_FILES;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.UPLOAD_FILES;
 
@@ -106,6 +110,20 @@ public enum ParticipantRole {
     }),
     PAPER_READER("Paper reader", new ArachnePermission[]{
             ACCESS_PAPER
+    }),
+    ORGANIZATION_ADMIN("Organization admin", new ArachnePermission[] {
+            ACCESS_ORGANIZATION,
+            CREATE_ORGANIZATION,
+            UPDATE_ORGANIZATION,
+            DELETE_ORGANIZATION,
+    }),
+    ORGANIZATION_CREATOR("Organization creator", new ArachnePermission[] {
+            ACCESS_ORGANIZATION,
+            CREATE_ORGANIZATION
+    }),
+    ORGANIZATION_READER("Organization user", new ArachnePermission[] {
+            ACCESS_ORGANIZATION,
+            ACCESS_ORGANIZATION
     });
 
     private String title;

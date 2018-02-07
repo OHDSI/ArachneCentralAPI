@@ -21,11 +21,22 @@
 
 package com.odysseusinc.arachne.portal.component;
 
+import static com.odysseusinc.arachne.portal.component.PermissionDsl.domainObject;
+import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.analysisAuthorIs;
+import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.analysisFileAuthorIs;
+import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.hasRole;
+import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.instanceOf;
+import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.userIsLeadInvestigator;
+import static com.odysseusinc.arachne.portal.security.ArachnePermission.ACCESS_STUDY;
+import static com.odysseusinc.arachne.portal.security.ArachnePermission.DELETE_ANALYSIS_FILES;
+import static com.odysseusinc.arachne.portal.security.ArachnePermission.DELETE_DATASOURCE;
+
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.AnalysisFile;
 import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.Organization;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import com.odysseusinc.arachne.portal.model.PublishState;
@@ -35,19 +46,10 @@ import com.odysseusinc.arachne.portal.model.SubmissionGroup;
 import com.odysseusinc.arachne.portal.model.SubmissionInsight;
 import com.odysseusinc.arachne.portal.model.UserStudyGrouped;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
-import com.odysseusinc.arachne.portal.repository.AnalysisRepository;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
 import com.odysseusinc.arachne.portal.service.BaseArachneSecureService;
 import com.odysseusinc.arachne.portal.service.domain.DomainObjectLoaderFactory;
-import org.apache.commons.lang3.ObjectUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.security.access.PermissionEvaluator;
-import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
-
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
@@ -58,16 +60,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-
-import static com.odysseusinc.arachne.portal.component.PermissionDsl.domainObject;
-import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.analysisAuthorIs;
-import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.analysisFileAuthorIs;
-import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.hasRole;
-import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.instanceOf;
-import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.userIsLeadInvestigator;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.ACCESS_STUDY;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.DELETE_ANALYSIS_FILES;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.DELETE_DATASOURCE;
+import org.apache.commons.lang3.ObjectUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.security.access.PermissionEvaluator;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 
 @Component("ArachnePermissionEvaluator")
@@ -98,6 +97,7 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
         domainClassMap.put(DataSource.class.getSimpleName(), DataSource.class);
         domainClassMap.put(Paper.class.getSimpleName(), Paper.class);
         domainClassMap.put(CommentTopic.class.getSimpleName(), CommentTopic.class);
+        domainClassMap.put(Organization.class.getSimpleName(), Organization.class);
     }
 
     protected boolean checkPermission(Authentication authentication, Object domainObject, Object permissions) {
@@ -232,6 +232,12 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
                 .then(topic -> getArachnePermissions(secureService.getRolesByCommentTopic(user, (CommentTopic) topic))).apply();
     }
 
+    protected PermissionDsl organizationRules(Object domainObject, ArachneUser user) {
+
+        return domainObject(domainObject).when(instanceOf(Organization.class))
+                .then(organization -> getArachnePermissions(secureService.getRolesByOrganization(user, (Organization) organization))).apply();
+    }
+
     protected PermissionDsl additionalRules(Object domainObject, ArachneUser user) {
 
         return domainObject(domainObject);
@@ -250,6 +256,7 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
                 .with(paperRules(domainObject, user))
                 .with(insightRules(domainObject, user))
                 .with(topicRules(domainObject, user))
+                .with(organizationRules(domainObject, user))
                 .with(additionalRules(domainObject, user))
                 .getPermissions();
     }

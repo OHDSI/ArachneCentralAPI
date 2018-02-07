@@ -119,6 +119,8 @@ portal:
   authMethod: NATIVE
   urlWhiteList: https://community.arachnenetwork.com:443
   useQueryInterceptor: false
+  organizations:
+    enableCreateByNonAdmin: true
 datanode:
   messaging:
     importTimeout: 60000

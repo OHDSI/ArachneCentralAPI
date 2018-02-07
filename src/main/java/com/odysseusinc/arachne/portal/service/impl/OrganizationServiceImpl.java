@@ -34,6 +34,8 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,6 +55,7 @@ public class OrganizationServiceImpl implements OrganizationService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasPermission(#organization, T(com.odysseusinc.arachne.portal.security.ArachnePermission).CREATE_ORGANIZATION)")
     public Organization create(Organization organization) throws ValidationException {
 
         final String name = organization.getName();
@@ -66,6 +69,7 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     @Override
+    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
     public Organization get(Long id) {
 
         return organizationRepository.getById(id).orElseThrow(() -> {
@@ -76,6 +80,9 @@ public class OrganizationServiceImpl implements OrganizationService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasPermission(#organization, 'Organization', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).UPDATE_ORGANIZATION)")
+    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
     public Organization update(Organization organization) {
 
         final Organization exist = get(organization.getId());
@@ -89,7 +96,8 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     @Override
-    @Transactional
+    @PreAuthorize("hasPermission(#id, 'Organization', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).DELETE_ORGANIZATION)")
     public void delete(Long id) {
 
         final Organization exist = get(id);
