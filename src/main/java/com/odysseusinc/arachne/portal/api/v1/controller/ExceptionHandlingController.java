@@ -133,6 +133,7 @@ public class ExceptionHandlingController extends BaseController {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<JsonResult> exceptionHandler(AccessDeniedException ex) {
 
+        LOGGER.error(ex.getMessage());
         JsonResult result = new JsonResult<>(PERMISSION_DENIED);
         result.setErrorMessage(ex.getMessage());
         return new ResponseEntity<>(result, HttpStatus.OK);
@@ -242,12 +243,13 @@ public class ExceptionHandlingController extends BaseController {
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
-    @ExceptionHandler({ NoHandlerFoundException.class })
+    @ExceptionHandler({NoHandlerFoundException.class})
     public void handleNotFoundError(HttpServletRequest request, HttpServletResponse response) throws Exception {
 
         ResourceHttpRequestHandler handler = new ResourceHttpRequestHandler() {
             @Override
             protected Resource getResource(HttpServletRequest request) throws IOException {
+
                 String requestPath = request.getRequestURI().substring(request.getContextPath().length());
 
                 ClassPathResource resource = new ClassPathResource(STATIC_CONTENT_FOLDER + requestPath);

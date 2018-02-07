@@ -55,6 +55,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -105,7 +106,7 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends D
 
         List<ParticipantRole> participantRoles = new LinkedList<>();
 
-        if (study != null && study.getTenant().getId().equals(user.getActiveTenantId())) {
+        if (Objects.nonNull(study) && Objects.equals(study.getTenant().getId(), user.getActiveTenantId())) {
 
             if (!study.getPrivacy()) {
                 participantRoles.add(ParticipantRole.STUDY_READER);

@@ -23,12 +23,15 @@ public class HibernateConfig {
 
     @Bean
     public JpaVendorAdapter jpaVendorAdapter() {
+
         return new HibernateJpaVendorAdapter();
     }
+
     @Bean
     public LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource,
                                                                        MultiTenantConnectionProvider multiTenantConnectionProviderImpl,
                                                                        CurrentTenantIdentifierResolver currentTenantIdentifierResolverImpl) {
+
         Map<String, Object> properties = new HashMap<>();
         properties.putAll(jpaProperties.getHibernateProperties(dataSource));
         // NOTE:

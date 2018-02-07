@@ -235,18 +235,22 @@ public class DataSource implements Serializable, HasArachnePermissions {
     }
 
     public CommonCDMVersionDTO getCdmVersion() {
+
         return cdmVersion;
     }
 
     public void setCdmVersion(CommonCDMVersionDTO cdmVersion) {
+
         this.cdmVersion = cdmVersion;
     }
 
     public String getOrganization() {
+
         return organization;
     }
 
     public void setOrganization(String organization) {
+
         this.organization = organization;
     }
 

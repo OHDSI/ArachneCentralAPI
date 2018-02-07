@@ -5,14 +5,12 @@ import java.sql.SQLException;
 import javax.sql.DataSource;
 import org.apache.commons.lang3.ObjectUtils;
 import org.hibernate.engine.jdbc.connections.spi.MultiTenantConnectionProvider;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class MultiTenantConnectionProviderImpl implements MultiTenantConnectionProvider {
 
-    @Value("${arachne.tenancy.currentTenantDbVariable}")
-    private String tenantVar;
+    private static final String TENANT_VAR = "app.tenant_id";
 
     private DataSource dataSource;
 
@@ -68,6 +66,6 @@ public class MultiTenantConnectionProviderImpl implements MultiTenantConnectionP
 
     private void setTenantToDb(Connection connection, Long value) throws SQLException {
 
-        connection.createStatement().execute("SELECT set_config('" + tenantVar + "', '" + ObjectUtils.firstNonNull(value, -1) + "', false)");
+        connection.createStatement().execute("SELECT set_config('" + TENANT_VAR + "', '" + ObjectUtils.firstNonNull(value, -1) + "', false)");
     }
 }
