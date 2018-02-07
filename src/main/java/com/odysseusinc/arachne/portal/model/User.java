@@ -23,7 +23,7 @@
 package com.odysseusinc.arachne.portal.model;
 
 import com.odysseusinc.arachne.commons.utils.UserIdUtils;
-import com.odysseusinc.arachne.portal.model.security.SecurityGroup;
+import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
 import java.io.Serializable;
 import java.util.Date;
@@ -169,12 +169,16 @@ public class User implements Serializable {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<DataNodeUser> dataNodeUsers = new HashSet<>();
 
-    @ManyToMany(targetEntity = SecurityGroup.class, fetch = FetchType.LAZY)
-    private Set<SecurityGroup> securityGroups;
+    @ManyToMany(targetEntity = Tenant.class, fetch = FetchType.LAZY)
+    @JoinTable(name = "tenants_users",
+            joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "tenant_id", referencedColumnName = "id"))
+    @SolrFieldAnno(filter = true)
+    private List<Tenant> tenants;
 
     @OneToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "active_security_group_id")
-    private SecurityGroup activeSecurityGroup;
+    @JoinColumn(name = "active_tenant_id")
+    private Tenant activeTenant;
 
     public Long getId() {
 
@@ -499,23 +503,23 @@ public class User implements Serializable {
         return firstname + " " + (middlename != null ? middlename : "") + " " + lastname;
     }
 
-    public Set<SecurityGroup> getSecurityGroups() {
+    public List<Tenant> getTenants() {
 
-        return securityGroups;
+        return tenants;
     }
 
-    public void setSecurityGroups(Set<SecurityGroup> securityGroups) {
+    public void setTenants(List<Tenant> tenants) {
 
-        this.securityGroups = securityGroups;
+        this.tenants = tenants;
     }
 
-    public SecurityGroup getActiveSecurityGroup() {
+    public Tenant getActiveTenant() {
 
-        return activeSecurityGroup;
+        return activeTenant;
     }
 
-    public void setActiveSecurityGroup(SecurityGroup activeSecurityGroup) {
+    public void setActiveTenant(Tenant activeTenant) {
 
-        this.activeSecurityGroup = activeSecurityGroup;
+        this.activeTenant = activeTenant;
     }
 }

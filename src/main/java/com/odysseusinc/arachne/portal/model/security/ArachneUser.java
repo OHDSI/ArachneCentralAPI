@@ -31,7 +31,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 public class ArachneUser implements UserDetails {
 
     private Long id;
-    private Long activeSecurityGroupId;
+    private Long activeTenantId;
     private String username;
     private String password;
     private String email;
@@ -47,11 +47,11 @@ public class ArachneUser implements UserDetails {
         super();
     }
 
-    public ArachneUser(Long id, Long activeSecurityGroupId, String username, String password, String email, Date lastPasswordReset,
+    public ArachneUser(Long id, Long activeTenantId, String username, String password, String email, Date lastPasswordReset,
                        Collection<? extends GrantedAuthority> authorities) {
 
         this.setId(id);
-        this.setActiveSecurityGroupId(activeSecurityGroupId);
+        this.setActiveTenantId(activeTenantId);
         this.setUsername(username);
         this.setPassword(password);
         this.setEmail(email);
@@ -69,14 +69,14 @@ public class ArachneUser implements UserDetails {
         this.id = id;
     }
 
-    public Long getActiveSecurityGroupId() {
+    public Long getActiveTenantId() {
 
-        return activeSecurityGroupId;
+        return activeTenantId;
     }
 
-    public void setActiveSecurityGroupId(Long activeSecurityGroupId) {
+    public void setActiveTenantId(Long activeTenantId) {
 
-        this.activeSecurityGroupId = activeSecurityGroupId;
+        this.activeTenantId = activeTenantId;
     }
 
     public String getUsername() {

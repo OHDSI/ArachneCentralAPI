@@ -40,6 +40,13 @@ import org.springframework.data.repository.query.Param;
 public interface BaseUserRepository<U extends User> extends EntityGraphJpaRepository<U, Long>,
         JpaSpecificationExecutor<U> {
 
+    // Querying data independently of tenant
+    @Query(
+            nativeQuery = true,
+            value = "SELECT * FROM users_data WHERE origin = :origin AND username = :username"
+    )
+    U findLoginCandidate(@Param("origin") String userOrigin, @Param("username") String username);
+
     List<U> findByIdIn(List<Long> idList);
 
     U findByEmailAndEnabledTrue(String email);
@@ -111,6 +118,9 @@ public interface BaseUserRepository<U extends User> extends EntityGraphJpaReposi
     U findById(Long id);
 
     List<U> findAllByEnabledIsTrue();
+
+    @Query(nativeQuery = true, value = "SELECT * FROM users_data u WHERE enabled = TRUE")
+    List<U> findAllEnabledFromAllTenants();
 
     Page<U> findAllBy(Pageable pageable);
 

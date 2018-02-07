@@ -24,6 +24,7 @@ package com.odysseusinc.arachne.portal.service.impl;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonModelType;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchDataCatalogDTO;
+import com.odysseusinc.arachne.portal.config.tenancy.TenantContext;
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
@@ -216,6 +217,11 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
         return dataSourceRepository.getByDataNodeVirtualAndDeletedIsNull(false);
     }
 
+    private List<DS> getAllNotDeletedAndIsNotVirtualFromAllTenants() {
+
+        return dataSourceRepository.getAllNotDeletedAndIsNotVirtualFromAllTenants();
+    }
+
     @Override
     public DS findByUuidUnsecured(String uuid) throws NotExistException {
 
@@ -272,15 +278,21 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
     public void indexAllBySolr() throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
         solrService.deleteByQuery(SolrServiceImpl.DATA_SOURCE_COLLECTION, "*:*");
-        List<DS> dataSourceList = getAllNotDeletedIsNotVirtualUnsecured();
+        List<DS> dataSourceList = getAllNotDeletedAndIsNotVirtualFromAllTenants();
         for (DS dataSource : dataSourceList) {
             indexBySolr(dataSource);
         }
     }
 
+    private SolrQuery addTenantFilter(SolrQuery solrQuery) throws NoSuchFieldException {
+
+        String tenancyFilter = solrService.getSolrField(DataSource.class.getDeclaredField("tenants")).getSolrName() + ":" + TenantContext.getCurrentTenant().toString();
+        return solrQuery.addFilterQuery(tenancyFilter);
+    }
+
     protected SolrQuery addFilterQuery(SolrQuery solrQuery, User user) throws NoSuchFieldException {
 
-        return solrQuery;
+        return addTenantFilter(solrQuery);
     }
 
     private Map<String, List<String>> getExcludedOptions(User user) throws NoSuchFieldException,

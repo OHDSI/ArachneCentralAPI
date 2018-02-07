@@ -65,7 +65,7 @@ public abstract class BaseExpertFinderController<U extends User, SK extends Skil
     @RequestMapping(value = "/api/v1/user-management/users", method = GET)
     public JsonResult<ExpertListSearchResultDTO> list(
             @ModelAttribute SearchExpertListDTO searchDTO
-    ) throws IOException, SolrServerException {
+    ) throws IOException, SolrServerException, NoSuchFieldException {
 
         JsonResult result = new JsonResult<ExpertListSearchResultDTO>(NO_ERROR);
 

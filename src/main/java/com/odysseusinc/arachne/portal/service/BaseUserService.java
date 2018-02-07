@@ -62,6 +62,8 @@ public interface BaseUserService<U extends User, S extends Skill> {
 
     U getByEmail(String email);
 
+    U findLoginCandidate(final String email);
+
     U getByUnverifiedEmail(final String email);
 
     void remove(Long id)
@@ -114,7 +116,7 @@ public interface BaseUserService<U extends User, S extends Skill> {
 
     List<U> suggestNotAdmin(String query, Integer limit);
 
-    List<U> getAllEnabled();
+    List<U> getAllEnabledFromAllTenants();
 
     Page<U> getAll(Pageable pageable, UserSearch userSearch);
 
@@ -173,7 +175,7 @@ public interface BaseUserService<U extends User, S extends Skill> {
             NoSuchFieldException,
             IllegalAccessException;
 
-    SearchResult<U> search(SolrQuery solrQuery) throws IOException, SolrServerException;
+    SearchResult<U> search(SolrQuery solrQuery) throws IOException, SolrServerException, NoSuchFieldException;
 
     List<Country> suggestCountry(String query, Integer limit, Long includeId);
 

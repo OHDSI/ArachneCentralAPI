@@ -41,6 +41,7 @@ import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchExpertListDTO;
 import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
+import com.odysseusinc.arachne.portal.config.tenancy.TenantContext;
 import com.odysseusinc.arachne.portal.exception.ArachneSystemRuntimeException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.NotUniqueException;
@@ -50,6 +51,7 @@ import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.exception.WrongFileFormatException;
 import com.odysseusinc.arachne.portal.model.Country;
+import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.DataSourceStatus;
 import com.odysseusinc.arachne.portal.model.Invitationable;
 import com.odysseusinc.arachne.portal.model.ParticipantStatus;
@@ -233,6 +235,12 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     public U getByUnverifiedEmail(final String email) {
 
         return userRepository.findByEmail(email, EntityGraphUtils.fromAttributePaths("roles", "professionalType"));
+    }
+
+    @Override
+    public U findLoginCandidate(final String email) {
+
+        return userRepository.findLoginCandidate(this.userOrigin, email);
     }
 
     @Override
@@ -476,9 +484,9 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     }
 
     @Override
-    public List<U> getAllEnabled() {
+    public List<U> getAllEnabledFromAllTenants() {
 
-        return userRepository.findAllByEnabledIsTrue();
+        return userRepository.findAllEnabledFromAllTenants();
     }
 
     @Override
@@ -800,15 +808,23 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
             throws IOException, NotExistException, SolrServerException, NoSuchFieldException, IllegalAccessException {
 
         solrService.deleteByQuery(SolrServiceImpl.USER_COLLECTION, "*:*");
-        List<U> userList = getAllEnabled();
+        List<U> userList = getAllEnabledFromAllTenants();
         for (U user : userList) {
             indexBySolr(user);
         }
     }
 
-    public SearchResult<U> search(SolrQuery solrQuery) throws IOException, SolrServerException {
+    private SolrQuery addTenantFilter(SolrQuery solrQuery) throws NoSuchFieldException {
+
+        String tenancyFilter = solrService.getSolrField(User.class.getDeclaredField("tenants")).getSolrName() + ":" + TenantContext.getCurrentTenant().toString();
+        return solrQuery.addFilterQuery(tenancyFilter);
+    }
+
+    public SearchResult<U> search(SolrQuery solrQuery) throws IOException, SolrServerException, NoSuchFieldException {
 
         List<U> userList;
+
+        solrQuery = addTenantFilter(solrQuery);
 
         QueryResponse solrResponse = solrService.search(
                 SolrServiceImpl.USER_COLLECTION,

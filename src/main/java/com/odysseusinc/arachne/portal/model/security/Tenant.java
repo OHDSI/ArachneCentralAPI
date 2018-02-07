@@ -3,6 +3,7 @@ package com.odysseusinc.arachne.portal.model.security;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.User;
+import com.odysseusinc.arachne.portal.model.solr.SolrValue;
 import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -14,31 +15,32 @@ import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 @Entity
-@Table(name = "security_groups")
-public class SecurityGroup {
+@Table(name = "tenants")
+public class Tenant implements SolrValue {
 
     @Id
-    @SequenceGenerator(name = "security_groups_pk_sequence", sequenceName = "security_groups_id_seq", allocationSize = 1)
+    @SequenceGenerator(name = "tenants_pk_sequence", sequenceName = "tenants_id_seq", allocationSize = 1)
     private Long id;
 
     @Column
     private String name;
 
     @ManyToMany(targetEntity = User.class, fetch = FetchType.LAZY)
-    @JoinTable(name = "security_groups_users",
-            joinColumns = @JoinColumn(name = "security_group_id", referencedColumnName = "id"),
+    @JoinTable(name = "tenants_users",
+            joinColumns = @JoinColumn(name = "tenant_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"))
     private Set<User> users;
 
     @ManyToMany(targetEntity = DataSource.class, fetch = FetchType.LAZY)
-    @JoinTable(name = "security_groups_data_sources",
-            joinColumns = @JoinColumn(name = "security_group_id", referencedColumnName = "id"),
+    @JoinTable(name = "tenants_data_sources",
+            joinColumns = @JoinColumn(name = "tenant_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "data_source_id", referencedColumnName = "id"))
     private Set<DataSource> dataSources;
 
-    @OneToMany(targetEntity = Study.class, mappedBy = "securityGroup")
+    @OneToMany(targetEntity = Study.class, mappedBy = "tenant")
     private Set<Study> studies;
 
     public Long getId() {
@@ -89,5 +91,19 @@ public class SecurityGroup {
     public void setStudies(Set<Study> studies) {
 
         this.studies = studies;
+    }
+
+    @Transient
+    @Override
+    public Object getSolrValue() {
+
+        return id;
+    }
+
+    @Transient
+    @Override
+    public Object getSolrQueryValue() {
+
+        return id;
     }
 }

@@ -22,28 +22,21 @@
 
 package com.odysseusinc.arachne.portal.repository;
 
-import com.odysseusinc.arachne.portal.model.security.SecurityGroup;
+import com.odysseusinc.arachne.portal.model.security.Tenant;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface SecurityGroupRepository<S extends SecurityGroup> extends JpaRepository<S, Long> {
+public interface TenantRepository<T extends Tenant> extends JpaRepository<T, Long> {
+
+    Optional<Tenant> findFirstByDataSourcesIdAndUsersId(@Param("dataSourceId") Long dataSourceId, @Param("userId") Long userId);
 
     @Query(
-            "SELECT sg " +
-                    "FROM SecurityGroup sg " +
-                    "INNER JOIN sg.dataSources ds " +
-                    "INNER JOIN sg.users u " +
-                    "WHERE ds.id = :dataSourceId " +
-                    "AND u.id = :userId"
+            "SELECT t1 " +
+                    "FROM Tenant t1 INNER JOIN t1.users u1, Tenant t2 INNER JOIN t2.users u2 " +
+                    "WHERE u1.id = :firstUserId AND u2.id = :secondUserId AND t1.id = t2.id"
     )
-    Optional<SecurityGroup> findAnyByDataSourceIdAndUserId(@Param("dataSourceId") Long dataSourceId, @Param("userId") Long userId);
-
-    @Query(
-            "SELECT sg1 " +
-                    "FROM SecurityGroup sg1 INNER JOIN sg1.users u1, SecurityGroup sg2 INNER JOIN sg2.users u2 " +
-                    "WHERE u1.id = :firstUserId AND u2.id = :secondUserId AND sg1.id = sg2.id"
-    )
-    Optional<SecurityGroup> findCommonForUsers(@Param("firstUserId") Long firstUserId, @Param("secondUserId") Long secondUserId);
+    List<Tenant> findCommonForUsers(@Param("firstUserId") Long firstUserId, @Param("secondUserId") Long secondUserId);
 }

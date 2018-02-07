@@ -22,7 +22,7 @@
 
 package com.odysseusinc.arachne.portal.model;
 
-import com.odysseusinc.arachne.portal.model.security.SecurityGroup;
+import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.model.statemachine.HasState;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
@@ -126,7 +126,7 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
     protected Boolean privacy = Boolean.TRUE;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    private SecurityGroup securityGroup;
+    private Tenant tenant;
 
     public BreadcrumbType getCrumbType() {
 
@@ -315,14 +315,14 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
         this.privacy = privacy;
     }
 
-    public SecurityGroup getSecurityGroup() {
+    public Tenant getTenant() {
 
-        return securityGroup;
+        return tenant;
     }
 
-    public void setSecurityGroup(SecurityGroup securityGroup) {
+    public void setTenant(Tenant tenant) {
 
-        this.securityGroup = securityGroup;
+        this.tenant = tenant;
     }
 
     @Override

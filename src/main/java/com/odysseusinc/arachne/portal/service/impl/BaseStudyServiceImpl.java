@@ -271,6 +271,7 @@ public abstract class BaseStudyServiceImpl<
         study.setStartDate(startDate);
         study.setType(studyTypeService.getById(study.getType().getId()));
         study.setStatus(studyStatusService.findByName("Initiate"));
+        study.setTenant(owner.getActiveTenant());
 
         if (study.getPrivacy() == null) {
             study.setPrivacy(true);

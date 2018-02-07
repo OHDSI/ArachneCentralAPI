@@ -85,6 +85,16 @@ public interface BaseDataSourceRepository<T extends DataSource> extends CrudRepo
 
     List<T> getByDataNodeVirtualAndDeletedIsNull(Boolean isVirtual);
 
+    // Have to do native query because of request to non-tenant table w/ data sources
+    @Query(
+            nativeQuery = true,
+            value = "SELECT * " +
+                    "FROM data_sources_data ds " +
+                    "JOIN datanodes dn ON dn.id = ds.data_node_id " +
+                    "WHERE dn.is_virtual = FALSE " +
+                    "AND ds.deleted IS NULL")
+    List<T> getAllNotDeletedAndIsNotVirtualFromAllTenants();
+
     @Transactional
     int deleteByIdAndDeletedIsNull(Long id);
 

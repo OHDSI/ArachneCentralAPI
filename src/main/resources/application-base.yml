@@ -93,6 +93,8 @@ arachne:
   solrServerUrl: http://localhost:8983/solr
   mail:
     notifier: odysseusinc.notifier@gmail.com
+  tenancy:
+    currentTenantDbVariable: app.tenant_id
 swagger:
  enable: true
 

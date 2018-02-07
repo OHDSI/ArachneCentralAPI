@@ -182,6 +182,9 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
                     document.addField(QUERY_FIELD_PREFIX + solrField.getName(), queryValue);
                 }
             }
+
+            document.addField(solrField.getSolrName(), value);
+
             if (solrField.isMultiValuesType()) {
                 String valueForSort = null;
                 if (!StringUtils.isEmpty((String) queryValue)) {
@@ -190,8 +193,6 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
                     valueForSort = String.join(" ", list);
                 }
                 document.addField(solrField.getMultiValuesTypeFieldName(), valueForSort);
-            } else {
-                document.addField(solrField.getSolrName(), value);
             }
         }
 

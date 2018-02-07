@@ -22,13 +22,17 @@
 
 package com.odysseusinc.arachne.portal.model;
 
-import com.google.common.base.Objects;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonCDMVersionDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonModelType;
+import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
+import java.util.List;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import org.hibernate.annotations.DiscriminatorFormula;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.validator.constraints.NotBlank;
@@ -103,6 +107,13 @@ public class DataSource implements Serializable, HasArachnePermissions {
     @NotBlank
     @Column
     protected String organization;
+
+    @ManyToMany(targetEntity = Tenant.class, fetch = FetchType.LAZY)
+    @JoinTable(name = "tenants_data_sources",
+            joinColumns = @JoinColumn(name = "data_source_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "tenant_id", referencedColumnName = "id"))
+    @SolrFieldAnno(filter = true)
+    private List<Tenant> tenants;
 
     @Override
     public boolean equals(final Object obj) {
@@ -237,5 +248,15 @@ public class DataSource implements Serializable, HasArachnePermissions {
 
     public void setOrganization(String organization) {
         this.organization = organization;
+    }
+
+    public List<Tenant> getTenants() {
+
+        return tenants;
+    }
+
+    public void setTenants(List<Tenant> tenants) {
+
+        this.tenants = tenants;
     }
 }
