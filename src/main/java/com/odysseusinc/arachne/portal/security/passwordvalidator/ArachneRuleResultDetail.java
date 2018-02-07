@@ -15,27 +15,19 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: February 16, 2017
+ * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Konstantin Yaroshovets
+ * Created: February 07, 2018
  *
  */
 
-package com.odysseusinc.arachne.portal.exception;
+package com.odysseusinc.arachne.portal.security.passwordvalidator;
 
-import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordInfo;
+import edu.vt.middleware.password.RuleResultDetail;
 
-public class PasswordValidationException extends Exception {
+public class ArachneRuleResultDetail extends RuleResultDetail {
 
-    private final ArachnePasswordInfo passwordInfo;
+    public ArachneRuleResultDetail(RuleResultDetail ruleResultDetail) {
 
-    public PasswordValidationException(final ArachnePasswordInfo passwordInfo) {
-
-        this.passwordInfo = passwordInfo;
+        super(ruleResultDetail.getErrorCode(), ruleResultDetail.getParameters());
     }
-
-    public ArachnePasswordInfo getPasswordInfo() {
-
-        return passwordInfo;
-    }
-
 }
