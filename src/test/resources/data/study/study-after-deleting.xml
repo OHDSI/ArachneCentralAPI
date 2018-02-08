@@ -8,8 +8,8 @@
             id="4"
             name="type"
     />
-    <studies/>
-    <users
+    <studies_data/>
+    <users_data
             id="1"
             firstname="adminFirstName"
             middlename="adminMiddleName"
@@ -20,7 +20,7 @@
             email_confirmed="true"
             professional_type_id="1"
     />
-    <users
+    <users_data
             id="2"
             firstname="firstName"
             middlename="middleName"

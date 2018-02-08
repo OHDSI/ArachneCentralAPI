@@ -48,13 +48,11 @@ import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.skyscreamer.jsonassert.JSONAssert;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
-import org.springframework.web.context.WebApplicationContext;
 
 @RunWith(SpringRunner.class)
 @DatabaseSetup("/data/users.xml")
@@ -93,7 +91,7 @@ public class AnalysisControllerTests extends BaseControllerTest {
             .put("dataSource", new JSONObject().put("id", DATA_SOURCE_ID));
 
     public AnalysisControllerTests() throws JSONException {
-
+        super();
     }
 
     @Test

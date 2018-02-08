@@ -31,6 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.odysseusinc.arachne.portal.SingleContextTest;
+import com.odysseusinc.arachne.portal.config.tenancy.TenantContext;
 import java.io.UnsupportedEncodingException;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -86,6 +87,11 @@ public class BaseControllerTest extends SingleContextTest {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    public BaseControllerTest() {
+
+        super();
     }
 
     @Before

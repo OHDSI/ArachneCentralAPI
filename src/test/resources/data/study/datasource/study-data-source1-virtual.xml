@@ -7,7 +7,7 @@
     <datanodes_users
             user_id="1"
     />
-    <data_sources
+    <data_sources_data
             name="virtual"
     />
     <studies_data_sources

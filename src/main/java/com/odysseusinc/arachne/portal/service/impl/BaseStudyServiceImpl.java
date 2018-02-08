@@ -733,6 +733,7 @@ public abstract class BaseStudyServiceImpl<
         final DS dataSource = studyHelper.getVirtualDataSource(registeredDataNode, dataSourceName);
         dataSource.setHealthStatus(CommonHealthStatus.GREEN);
         dataSource.setHealthStatusDescription("Virtual DataSources are always GREEN");
+        dataSource.getTenants().add(study.getTenant());
         final DS registeredDataSource = dataSourceService.createOrRestoreDataSource(dataSource);
         addDataSource(createdBy, studyId, registeredDataSource.getId());
         return registeredDataSource;

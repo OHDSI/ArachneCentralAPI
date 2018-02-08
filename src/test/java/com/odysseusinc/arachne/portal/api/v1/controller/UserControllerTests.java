@@ -309,15 +309,13 @@ public class UserControllerTests extends BaseControllerTest {
         final Long studyId = 1L;
 
         MvcResult mvcResult = mvc.perform(
-                get("/api/v1/user-management/users/search-user?query=" + query + "&studyId=" + studyId))
-                .andExpect(NO_ERROR_CODE)
+                get("/api/v1/user-management/users/suggest?target=STUDY&query=" + query + "&id=" + studyId))
                 .andExpect(OK_STATUS)
-                .andExpect(jsonPath("$.result").isNotEmpty())
-                .andExpect(jsonPath("$.result").isArray())
-                .andExpect(jsonPath("$.result", hasSize(3)))
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$", hasSize(3)))
                 .andReturn();
 
-        JSONArray suggested = getResultJSONArray(mvcResult);
+        JSONArray suggested = new JSONArray(mvcResult.getResponse().getContentAsString());
 
         List<Object> list = new ArrayList<>();
         for (int i = 0; i < suggested.length(); i++) {

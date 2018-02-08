@@ -29,6 +29,7 @@ import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
+import java.util.HashSet;
 import java.util.List;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
@@ -113,7 +114,7 @@ public class DataSource implements Serializable, HasArachnePermissions {
             joinColumns = @JoinColumn(name = "data_source_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "tenant_id", referencedColumnName = "id"))
     @SolrFieldAnno(filter = true)
-    private List<Tenant> tenants;
+    private Set<Tenant> tenants = new HashSet<>();
 
     @Override
     public boolean equals(final Object obj) {
@@ -254,12 +255,12 @@ public class DataSource implements Serializable, HasArachnePermissions {
         this.organization = organization;
     }
 
-    public List<Tenant> getTenants() {
+    public Set<Tenant> getTenants() {
 
         return tenants;
     }
 
-    public void setTenants(List<Tenant> tenants) {
+    public void setTenants(Set<Tenant> tenants) {
 
         this.tenants = tenants;
     }

@@ -24,6 +24,7 @@ package com.odysseusinc.arachne.portal.service.impl;
 
 import static com.odysseusinc.arachne.portal.service.impl.solr.SolrField.META_PREFIX;
 
+import com.odysseusinc.arachne.portal.config.tenancy.TenantContext;
 import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
 import com.odysseusinc.arachne.portal.model.solr.SolrValue;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
@@ -213,13 +214,32 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
         }
     }
 
+    private SolrQuery addTenantFilter(SolrQuery solrQuery, Field tenantDiscriminatorField) throws NoSuchFieldException {
+
+        String tenancyFilter = getSolrField(tenantDiscriminatorField).getSolrName() + ":" + TenantContext.getCurrentTenant().toString();
+        return solrQuery.addFilterQuery(tenancyFilter);
+    }
+
+    @Override
+    public QueryResponse search(
+            String collection,
+            SolrQuery solrQuery,
+            Field tenantDiscriminatorField
+    ) throws IOException, SolrServerException, NoSuchFieldException {
+
+        if (tenantDiscriminatorField != null) {
+            solrQuery = addTenantFilter(solrQuery, tenantDiscriminatorField);
+        }
+        return solrClient.query(collection, solrQuery);
+    }
+
     @Override
     public QueryResponse search(
             String collection,
             SolrQuery solrQuery
-    ) throws IOException, SolrServerException {
+    ) throws IOException, SolrServerException, NoSuchFieldException {
 
-        return solrClient.query(collection, solrQuery);
+        return search(collection, solrQuery, null);
     }
 
     @Override

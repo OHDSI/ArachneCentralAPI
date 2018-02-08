@@ -106,4 +106,17 @@ public class Tenant implements SolrValue {
 
         return id;
     }
+
+    @Override
+    public boolean equals(final Object obj) {
+
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || !(obj instanceof Tenant)) {
+            return false;
+        }
+        final Tenant s = (Tenant) obj;
+        return java.util.Objects.equals(id, s.id);
+    }
 }

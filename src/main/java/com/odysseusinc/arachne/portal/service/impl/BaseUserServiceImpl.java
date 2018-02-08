@@ -814,22 +814,20 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         }
     }
 
-    private SolrQuery addTenantFilter(SolrQuery solrQuery) throws NoSuchFieldException {
+    protected QueryResponse solrSearch(SolrQuery solrQuery) throws NoSuchFieldException, IOException, SolrServerException {
 
-        String tenancyFilter = solrService.getSolrField(User.class.getDeclaredField("tenants")).getSolrName() + ":" + TenantContext.getCurrentTenant().toString();
-        return solrQuery.addFilterQuery(tenancyFilter);
+        return solrService.search(
+                SolrServiceImpl.USER_COLLECTION,
+                solrQuery,
+                User.class.getDeclaredField("tenants")
+        );
     }
 
     public SearchResult<U> search(SolrQuery solrQuery) throws IOException, SolrServerException, NoSuchFieldException {
 
         List<U> userList;
 
-        solrQuery = addTenantFilter(solrQuery);
-
-        QueryResponse solrResponse = solrService.search(
-                SolrServiceImpl.USER_COLLECTION,
-                solrQuery
-        );
+        QueryResponse solrResponse = solrSearch(solrQuery);
 
         List<Long> docIdList = solrResponse
                 .getResults()
@@ -847,14 +845,11 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         return searchResult;
     }
 
-    private Map<String, List<String>> getExcludedOptions() throws IOException, SolrServerException {
+    private Map<String, List<String>> getExcludedOptions() throws IOException, SolrServerException, NoSuchFieldException {
 
         SolrQuery solrQuery = conversionService.convert(new SearchExpertListDTO(true), SolrQuery.class);
 
-        QueryResponse solrResponse = solrService.search(
-                SolrServiceImpl.USER_COLLECTION,
-                solrQuery
-        );
+        QueryResponse solrResponse = solrSearch(solrQuery);
         SearchResult<Long> searchResult = new SearchResult<>(solrQuery, solrResponse, Collections.<Long>emptyList());
         return searchResult.excludedOptions();
     }

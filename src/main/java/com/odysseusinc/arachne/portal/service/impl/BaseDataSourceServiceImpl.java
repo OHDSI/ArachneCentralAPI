@@ -107,16 +107,22 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
         }
     }
 
+    protected QueryResponse solrSearch(SolrQuery solrQuery) throws IOException, SolrServerException, NoSuchFieldException {
+
+        return solrService.search(
+                SolrServiceImpl.DATA_SOURCE_COLLECTION,
+                solrQuery,
+                DataSource.class.getDeclaredField("tenants")
+        );
+    }
+
     public SearchResult<DS> search(
             SolrQuery solrQuery
-    ) throws IOException, SolrServerException {
+    ) throws IOException, SolrServerException, NoSuchFieldException {
 
         List<DS> dataSourceList;
 
-        QueryResponse solrResponse = solrService.search(
-                SolrServiceImpl.DATA_SOURCE_COLLECTION,
-                solrQuery
-        );
+        QueryResponse solrResponse = solrSearch(solrQuery);
 
         List<Long> docIdList = solrResponse.getResults()
                 .stream()
@@ -284,15 +290,9 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
         }
     }
 
-    private SolrQuery addTenantFilter(SolrQuery solrQuery) throws NoSuchFieldException {
-
-        String tenancyFilter = solrService.getSolrField(DataSource.class.getDeclaredField("tenants")).getSolrName() + ":" + TenantContext.getCurrentTenant().toString();
-        return solrQuery.addFilterQuery(tenancyFilter);
-    }
-
     protected SolrQuery addFilterQuery(SolrQuery solrQuery, User user) throws NoSuchFieldException {
 
-        return addTenantFilter(solrQuery);
+        return solrQuery;
     }
 
     private Map<String, List<String>> getExcludedOptions(User user) throws NoSuchFieldException,
@@ -301,10 +301,7 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
         SolrQuery solrQuery = conversionService.convert(new SearchDataCatalogDTO(true), SolrQuery.class);
         solrQuery = addFilterQuery(solrQuery, user);
 
-        QueryResponse solrResponse = solrService.search(
-                SolrServiceImpl.DATA_SOURCE_COLLECTION,
-                solrQuery
-        );
+        QueryResponse solrResponse = solrSearch(solrQuery);
         SearchResult<Long> searchResult = new SearchResult<>(solrQuery, solrResponse, Collections.<Long>emptyList());
         return searchResult.excludedOptions();
     }
