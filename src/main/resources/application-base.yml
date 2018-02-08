@@ -55,8 +55,8 @@ spring:
     enabled: false
   http:
     multipart:
-      max-file-size: 256MB
-      max-request-size: 256MB
+      max-file-size: 512MB
+      max-request-size: 512MB
   resources:
     add-mappings: false
   activemq:
@@ -136,3 +136,7 @@ jodconverter:
 antivirus:
   host: localhost
   port: 3310
+  retry:
+    max-attempts: 10
+    backoff:
+      max-interval: 50000

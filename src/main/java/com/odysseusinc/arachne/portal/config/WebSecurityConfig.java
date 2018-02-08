@@ -28,9 +28,9 @@ import com.odysseusinc.arachne.portal.security.AuthenticationTokenFilter;
 import com.odysseusinc.arachne.portal.security.DataNodeAuthenticationProvider;
 import com.odysseusinc.arachne.portal.security.EntryPointUnauthorizedHandler;
 import com.odysseusinc.arachne.portal.security.HostNameIsNotInServiceException;
+import com.odysseusinc.arachne.portal.security.Roles;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.PasswordValidatorBuilder;
-import com.odysseusinc.arachne.portal.security.Roles;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import java.io.IOException;
 import java.net.URI;
@@ -61,6 +61,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -239,7 +240,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
-        http
+        ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry reg = http
                 .csrf()
                 .disable()
                 .exceptionHandling()
@@ -248,10 +249,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
-                .authorizeRequests()
-                .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .authorizeRequests();
+
+        reg.antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .antMatchers("/api/v1/auth/logout**").permitAll()
                 .antMatchers("/api/v1/auth/login**").permitAll()
+                .antMatchers("/api/v1/auth/password-policies**").permitAll()
                 .antMatchers("/api/v1/auth/logout**").permitAll()
                 .antMatchers("/api/v1/auth/login/**").permitAll()
                 .antMatchers("/api/v1/auth/registration/**").permitAll()
@@ -278,9 +281,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 // Next 2 are used by Data node (authed by query param, manually)
                 .antMatchers("/api/v1/analysis-management/submissions/**/files**").permitAll()
                 .antMatchers("/api/v1/analysis-management/submissions/result/upload**").permitAll()
-                .antMatchers("/insights-library/insights/**").permitAll()
+                .antMatchers("/insights-library/insights/**").permitAll();
 
-                .antMatchers("/api**").authenticated()
+        extendHttpSecurity(reg);
+        reg.antMatchers("/api**").authenticated()
                 .antMatchers("/api/**").authenticated()
                 .anyRequest().permitAll();
 
@@ -290,6 +294,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         // DataNode authentication
         http.addFilterBefore(authenticationSystemTokenFilter(), AuthenticationTokenFilter.class);
         http.addFilterBefore(hostfilter, AuthenticationSystemTokenFilter.class);
+    }
+
+    protected void extendHttpSecurity(ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry  registry) {
+
     }
 
 }

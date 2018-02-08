@@ -297,6 +297,16 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
         return true;
     }
 
+    public boolean addPermissionsToSubmissions(ArachneUser user, Page<SubmissionGroup> submissionGroups) {
+
+        for (SubmissionGroup submissionGroup : submissionGroups) {
+            if (submissionGroup.getSubmissions() != null) {
+                submissionGroup.getSubmissions().forEach(s -> s.setPermissions(getAllPermissions(s, user)));
+            }
+        }
+        return true;
+    }
+
     public boolean processPermissions(ArachneUser user, HasArachnePermissions hasPermissionsObj) {
 
         addPermissions(user, hasPermissionsObj);

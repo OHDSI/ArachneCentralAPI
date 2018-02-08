@@ -48,6 +48,7 @@ import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.Analysis;
+import com.odysseusinc.arachne.portal.model.ResultFile;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
 import com.odysseusinc.arachne.portal.model.SubmissionStatus;
@@ -221,18 +222,22 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     }
 
     @ApiOperation("Delete manually uploaded submission result file")
-    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/result/{fileId}",
+    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/result/{fileUuid}",
             method = DELETE)
-    public JsonResult<Boolean> deleteSubmissionResultsById(
+    public JsonResult<Boolean> deleteSubmissionResultsByUuid(
             @PathVariable("submissionId") Long id,
-            @PathVariable("fileId") Long fileId
+            @PathVariable("fileUuid") String fileUuid
     ) {
 
-        LOGGER.info("deleting result file for submission with id={} having id={}", id, fileId);
+        LOGGER.info("deleting result file for submission with id={} having uuid={}", id, fileUuid);
         JsonResult.ErrorCode errorCode;
         Boolean hasResult;
         try {
-            hasResult = submissionService.deleteSubmissionResultFile(id, fileId);
+
+            ResultFile resultFile = submissionService.getResultFileByPath(
+                    contentStorageService.getFileByIdentifier(fileUuid).getPath());
+
+            hasResult = submissionService.deleteSubmissionResultFile(id, resultFile);
             errorCode = JsonResult.ErrorCode.NO_ERROR;
         } catch (NotExistException e) {
             LOGGER.warn("Submission was not found, id: {}", id);

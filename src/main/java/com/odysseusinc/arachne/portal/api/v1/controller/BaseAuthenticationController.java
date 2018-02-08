@@ -22,6 +22,8 @@
 
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
+import static com.odysseusinc.arachne.portal.api.v1.controller.util.ControllerUtils.emulateEmailSent;
+
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAuthMethodDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAuthenticationRequest;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAuthenticationResponse;
@@ -223,25 +225,19 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
 
     @ApiOperation("Request password reset e-mail.")
     @RequestMapping(value = "/api/v1/auth/remind-password", method = RequestMethod.POST)
-    public JsonResult remindPassword(@RequestBody @Valid RemindPasswordDTO remindPasswordDTO, BindingResult binding) {
+    public void remindPassword(@RequestBody @Valid RemindPasswordDTO remindPasswordDTO) throws InterruptedException {
 
-        JsonResult result;
-        if (binding.hasErrors()) {
-            result = super.setValidationErrors(binding);
+        String email = remindPasswordDTO.getEmail();
+        User user = userService.getByUnverifiedEmail(email);
+        // If user was not found,
+        // do not throw exception to prevent "Unauthenticated Email Address Enumeration" security issue
+        if (user != null) {
+            PasswordReset passwordReset = passwordResetService.generate(email);
+            userService.sendRemindPasswordEmail(user, passwordReset.getToken(),
+                    remindPasswordDTO.getRegistrantToken(), remindPasswordDTO.getCallbackUrl());
         } else {
-            String email = remindPasswordDTO.getEmail();
-            User user = userService.getByUnverifiedEmail(email);
-            if (user == null) {
-                result = new JsonResult<>(JsonResult.ErrorCode.VALIDATION_ERROR);
-                result.setErrorMessage("No such user exists");
-            } else {
-                PasswordReset passwordReset = passwordResetService.generate(email);
-                userService.sendRemindPasswordEmail(user, passwordReset.getToken(),
-                        remindPasswordDTO.getRegistrantToken(), remindPasswordDTO.getCallbackUrl());
-                result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
-            }
+            emulateEmailSent();
         }
-        return result;
     }
 
     @ApiOperation("Reset password for specified e-mail.")

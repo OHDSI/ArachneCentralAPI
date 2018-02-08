@@ -33,6 +33,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
+import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.AddStudyParticipantDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.BooleanDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.Commentable;
@@ -334,33 +335,33 @@ public abstract class BaseStudyController<
     }
 
     @ApiOperation("Update participant.")
-    @RequestMapping(value = "/api/v1/study-management/studies/{studyId}/participants/{userId}",
+    @RequestMapping(value = "/api/v1/study-management/studies/{studyId}/participants/{userUuid}",
             method = PUT)
     public JsonResult<Boolean> updateParticipantRole(
             @PathVariable("studyId") Long studyId,
-            @PathVariable("userId") Long userId,
+            @PathVariable("userUuid") String userUuid,
             @RequestBody @Valid UpdateParticipantDTO participantDTO
-    ) throws PermissionDeniedException, NotExistException, AlreadyExistException, ValidationException {
+    ) throws NotExistException, AlreadyExistException, ValidationException {
 
         if (participantDTO.getRole() != null) {
             ParticipantRole newRole = ParticipantRole.valueOf(participantDTO.getRole());
-            UserStudy userStudy = studyService.updateParticipantRole(studyId, userId, newRole);
+            studyService.updateParticipantRole(studyId, UserIdUtils.uuidToId(userUuid), newRole);
         }
 
         return new JsonResult<>(NO_ERROR, Boolean.TRUE);
     }
 
     @ApiOperation("Remove participant from the study.")
-    @RequestMapping(value = "/api/v1/study-management/studies/{studyId}/participants/{userId}",
+    @RequestMapping(value = "/api/v1/study-management/studies/{studyId}/participants/{userUuid}",
             method = DELETE)
     public JsonResult<Boolean> removeParticipant(
             Principal principal,
             @PathVariable("studyId") Long id,
-            @PathVariable("userId") Long userId)
+            @PathVariable("userUuid") String userUuid)
             throws PermissionDeniedException, NotExistException, ValidationException {
 
         JsonResult<Boolean> result;
-        studyService.removeParticipant(id, userId);
+        studyService.removeParticipant(id, UserIdUtils.uuidToId(userUuid));
         result = new JsonResult<>(NO_ERROR);
         result.setResult(Boolean.TRUE);
         return result;
