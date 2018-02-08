@@ -42,6 +42,7 @@ import com.odysseusinc.arachne.portal.exception.NotUniqueException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
+import com.odysseusinc.arachne.portal.model.AntivirusStatus;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
 import com.odysseusinc.arachne.portal.model.DataSource;
@@ -78,6 +79,11 @@ import com.odysseusinc.arachne.portal.service.BaseUserService;
 import com.odysseusinc.arachne.portal.service.StudyFileService;
 import com.odysseusinc.arachne.portal.service.StudyStatusService;
 import com.odysseusinc.arachne.portal.service.StudyTypeService;
+import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJob;
+import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobEvent;
+import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobFileType;
+import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobResponse;
+import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobStudyFileResponseEvent;
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import com.odysseusinc.arachne.portal.service.mail.InvitationCollaboratorMailSender;
 import com.odysseusinc.arachne.portal.service.study.AddDataSourceStrategy;
@@ -107,6 +113,8 @@ import org.hibernate.Hibernate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -172,6 +180,7 @@ public abstract class BaseStudyServiceImpl<
     protected final AddDataSourceStrategyFactory<DS> addDataSourceStrategyFactory;
     protected final StudyStateMachine studyStateMachine;
     private final Map<String, String[]> studySortPaths = new HashMap<>();
+    private final ApplicationEventPublisher eventPublisher;
 
     public BaseStudyServiceImpl(UserStudyExtendedRepository userStudyExtendedRepository,
                                 StudyFileService fileService,
@@ -196,7 +205,8 @@ public abstract class BaseStudyServiceImpl<
                                 JavaMailSender javaMailSender,
                                 GenericConversionService conversionService,
                                 StudyStateMachine studyStateMachine,
-                                AddDataSourceStrategyFactory<DS> addDataSourceStrategyFactory) {
+                                AddDataSourceStrategyFactory<DS> addDataSourceStrategyFactory,
+                                ApplicationEventPublisher eventPublisher) {
 
         this.javaMailSender = javaMailSender;
         this.userStudyExtendedRepository = userStudyExtendedRepository;
@@ -221,6 +231,7 @@ public abstract class BaseStudyServiceImpl<
         this.conversionService = conversionService;
         this.studyStateMachine = studyStateMachine;
         this.addDataSourceStrategyFactory = addDataSourceStrategyFactory;
+        this.eventPublisher = eventPublisher;
     }
 
     public abstract Class<T> getType();
@@ -567,6 +578,7 @@ public abstract class BaseStudyServiceImpl<
 
             // Save entity
             studyFileRepository.save(studyFile);
+            eventPublisher.publishEvent(new AntivirusJobEvent(this, new AntivirusJob(studyFile.getId(), studyFile.getRealName(), fileService.getFileInputStream(studyFile), AntivirusJobFileType.STUDY_FILE)));
             return fileNameLowerCase;
         } catch (IOException | RuntimeException ex) {
             String message = "error save file to disk, filename=" + fileNameLowerCase + " ex=" + ex.toString();
@@ -610,6 +622,8 @@ public abstract class BaseStudyServiceImpl<
                 studyFile.setCreated(created);
                 studyFile.setUpdated(created);
                 studyFile.setAuthor(user);
+                studyFile.setAntivirusStatus(AntivirusStatus.WILL_NOT_SCAN);
+                studyFile.setAntivirusDescription("External links are not scanned");
                 studyFileRepository.save(studyFile);
                 return fileNameLowerCase;
             }
@@ -945,4 +959,17 @@ public abstract class BaseStudyServiceImpl<
         return dataNodeUsers;
     }
 
+    @EventListener
+    @Transactional
+    @Override
+    public void processAntivirusResponse(AntivirusJobStudyFileResponseEvent event) {
+
+        final AntivirusJobResponse antivirusJobResponse = event.getAntivirusJobResponse();
+        final StudyFile studyFile = studyFileRepository.findOne(antivirusJobResponse.getFileId());
+        if (studyFile != null) {
+            studyFile.setAntivirusStatus(antivirusJobResponse.getStatus());
+            studyFile.setAntivirusDescription(antivirusJobResponse.getDescription());
+            studyFileRepository.save(studyFile);
+        }
+    }
 }

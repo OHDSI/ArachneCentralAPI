@@ -64,6 +64,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -105,7 +106,8 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
                             JavaMailSender javaMailSender,
                             GenericConversionService conversionService,
                             StudyStateMachine studyStateMachine,
-                            AddDataSourceStrategyFactory<DataSource> addDataSourceStrategyFactory) {
+                            AddDataSourceStrategyFactory<DataSource> addDataSourceStrategyFactory,
+                            ApplicationEventPublisher eventPublisher) {
 
         super(userStudyExtendedRepository,
                 fileService,
@@ -130,7 +132,8 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
                 javaMailSender,
                 conversionService,
                 studyStateMachine,
-                addDataSourceStrategyFactory);
+                addDataSourceStrategyFactory,
+                eventPublisher);
     }
 
     @Override

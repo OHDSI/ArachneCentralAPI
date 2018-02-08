@@ -29,7 +29,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
 
 @MappedSuperclass
-public abstract class AbstractStudyFile {
+public abstract class AbstractStudyFile extends AntivirusFile {
     @Column
     protected String uuid;
     @Column
