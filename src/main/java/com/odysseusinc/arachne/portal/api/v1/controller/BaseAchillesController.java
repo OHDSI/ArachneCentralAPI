@@ -33,6 +33,7 @@ import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.api.v1.dto.AchillesReportDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.CharacterizationDTO;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
+import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.achilles.AchillesFile;
@@ -44,6 +45,9 @@ import com.odysseusinc.arachne.portal.repository.DataNodeRepository;
 import com.odysseusinc.arachne.portal.service.AchillesService;
 import com.odysseusinc.arachne.portal.util.ConverterUtils;
 import io.swagger.annotations.ApiOperation;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,9 +61,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.util.List;
 
 public abstract class BaseAchillesController<DS extends DataSource> {
     private static final String ACHILLES_RESULT_LOADED_LOG
@@ -97,11 +98,15 @@ public abstract class BaseAchillesController<DS extends DataSource> {
     @RequestMapping(value = "datanode/datasource/{id}", method = RequestMethod.POST)
     public void receiveStats(
             @PathVariable("id") Long datasourceId,
-            @RequestParam(value = "file") MultipartFile data)
-            throws NotExistException, IOException {
+            @RequestParam(value = "file") MultipartFile data,
+            @RequestParam(value = "manually", defaultValue = "false") Boolean manually)
+            throws NotExistException, IOException, ValidationException {
 
         DS dataSource = checkDataSource(datasourceId);
         final DataNode dataNode = dataSource.getDataNode();
+        if (manually && dataNode.getVirtual()){
+            throw new ValidationException("for manually uploaded not a virtual datasource");
+        }
         LOGGER.info(ACHILLES_RESULT_LOADED_LOG,
                 dataSource.getId(), dataSource.getName(), dataNode.getId(), dataNode.getName());
         achillesService.createCharacterization(dataSource, data);
@@ -159,7 +164,7 @@ public abstract class BaseAchillesController<DS extends DataSource> {
                                         @PathVariable(value = "filepath", required = false) String path,
                                         @PathVariable("filename") String filename) throws NotExistException, IOException {
 
-        final String filepath = StringUtils.isBlank(path) ? filename : path + "/" + filename;
+        final String filepath = StringUtils.isBlank(path) ? filename : path + File.separator + filename;
         DS dataSource = checkDataSource(datasourceId);
         if (characterizationId == null) {
             characterizationId = achillesService.getLatestCharacterizationId(dataSource);
