@@ -4,6 +4,7 @@ import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.solr.SolrValue;
+import java.util.Objects;
 import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -29,7 +30,7 @@ public class Tenant implements SolrValue {
     private String name;
 
     @ManyToMany(targetEntity = User.class, fetch = FetchType.LAZY)
-    @JoinTable(name = "tenant_dependant_users_view",
+    @JoinTable(name = "tenant_dependent_users_view",
             joinColumns = @JoinColumn(name = "tenant_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"))
     private Set<User> users;
@@ -108,6 +109,12 @@ public class Tenant implements SolrValue {
     }
 
     @Override
+    public int hashCode() {
+
+        return Objects.hashCode(this.id);
+    }
+
+    @Override
     public boolean equals(final Object obj) {
 
         if (this == obj) {
@@ -117,6 +124,6 @@ public class Tenant implements SolrValue {
             return false;
         }
         final Tenant s = (Tenant) obj;
-        return java.util.Objects.equals(id, s.id);
+        return Objects.equals(id, s.id);
     }
 }

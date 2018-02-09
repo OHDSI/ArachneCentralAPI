@@ -38,7 +38,7 @@ REFERENCES tenants(id);
 UPDATE users
 SET active_tenant_id = (SELECT id FROM tenants LIMIT 1);
 
-CREATE VIEW tenant_dependant_users_view AS
+CREATE VIEW tenant_dependent_users_view AS
 WITH all_tenant_users AS (
   SELECT *
   FROM tenants_users

@@ -46,10 +46,11 @@ public class DomainObjectLoaderFactory {
 
         DomainObjectLoader domainObjectLoader;
 
-        if (User.class.isAssignableFrom(domainClazz))
+        if (User.class.isAssignableFrom(domainClazz)) {
             domainObjectLoader = new UserDomainObjectLoader(domainClazz);
-        else
+        } else {
             domainObjectLoader = new GenericDomainObjectLoader(domainClazz);
+        }
 
         return domainObjectLoader.withServices(repositories, entityManagerFactory);
     }

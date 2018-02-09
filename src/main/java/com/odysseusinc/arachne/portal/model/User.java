@@ -170,7 +170,7 @@ public class User implements Serializable {
     private Set<DataNodeUser> dataNodeUsers = new HashSet<>();
 
     @ManyToMany(targetEntity = Tenant.class, fetch = FetchType.LAZY)
-    @JoinTable(name = "tenant_dependant_users_view",
+    @JoinTable(name = "tenant_dependent_users_view",
             joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "tenant_id", referencedColumnName = "id"))
     @SolrFieldAnno(filter = true)
