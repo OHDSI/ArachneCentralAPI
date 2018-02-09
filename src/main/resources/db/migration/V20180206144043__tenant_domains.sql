@@ -11,7 +11,7 @@ FROM studies_data
 WHERE tenant_id = current_setting('app.tenant_id')::BIGINT;
 
 
--- 1) Dependant views reference the "studies" table by OID, not table name,
+-- 1) Dependent views reference the "studies" table by OID, not table name,
 -- so after table renaming, they will continue to reference old table.
 -- Therefore, there is a need to re-create views to force them reference new OIDs
 -- https://dba.stackexchange.com/questions/87220/postgresql-rename-table-without-updating-view-definitions
