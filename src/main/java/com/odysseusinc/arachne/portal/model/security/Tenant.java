@@ -29,7 +29,7 @@ public class Tenant implements SolrValue {
     private String name;
 
     @ManyToMany(targetEntity = User.class, fetch = FetchType.LAZY)
-    @JoinTable(name = "tenants_users",
+    @JoinTable(name = "tenant_dependant_users_view",
             joinColumns = @JoinColumn(name = "tenant_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"))
     private Set<User> users;

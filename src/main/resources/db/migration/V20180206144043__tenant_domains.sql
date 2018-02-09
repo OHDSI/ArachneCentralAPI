@@ -76,6 +76,6 @@ SELECT *
 FROM users_data u
 WHERE EXISTS(
   SELECT 1
-  FROM tenants_users tu
+  FROM tenant_dependant_users_view tu
   WHERE tu.user_id = u.id AND tu.tenant_id = current_setting('app.tenant_id')::BIGINT
 );
