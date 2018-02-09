@@ -122,15 +122,6 @@ WHERE EXISTS(
 
 ALTER TABLE users RENAME TO users_data;
 
-CREATE OR REPLACE VIEW users AS
-SELECT *
-FROM users_data u
-WHERE EXISTS(
-  SELECT 1
-  FROM tenant_dependent_users_view tu
-  WHERE tu.user_id = u.id AND tu.tenant_id = current_setting('app.tenant_id')::BIGINT
-);
-
 -- Includes calculated (dependent) users of tenants: adding DS owners of to tenant, if the DS was attached to the tenant
 
 CREATE VIEW tenant_dependent_users_view AS
@@ -151,3 +142,12 @@ WITH all_tenant_users AS (
 )
 SELECT DISTINCT ON (tenant_id, user_id) *
 FROM all_tenant_users;
+
+CREATE OR REPLACE VIEW users AS
+SELECT *
+FROM users_data u
+WHERE EXISTS(
+  SELECT 1
+  FROM tenant_dependent_users_view tu
+  WHERE tu.user_id = u.id AND tu.tenant_id = current_setting('app.tenant_id')::BIGINT
+);
