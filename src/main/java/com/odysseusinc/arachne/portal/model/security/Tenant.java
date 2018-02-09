@@ -124,6 +124,6 @@ public class Tenant implements SolrValue {
             return false;
         }
         final Tenant s = (Tenant) obj;
-        return Objects.equals(id, s.id);
+        return Objects.equals(getId(), s.getId());
     }
 }
