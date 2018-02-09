@@ -38,7 +38,7 @@ public class SubmissionFileToSubmissionFileDTOConverter
     public SubmissionFileDTO convert(SubmissionFile source) {
 
         FileDTO fileDTO = conversionService.convert(source, FileDTO.class);
-
+        fileDTO.setFileId(source.getId());
         SubmissionFileDTO submissionFileDTO = new SubmissionFileDTO();
         BeanUtils.copyProperties(fileDTO, submissionFileDTO);
 

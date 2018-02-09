@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto;
 
+import com.odysseusinc.arachne.portal.model.AntivirusStatus;
 import java.util.Date;
 
 public class FileDTO {
@@ -35,6 +36,9 @@ public class FileDTO {
     protected String mimeType;
     protected UserInfoDTO author;
     protected String content;
+    protected Long fileId;
+    protected AntivirusStatus antivirusStatus;
+    private String antivirusDescription;
 
     public String getContent() {
 
@@ -50,10 +54,16 @@ public class FileDTO {
 
     }
 
-    public FileDTO(String uuid, String path, String name, String label, Date created, Date updated, String docType, String mimeType, UserInfoDTO author) {
+    public FileDTO(Long fileId, String uuid, String path, String name, String label, Date created, Date updated, String docType, String mimeType, UserInfoDTO author) {
 
+        this(fileId, name, path, label, created, updated, docType, mimeType, author);
         this.uuid = uuid;
-        this.path = path;
+
+    }
+
+    public FileDTO(Long fileId, String name, String path, String label, Date created, Date updated, String docType, String mimeType, UserInfoDTO author) {
+
+        this.fileId = fileId;
         this.name = name;
         this.label = label;
         this.created = created;
@@ -61,6 +71,15 @@ public class FileDTO {
         this.docType = docType;
         this.mimeType = mimeType;
         this.author = author;
+        this.path = path;
+    }
+
+    public Long getFileId() {
+        return fileId;
+    }
+
+    public void setFileId(Long fileId) {
+        this.fileId = fileId;
     }
 
     public String getUuid() {
@@ -152,5 +171,25 @@ public class FileDTO {
     public void setAuthor(UserInfoDTO author) {
 
         this.author = author;
+    }
+
+    public AntivirusStatus getAntivirusStatus() {
+
+        return antivirusStatus;
+    }
+
+    public void setAntivirusStatus(AntivirusStatus antivirusStatus) {
+
+        this.antivirusStatus = antivirusStatus;
+    }
+
+    public String getAntivirusDescription() {
+
+        return antivirusDescription;
+    }
+
+    public void setAntivirusDescription(String antivirusDescription) {
+
+        this.antivirusDescription = antivirusDescription;
     }
 }

@@ -31,7 +31,6 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.NoRepositoryBean;
@@ -40,6 +39,13 @@ import org.springframework.data.repository.query.Param;
 @NoRepositoryBean
 public interface BaseUserRepository<U extends User> extends EntityGraphJpaRepository<U, Long>,
         JpaSpecificationExecutor<U> {
+
+    // Querying data independently of tenant
+    @Query(
+            nativeQuery = true,
+            value = "SELECT * FROM users_data WHERE origin = :origin AND username = :username"
+    )
+    U findLoginCandidate(@Param("origin") String userOrigin, @Param("username") String username);
 
     List<U> findByIdIn(List<Long> idList);
 
@@ -109,10 +115,12 @@ public interface BaseUserRepository<U extends User> extends EntityGraphJpaReposi
             + " LIMIT :limit")
     List<U> suggestNotAdmin(@Param("suggestRequest") String suggestRequest, @Param("limit") Integer limit);
 
-
-    U findByUuid(String uuid);
+    U findById(Long id);
 
     List<U> findAllByEnabledIsTrue();
+
+    @Query(nativeQuery = true, value = "SELECT * FROM users_data u WHERE enabled = TRUE")
+    List<U> findAllEnabledFromAllTenants();
 
     Page<U> findAllBy(Pageable pageable);
 

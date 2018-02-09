@@ -1,0 +1,5 @@
+server:
+  ssl:
+    enabled: false
+portal:
+  urlWhiteList: https://qacommunity.arachnenetwork.com:443

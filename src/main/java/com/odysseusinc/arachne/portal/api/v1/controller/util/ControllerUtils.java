@@ -37,4 +37,11 @@ public class ControllerUtils {
         return result;
     }
 
+
+    // Sleep from second to five to simulate email sending
+    public static void emulateEmailSent() throws InterruptedException {
+
+        Thread.sleep((1L + (long) (Math.random() * 4)) * 1000);
+    }
+
 }

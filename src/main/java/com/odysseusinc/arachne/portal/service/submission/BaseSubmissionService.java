@@ -37,8 +37,11 @@ import com.odysseusinc.arachne.portal.model.SubmissionStatus;
 import com.odysseusinc.arachne.portal.model.SubmissionStatusHistoryElement;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.ResultFileSearch;
+import com.odysseusinc.arachne.portal.service.impl.submission.SubmissionAction;
 import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.storage.util.FileSaveRequest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -62,12 +65,11 @@ public interface BaseSubmissionService<T extends Submission, A extends Analysis>
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).CREATE_SUBMISSION)")
     SubmissionGroup createSubmissionGroup(User user, Analysis analysis) throws IOException, NoExecutableFileException;
 
+    Page<SubmissionGroup> getSubmissionGroups(Long analysisId, Pageable pageRequest);
+
     @PreAuthorize("hasPermission(#submissionId, 'Submission', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).APPROVE_SUBMISSION)")
-    boolean deleteSubmissionResultFileByUuid(Long submissionId, String fileUuid)
-            throws NotExistException, ValidationException;
-
-    boolean deleteSubmissionResultFile(Long submissionId, Long fileId)
+    boolean deleteSubmissionResultFile(Long submissionId, ResultFile resultFile)
             throws NotExistException, ValidationException;
 
     void deleteSubmissionResultFile(ResultFile resultFile);
@@ -81,6 +83,8 @@ public interface BaseSubmissionService<T extends Submission, A extends Analysis>
     T moveSubmissionToNewStatus(T submission, SubmissionStatus status, User user, String comment);
 
     T changeSubmissionState(Long id, String status);
+
+    T getSubmissionByIdUnsecured(Long id) throws NotExistException;
 
     T getSubmissionById(Long id) throws NotExistException;
 
@@ -105,9 +109,12 @@ public interface BaseSubmissionService<T extends Submission, A extends Analysis>
 
     @PreAuthorize("hasPermission(#analysisId,  'Analysis', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
-    ResultFile getResultFileAndCheckPermission(User user, Long analysisId, String uuid) throws PermissionDeniedException;
+    ArachneFileMeta getResultFileAndCheckPermission(User user, Submission submission, Long analysisId, String fileUuid)
+            throws PermissionDeniedException;
 
-    ResultFile getResultFileByUUID(String uuid);
+    ResultFile getResultFileByPath(String path);
+
+    ResultFile getResultFileById(Long fileId);
 
     void getSubmissionResultAllFiles(User user, Long analysisId, Long submissionId, String archiveName, OutputStream os)
             throws IOException, PermissionDeniedException;
@@ -120,7 +127,7 @@ public interface BaseSubmissionService<T extends Submission, A extends Analysis>
 
     List<SubmissionFile> getSubmissionFiles(Long submissionGroupId);
 
-    SubmissionFile getSubmissionFile(Long submissionGroupId, String uuid);
+    SubmissionFile getSubmissionFile(Long submissionGroupId, Long fileId);
 
     SubmissionGroup getSubmissionGroupById(Long id) throws NotExistException;
 
@@ -148,4 +155,6 @@ public interface BaseSubmissionService<T extends Submission, A extends Analysis>
             Submission submission,
             Long createById
     ) throws IOException;
+
+    List<SubmissionAction> getSubmissionActions(Submission submission);
 }

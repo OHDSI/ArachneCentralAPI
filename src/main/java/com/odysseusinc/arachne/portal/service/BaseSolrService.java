@@ -47,8 +47,14 @@ public interface BaseSolrService<T extends SolrField> {
 
     QueryResponse search(
             String collection,
+            SolrQuery solrQuery,
+            Field tenantDiscriminatorField
+    ) throws IOException, SolrServerException, NoSuchFieldException;
+
+    QueryResponse search(
+            String collection,
             SolrQuery solrQuery
-    ) throws IOException, SolrServerException;
+    ) throws IOException, SolrServerException, NoSuchFieldException;
 
     void deleteByQuery(String collection, String query) throws IOException, SolrServerException;
 }

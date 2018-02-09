@@ -16,28 +16,23 @@
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
  * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: January 25, 2017
+ * Created: September 18, 2017
  *
  */
 
-package com.odysseusinc.arachne.portal.api.v1.dto.converters;
+package com.odysseusinc.arachne.portal.api.v1.dto.converters.submission;
 
-import com.odysseusinc.arachne.portal.model.User;
-import com.odysseusinc.arachne.portal.model.security.SpringAclSid;
-import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
+import com.odysseusinc.arachne.portal.api.v1.dto.BaseSubmissionDTO;
+import com.odysseusinc.arachne.portal.model.Submission;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UserToSpringAclSidConverter extends BaseConversionServiceAwareConverter<User, SpringAclSid> {
-
+public class SubmissionToBaseSubmissionDTOConverter extends BaseSubmissionToBaseSubmissionDTOConverter<Submission, BaseSubmissionDTO> {
 
     @Override
-    public SpringAclSid convert(User user) {
+    protected BaseSubmissionDTO createResultObject() {
 
-        SpringAclSid springAclSid = new SpringAclSid();
-        springAclSid.setPrincipal(true);
-        springAclSid.setSid(user.getEmail());
-        return springAclSid;
+        return new BaseSubmissionDTO();
     }
 
 }

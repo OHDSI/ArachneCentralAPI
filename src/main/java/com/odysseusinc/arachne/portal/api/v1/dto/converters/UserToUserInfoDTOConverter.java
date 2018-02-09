@@ -39,7 +39,7 @@ public class UserToUserInfoDTOConverter extends BaseConversionServiceAwareConver
             return null;
         }
         final UserInfoDTO userInfoDTO = new UserInfoDTO();
-        userInfoDTO.setId(source.getId());
+        userInfoDTO.setId(source.getUuid());
         userInfoDTO.setEmail(source.getEmail());
         final boolean isAdmin = source.getRoles().stream()
                 .anyMatch(r -> r.getName().equals("ROLE_ADMIN"));

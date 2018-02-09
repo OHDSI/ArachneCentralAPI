@@ -35,13 +35,11 @@ import com.odysseusinc.arachne.portal.model.AnalysisUnlockRequest;
 import com.odysseusinc.arachne.portal.model.ArachneFile;
 import com.odysseusinc.arachne.portal.model.DataReference;
 import com.odysseusinc.arachne.portal.model.Invitationable;
-import com.odysseusinc.arachne.portal.model.ResultFile;
-import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.service.AnalysisPaths;
 import com.odysseusinc.arachne.portal.service.CRUDLService;
-import com.odysseusinc.arachne.portal.service.impl.submission.SubmissionAction;
+import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobAnalysisFileResponseEvent;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -86,8 +84,6 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
 
     Path getSubmissionFile(SubmissionFile submissionFile) throws FileNotFoundException;
 
-    Path getResultFile(ResultFile resultFile) throws FileNotFoundException;
-
     Boolean deleteAnalysisFile(T analysis,
                                AnalysisFile analysisFile);
 
@@ -109,8 +105,6 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
 
     void setIsExecutable(String uuid);
 
-    List<SubmissionAction> getSubmissionActions(Submission submission);
-
     void getAnalysisAllFiles(Long analysisId, String archiveName, OutputStream os) throws IOException;
 
     List<User> findLeads(T analysis);
@@ -124,4 +118,6 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
     List<T> getByIdIn(List<Long> longs);
 
     List<T> getByStudyId(Long id, EntityGraph author);
+
+    void processAntivirusResponse(AntivirusJobAnalysisFileResponseEvent event);
 }

@@ -38,8 +38,10 @@ import com.drew.metadata.Metadata;
 import com.drew.metadata.MetadataException;
 import com.drew.metadata.exif.ExifIFD0Directory;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
+import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchExpertListDTO;
 import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
+import com.odysseusinc.arachne.portal.config.tenancy.TenantContext;
 import com.odysseusinc.arachne.portal.exception.ArachneSystemRuntimeException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.NotUniqueException;
@@ -49,6 +51,7 @@ import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.exception.WrongFileFormatException;
 import com.odysseusinc.arachne.portal.model.Country;
+import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.DataSourceStatus;
 import com.odysseusinc.arachne.portal.model.Invitationable;
 import com.odysseusinc.arachne.portal.model.ParticipantStatus;
@@ -70,6 +73,8 @@ import com.odysseusinc.arachne.portal.repository.StateProvinceRepository;
 import com.odysseusinc.arachne.portal.repository.StudyDataSourceLinkRepository;
 import com.odysseusinc.arachne.portal.repository.UserSpecifications;
 import com.odysseusinc.arachne.portal.repository.UserStudyRepository;
+import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordData;
+import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
 import com.odysseusinc.arachne.portal.service.BaseSkillService;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
@@ -84,7 +89,6 @@ import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import com.odysseusinc.arachne.portal.service.mail.RegistrationMailMessage;
 import com.odysseusinc.arachne.portal.service.mail.RemindPasswordMailMessage;
 import edu.vt.middleware.password.Password;
-import edu.vt.middleware.password.PasswordData;
 import edu.vt.middleware.password.PasswordValidator;
 import edu.vt.middleware.password.RuleResult;
 import java.awt.image.BufferedImage;
@@ -107,7 +111,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletResponse;
-import org.springframework.transaction.annotation.Transactional;
+import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -162,7 +166,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     private String fileStorePath;
     @Value("${user.enabled.default}")
     private boolean userEnableDefault;
-    private Resource defaultAvatar = new ClassPathResource("avatar.png");
+    private Resource defaultAvatar = new ClassPathResource("avatar.svg");
     @Value("${portal.authMethod}")
     protected String userOrigin;
 
@@ -173,7 +177,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
                                MessageSource messageSource,
                                ProfessionalTypeService professionalTypeService,
                                JavaMailSender javaMailSender,
-                               @Qualifier("passwordValidator") PasswordValidator passwordValidator,
+                               @Qualifier("passwordValidator") ArachnePasswordValidator passwordValidator,
                                BaseUserRepository<U> userRepository,
                                CountryRepository countryRepository,
                                BaseSolrService<SF> solrService,
@@ -234,14 +238,22 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
+    public U findLoginCandidate(final String email) {
+
+        return userRepository.findLoginCandidate(this.userOrigin, email);
+    }
+
+    @Override
+    @Transactional(rollbackOn = Exception.class)
     public void remove(Long id) throws ValidationException, UserNotFoundException, NotExistException, IOException, SolrServerException {
 
         if (id == null) {
             throw new ValidationException("remove user: id must be not null");
         }
-        U user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("removeUser", "remove user: user not found"));
-
+        U user = userRepository.findOne(id);
+        if (user == null) {
+            throw new UserNotFoundException("removeUser", "remove user: user not found");
+        }
         solrService.deleteByQuery(SolrServiceImpl.USER_COLLECTION, "id:" + user.getId());
         userRepository.delete(user);
     }
@@ -250,13 +262,6 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     public U create(final @NotNull U user)
             throws NotUniqueException, NotExistException, PasswordValidationException {
 
-        U byEmail = getByUnverifiedEmail(user.getEmail());
-        if (byEmail != null) {
-            throw new NotUniqueException(
-                    "email",
-                    messageSource.getMessage("validation.email.already.used", null, null)
-            );
-        }
         user.setUsername(user.getEmail());
         if (Objects.isNull(user.getEnabled())) {
             user.setEnabled(userEnableDefault);
@@ -268,8 +273,22 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
 
         user.setProfessionalType(professionalTypeService.getById(user.getProfessionalType().getId()));
         String password = user.getPassword();
-        validatePassword(password);
+        final String username = user.getUsername();
+        final String firstName = user.getFirstname();
+        final String lastName = user.getLastname();
+        final String middleName = user.getMiddlename();
+        validatePassword(username, firstName, lastName, middleName, password);
         user.setPassword(passwordEncoder.encode(password));
+
+        // The existing user check should come last:
+        // it is muted in public registration form, so we need to show other errors ahead
+        U byEmail = getByUnverifiedEmail(user.getEmail());
+        if (byEmail != null) {
+            throw new NotUniqueException(
+                    "email",
+                    messageSource.getMessage("validation.email.already.used", null, null)
+            );
+        }
 
         return userRepository.save(user);
     }
@@ -421,10 +440,16 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     public U getByUuid(String uuid) {
 
         if (uuid != null && !uuid.isEmpty()) {
-            return userRepository.findByUuid(uuid);
+            return userRepository.findById(UserIdUtils.uuidToId(uuid));
         } else {
             throw new IllegalArgumentException("Given uuid is blank");
         }
+    }
+
+    @Override
+    public U getByUuidAndInitializeCollections(String uuid) {
+
+        return initUserCollections(getByUuid(uuid));
     }
 
     @Override
@@ -462,9 +487,9 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     }
 
     @Override
-    public List<U> getAllEnabled() {
+    public List<U> getAllEnabledFromAllTenants() {
 
-        return userRepository.findAllByEnabledIsTrue();
+        return userRepository.findAllEnabledFromAllTenants();
     }
 
     @Override
@@ -493,7 +518,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
 
         RegistrationMailMessage mail = new RegistrationMailMessage(
                 user,
-                WebSecurityConfig.portalHost.get(),
+                WebSecurityConfig.portalUrl.get(),
                 user.getRegistrationCode()
         );
         userRegistrant.ifPresent(registrant ->
@@ -526,7 +551,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
             throw new ValidationException(PASSWORD_NOT_MATCH_EXC);
         }
-        validatePassword(newPassword);
+        validatePassword(user.getUsername(), user.getFirstname(), user.getLastname(), user.getMiddlename(), newPassword);
         exists.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(exists);
     }
@@ -675,6 +700,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     }
 
     private File getUserAvatarFile(U user) {
+
         File filesStoreDir = new File(fileStorePath);
         if (!filesStoreDir.exists()) {
             filesStoreDir.mkdirs();
@@ -749,7 +775,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
 
         RemindPasswordMailMessage mail = new RemindPasswordMailMessage(
                 user,
-                WebSecurityConfig.portalHost.get(),
+                WebSecurityConfig.portalUrl.get(),
                 token);
 
         Optional<UserRegistrant> userRegistrant = userRegistrantService.findByToken(registrantToken);
@@ -785,20 +811,26 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
             throws IOException, NotExistException, SolrServerException, NoSuchFieldException, IllegalAccessException {
 
         solrService.deleteByQuery(SolrServiceImpl.USER_COLLECTION, "*:*");
-        List<U> userList = getAllEnabled();
+        List<U> userList = getAllEnabledFromAllTenants();
         for (U user : userList) {
             indexBySolr(user);
         }
     }
 
-    public SearchResult<U> search(SolrQuery solrQuery) throws IOException, SolrServerException {
+    protected QueryResponse solrSearch(SolrQuery solrQuery) throws NoSuchFieldException, IOException, SolrServerException {
+
+        return solrService.search(
+                SolrServiceImpl.USER_COLLECTION,
+                solrQuery,
+                User.class.getDeclaredField("tenants")
+        );
+    }
+
+    public SearchResult<U> search(SolrQuery solrQuery) throws IOException, SolrServerException, NoSuchFieldException {
 
         List<U> userList;
 
-        QueryResponse solrResponse = solrService.search(
-                SolrServiceImpl.USER_COLLECTION,
-                solrQuery
-        );
+        QueryResponse solrResponse = solrSearch(solrQuery);
 
         List<Long> docIdList = solrResponse
                 .getResults()
@@ -807,21 +839,20 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
                 .collect(Collectors.toList());
 
         userList = userRepository.findByIdIn(docIdList);
-        Collections.sort(userList, Comparator.comparing(item -> docIdList.indexOf(item.getId())));
+        userList = userList.stream()
+                .sorted(Comparator.comparing(item -> docIdList.indexOf(item.getId())))
+                .collect(Collectors.toList());
 
         SearchResult<U> searchResult = new SearchResult<>(solrQuery, solrResponse, userList);
         searchResult.setExcludedOptions(getExcludedOptions());
         return searchResult;
     }
 
-    private Map<String, List<String>> getExcludedOptions() throws IOException, SolrServerException {
+    private Map<String, List<String>> getExcludedOptions() throws IOException, SolrServerException, NoSuchFieldException {
 
         SolrQuery solrQuery = conversionService.convert(new SearchExpertListDTO(true), SolrQuery.class);
 
-        QueryResponse solrResponse = solrService.search(
-                SolrServiceImpl.USER_COLLECTION,
-                solrQuery
-        );
+        QueryResponse solrResponse = solrSearch(solrQuery);
         SearchResult<Long> searchResult = new SearchResult<>(solrQuery, solrResponse, Collections.<Long>emptyList());
         return searchResult.excludedOptions();
     }
@@ -934,9 +965,9 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     }
 
     @Override
-    public List<U> findUsersByIdsIn(List<Long> ids) {
+    public List<U> findUsersByUuidsIn(List<String> ids) {
 
-        return userRepository.findByIdIn(ids);
+        return userRepository.findByIdIn(UserIdUtils.uuidsToIds(ids));
     }
 
     @Override
@@ -945,9 +976,13 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         return userRepository.listApprovedByDatasource(id);
     }
 
-    private void validatePassword(String password) throws PasswordValidationException {
+    private void validatePassword(String username, String firstName, String lastName, String middleName, String password) throws PasswordValidationException {
 
-        PasswordData passwordData = new PasswordData(new Password(password));
+        ArachnePasswordData passwordData = new ArachnePasswordData(new Password(password));
+        passwordData.setUsername(username);
+        passwordData.setFirstName(firstName);
+        passwordData.setLastName(lastName);
+        passwordData.setMiddleName(middleName);
         RuleResult result = passwordValidator.validate(passwordData);
         if (!result.isValid()) {
             throw new PasswordValidationException(passwordValidator.getMessages(result));
@@ -981,6 +1016,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         final InputStream inputStream;
 
         private AvatarResolver(final U user) throws IOException {
+
             final File userAvatarFile = getUserAvatarFile(user);
             if (user != null && userAvatarFile.exists()) {
                 this.contentType = CommonFileUtils.getMimeType(userAvatarFile.getName(), userAvatarFile.getAbsolutePath());
@@ -992,15 +1028,18 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         }
 
         public String getContentType() {
+
             return this.contentType;
         }
 
         public InputStream getInputStream() {
+
             return this.inputStream;
         }
 
         @Override
         public void close() throws IOException {
+
             inputStream.close();
         }
     }

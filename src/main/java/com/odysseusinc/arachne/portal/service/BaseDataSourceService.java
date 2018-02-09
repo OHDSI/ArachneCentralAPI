@@ -52,7 +52,7 @@ public interface BaseDataSourceService<T extends DataSource> {
 
     SearchResult<T> search(
             SolrQuery solrQuery
-    ) throws IOException, SolrServerException;
+    ) throws IOException, SolrServerException, NoSuchFieldException;
 
     SearchResult<T> search(SolrQuery solrQuery, User user) throws NoSuchFieldException, IOException, SolrServerException;
 

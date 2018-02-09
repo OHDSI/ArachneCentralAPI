@@ -142,17 +142,9 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
     @Override
     @PreAuthorize("hasPermission(#submissionId, 'Submission', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).APPROVE_SUBMISSION)")
-    public boolean deleteSubmissionResultFileByUuid(Long submissionId, String fileUuid) throws NotExistException, ValidationException {
+    public boolean deleteSubmissionResultFile(Long submissionId, ResultFile resultFile) throws NotExistException, ValidationException {
 
-        return super.deleteSubmissionResultFileByUuid(submissionId, fileUuid);
-    }
-
-    @Override
-    @PreAuthorize("hasPermission(#submissionId, 'Submission', "
-            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).APPROVE_SUBMISSION)")
-    public boolean deleteSubmissionResultFile(Long submissionId, Long fileId) throws NotExistException, ValidationException {
-
-        return super.deleteSubmissionResultFile(submissionId, fileId);
+        return super.deleteSubmissionResultFile(submissionId, resultFile);
     }
 
     @Override
@@ -199,9 +191,10 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
     @Override
     @PreAuthorize("hasPermission(#analysisId,  'Analysis', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
-    public ResultFile getResultFileAndCheckPermission(User user, Long analysisId, String uuid) throws PermissionDeniedException {
+    public ArachneFileMeta getResultFileAndCheckPermission(User user, Submission submission, Long analysisId, String fileUuid)
+            throws PermissionDeniedException {
 
-        return super.getResultFileAndCheckPermission(user, analysisId, uuid);
+        return super.getResultFileAndCheckPermission(user, submission, analysisId, fileUuid);
     }
 
     @Override
@@ -223,9 +216,9 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
     @Override
     @PreAuthorize("hasPermission(#submissionGroupId,  'SubmissionGroup', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
-    public SubmissionFile getSubmissionFile(Long submissionGroupId, String uuid) {
+    public SubmissionFile getSubmissionFile(Long submissionGroupId, Long fileId) {
 
-        return super.getSubmissionFile(submissionGroupId, uuid);
+        return super.getSubmissionFile(submissionGroupId, fileId);
     }
 
     @Override

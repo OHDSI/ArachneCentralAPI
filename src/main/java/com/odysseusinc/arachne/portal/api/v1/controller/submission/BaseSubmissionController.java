@@ -32,6 +32,8 @@ import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisExecutionStatusD
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.api.v1.controller.BaseController;
 import com.odysseusinc.arachne.portal.api.v1.dto.ApproveDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.BaseSubmissionAndAnalysisTypeDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.BaseSubmissionDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.CreateSubmissionsDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.FileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ResultFileDTO;
@@ -54,14 +56,14 @@ import com.odysseusinc.arachne.portal.model.SubmissionStatusHistoryElement;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.ResultFileSearch;
 import com.odysseusinc.arachne.portal.service.ToPdfConverter;
-import com.odysseusinc.arachne.portal.util.ContentStorageHelper;
-import com.odysseusinc.arachne.storage.service.ContentStorageService;
-import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
-import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
+import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightService;
 import com.odysseusinc.arachne.portal.util.AnalysisHelper;
+import com.odysseusinc.arachne.portal.util.ContentStorageHelper;
 import com.odysseusinc.arachne.portal.util.HttpUtils;
+import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
+import com.odysseusinc.arachne.storage.service.ContentStorageService;
 import io.swagger.annotations.ApiOperation;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -77,7 +79,6 @@ import javax.validation.Valid;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
@@ -142,6 +143,14 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
         return result;
     }
 
+    @ApiOperation("Get submission.")
+    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}", method = GET)
+    public BaseSubmissionAndAnalysisTypeDTO getSubmission(@PathVariable("submissionId") Long submissionId) throws NotExistException {
+
+        T submission = submissionService.getSubmissionById(submissionId);
+        BaseSubmissionDTO dto = conversionService.convert(submission, BaseSubmissionDTO.class);
+        return new BaseSubmissionAndAnalysisTypeDTO(dto, submission.getSubmissionGroup().getAnalysisType());
+    }
 
     @ApiOperation("Approve submission for execute")
     @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/approve", method = POST)
@@ -215,7 +224,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     @ApiOperation("Delete manually uploaded submission result file")
     @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/result/{fileUuid}",
             method = DELETE)
-    public JsonResult<Boolean> deleteSubmissionResults(
+    public JsonResult<Boolean> deleteSubmissionResultsByUuid(
             @PathVariable("submissionId") Long id,
             @PathVariable("fileUuid") String fileUuid
     ) {
@@ -224,35 +233,11 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
         JsonResult.ErrorCode errorCode;
         Boolean hasResult;
         try {
-            hasResult = submissionService.deleteSubmissionResultFileByUuid(id, fileUuid);
-            errorCode = JsonResult.ErrorCode.NO_ERROR;
-        } catch (NotExistException e) {
-            LOGGER.warn("Submission was not found, id: {}", id);
-            errorCode = JsonResult.ErrorCode.VALIDATION_ERROR;
-            hasResult = false;
-        } catch (ValidationException e) {
-            LOGGER.warn("Result file was not deleted", e);
-            errorCode = JsonResult.ErrorCode.VALIDATION_ERROR;
-            hasResult = false;
-        }
-        JsonResult<Boolean> result = new JsonResult<>(errorCode);
-        result.setResult(hasResult);
-        return result;
-    }
 
-    @ApiOperation("Delete manually uploaded submission result file")
-    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/result/byid/{fileId}",
-            method = DELETE)
-    public JsonResult<Boolean> deleteSubmissionResultsById(
-            @PathVariable("submissionId") Long id,
-            @PathVariable("fileId") Long fileId
-    ) {
+            ResultFile resultFile = submissionService.getResultFileByPath(
+                    contentStorageService.getFileByIdentifier(fileUuid).getPath());
 
-        LOGGER.info("deleting result file for submission with id={} having id={}", id, fileId);
-        JsonResult.ErrorCode errorCode;
-        Boolean hasResult;
-        try {
-            hasResult = submissionService.deleteSubmissionResultFile(id, fileId);
+            hasResult = submissionService.deleteSubmissionResultFile(id, resultFile);
             errorCode = JsonResult.ErrorCode.NO_ERROR;
         } catch (NotExistException e) {
             LOGGER.warn("Submission was not found, id: {}", id);
@@ -301,26 +286,26 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     }
 
     @ApiOperation("Download query file of the submission group by submission.")
-    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/files/{fileUuid}/download",
+    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/files/{fileId}/download",
             method = GET)
     public void downloadSubmissionGroupFileBySubmission(
             @PathVariable("submissionId") Long submissionId,
-            @PathVariable("fileUuid") String uuid,
+            @PathVariable("fileId") Long fileId,
             HttpServletResponse response) throws PermissionDeniedException, NotExistException, IOException {
 
         Submission submission = submissionService.getSubmissionById(submissionId);
-        downloadSubmissionGroupFile(submission.getSubmissionGroup().getId(), uuid, response);
+        downloadSubmissionGroupFile(submission.getSubmissionGroup().getId(), fileId, response);
     }
 
     @ApiOperation("Download query file of the submission group.")
-    @RequestMapping(value = "/api/v1/analysis-management/submission-groups/{submissionGroupId}/files/{fileUuid}/download",
+    @RequestMapping(value = "/api/v1/analysis-management/submission-groups/{submissionGroupId}/files/{fileId}/download",
             method = GET)
     public void downloadSubmissionGroupFile(
             @PathVariable("submissionGroupId") Long submissionGroupId,
-            @PathVariable("fileUuid") String uuid,
+            @PathVariable("fileId") Long fileId,
             HttpServletResponse response) throws PermissionDeniedException, NotExistException, IOException {
 
-        SubmissionFile analysisFile = submissionService.getSubmissionFile(submissionGroupId, uuid);
+        SubmissionFile analysisFile = submissionService.getSubmissionFile(submissionGroupId, fileId);
         HttpUtils.putFileContentToResponse(
                 response,
                 analysisFile.getContentType(),
@@ -395,26 +380,26 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     }
 
     @ApiOperation("Get query file of the submission by submission.")
-    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/files/{fileUuid}", method = GET)
+    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/files/{fileId}", method = GET)
     public JsonResult<SubmissionFileDTO> getSubmissionGroupFileInfoBySubmission(
             @PathVariable("submissionId") Long submissionId,
-            @PathVariable("fileUuid") String uuid)
-            throws PermissionDeniedException, NotExistException, IOException {
+            @PathVariable("fileId") Long fileId)
+            throws NotExistException, IOException {
 
         Submission submission = submissionService.getSubmissionById(submissionId);
-        return getSubmissionGroupFileInfo(submission.getSubmissionGroup().getId(), uuid, Boolean.TRUE);
+        return getSubmissionGroupFileInfo(submission.getSubmissionGroup().getId(), fileId, Boolean.TRUE);
     }
 
     @ApiOperation("Get query file of the submission group.")
-    @RequestMapping(value = "/api/v1/analysis-management/submission-groups/{submissionGroupId}/files/{fileUuid}",
+    @RequestMapping(value = "/api/v1/analysis-management/submission-groups/{submissionGroupId}/files/{fileId}",
             method = GET)
     public JsonResult<SubmissionFileDTO> getSubmissionGroupFileInfo(
             @PathVariable("submissionGroupId") Long submissionGroupId,
-            @PathVariable("fileUuid") String uuid,
+            @PathVariable("fileId") Long fileId,
             @RequestParam(defaultValue = "true") Boolean withContent)
-            throws PermissionDeniedException, NotExistException, IOException {
+            throws NotExistException, IOException {
 
-        final SubmissionFile submissionFile = submissionService.getSubmissionFile(submissionGroupId, uuid);
+        final SubmissionFile submissionFile = submissionService.getSubmissionFile(submissionGroupId, fileId);
         SubmissionFileDTO fileDto = conversionService.convert(submissionFile, SubmissionFileDTO.class);
         if (withContent) {
             fileDto = (SubmissionFileDTO) FileDtoContentHandler
@@ -466,12 +451,12 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
                 .collect(Collectors.toList());
     }
 
-    private ResultFile getResultFile(Principal principal, Long submissionId, String uuid)
+    private ArachneFileMeta getResultFile(Principal principal, Long submissionId, String fileUuid)
             throws NotExistException, PermissionDeniedException {
 
         Submission submission = submissionService.getSubmissionById(submissionId);
         User user = userService.getByEmail(principal.getName());
-        return submissionService.getResultFileAndCheckPermission(user, submission.getSubmissionGroup().getAnalysis().getId(), uuid);
+        return submissionService.getResultFileAndCheckPermission(user, submission, submission.getSubmissionGroup().getAnalysis().getId(), fileUuid);
     }
 
     @ApiOperation("Get result file of the submission.")
@@ -480,10 +465,9 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
             Principal principal,
             @PathVariable("submissionId") Long submissionId,
             @RequestParam(defaultValue = "true") Boolean withContent,
-            @PathVariable("fileUuid") String uuid) throws PermissionDeniedException, NotExistException, IOException {
+            @PathVariable("fileUuid") String fileUuid) throws PermissionDeniedException, NotExistException, IOException {
 
-        ResultFile resultFile = getResultFile(principal, submissionId, uuid);
-        ArachneFileMeta file = contentStorageService.getFileByPath(resultFile.getPath());
+        ArachneFileMeta file = getResultFile(principal, submissionId, fileUuid);
         String resultFilesPath = contentStorageHelper.getResultFilesDir(Submission.class, submissionId, null);
 
         ResultFileDTO resultFileDTO = new ResultFileDTO(conversionService.convert(file, FileDTO.class));
@@ -506,12 +490,10 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     public void downloadResultFile(
             Principal principal,
             @PathVariable("submissionId") Long submissionId,
-            @PathVariable("fileUuid") String uuid,
+            @PathVariable("fileUuid") String fileUuid,
             HttpServletResponse response) throws PermissionDeniedException, NotExistException, IOException {
 
-        ResultFile resultFile = getResultFile(principal, submissionId, uuid);
-        ArachneFileMeta file = contentStorageService.getFileByPath(resultFile.getPath());
-
+        ArachneFileMeta file = getResultFile(principal, submissionId, fileUuid);
         HttpUtils.putFileContentToResponse(
                 response,
                 file.getContentType(),

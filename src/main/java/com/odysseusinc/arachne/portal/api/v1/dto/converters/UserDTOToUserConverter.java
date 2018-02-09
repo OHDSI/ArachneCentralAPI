@@ -25,7 +25,6 @@ package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserRegistrationDTO;
 import com.odysseusinc.arachne.portal.model.ProfessionalType;
 import com.odysseusinc.arachne.portal.model.User;
-import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -41,7 +40,6 @@ public class UserDTOToUserConverter extends BaseConversionServiceAwareConverter<
         user.setMiddlename(dto.getMiddlename());
         user.setFirstname(dto.getFirstname());
         user.setLastname(dto.getLastname());
-        user.setUuid(dto.getUuid());
         ProfessionalType professionalType = new ProfessionalType();
         professionalType.setId(dto.getProfessionalTypeId());
         user.setProfessionalType(professionalType);

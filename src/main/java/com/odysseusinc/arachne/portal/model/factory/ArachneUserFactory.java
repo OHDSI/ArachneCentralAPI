@@ -41,6 +41,7 @@ public class ArachneUserFactory {
         }
         return new ArachneUser(
                 user.getId(),
+                user.getActiveTenant().getId(),
                 ObjectUtils.firstNonNull(user.getUsername(), user.getEmail()),
                 user.getPassword(),
                 user.getEmail(),

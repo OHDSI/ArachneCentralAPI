@@ -28,11 +28,6 @@ import static com.odysseusinc.arachne.portal.model.SubmissionStatus.EXECUTED_REJ
 import static com.odysseusinc.arachne.portal.model.SubmissionStatus.FAILED;
 import static com.odysseusinc.arachne.portal.model.SubmissionStatus.FAILED_PUBLISHED;
 import static com.odysseusinc.arachne.portal.model.SubmissionStatus.FAILED_REJECTED;
-import static com.odysseusinc.arachne.portal.model.SubmissionStatus.IN_PROGRESS;
-import static com.odysseusinc.arachne.portal.model.SubmissionStatus.NOT_APPROVED;
-import static com.odysseusinc.arachne.portal.model.SubmissionStatus.PENDING;
-import static com.odysseusinc.arachne.portal.service.impl.submission.SubmissionActionType.EXECUTE;
-import static com.odysseusinc.arachne.portal.service.impl.submission.SubmissionActionType.PUBLISH;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
@@ -54,11 +49,11 @@ import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.AnalysisFile;
 import com.odysseusinc.arachne.portal.model.AnalysisUnlockRequest;
 import com.odysseusinc.arachne.portal.model.AnalysisUnlockRequestStatus;
+import com.odysseusinc.arachne.portal.model.AntivirusStatus;
 import com.odysseusinc.arachne.portal.model.ArachneFile;
 import com.odysseusinc.arachne.portal.model.DataReference;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.Invitationable;
-import com.odysseusinc.arachne.portal.model.ResultFile;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
@@ -75,13 +70,16 @@ import com.odysseusinc.arachne.portal.repository.SubmissionFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionStatusHistoryRepository;
 import com.odysseusinc.arachne.portal.repository.submission.BaseSubmissionRepository;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
-import com.odysseusinc.arachne.portal.service.ToPdfConverter;
 import com.odysseusinc.arachne.portal.service.StudyFileService;
+import com.odysseusinc.arachne.portal.service.ToPdfConverter;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.service.impl.AnalysisPreprocessorService;
 import com.odysseusinc.arachne.portal.service.impl.CRUDLServiceImpl;
-import com.odysseusinc.arachne.portal.service.impl.submission.SubmissionAction;
-import com.odysseusinc.arachne.portal.service.impl.submission.SubmissionActionType;
+import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJob;
+import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobAnalysisFileResponseEvent;
+import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobEvent;
+import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobFileType;
+import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobResponse;
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import com.odysseusinc.arachne.portal.service.mail.UnlockAnalysisRequestMailMessage;
 import com.odysseusinc.arachne.portal.util.AnalysisHelper;
@@ -90,6 +88,7 @@ import com.odysseusinc.arachne.portal.util.LegacyAnalysisHelper;
 import com.odysseusinc.arachne.portal.util.ZipUtil;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -99,7 +98,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -113,6 +111,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.http.HttpEntity;
@@ -125,6 +125,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
@@ -168,6 +169,7 @@ public abstract class BaseAnalysisServiceImpl<
     protected final BaseStudyService<S, DS, SS, SU> studyService;
     protected final AnalysisHelper analysisHelper;
     protected final StudyFileService fileService;
+    protected final ApplicationEventPublisher eventPublisher;
 
     public BaseAnalysisServiceImpl(GenericConversionService conversionService,
                                    BaseAnalysisRepository<A> analysisRepository,
@@ -187,7 +189,8 @@ public abstract class BaseAnalysisServiceImpl<
                                    BaseStudyService<S, DS, SS, SU> studyService,
                                    AnalysisHelper analysisHelper,
                                    StudyFileService fileService,
-                                   ToPdfConverter docToPdfConverter) {
+                                   ToPdfConverter docToPdfConverter,
+                                   ApplicationEventPublisher eventPublisher) {
 
         this.docToPdfConverter = docToPdfConverter;
 
@@ -208,6 +211,7 @@ public abstract class BaseAnalysisServiceImpl<
         this.studyService = studyService;
         this.analysisHelper = analysisHelper;
         this.fileService = fileService;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -381,7 +385,7 @@ public abstract class BaseAnalysisServiceImpl<
             }
 
             preprocessorService.preprocessFile(analysis, analysisFile);
-
+            eventPublisher.publishEvent(new AntivirusJobEvent(this, new AntivirusJob(saved.getId(), saved.getRealName(), new FileInputStream(targetPath.toString()), AntivirusJobFileType.ANALYSIS_FILE)));
             return saved;
 
         } catch (IOException | RuntimeException ex) {
@@ -548,7 +552,7 @@ public abstract class BaseAnalysisServiceImpl<
         final AnalysisUnlockRequest savedUnlockRequest = analysisUnlockRequestRepository.save(analysisUnlockRequest);
         studyService.findLeads((S)savedUnlockRequest.getAnalysis().getStudy()).forEach(lead ->
                 mailSender.send(new UnlockAnalysisRequestMailMessage(
-                        WebSecurityConfig.portalHost.get(), lead, savedUnlockRequest)
+                        WebSecurityConfig.getDefaultPortalURI(), lead, savedUnlockRequest)
                 )
         );
         return savedUnlockRequest;
@@ -588,21 +592,6 @@ public abstract class BaseAnalysisServiceImpl<
             } catch (IOException e) {
                 LOGGER.error("Failed to get submission file", e);
                 throw new FileNotFoundException(e.getMessage());
-            }
-        }
-        return file;
-    }
-
-    @Override
-    public Path getResultFile(ResultFile resultFile) throws FileNotFoundException {
-
-        Optional.of(resultFile).orElseThrow(FileNotFoundException::new);
-        Path file = analysisHelper.getResultFile(resultFile);
-        if (Files.notExists(file)) {
-
-            file = legacyAnalysisHelper.getOldResultFile(resultFile);
-            if (Files.notExists(file)) {
-                throw new FileNotFoundException();
             }
         }
         return file;
@@ -685,7 +674,10 @@ public abstract class BaseAnalysisServiceImpl<
             analysisFile.setContentType(CommonFileUtils.getContentType(analysisFile.getRealName(), targetPath.toString()));
 
             analysisFile.incrementVersion();
-            analysisFileRepository.save(analysisFile);
+            analysisFile.setAntivirusStatus(AntivirusStatus.SCANNING);
+            analysisFile.setAntivirusDescription(null);
+            final AnalysisFile saved = analysisFileRepository.save(analysisFile);
+            eventPublisher.publishEvent(new AntivirusJobEvent(this, new AntivirusJob(saved.getId(), saved.getRealName(), new FileInputStream(targetPath.toString()), AntivirusJobFileType.ANALYSIS_FILE)));
 
         } catch (IOException | RuntimeException ex) {
 
@@ -816,84 +808,6 @@ public abstract class BaseAnalysisServiceImpl<
         }
     }
 
-    protected SubmissionStatus getApproveForExecutionSubmissionStatus(Submission submission, Boolean isApproved) {
-
-        return isApproved ? IN_PROGRESS : NOT_APPROVED;
-    }
-
-    private String generateUUID() {
-
-        return UUID.randomUUID().toString().replace("-", "");
-    }
-
-    protected SubmissionStatus calculateSubmissionStatusAccordingToDatasourceOwnership(DataSource dataSource, User user) {
-
-        return PENDING;
-    }
-
-    @Override
-    public List<SubmissionAction> getSubmissionActions(Submission submission) {
-
-        // Approve execution
-        SubmissionAction execApproveAction = getExecApproveAction(submission);
-
-        // Manually upload files
-        SubmissionAction manualResultUploadAction = getManualResultUploadAction(submission);
-
-        // Publish submission
-        SubmissionAction publishAction = getPublishAction(submission);
-
-        return Arrays.asList(execApproveAction, manualResultUploadAction, publishAction);
-    }
-
-    protected SubmissionAction getPublishAction(Submission submission) {
-
-        SubmissionAction publishAction = new SubmissionAction(PUBLISH.name());
-        publishAction.setAvailable(
-                Arrays.asList(EXECUTED, FAILED, IN_PROGRESS).contains(submission.getStatus()));
-        switch (submission.getStatus()) {
-            case EXECUTED_PUBLISHED:
-            case FAILED_PUBLISHED:
-                publishAction.setResult(true);
-                break;
-            case EXECUTED_REJECTED:
-            case FAILED_REJECTED:
-                publishAction.setResult(false);
-                break;
-            default:
-                publishAction.setResult(null);
-                break;
-        }
-        return publishAction;
-    }
-
-    protected SubmissionAction getExecApproveAction(Submission submission) {
-
-        SubmissionAction execApproveAction = new SubmissionAction(EXECUTE.name());
-        execApproveAction.setAvailable(submission.getStatus().equals(PENDING));
-        switch (submission.getStatus()) {
-            case PENDING:
-                execApproveAction.setResult(null);
-                break;
-            case NOT_APPROVED:
-                execApproveAction.setResult(false);
-                break;
-            default:
-                execApproveAction.setResult(true);
-                break;
-        }
-        return execApproveAction;
-    }
-
-    protected SubmissionAction getManualResultUploadAction(Submission submission) {
-
-        SubmissionAction manualResultUploadAction = new SubmissionAction(SubmissionActionType.MANUAL_UPLOAD.name());
-        manualResultUploadAction.setAvailable(
-                submission.getStatus().equals(SubmissionStatus.IN_PROGRESS)
-        );
-        return manualResultUploadAction;
-    }
-
     @Override
     public void getAnalysisAllFiles(Long analysisId, String archiveName, OutputStream os) throws IOException {
 
@@ -961,5 +875,19 @@ public abstract class BaseAnalysisServiceImpl<
     public List<A> getByStudyId(Long id, EntityGraph graph) {
 
         return analysisRepository.findByStudyId(id, graph);
+    }
+
+    @EventListener
+    @Transactional
+    @Override
+    public void processAntivirusResponse(AntivirusJobAnalysisFileResponseEvent event) {
+
+        final AntivirusJobResponse antivirusJobResponse = event.getAntivirusJobResponse();
+        final AnalysisFile analysisFile = analysisFileRepository.findOne(antivirusJobResponse.getFileId());
+        if (analysisFile != null) {
+            analysisFile.setAntivirusStatus(antivirusJobResponse.getStatus());
+            analysisFile.setAntivirusDescription(antivirusJobResponse.getDescription());
+            analysisFileRepository.save(analysisFile);
+        }
     }
 }

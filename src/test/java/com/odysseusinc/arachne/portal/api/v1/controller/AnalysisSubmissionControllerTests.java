@@ -42,6 +42,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.CreateSubmissionsDTO;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.util.AnalysisHelper;
 import com.odysseusinc.arachne.portal.util.ContentStorageHelper;
+import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.storage.service.ContentStorageService;
 import com.odysseusinc.arachne.storage.util.TypifiedJcrTemplate;
 import java.io.File;
@@ -362,7 +363,7 @@ public class AnalysisSubmissionControllerTests extends BaseControllerTest {
         return contentStorageHelper.getResultFilesDir(submission, "test.sql");
     }
 
-    private String prepareResultFile(Long submissionId) throws IOException {
+    private ArachneFileMeta prepareResultFile(Long submissionId) throws IOException {
 
         String filepath = getResultFilePath(submissionId);
 
@@ -371,9 +372,7 @@ public class AnalysisSubmissionControllerTests extends BaseControllerTest {
 
         Files.write(tempFile.toPath(), "SELECT * FROM death LIMIT 10".getBytes());
 
-        contentStorageService.saveFile(tempFile, filepath, 2L);
-
-        return filepath;
+        return contentStorageService.saveFile(tempFile, filepath, 2L);
     }
 
     @Test
@@ -428,14 +427,13 @@ public class AnalysisSubmissionControllerTests extends BaseControllerTest {
     })
     public void testDeleteSubmissionResult() throws Exception {
 
-        String id = "40";
         Long submissionId = 1L;
-
-        prepareResultFile(1L);
+        ArachneFileMeta fileMeta = prepareResultFile(1L);
+        String fileUuid = fileMeta.getUuid();
 
         mvc.perform(
-                delete("/api/v1/analysis-management/submissions/{submissionId}/result/byid/{fileId}",
-                        submissionId, id)
+                delete("/api/v1/analysis-management/submissions/{submissionId}/result/{fileUuid}",
+                        submissionId, fileUuid)
         ).andExpect(NO_ERROR_CODE);
 
         if (checkFileExists(getResultFilePath(submissionId))) {

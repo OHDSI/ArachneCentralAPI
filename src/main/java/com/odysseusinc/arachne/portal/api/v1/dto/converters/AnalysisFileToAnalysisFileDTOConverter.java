@@ -37,6 +37,7 @@ public class AnalysisFileToAnalysisFileDTOConverter extends BaseConversionServic
         AnalysisFileDTO analysisFileDTO = new AnalysisFileDTO();
         analysisFileDTO.setImported(source.getDataReference() != null);
         analysisFileDTO.setUuid(source.getUuid());
+        analysisFileDTO.setFileId(source.getId());
         analysisFileDTO.setName(source.getRealName());
         analysisFileDTO.setCreated(source.getCreated());
         analysisFileDTO.setUpdated(source.getUpdated());
@@ -49,6 +50,8 @@ public class AnalysisFileToAnalysisFileDTOConverter extends BaseConversionServic
         analysisFileDTO.setDocType(source.getContentType());
         analysisFileDTO.setVersion(source.getVersion());
         analysisFileDTO.setPermissions(conversionService.convert(source, PermissionsDTO.class));
+        analysisFileDTO.setAntivirusStatus(source.getAntivirusStatus());
+        analysisFileDTO.setAntivirusDescription(source.getAntivirusDescription());
         return analysisFileDTO;
     }
 }

@@ -36,7 +36,7 @@ public class UserToShortUserDTOConverter extends BaseConversionServiceAwareConve
     public ShortUserDTO convert(User user) {
 
         ShortUserDTO dto = new ShortUserDTO();
-        dto.setId(user.getId());
+        dto.setId(user.getUuid());
         dto.setFirstname(user.getFirstname());
         dto.setLastname(user.getLastname());
         return dto;

@@ -52,7 +52,11 @@ public abstract class SearchDTOToSolrQuery {
             // Check if such field exists in Solr index and retrieve it
             SolrField sortSolrSolrField = solrFields.getByName(source.getSort());
             if (sortSolrSolrField != null) {
-                result.setSort(sortSolrSolrField.getSolrName(), SolrQuery.ORDER.valueOf(source.getOrder()));
+                String sortFieldName = sortSolrSolrField.isMultiValuesType() ?
+                        sortSolrSolrField.getMultiValuesTypeFieldName() :
+                        sortSolrSolrField.getSolrName();
+
+                result.setSort(sortFieldName, SolrQuery.ORDER.valueOf(source.getOrder()));
             }
         }
     }

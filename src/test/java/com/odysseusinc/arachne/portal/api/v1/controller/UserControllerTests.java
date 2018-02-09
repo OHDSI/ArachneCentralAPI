@@ -45,6 +45,7 @@ import com.github.springtestdbunit.annotation.ExpectedDatabase;
 import com.github.springtestdbunit.assertion.DatabaseAssertionMode;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonProfessionalTypeDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserRegistrationDTO;
+import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserLinkDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserProfileGeneralDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserPublicationDTO;
@@ -82,7 +83,8 @@ public class UserControllerTests extends BaseControllerTest {
 
     private static final String EMAIL = "mail@mail.com";
     private static final String MIDDLE_NAME = "middleName";
-    private static final String PASSWORD = "password";
+    private static final String PASSWORD = "XJHCRr7BJv87";
+    private static final String BAD_PASSWORD = "password";
 
     private static final Long PROFESSIONAL_TYPE_ID = 1L;
     private static final Long USER_ID = 2L;
@@ -92,6 +94,7 @@ public class UserControllerTests extends BaseControllerTest {
     private static final String USER_LINK_URL = "userLinkUrl";
 
     private static final String PUBLISHER = "userPublicationPublisher";
+    public static final String USER_2_UUID = UserIdUtils.idToUuid(USER_ID);
 
     private final JSONObject ADMIN_JSON_OBJECT = new JSONObject()
             .put("firstname", ADMIN_FIRST_NAME)
@@ -140,32 +143,42 @@ public class UserControllerTests extends BaseControllerTest {
     @ExpectedDatabase(value = "/data/user/registered-user-and-admin.xml", assertionMode = DatabaseAssertionMode.NON_STRICT)
     public void testCreateUser() throws Exception {
 
-        CommonUserRegistrationDTO inputDTO = getCommonUserRegistrationDTO();
+        CommonUserRegistrationDTO inputDTO = getCommonUserRegistrationDTO(PASSWORD);
 
         MvcResult mvcResult = mvc.perform(
                 post("/api/v1/auth/registration")
                         .contentType(APPLICATION_JSON)
                         .content(objectMapper.writeValueAsBytes(inputDTO))
                         .with(anonymous()))
-                .andExpect(NO_ERROR_CODE)
                 .andExpect(OK_STATUS)
-
-                .andExpect(jsonPath("$.result.enabled").value(FALSE))
-                .andExpect(jsonPath("$.result.id").isNotEmpty())
                 .andReturn();
-
-        JSONAssert.assertEquals(USER_JSON_OBJECT, getResultJSONObject(mvcResult), false);
-
     }
 
-    private CommonUserRegistrationDTO getCommonUserRegistrationDTO() {
+    @Test
+    @DatabaseSetup("/data/user/admin-user.xml")
+    @ExpectedDatabase(value = "/data/user/admin-user.xml", assertionMode = DatabaseAssertionMode.NON_STRICT)
+    public void testCreateUserWithBadPassword() throws Exception {
+
+        CommonUserRegistrationDTO inputDTO = getCommonUserRegistrationDTO(BAD_PASSWORD);
+
+        MvcResult mvcResult = mvc.perform(
+                post("/api/v1/auth/registration")
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsBytes(inputDTO))
+                        .with(anonymous()))
+                .andExpect(VALIDATION_ERROR_CODE)
+                .andExpect(OK_STATUS)
+                .andReturn();
+    }
+
+    private CommonUserRegistrationDTO getCommonUserRegistrationDTO(String password) {
 
         CommonUserRegistrationDTO inputDTO = new CommonUserRegistrationDTO();
         inputDTO.setEmail(EMAIL);
         inputDTO.setFirstname(FIRST_NAME);
         inputDTO.setLastname(LAST_NAME);
         inputDTO.setMiddlename(MIDDLE_NAME);
-        inputDTO.setPassword(PASSWORD);
+        inputDTO.setPassword(password);
         inputDTO.setProfessionalTypeId(PROFESSIONAL_TYPE_ID);
         return inputDTO;
     }
@@ -271,7 +284,7 @@ public class UserControllerTests extends BaseControllerTest {
     public void testGetProfile() throws Exception {
 
         MvcResult mvcResult = mvc.perform(
-                get("/api/v1/user-management/users/" + 2L + "/profile"))
+                get("/api/v1/user-management/users/" + USER_2_UUID + "/profile"))
                 .andExpect(NO_ERROR_CODE)
                 .andExpect(OK_STATUS)
                 .andReturn();
@@ -289,24 +302,22 @@ public class UserControllerTests extends BaseControllerTest {
         final Long studyId = 1L;
 
         MvcResult mvcResult = mvc.perform(
-                get("/api/v1/user-management/users/search-user?query=" + query + "&studyId=" + studyId))
-                .andExpect(NO_ERROR_CODE)
+                get("/api/v1/user-management/users/suggest?target=STUDY&query=" + query + "&id=" + studyId))
                 .andExpect(OK_STATUS)
-                .andExpect(jsonPath("$.result").isNotEmpty())
-                .andExpect(jsonPath("$.result").isArray())
-                .andExpect(jsonPath("$.result", hasSize(3)))
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$", hasSize(3)))
                 .andReturn();
 
-        JSONArray suggested = getResultJSONArray(mvcResult);
+        JSONArray suggested = new JSONArray(mvcResult.getResponse().getContentAsString());
 
         List<Object> list = new ArrayList<>();
         for (int i = 0; i < suggested.length(); i++) {
             list.add(suggested.getJSONObject(i).get("id"));
         }
         // suggested user ids
-        Assert.assertTrue(list.contains(3));
-        Assert.assertTrue(list.contains(6));
-        Assert.assertTrue(list.contains(7));
+        Assert.assertTrue(list.contains(UserIdUtils.idToUuid(3L)));
+        Assert.assertTrue(list.contains(UserIdUtils.idToUuid(6L)));
+        Assert.assertTrue(list.contains(UserIdUtils.idToUuid(7L)));
     }
 
     @Test

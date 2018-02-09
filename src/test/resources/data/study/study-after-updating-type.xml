@@ -13,7 +13,7 @@
             name="type1"
     />
 
-    <studies
+    <studies_data
             id="1"
             title="Test Study"
             description="description"
@@ -22,7 +22,7 @@
             type_id="1"
             status_id="1"
     />
-    <users
+    <users_data
             id="1"
             firstname="adminFirstName"
             middlename="adminMiddleName"
@@ -33,7 +33,7 @@
             email_confirmed="true"
             professional_type_id = "1"
     />
-    <users
+    <users_data
             id="2"
             firstname="firstName"
             middlename="middleName"

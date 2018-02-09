@@ -47,6 +47,9 @@ import com.odysseusinc.arachne.portal.api.v1.dto.Commentable;
 import com.odysseusinc.arachne.portal.api.v1.dto.DataReferenceDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.FileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.OptionDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.PageDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.ShortBaseAnalysisDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionGroupDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightUpdateDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdateNotificationDTO;
@@ -67,25 +70,25 @@ import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataReference;
 import com.odysseusinc.arachne.portal.model.Submission;
+import com.odysseusinc.arachne.portal.model.SubmissionGroup;
 import com.odysseusinc.arachne.portal.model.SubmissionInsight;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.DataReferenceService;
 import com.odysseusinc.arachne.portal.service.ImportService;
-import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightService;
 import com.odysseusinc.arachne.portal.service.ToPdfConverter;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.service.messaging.MessagingUtils;
 import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
+import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightService;
 import com.odysseusinc.arachne.portal.util.ImportedFile;
 import com.odysseusinc.arachne.portal.util.ZipUtil;
 import io.swagger.annotations.ApiOperation;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Reader;
-import java.io.StringReader;
 import java.net.URISyntaxException;
 import java.security.Principal;
 import java.util.ArrayList;
@@ -115,7 +118,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.SortDefault;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.destination.DestinationResolver;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -123,6 +131,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -206,28 +215,51 @@ public abstract class BaseAnalysisController<T extends Analysis,
         return result;
     }
 
+    @ApiOperation("Get short analysis info.")
+    @RequestMapping(value = "/api/v1/analysis-management/analyses/{analysisId}/short", method = GET)
+    public ShortBaseAnalysisDTO getShortAnalysis(
+            @PathVariable("analysisId") Long analysisId)
+            throws NotExistException, NotUniqueException {
+
+       T analysis = analysisService.getById(analysisId);
+       return conversionService.convert(analysis, ShortBaseAnalysisDTO.class);
+    }
+
     abstract protected Class<T> getAnalysisClass();
 
     abstract protected Class<D> getAnalysisDTOClass();
 
     @ApiOperation("Get analysis.")
     @RequestMapping(value = "/api/v1/analysis-management/analyses/{analysisId}", method = GET)
-    public JsonResult<D> get(Principal principal, @PathVariable("analysisId") Long id)
+    public JsonResult<D> get(@PathVariable("analysisId") Long id)
             throws NotExistException, PermissionDeniedException {
 
         JsonResult<D> result;
         T analysis = analysisService.getById(id);
         result = new JsonResult<>(NO_ERROR);
         D analysisDTO = conversionService.convert(analysis, getAnalysisDTOClass());
-        analysisDTO.getSubmissionGroup()
-                .stream()
-                .flatMap(sgd -> sgd.getSubmissions().stream())
-                .forEach(sd -> {
-                    Submission s = ((Submission) sd.getConversionSource());
-                    sd.setAvailableActionList(analysisService.getSubmissionActions(s));
-                });
         result.setResult(analysisDTO);
         return result;
+    }
+
+    @ApiOperation("Get submission groups.")
+    @RequestMapping(value = "/api/v1/analysis-management/analyses/{analysisId}/submission-groups", method = GET)
+    public Page<SubmissionGroupDTO> getSubmissionGroups(
+            @PathVariable("analysisId") Long id,
+            @ModelAttribute PageDTO pageDTO
+    ) {
+
+        PageRequest pageRequest = new PageRequest(pageDTO.getPageablePage(), pageDTO.getPageSize(), new Sort(Sort.Direction.DESC, "created"));
+        Page<SubmissionGroup> submissionGroupList = submissionService.getSubmissionGroups(id, pageRequest);
+
+        return submissionGroupList.map(sg -> {
+            SubmissionGroupDTO sgDTO = conversionService.convert(sg, SubmissionGroupDTO.class);
+            sgDTO.getSubmissions().forEach(sd -> {
+                Submission s = ((Submission) sd.getConversionSource());
+                sd.setAvailableActionList(submissionService.getSubmissionActions(s));
+            });
+            return sgDTO;
+        });
     }
 
     @ApiOperation("Update analysis.")
@@ -360,19 +392,15 @@ public abstract class BaseAnalysisController<T extends Analysis,
                                 final String fileName = baseName + "."
                                         + dialect.getLabel().replaceAll(" ", "-")
                                         + "." + extension;
-                                try (final Reader reader = new StringReader(sql)) {
-                                    ZipUtil.addZipEntry(zos, fileName, reader);
-                                }
+                                ZipUtil.addZipEntry(zos, fileName, new ByteArrayInputStream(sql.getBytes("UTF-8")));
                             }
                             final String shortBaseName = baseName.replaceAll("\\.ohdsi", "");
                             if (!generatedFileName.value.contains(shortBaseName)) {
                                 generatedFileName.value += "_" + shortBaseName;
                             }
                         } else {
-                            try (final Reader reader = new StringReader(org.apache.commons.io.IOUtils.toString(file.getInputStream(), "UTF-8"))) {
-                                String fileName = file.getName();
-                                ZipUtil.addZipEntry(zos, fileName, reader);
-                            }
+                            String fileName = file.getName();
+                            ZipUtil.addZipEntry(zos, fileName, file.getInputStream());
                         }
                     } catch (IOException e) {
                         LOGGER.error("Failed to add file to archive", e);
@@ -723,7 +751,9 @@ public abstract class BaseAnalysisController<T extends Analysis,
         }
     }
 
-    protected void afterCreate(T analysis, A_C_DTO analysisDTO) {}
+    protected void afterCreate(T analysis, A_C_DTO analysisDTO) {
+
+    }
 
     protected abstract void attachPredictionFiles(List<MultipartFile> files) throws IOException;
 

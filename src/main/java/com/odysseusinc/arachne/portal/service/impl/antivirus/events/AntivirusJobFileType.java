@@ -15,18 +15,16 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: January 25, 2017
+ * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Konstantin Yaroshovets
+ * Created: January 22, 2017
  *
  */
 
-package com.odysseusinc.arachne.portal.repository;
+package com.odysseusinc.arachne.portal.service.impl.antivirus.events;
 
-import com.odysseusinc.arachne.portal.model.security.SpringAclEntry;
-import org.springframework.data.repository.CrudRepository;
-
-public interface SpringAclEntryRepository extends CrudRepository<SpringAclEntry, Long> {
-
-    SpringAclEntry findByAclObjectIdentityAndSid(Long aclObjectIdentity, Long sid);
-
+public enum AntivirusJobFileType {
+    STUDY_FILE,
+    PAPER_PAPER_FILE,
+    PAPER_PROTOCOL_FILE,
+    ANALYSIS_FILE
 }

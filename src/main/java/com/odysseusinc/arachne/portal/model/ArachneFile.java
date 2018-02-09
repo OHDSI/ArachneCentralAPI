@@ -35,7 +35,7 @@ import javax.persistence.Transient;
 
 @MappedSuperclass
 @Access(AccessType.FIELD)
-public class ArachneFile implements ArachneFileMeta, HasArachnePermissions {
+public class ArachneFile extends AntivirusFile implements ArachneFileMeta, HasArachnePermissions {
 
     @Column
     protected String uuid;
@@ -53,7 +53,9 @@ public class ArachneFile implements ArachneFileMeta, HasArachnePermissions {
     @Transient
     private Set<ArachnePermission> permissions;
 
-    public ArachneFile() {}
+    public ArachneFile() {
+
+    }
 
     public ArachneFile(String uuid, String label, String realName, String contentType, Date created, Date updated) {
 

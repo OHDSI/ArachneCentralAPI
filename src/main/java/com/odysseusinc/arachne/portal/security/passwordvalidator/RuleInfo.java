@@ -15,15 +15,24 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: January 25, 2017
+ * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Konstantin Yaroshovets
+ * Created: January 22, 2018
  *
  */
 
-package com.odysseusinc.arachne.portal.repository;
+package com.odysseusinc.arachne.portal.security.passwordvalidator;
 
-import com.odysseusinc.arachne.portal.model.security.SpringAclSid;
-import org.springframework.data.repository.CrudRepository;
+public class RuleInfo {
 
-public interface SpringAclSidRepository extends CrudRepository<SpringAclSid, Long> {
+    protected String description;
+
+    protected RuleInfo(String description) {
+
+        this.description = description;
+    }
+
+    public String getDescription() {
+
+        return description;
+    }
 }

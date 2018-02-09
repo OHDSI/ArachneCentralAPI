@@ -32,6 +32,8 @@ import static com.odysseusinc.arachne.portal.model.SubmissionStatus.IN_PROGRESS;
 import static com.odysseusinc.arachne.portal.model.SubmissionStatus.NOT_APPROVED;
 import static com.odysseusinc.arachne.portal.model.SubmissionStatus.PENDING;
 import static com.odysseusinc.arachne.portal.model.SubmissionStatus.valueOf;
+import static com.odysseusinc.arachne.portal.service.impl.submission.SubmissionActionType.EXECUTE;
+import static com.odysseusinc.arachne.portal.service.impl.submission.SubmissionActionType.PUBLISH;
 import static com.odysseusinc.arachne.portal.util.DataNodeUtils.isDataNodeOwner;
 
 import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
@@ -62,6 +64,8 @@ import com.odysseusinc.arachne.portal.repository.SubmissionResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionStatusHistoryRepository;
 import com.odysseusinc.arachne.portal.repository.submission.BaseSubmissionRepository;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
+import com.odysseusinc.arachne.portal.service.impl.submission.SubmissionAction;
+import com.odysseusinc.arachne.portal.service.impl.submission.SubmissionActionType;
 import com.odysseusinc.arachne.storage.service.ContentStorageService;
 import com.odysseusinc.arachne.portal.service.UserService;
 import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
@@ -88,6 +92,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
@@ -105,7 +110,11 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.DigestUtils;
@@ -137,7 +146,6 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     protected final ContentStorageService contentStorageService;
     protected final UserService userService;
     protected final ContentStorageHelper contentStorageHelper;
-
 
     @Value("${files.store.path}")
     private String fileStorePath;
@@ -253,7 +261,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         try {
             for (User owner : dnOwners) {
                 mailSender.send(new InvitationApprovalSubmissionArachneMailMessage(
-                        WebSecurityConfig.portalHost.get(), owner, submission)
+                        WebSecurityConfig.getDefaultPortalURI(), owner, submission)
                 );
             }
         } catch (Exception ignore) {
@@ -304,11 +312,20 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     }
 
     @Override
-    public T getSubmissionById(Long id) throws NotExistException {
+    public T getSubmissionByIdUnsecured(Long id) throws NotExistException {
 
         T submission = submissionRepository.findOne(id);
         throwNotExistExceptionIfNull(submission, id);
         return submission;
+    }
+
+    @Override
+    @PreAuthorize("hasPermission(#id,  'Submission', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
+    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
+    public T getSubmissionById(Long id) throws NotExistException {
+
+        return getSubmissionByIdUnsecured(id);
     }
 
     @Override
@@ -382,6 +399,8 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
             submissionFile.setUuid(uuid);
             submissionFile.setAuthor(analysisFile.getAuthor());
             submissionFile.setVersion(analysisFile.getVersion());
+            submissionFile.setAntivirusStatus(analysisFile.getAntivirusStatus());
+            submissionFile.setAntivirusDescription(analysisFile.getAntivirusDescription());
             Boolean isExecutable = analysisFile.getExecutable();
             submissionFile.setExecutable(isExecutable != null && isExecutable);
             Path analysisFileContent = Paths.get(storeFilesPath, analysis.getStudy().getId().toString(),
@@ -400,6 +419,15 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         return submissionGroup;
     }
 
+    @Override
+    @PreAuthorize("hasPermission(#analysisId,  'Analysis', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
+   @PostAuthorize("@ArachnePermissionEvaluator.addPermissionsToSubmissions(principal, returnObject )")
+    public Page<SubmissionGroup> getSubmissionGroups(Long analysisId, Pageable pageRequest) {
+
+        return submissionGroupRepository.findAllByAnalysisId(analysisId, pageRequest);
+    }
+
     protected void checkBeforeCreateSubmissionGroup(Analysis analysis) throws NoExecutableFileException {
 
     }
@@ -411,27 +439,18 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     }
 
     @Override
-    public boolean deleteSubmissionResultFileByUuid(Long submissionId, String fileUuid)
-            throws NotExistException, ValidationException {
-
-        ResultFile resultFile = submissionResultFileRepository.findByUuid(fileUuid);
-        return deleteSubmissionResultFile(submissionId, resultFile.getId());
-    }
-
-    @Override
-    public boolean deleteSubmissionResultFile(Long submissionId, Long fileId)
+    public boolean deleteSubmissionResultFile(Long submissionId, ResultFile resultFile)
             throws NotExistException, ValidationException {
 
         final T submission = submissionRepository.findByIdAndStatusIn(submissionId,
                 Collections.singletonList(IN_PROGRESS.name()));
         throwNotExistExceptionIfNull(submission, submissionId);
-        ResultFile resultFile = submissionResultFileRepository.findOne(fileId);
         Optional.ofNullable(resultFile).orElseThrow(() ->
                 new NotExistException(String.format(RESULT_FILE_NOT_EXISTS_EXCEPTION,
-                        fileId, submission.getId()), ResultFile.class));
+                        resultFile.getId(), submission.getId()), ResultFile.class));
         ArachneFileMeta fileMeta = contentStorageService.getFileByPath(resultFile.getPath());
         if (fileMeta.getCreatedBy() == null) { // not manually uploaded
-            throw new ValidationException(String.format(FILE_NOT_UPLOADED_MANUALLY_EXCEPTION, fileId));
+            throw new ValidationException(String.format(FILE_NOT_UPLOADED_MANUALLY_EXCEPTION, resultFile.getId()));
         }
         deleteSubmissionResultFile(resultFile);
         submission.getResultFiles().remove(resultFile);
@@ -633,7 +652,6 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
             ResultFile resultFile = new ResultFile();
             resultFile.setSubmission(submission);
 
-            resultFile.setUuid(fm.getUuid());
             resultFile.setPath(fm.getPath());
 
             return resultFile;
@@ -657,7 +675,6 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
                 createById
         );
 
-        resultFile.setUuid(fileMeta.getUuid());
         resultFile.setPath(fileMeta.getPath());
 
         return resultFile;
@@ -667,11 +684,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     public List<ArachneFileMeta> getResultFiles(User user, Long submissionId, ResultFileSearch resultFileSearch) throws PermissionDeniedException {
 
         Submission submission = submissionRepository.findById(submissionId, EntityGraphUtils.fromAttributePaths("dataSource", "dataSource.dataNode"));
-        if (!(EXECUTED_PUBLISHED.equals(submission.getStatus()) || FAILED_PUBLISHED.equals(submission.getStatus()))) {
-            if (user == null || !isDataNodeOwner(submission.getDataSource().getDataNode(), user)) {
-                throw new PermissionDeniedException();
-            }
-        }
+        checkSubmissionPermission(user, submission);
 
         String resultFilesPath = contentStorageHelper.getResultFilesDir(submission, resultFileSearch.getPath());
 
@@ -679,28 +692,35 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         querySpec.setName(resultFileSearch.getRealName());
         querySpec.setPath(resultFilesPath);
 
-        List<ArachneFileMeta> resultFileList = contentStorageService.searchFiles(querySpec);
-
-        return resultFileList;
+        return contentStorageService.searchFiles(querySpec);
     }
 
     @Override
-    public ResultFile getResultFileAndCheckPermission(User user, Long analysisId, String uuid) throws PermissionDeniedException {
+    public ArachneFileMeta getResultFileAndCheckPermission(User user, Submission submission, Long analysisId,
+                                                           String fileUuid) throws PermissionDeniedException {
 
-        ResultFile byUuid = getResultFileByUUID(uuid);
-        Submission submission = byUuid.getSubmission();
+        ArachneFileMeta byFileUuid = contentStorageService.getFileByIdentifier(fileUuid);
+        checkSubmissionPermission(user, submission);
+        return byFileUuid;
+    }
+
+    private void checkSubmissionPermission(User user, Submission submission) throws PermissionDeniedException {
+
         if (!(EXECUTED_PUBLISHED.equals(submission.getStatus()) || FAILED_PUBLISHED.equals(submission.getStatus()))) {
             if (user == null || !isDataNodeOwner(submission.getDataSource().getDataNode(), user)) {
                 throw new PermissionDeniedException();
             }
         }
-        return byUuid;
     }
 
-    @Override
-    public ResultFile getResultFileByUUID(String uuid) {
+    public ResultFile getResultFileByPath(String path) {
 
-        return resultFileRepository.findByUuid(uuid);
+        return resultFileRepository.findByPath(path);
+    }
+
+    public ResultFile getResultFileById(Long fileId) {
+
+        return resultFileRepository.findById(fileId);
     }
 
     @Override
@@ -713,11 +733,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
             IOException, PermissionDeniedException {
 
         Submission submission = submissionRepository.findOne(submissionId);
-        if (!(EXECUTED_PUBLISHED.equals(submission.getStatus()) || FAILED_PUBLISHED.equals(submission.getStatus()))) {
-            if (user == null || !isDataNodeOwner(submission.getDataSource().getDataNode(), user)) {
-                throw new PermissionDeniedException();
-            }
-        }
+        checkSubmissionPermission(user, submission);
 
         Path resultFilesPath = Paths.get(contentStorageHelper.getResultFilesDir(submission));
         try (ZipOutputStream zos = new ZipOutputStream(os)) {
@@ -735,9 +751,9 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     }
 
     @Override
-    public SubmissionFile getSubmissionFile(Long submissionGroupId, String uuid) {
+    public SubmissionFile getSubmissionFile(Long submissionGroupId, Long fileId) {
 
-        return submissionFileRepository.findBySubmissionGroupIdAndUuid(submissionGroupId, uuid);
+        return submissionFileRepository.findBySubmissionGroupIdAndId(submissionGroupId, fileId);
     }
 
     protected SubmissionStatus getApproveForExecutionSubmissionStatus(Submission submission, Boolean isApproved) {
@@ -769,5 +785,68 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         try (final SequenceInputStream in = new SequenceInputStream(Collections.enumeration(inputStreams))) {
             return DigestUtils.md5DigestAsHex(in);
         }
+    }
+
+    @Override
+    public List<SubmissionAction> getSubmissionActions(Submission submission) {
+
+        // Approve execution
+        SubmissionAction execApproveAction = getExecApproveAction(submission);
+
+        // Manually upload files
+        SubmissionAction manualResultUploadAction = getManualResultUploadAction(submission);
+
+        // Publish submission
+        SubmissionAction publishAction = getPublishAction(submission);
+
+        return Arrays.asList(execApproveAction, manualResultUploadAction, publishAction);
+    }
+
+    protected SubmissionAction getPublishAction(Submission submission) {
+
+        SubmissionAction publishAction = new SubmissionAction(PUBLISH.name());
+        publishAction.setAvailable(
+                Arrays.asList(EXECUTED, FAILED, IN_PROGRESS).contains(submission.getStatus()));
+        switch (submission.getStatus()) {
+            case EXECUTED_PUBLISHED:
+            case FAILED_PUBLISHED:
+                publishAction.setResult(true);
+                break;
+            case EXECUTED_REJECTED:
+            case FAILED_REJECTED:
+                publishAction.setResult(false);
+                break;
+            default:
+                publishAction.setResult(null);
+                break;
+        }
+        return publishAction;
+    }
+
+    protected SubmissionAction getExecApproveAction(Submission submission) {
+
+        SubmissionAction execApproveAction = new SubmissionAction(EXECUTE.name());
+        execApproveAction.setAvailable(submission.getStatus().equals(PENDING));
+        switch (submission.getStatus()) {
+            case PENDING:
+                execApproveAction.setResult(null);
+                break;
+            case NOT_APPROVED:
+                execApproveAction.setResult(false);
+                break;
+            default:
+                execApproveAction.setResult(true);
+                break;
+        }
+        return execApproveAction;
+    }
+
+    protected SubmissionAction getManualResultUploadAction(Submission submission) {
+
+        SubmissionAction manualResultUploadAction = new SubmissionAction(SubmissionActionType.MANUAL_UPLOAD.name());
+        manualResultUploadAction.setAvailable(
+                submission.getStatus().equals(SubmissionStatus.IN_PROGRESS)
+        );
+        return manualResultUploadAction;
     }
 }

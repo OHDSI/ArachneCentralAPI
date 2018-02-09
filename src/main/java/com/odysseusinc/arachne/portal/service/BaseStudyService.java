@@ -39,6 +39,7 @@ import com.odysseusinc.arachne.portal.model.SuggestSearchRegion;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserStudy;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
+import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobStudyFileResponseEvent;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -97,14 +98,14 @@ public interface BaseStudyService<
     StudyDataSourceLink addDataSource(User createdBy, Long id, Long dataSourceId)
             throws NotExistException, AlreadyExistException;
 
-    DS addVirtualDataSource(User createdBy, Long studyId, String dataSourceName, List<Long> dataOwnerIdList)
+    DS addVirtualDataSource(User createdBy, Long studyId, String dataSourceName, List<String> dataOwnerIdList)
             throws NotExistException, AlreadyExistException, NoSuchFieldException,
             IOException, ValidationException, FieldException, IllegalAccessException,
             SolrServerException;
 
     DS getStudyDataSource(User user, Long studyId, Long dataSourceId);
 
-    DS updateVirtualDataSource(User user, Long studyId, Long dataSourceId, String name, List<Long> dataOwnerIds)
+    DS updateVirtualDataSource(User user, Long studyId, Long dataSourceId, String name, List<String> dataOwnerIds)
             throws IllegalAccessException, IOException, NoSuchFieldException, SolrServerException, ValidationException;
 
     void removeDataSource(Long id, Long dataSourceId) throws NotExistException;
@@ -131,4 +132,6 @@ public interface BaseStudyService<
     List<StudyDataSourceLink> getLinksByStudyId(Long id, EntityGraph dataSource);
 
     List<StudyFile> getFilesByStudyId(Long id, EntityGraph author);
+
+    void processAntivirusResponse(AntivirusJobStudyFileResponseEvent event);
 }

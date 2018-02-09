@@ -29,21 +29,19 @@ import com.odysseusinc.arachne.portal.security.DataNodeAuthenticationProvider;
 import com.odysseusinc.arachne.portal.security.EntryPointUnauthorizedHandler;
 import com.odysseusinc.arachne.portal.security.HostNameIsNotInServiceException;
 import com.odysseusinc.arachne.portal.security.Roles;
+import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
+import com.odysseusinc.arachne.portal.security.passwordvalidator.PasswordValidatorBuilder;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
-import edu.vt.middleware.password.LengthRule;
-import edu.vt.middleware.password.MessageResolver;
-import edu.vt.middleware.password.PasswordValidator;
-import edu.vt.middleware.password.QwertySequenceRule;
-import edu.vt.middleware.password.RepeatCharacterRegexRule;
-import edu.vt.middleware.password.Rule;
-import edu.vt.middleware.password.WhitespaceRule;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
+import java.net.URI;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Properties;
-import java.util.Set;
+import java.util.Map;
+import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -51,6 +49,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -62,6 +61,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -73,11 +73,52 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    private final static Logger log = LoggerFactory.getLogger(WebSecurityConfig.class);
-    public static final ThreadLocal<String> portalHost = new ThreadLocal<>();
+    private static final Logger log = LoggerFactory.getLogger(WebSecurityConfig.class);
+    public static final ThreadLocal<String> portalUrl = new ThreadLocal<>();
+    private static String defaultPortalURI;
 
-    @Value("#{'${portal.hostsWhiteList}'.toLowerCase().split(',')}")
-    private List<String> portalHostWhiteList;
+    @Value("#{'${portal.urlWhiteList}'.toLowerCase().split(',')}")
+    private List<String> portalUrlWhiteList;
+
+    @Value("${arachne.passwordBlacklist}")
+    private String[] passwordBlacklist;
+
+    private static Map<String, URI> urls = new LinkedHashMap<>();
+
+    public static String getDefaultPortalURI() {
+
+        return defaultPortalURI;
+    }
+
+    @PostConstruct
+    public void initialize() {
+
+        final LinkedHashMap<String, URI> urlsLocal = urlToHostUrlMapConverter(portalUrlWhiteList);
+        urls.putAll(urlsLocal);
+        if (urls.keySet().isEmpty()) {
+            throw new BeanInitializationException("At least one portalUrlWhiteList entry must be specified");
+        }
+        final String hostString = urls.keySet().stream().collect(Collectors.joining(","));
+        log.info("host white list: {}", hostString);
+        urls.values().stream().findFirst().ifPresent(url -> {
+            final String urlString = url.toString();
+            log.info("default Portal URL: {}", urlString);
+            defaultPortalURI = urlString;
+        });
+    }
+
+    public static LinkedHashMap<String, URI> urlToHostUrlMapConverter(List<String> portalUrlWhiteList) {
+
+        final Pattern urlPattern = Pattern.compile("(https?://)([^:^/]*)(:\\\\d*)?(.*)?");
+        final Predicate<String> urlFilterPredicate = s -> {
+            final Matcher matcher = urlPattern.matcher(s);
+            return matcher.matches();
+        };
+        return portalUrlWhiteList.stream()
+                .filter(urlFilterPredicate)
+                .map(URI::create)
+                .collect(Collectors.toMap(URI::getHost, s -> s, (host1, host2) -> host1, LinkedHashMap::new));
+    }
 
     @Autowired
     protected BaseDataNodeService baseDataNodeService;
@@ -120,22 +161,27 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public PasswordValidator passwordValidator() throws IOException {
+    public ArachnePasswordValidator passwordValidator() throws IOException {
 
-        LengthRule lengthRule = new LengthRule(8, 16);
-        WhitespaceRule whitespaceRule = new WhitespaceRule();
-        QwertySequenceRule qwertySeqRule = new QwertySequenceRule();
-        RepeatCharacterRegexRule repeatRule = new RepeatCharacterRegexRule(4);
-        List<Rule> ruleList = new ArrayList<>();
-        ruleList.add(lengthRule);
-        ruleList.add(whitespaceRule);
-        ruleList.add(qwertySeqRule);
-        ruleList.add(repeatRule);
-        Properties props = new Properties();
-
-        props.load(new ClassPathResource("password_messages.properties").getInputStream());
-        MessageResolver resolver = new MessageResolver(props);
-        return new PasswordValidator(resolver, ruleList);
+        return PasswordValidatorBuilder.create()
+                .withComplexRules()
+                .withUppercaseCharacter(1)
+                .withLowercaseCharacter(1)
+                .withDigitCharacter(1)
+                .withNonAlphanumericCharacter(1)
+                .withNumberOfCharacteristics(3)
+                .done()
+                .withLength(10, 128)
+                .withWhitespace()
+                .withQuerty()
+                .withUsername(true, true)
+                .withUsersNames()
+                .withBlacklist(passwordBlacklist)
+                .withRepeatChars(3)
+                .withAlphabeticalChars(2)
+                .withIllegalChars(new char[]{'‘', '\"', '&', ' '})
+                .withMessages(new ClassPathResource("password_messages.properties"))
+                .build();
     }
 
     @Bean
@@ -163,29 +209,29 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public HostFilter hostFilter() {
 
-        return new HostFilter(portalHostWhiteList);
+        return new HostFilter(urls);
     }
 
     public static class HostFilter extends OncePerRequestFilter {
 
-        protected Set<String> portalHostWhiteList;
+        protected Map<String, URI> portalUrlWhiteList;
 
         @Value("${server.ssl.enabled}")
         private Boolean httpsEnabled;
 
-        public HostFilter(Collection<String> portalHostWhiteList) {
+        public HostFilter(Map<String, URI> portalUrlWhiteList) {
 
-            this.portalHostWhiteList = new HashSet<>(portalHostWhiteList);
+            this.portalUrlWhiteList = portalUrlWhiteList;
         }
 
         @Override
         protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
             final String host = request.getHeader("Host").split(":")[0];
-            if (!portalHostWhiteList.contains(StringUtils.lowerCase(host))) {
+            if (!portalUrlWhiteList.containsKey(StringUtils.lowerCase(host))) {
                 throw new HostNameIsNotInServiceException(host);
             }
-            portalHost.set(String.format("http%s://%s", httpsEnabled ? "s" : "", host));
+            portalUrl.set(portalUrlWhiteList.get(host).toString());
             filterChain.doFilter(request, response);
             // portalHost.remove();
         }
@@ -194,7 +240,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
-        http
+        ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry reg = http
                 .csrf()
                 .disable()
                 .exceptionHandling()
@@ -203,10 +249,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
-                .authorizeRequests()
-                .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .authorizeRequests();
+
+        reg.antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .antMatchers("/api/v1/auth/logout**").permitAll()
                 .antMatchers("/api/v1/auth/login**").permitAll()
+                .antMatchers("/api/v1/auth/password-policies**").permitAll()
                 .antMatchers("/api/v1/auth/logout**").permitAll()
                 .antMatchers("/api/v1/auth/login/**").permitAll()
                 .antMatchers("/api/v1/auth/registration/**").permitAll()
@@ -230,13 +278,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/v1/data-nodes/cohorts**").hasRole(Roles.ROLE_DATA_NODE)
                 .antMatchers("/api/v1/data-sources/byuuid/**").hasRole(Roles.ROLE_DATA_NODE)
 
-                .antMatchers("/api/v1/admin/users", "/api/v1/admin/users/**").hasRole("ADMIN")
                 // Next 2 are used by Data node (authed by query param, manually)
                 .antMatchers("/api/v1/analysis-management/submissions/**/files**").permitAll()
                 .antMatchers("/api/v1/analysis-management/submissions/result/upload**").permitAll()
-                .antMatchers("/insights-library/insights/**").permitAll()
+                .antMatchers("/insights-library/insights/**").permitAll();
 
-                .antMatchers("/api**").authenticated()
+        extendHttpSecurity(reg);
+        reg.antMatchers("/api**").authenticated()
                 .antMatchers("/api/**").authenticated()
                 .anyRequest().permitAll();
 
@@ -246,6 +294,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         // DataNode authentication
         http.addFilterBefore(authenticationSystemTokenFilter(), AuthenticationTokenFilter.class);
         http.addFilterBefore(hostfilter, AuthenticationSystemTokenFilter.class);
+    }
+
+    protected void extendHttpSecurity(ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry  registry) {
+
     }
 
 }

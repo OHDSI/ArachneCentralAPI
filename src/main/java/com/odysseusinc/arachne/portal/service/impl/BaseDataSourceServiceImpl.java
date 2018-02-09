@@ -24,6 +24,7 @@ package com.odysseusinc.arachne.portal.service.impl;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonModelType;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchDataCatalogDTO;
+import com.odysseusinc.arachne.portal.config.tenancy.TenantContext;
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
@@ -106,16 +107,22 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
         }
     }
 
+    protected QueryResponse solrSearch(SolrQuery solrQuery) throws IOException, SolrServerException, NoSuchFieldException {
+
+        return solrService.search(
+                SolrServiceImpl.DATA_SOURCE_COLLECTION,
+                solrQuery,
+                DataSource.class.getDeclaredField("tenants")
+        );
+    }
+
     public SearchResult<DS> search(
             SolrQuery solrQuery
-    ) throws IOException, SolrServerException {
+    ) throws IOException, SolrServerException, NoSuchFieldException {
 
         List<DS> dataSourceList;
 
-        QueryResponse solrResponse = solrService.search(
-                SolrServiceImpl.DATA_SOURCE_COLLECTION,
-                solrQuery
-        );
+        QueryResponse solrResponse = solrSearch(solrQuery);
 
         List<Long> docIdList = solrResponse.getResults()
                 .stream()
@@ -216,6 +223,11 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
         return dataSourceRepository.getByDataNodeVirtualAndDeletedIsNull(false);
     }
 
+    private List<DS> getAllNotDeletedAndIsNotVirtualFromAllTenants() {
+
+        return dataSourceRepository.getAllNotDeletedAndIsNotVirtualFromAllTenants();
+    }
+
     @Override
     public DS findByUuidUnsecured(String uuid) throws NotExistException {
 
@@ -272,7 +284,7 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
     public void indexAllBySolr() throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
         solrService.deleteByQuery(SolrServiceImpl.DATA_SOURCE_COLLECTION, "*:*");
-        List<DS> dataSourceList = getAllNotDeletedIsNotVirtualUnsecured();
+        List<DS> dataSourceList = getAllNotDeletedAndIsNotVirtualFromAllTenants();
         for (DS dataSource : dataSourceList) {
             indexBySolr(dataSource);
         }
@@ -289,10 +301,7 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
         SolrQuery solrQuery = conversionService.convert(new SearchDataCatalogDTO(true), SolrQuery.class);
         solrQuery = addFilterQuery(solrQuery, user);
 
-        QueryResponse solrResponse = solrService.search(
-                SolrServiceImpl.DATA_SOURCE_COLLECTION,
-                solrQuery
-        );
+        QueryResponse solrResponse = solrSearch(solrQuery);
         SearchResult<Long> searchResult = new SearchResult<>(solrQuery, solrResponse, Collections.<Long>emptyList());
         return searchResult.excludedOptions();
     }

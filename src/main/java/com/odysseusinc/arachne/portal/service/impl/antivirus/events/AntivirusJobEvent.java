@@ -15,14 +15,27 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: January 25, 2017
+ * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Konstantin Yaroshovets
+ * Created: January 22, 2017
  *
  */
 
-package com.odysseusinc.arachne.portal.service;
+package com.odysseusinc.arachne.portal.service.impl.antivirus.events;
 
-import com.odysseusinc.arachne.portal.model.security.SpringAclSid;
+import org.springframework.context.ApplicationEvent;
 
-public interface SpringAclSidService extends CRUDLService<SpringAclSid> {
+public class AntivirusJobEvent extends ApplicationEvent {
+
+    private AntivirusJob antivirusJob;
+
+    public AntivirusJobEvent(Object source, AntivirusJob antivirusJob) {
+
+        super(source);
+        this.antivirusJob = antivirusJob;
+    }
+
+    public AntivirusJob getAntivirusJob() {
+
+        return antivirusJob;
+    }
 }

@@ -33,11 +33,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.servlet.http.HttpServletRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -45,20 +45,21 @@ import org.springframework.stereotype.Component;
 @Component
 public class TokenUtils {
 
-    Logger log = LoggerFactory.getLogger(TokenUtils.class);
-
+    public static final String EX_CONCURRENT_LOGIN = "User %s token invalidated due to concurrent login";
+    private final Logger log = Logger.getLogger(getClass());
+    private final Object monitor = new Object();
     @Value("${arachne.token.header}")
     private String tokenHeader;
-
     @Value("${arachne.token.secret}")
     private String secret;
-
     @Value("${arachne.token.expiration}")
     private Long expiration;
-
     private ConcurrentHashMap<String, Date> invalidatedTokens = new ConcurrentHashMap<>();
 
+    private ConcurrentHashMap<String, String> usernameTokenMap = new ConcurrentHashMap<>();
+
     public List<String> getAuthToken(HttpServletRequest request) {
+
         List<String> tokens = new ArrayList<>();
 
         // Get token from header
@@ -188,7 +189,21 @@ public class TokenUtils {
         claims.put("sub", username);
         claims.put("created", generateCurrentDate());
         claims.put("uuid", UUID.randomUUID().toString());
-        return generateToken(claims);
+
+        return checkTokenConcurrency(username, generateToken(claims));
+    }
+
+    private String checkTokenConcurrency(final String username, final String token) {
+
+        synchronized (monitor) {
+            String oldToken = usernameTokenMap.getOrDefault(username, null);
+            if (!Objects.equals(token, oldToken) && (Objects.nonNull(oldToken) && !isExpired(oldToken))) {
+                log.info(String.format(EX_CONCURRENT_LOGIN, username));
+                addInvalidateToken(oldToken);
+            }
+            usernameTokenMap.put(username, token);
+        }
+        return token;
     }
 
     private String generateToken(Map<String, Object> claims) {
