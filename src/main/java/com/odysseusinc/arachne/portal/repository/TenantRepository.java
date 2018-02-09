@@ -16,17 +16,27 @@
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
  * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: January 25, 2017
+ * Created: October 19, 2016
  *
  */
 
 package com.odysseusinc.arachne.portal.repository;
 
-import com.odysseusinc.arachne.portal.model.security.SpringAclEntry;
-import org.springframework.data.repository.CrudRepository;
+import com.odysseusinc.arachne.portal.model.security.Tenant;
+import java.util.List;
+import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
-public interface SpringAclEntryRepository extends CrudRepository<SpringAclEntry, Long> {
+public interface TenantRepository<T extends Tenant> extends JpaRepository<T, Long> {
 
-    SpringAclEntry findByAclObjectIdentityAndSid(Long aclObjectIdentity, Long sid);
+    Optional<Tenant> findFirstByDataSourcesIdAndUsersId(@Param("dataSourceId") Long dataSourceId, @Param("userId") Long userId);
 
+    @Query(
+            "SELECT t1 " +
+                    "FROM Tenant t1 INNER JOIN t1.users u1, Tenant t2 INNER JOIN t2.users u2 " +
+                    "WHERE u1.id = :firstUserId AND u2.id = :secondUserId AND t1.id = t2.id"
+    )
+    List<Tenant> findCommonForUsers(@Param("firstUserId") Long firstUserId, @Param("secondUserId") Long secondUserId);
 }

@@ -23,6 +23,7 @@
 package com.odysseusinc.arachne.portal.model;
 
 import com.odysseusinc.arachne.commons.utils.UserIdUtils;
+import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
 import java.io.Serializable;
 import java.util.Date;
@@ -41,6 +42,7 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
@@ -167,6 +169,16 @@ public class User implements Serializable {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<DataNodeUser> dataNodeUsers = new HashSet<>();
 
+    @ManyToMany(targetEntity = Tenant.class, fetch = FetchType.LAZY)
+    @JoinTable(name = "tenant_dependent_users_view",
+            joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "tenant_id", referencedColumnName = "id"))
+    @SolrFieldAnno(filter = true)
+    private List<Tenant> tenants;
+
+    @OneToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "active_tenant_id")
+    private Tenant activeTenant;
 
     public Long getId() {
 
@@ -489,5 +501,25 @@ public class User implements Serializable {
     public String getFullName() {
 
         return firstname + " " + (middlename != null ? middlename : "") + " " + lastname;
+    }
+
+    public List<Tenant> getTenants() {
+
+        return tenants;
+    }
+
+    public void setTenants(List<Tenant> tenants) {
+
+        this.tenants = tenants;
+    }
+
+    public Tenant getActiveTenant() {
+
+        return activeTenant;
+    }
+
+    public void setActiveTenant(Tenant activeTenant) {
+
+        this.activeTenant = activeTenant;
     }
 }

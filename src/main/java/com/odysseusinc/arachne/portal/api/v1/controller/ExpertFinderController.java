@@ -15,14 +15,23 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: January 25, 2017
+ * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva
+ * Created: February 05, 2018
  *
  */
 
-package com.odysseusinc.arachne.portal.service;
+package com.odysseusinc.arachne.portal.api.v1.controller;
 
-import com.odysseusinc.arachne.portal.model.security.SpringAclSid;
+import com.odysseusinc.arachne.portal.model.Skill;
+import com.odysseusinc.arachne.portal.model.User;
+import com.odysseusinc.arachne.portal.service.BaseUserService;
+import org.springframework.web.bind.annotation.RestController;
 
-public interface SpringAclSidService extends CRUDLService<SpringAclSid> {
+@RestController
+public class ExpertFinderController extends BaseExpertFinderController<User, Skill> {
+
+    public ExpertFinderController(BaseUserService<User, Skill> userService) {
+
+        super(userService);
+    }
 }

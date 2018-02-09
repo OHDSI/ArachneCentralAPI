@@ -51,6 +51,7 @@ import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface BaseUserService<U extends User, S extends Skill> {
@@ -60,6 +61,8 @@ public interface BaseUserService<U extends User, S extends Skill> {
     U getByUsername(final String userOrigin, final String username);
 
     U getByEmail(String email);
+
+    U findLoginCandidate(final String email);
 
     U getByUnverifiedEmail(final String email);
 
@@ -97,8 +100,12 @@ public interface BaseUserService<U extends User, S extends Skill> {
             NotExistException,
             NoSuchFieldException;
 
+    @PreAuthorize("hasPermission(#uuid, 'User', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_USER)")
     U getByUuid(String uuid);
 
+    @PreAuthorize("hasPermission(#uuid, 'User', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_USER)")
     U getByUuidAndInitializeCollections(String uuid);
 
     List<U> suggestUser(String query, List<String> emailsList, Integer limit);
@@ -109,7 +116,7 @@ public interface BaseUserService<U extends User, S extends Skill> {
 
     List<U> suggestNotAdmin(String query, Integer limit);
 
-    List<U> getAllEnabled();
+    List<U> getAllEnabledFromAllTenants();
 
     Page<U> getAll(Pageable pageable, UserSearch userSearch);
 
@@ -168,7 +175,7 @@ public interface BaseUserService<U extends User, S extends Skill> {
             NoSuchFieldException,
             IllegalAccessException;
 
-    SearchResult<U> search(SolrQuery solrQuery) throws IOException, SolrServerException;
+    SearchResult<U> search(SolrQuery solrQuery) throws IOException, SolrServerException, NoSuchFieldException;
 
     List<Country> suggestCountry(String query, Integer limit, Long includeId);
 

@@ -1,19 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <dataset>
+    <tenants
+            id="1"
+            name="Everyone"
+    />
     <professional_types
             id="1"
             name="professionalTypeName"
     />
-    <users
+    <users_data
             id="1"
             password="password"
             enabled="true"
             email="admin@odysseusinc.com"
-            username="admin@odysseusinc.com"
             email_confirmed="true"
+            origin="NATIVE"
+            username="admin@odysseusinc.com"
             professional_type_id="1"
+            active_tenant_id="1"
     />
-    <users
+    <users_data
             id="2"
             password="encoded_password"
             firstname="firstName"
@@ -22,10 +28,13 @@
             enabled="true"
             email="mail@mail2.com"
             email_confirmed="false"
+            origin="NATIVE"
+            username="mail@mail2.com"
             professional_type_id="1"
             registration_code="activationCode"
+            active_tenant_id="1"
     />
-    <users
+    <users_data
             id="3"
             password="encoded_password"
             firstname="firstName2"
@@ -34,20 +43,26 @@
             enabled="true"
             email="mail@mail3.com"
             email_confirmed="false"
+            origin="NATIVE"
+            username="mail@mail3.com"
             professional_type_id="1"
+            active_tenant_id="1"
     />
 
-    <users id="4"
-           password="encoded_password"
-           firstname="name"
-           middlename="middle"
-           lastname="lastName"
-           enabled="true"
-           email="mail@mail4.com"
-           email_confirmed="false"
-           professional_type_id="1"
+    <users_data id="4"
+                password="encoded_password"
+                firstname="name"
+                middlename="middle"
+                lastname="lastName"
+                enabled="true"
+                email="mail@mail4.com"
+                email_confirmed="false"
+                origin="NATIVE"
+                username="mail@mail4.com"
+                professional_type_id="1"
+                active_tenant_id="1"
     />
-    <users
+    <users_data
             id="5"
             password="encoded_password"
             firstname="firstName"
@@ -56,9 +71,12 @@
             enabled="false"
             email="mail@mail5.com"
             email_confirmed="false"
+            origin="NATIVE"
+            username="mail@mail5.com"
             professional_type_id="1"
+            active_tenant_id="1"
     />
-    <users
+    <users_data
             id="6"
             password="encoded_password"
             firstname="firstName6"
@@ -67,9 +85,12 @@
             enabled="true"
             email="mail@mail6.com"
             email_confirmed="false"
+            origin="NATIVE"
+            username="mail@mail6.com"
             professional_type_id="1"
+            active_tenant_id="1"
     />
-    <users
+    <users_data
             id="7"
             password="encoded_password"
             firstname="firstName6"
@@ -78,16 +99,48 @@
             enabled="true"
             email="mail@mail7.com"
             email_confirmed="false"
+            origin="NATIVE"
+            username="mail@mail7.com"
             professional_type_id="1"
+            active_tenant_id="1"
+    />
+    <tenants_users
+            user_id="1"
+            tenant_id="1"
+    />
+    <tenants_users
+            user_id="2"
+            tenant_id="1"
+    />
+    <tenants_users
+            user_id="3"
+            tenant_id="1"
+    />
+    <tenants_users
+            user_id="4"
+            tenant_id="1"
+    />
+    <tenants_users
+            user_id="5"
+            tenant_id="1"
+    />
+    <tenants_users
+            user_id="6"
+            tenant_id="1"
+    />
+    <tenants_users
+            user_id="7"
+            tenant_id="1"
     />
     <study_types
             id="4"
             name="studyTypeName"
     />
-    <studies
+    <studies_data
             id="1"
             title="TEST_STUDY"
             type_id="4"
+            tenant_id="1"
     />
     <studies_users
             id="1"

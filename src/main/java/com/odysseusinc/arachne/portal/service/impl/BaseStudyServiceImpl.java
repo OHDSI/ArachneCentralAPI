@@ -271,6 +271,7 @@ public abstract class BaseStudyServiceImpl<
         study.setStartDate(startDate);
         study.setType(studyTypeService.getById(study.getType().getId()));
         study.setStatus(studyStatusService.findByName("Initiate"));
+        study.setTenant(owner.getActiveTenant());
 
         if (study.getPrivacy() == null) {
             study.setPrivacy(true);
@@ -732,6 +733,7 @@ public abstract class BaseStudyServiceImpl<
         final DS dataSource = studyHelper.getVirtualDataSource(registeredDataNode, dataSourceName);
         dataSource.setHealthStatus(CommonHealthStatus.GREEN);
         dataSource.setHealthStatusDescription("Virtual DataSources are always GREEN");
+        dataSource.getTenants().add(study.getTenant());
         final DS registeredDataSource = dataSourceService.createOrRestoreDataSource(dataSource);
         addDataSource(createdBy, studyId, registeredDataSource.getId());
         return registeredDataSource;

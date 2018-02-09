@@ -30,6 +30,7 @@ import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionInsight;
+import com.odysseusinc.arachne.portal.model.User;
 
 public enum ArachnePermission {
     EDIT_STUDY(Study.class),
@@ -54,7 +55,8 @@ public enum ArachnePermission {
     EDIT_PAPER(Paper.class),
     EDIT_INSIGHT(SubmissionInsight.class),
     ACCESS_PAPER(Paper.class),
-    LIMITED_EDIT_PAPER(Paper.class)
+    LIMITED_EDIT_PAPER(Paper.class),
+    ACCESS_USER(User.class)
     ;
 
     private Class<?>[] applicableClass;
