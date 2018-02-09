@@ -111,7 +111,7 @@ public class Tenant implements SolrValue {
     @Override
     public int hashCode() {
 
-        return Objects.hashCode(this.id);
+        return Objects.hashCode(this.getId());
     }
 
     @Override
