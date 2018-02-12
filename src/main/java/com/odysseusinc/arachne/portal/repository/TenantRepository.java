@@ -25,6 +25,7 @@ package com.odysseusinc.arachne.portal.repository;
 import com.odysseusinc.arachne.portal.model.security.Tenant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -40,5 +41,5 @@ public interface TenantRepository<T extends Tenant> extends JpaRepository<T, Lon
     )
     List<Tenant> findCommonForUsers(@Param("firstUserId") Long firstUserId, @Param("secondUserId") Long secondUserId);
 
-    List<Tenant> findAllByIsDefaultTrue();
+    Set<Tenant> findAllByIsDefaultTrue();
 }

@@ -1,9 +1,9 @@
 package com.odysseusinc.arachne.portal.service;
 
 import com.odysseusinc.arachne.portal.model.security.Tenant;
-import java.util.List;
+import java.util.Set;
 
 public interface TenantService {
 
-    List<Tenant> getDefault();
+    Set<Tenant> getDefault();
 }

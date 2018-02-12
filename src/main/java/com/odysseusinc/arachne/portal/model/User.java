@@ -174,7 +174,7 @@ public class User implements Serializable {
             joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "tenant_id", referencedColumnName = "id"))
     @SolrFieldAnno(filter = true)
-    private List<Tenant> tenants;
+    private Set<Tenant> tenants;
 
     @OneToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "active_tenant_id")
@@ -503,12 +503,12 @@ public class User implements Serializable {
         return firstname + " " + (middlename != null ? middlename : "") + " " + lastname;
     }
 
-    public List<Tenant> getTenants() {
+    public Set<Tenant> getTenants() {
 
         return tenants;
     }
 
-    public void setTenants(List<Tenant> tenants) {
+    public void setTenants(Set<Tenant> tenants) {
 
         this.tenants = tenants;
     }

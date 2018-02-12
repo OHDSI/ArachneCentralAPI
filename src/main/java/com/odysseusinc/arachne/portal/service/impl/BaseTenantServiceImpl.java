@@ -3,7 +3,7 @@ package com.odysseusinc.arachne.portal.service.impl;
 import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.repository.TenantRepository;
 import com.odysseusinc.arachne.portal.service.TenantService;
-import java.util.List;
+import java.util.Set;
 
 public abstract class BaseTenantServiceImpl implements TenantService {
 
@@ -14,7 +14,7 @@ public abstract class BaseTenantServiceImpl implements TenantService {
         this.tenantRepository = tenantRepository;
     }
 
-    public List<Tenant> getDefault() {
+    public Set<Tenant> getDefault() {
 
         return tenantRepository.findAllByIsDefaultTrue();
     }
