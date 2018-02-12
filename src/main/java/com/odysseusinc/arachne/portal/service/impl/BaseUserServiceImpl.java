@@ -79,6 +79,7 @@ import com.odysseusinc.arachne.portal.service.BaseSkillService;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
+import com.odysseusinc.arachne.portal.service.TenantService;
 import com.odysseusinc.arachne.portal.service.UserLinkService;
 import com.odysseusinc.arachne.portal.service.UserPublicationService;
 import com.odysseusinc.arachne.portal.service.UserRegistrantService;
@@ -162,6 +163,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     private final ArachneMailSender arachneMailSender;
     private final UserRegistrantService userRegistrantService;
     private final PasswordValidator passwordValidator;
+    private final TenantService tenantService;
     @Value("${files.store.path}")
     private String fileStorePath;
     @Value("${user.enabled.default}")
@@ -190,7 +192,8 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
                                AnalysisUnlockRequestRepository analysisUnlockRequestRepository,
                                BaseSkillService<S> skillService,
                                RoleRepository roleRepository,
-                               UserLinkService userLinkService) {
+                               UserLinkService userLinkService,
+                               TenantService tenantService) {
 
         this.stateProvinceRepository = stateProvinceRepository;
         this.messageSource = messageSource;
@@ -210,6 +213,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         this.skillService = skillService;
         this.roleRepository = roleRepository;
         this.userLinkService = userLinkService;
+        this.tenantService = tenantService;
     }
 
     @Override
@@ -279,6 +283,8 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         final String middleName = user.getMiddlename();
         validatePassword(username, firstName, lastName, middleName, password);
         user.setPassword(passwordEncoder.encode(password));
+
+        user.setTenants(tenantService.getDefault());
 
         // The existing user check should come last:
         // it is muted in public registration form, so we need to show other errors ahead

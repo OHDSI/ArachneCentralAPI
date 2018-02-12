@@ -44,6 +44,9 @@ public class Tenant implements SolrValue {
     @OneToMany(targetEntity = Study.class, mappedBy = "tenant")
     private Set<Study> studies;
 
+    @Column
+    private Boolean isDefault;
+
     public Long getId() {
 
         return id;
@@ -92,6 +95,16 @@ public class Tenant implements SolrValue {
     public void setStudies(Set<Study> studies) {
 
         this.studies = studies;
+    }
+
+    public Boolean getDefault() {
+
+        return isDefault;
+    }
+
+    public void setDefault(Boolean aDefault) {
+
+        isDefault = aDefault;
     }
 
     @Transient

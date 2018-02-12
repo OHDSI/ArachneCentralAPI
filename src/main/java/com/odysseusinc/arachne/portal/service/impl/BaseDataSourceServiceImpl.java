@@ -31,6 +31,7 @@ import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.repository.BaseDataSourceRepository;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
+import com.odysseusinc.arachne.portal.service.TenantService;
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
 import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
@@ -59,14 +60,17 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
     protected BaseDataSourceRepository<DS> dataSourceRepository;
     protected BaseSolrService<SF> solrService;
     protected GenericConversionService conversionService;
+    protected TenantService tenantService;
 
     public BaseDataSourceServiceImpl(BaseSolrService<SF> solrService,
                                      BaseDataSourceRepository<DS> dataSourceRepository,
-                                     GenericConversionService conversionService) {
+                                     GenericConversionService conversionService,
+                                     TenantService tenantService) {
 
         this.solrService = solrService;
         this.dataSourceRepository = dataSourceRepository;
         this.conversionService = conversionService;
+        this.tenantService = tenantService;
     }
 
     @Override
@@ -92,6 +96,7 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
 
         dataSource.setPublished(false);
         dataSource.setCreated(new Date());
+        dataSource.setTenants(tenantService.getDefault());
     }
 
 /*
