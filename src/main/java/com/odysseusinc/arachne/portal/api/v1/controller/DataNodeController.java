@@ -22,7 +22,6 @@
 
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
-import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeRegisterDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataSourceDTO;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.DataNode;
@@ -53,14 +52,18 @@ public class DataNodeController extends BaseDataNodeController<DataSource, Commo
     }
 
     @Override
-    protected DataNode convertRegisterDtoToDataNode(CommonDataNodeRegisterDTO commonDataNodeRegisterDTO) {
-
-        return conversionService.convert(commonDataNodeRegisterDTO, DataNode.class);
+    protected DataNode createEmptyDataNode() {
+        DataNode dataNode = new DataNode();
+        dataNode.setVirtual(false);
+        dataNode.setName("Not published"); //TODO 1941
+        return dataNode;
     }
 
     @Override
     protected DataSource convertCommonDataSourceDtoToDataSource(CommonDataSourceDTO commonDataSourceDTO) {
 
-        return conversionService.convert(commonDataSourceDTO, DataSource.class);
+        DataSource ds = conversionService.convert(commonDataSourceDTO, DataSource.class);
+        ds.setModelType(null);
+        return ds;
     }
 }

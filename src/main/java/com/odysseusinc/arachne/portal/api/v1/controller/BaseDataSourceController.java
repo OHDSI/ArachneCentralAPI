@@ -41,6 +41,11 @@ import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.StudyDataSourceService;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
 import com.odysseusinc.arachne.portal.util.ConverterUtils;
+import java.io.IOException;
+import java.security.Principal;
+import java.util.Arrays;
+import java.util.List;
+import javax.validation.Valid;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.core.convert.support.GenericConversionService;
@@ -54,12 +59,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-
-import javax.validation.Valid;
-import java.io.IOException;
-import java.security.Principal;
-import java.util.Arrays;
-import java.util.List;
 
 public abstract class BaseDataSourceController<DS extends DataSource,
         DTO extends CommonBaseDataSourceDTO,
@@ -82,11 +81,13 @@ public abstract class BaseDataSourceController<DS extends DataSource,
         this.studyDataSourceService = studyDataSourceService;
     }
 
+
+
     @RequestMapping(value = "/api/v1/data-sources/{id}", method = RequestMethod.PUT)
     public JsonResult<DTO> update(
             Principal principal,
             @PathVariable("id") Long dataSourceId,
-            @RequestBody @Valid DTO commonDataSourceDTO,
+            @RequestBody @Valid DTO commonDataSourceDTO, // c model type ?
             BindingResult bindingResult
     ) throws NotExistException,
             PermissionDeniedException,
@@ -106,6 +107,8 @@ public abstract class BaseDataSourceController<DS extends DataSource,
             DS dataSource = convertDTOToDataSource(commonDataSourceDTO);
             dataSource.setId(dataSourceId);
             dataSource.setDataNode(exist.getDataNode());
+            dataSource.setPublished(true);
+            //dataSource.setModelType(null); // filled during creating
             dataSource = dataSourceService.update(dataSource);
             result = new JsonResult<>(NO_ERROR);
             result.setResult(convertDataSourceToDTO(dataSource));

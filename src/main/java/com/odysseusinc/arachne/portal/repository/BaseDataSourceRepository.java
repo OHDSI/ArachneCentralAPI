@@ -23,6 +23,8 @@
 package com.odysseusinc.arachne.portal.repository;
 
 import com.odysseusinc.arachne.portal.model.DataSource;
+import java.util.List;
+import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
@@ -31,15 +33,12 @@ import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
-
 @NoRepositoryBean
 public interface BaseDataSourceRepository<T extends DataSource> extends CrudRepository<T, Long> {
 
     T findOne(Long id);
 
-    List<T> findByIdInAndDeletedIsNull(List<Long> ids);
+    List<T> findByIdInAndDeletedIsNullAndPublishedTrue(List<Long> ids);
 
     Optional<T> findByName(String name);
 
@@ -47,11 +46,12 @@ public interface BaseDataSourceRepository<T extends DataSource> extends CrudRepo
 
     Optional<T> findByIdAndDeletedIsNull(Long id);
 
+    // todo rename
     @Query(value = "SELECT *"
             + " FROM data_sources AS ds "
             + " JOIN datanodes_users AS u "
             + "   ON ds.data_node_id=u.datanode_id "
-            + " WHERE ds.deleted IS NULL "
+            + " WHERE ds.deleted IS NULL AND ds.published = TRUE"
             + " AND u.user_id=:userId ",
             nativeQuery = true)
     List<T> getAllByUserId(@Param("userId") Long userId);
@@ -63,7 +63,7 @@ public interface BaseDataSourceRepository<T extends DataSource> extends CrudRepo
             + " ds.id NOT IN (SELECT data_source_id FROM studies_data_sources WHERE study_id=:studyId "
             + "            AND lower(status) NOT IN ('deleted', 'declined'))"
             + " AND lower(ds.name || ' ' || dn.name) SIMILAR TO :suggestRequest "
-            + " AND ds.deleted IS NULL "
+            + " AND ds.deleted IS NULL AND ds.published = TRUE "
             + " AND dn.is_virtual = FALSE \n"
             + " \n--#pageable\n",
             countQuery = "SELECT COUNT(*) FROM (SELECT DISTINCT ON (ds.name) * FROM data_sources AS ds "
@@ -73,7 +73,7 @@ public interface BaseDataSourceRepository<T extends DataSource> extends CrudRepo
                     + " ds.id NOT IN (SELECT data_source_id FROM studies_data_sources WHERE study_id=:studyId "
                     + "            AND lower(status) NOT IN ('deleted', 'declined'))"
                     + " AND lower(ds.name || ' ' || dn.name) SIMILAR TO :suggestRequest "
-                    + " AND ds.deleted IS NULL "
+                    + " AND ds.deleted IS NULL AND ds.published = TRUE"
                     + " AND dn.is_virtual = FALSE) as innerSelect"
            )
     Page<T> suggest(@Param("suggestRequest") String suggestRequest, @Param("studyId") Long studyId,
@@ -83,7 +83,7 @@ public interface BaseDataSourceRepository<T extends DataSource> extends CrudRepo
             + "JOIN achilles_files f ON f.characterization_id = c.id WHERE f.id = :fileId")
     T getByAchillesFileId(@Param("fileId") Long fileId);
 
-    List<T> getByDataNodeVirtualAndDeletedIsNull(Boolean isVirtual);
+    List<T> getByDataNodeVirtualAndDeletedIsNullAndPublishedTrue(Boolean isVirtual);
 
     // Have to do native query because of request to non-tenant table w/ data sources
     @Query(
@@ -92,8 +92,8 @@ public interface BaseDataSourceRepository<T extends DataSource> extends CrudRepo
                     "FROM data_sources_data ds " +
                     "JOIN datanodes dn ON dn.id = ds.data_node_id " +
                     "WHERE dn.is_virtual = FALSE " +
-                    "AND ds.deleted IS NULL")
-    List<T> getAllNotDeletedAndIsNotVirtualFromAllTenants();
+                    "AND ds.deleted IS NULL AND ds.published = TRUE")
+    List<T> getAllNotDeletedAndIsNotVirtualAndPublishedTrueFromAllTenants();
 
     @Transactional
     int deleteByIdAndDeletedIsNull(Long id);

@@ -26,8 +26,9 @@ import com.google.common.base.Objects;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
-import org.hibernate.validator.constraints.NotEmpty;
-
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -44,9 +45,6 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
 @Table(name = "datanodes")
@@ -61,11 +59,9 @@ public class DataNode implements HasArachnePermissions {
     @Column(length = 50, name = "sid")
     private String sid;
 
-    @NotEmpty
     @Column(name = "name")
     private String name;
 
-    @NotEmpty
     @Column(name = "description")
     private String description;
 

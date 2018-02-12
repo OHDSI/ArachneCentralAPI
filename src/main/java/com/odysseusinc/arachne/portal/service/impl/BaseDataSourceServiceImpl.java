@@ -24,10 +24,8 @@ package com.odysseusinc.arachne.portal.service.impl;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonModelType;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchDataCatalogDTO;
-import com.odysseusinc.arachne.portal.config.tenancy.TenantContext;
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
-import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.repository.BaseDataSourceRepository;
@@ -36,6 +34,13 @@ import com.odysseusinc.arachne.portal.service.BaseSolrService;
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
 import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -47,14 +52,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Transactional(rollbackFor = Exception.class)
 public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extends SolrField> implements BaseDataSourceService<DS> {
@@ -78,34 +75,34 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
     @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
     public DS createOrRestoreDataSource(DS dataSource)
             throws FieldException,
-            NotExistException,
-            ValidationException,
-            IOException,
-            SolrServerException, NoSuchFieldException, IllegalAccessException {
+            NotExistException {
 
         final Boolean virtual = dataSource.getDataNode().getVirtual();
         beforeCreate(dataSource, virtual);
 
-        if (!dataSource.getModelType().equals(CommonModelType.CDM)) {
+        if (!CommonModelType.CDM.equals(dataSource.getModelType())) {
             dataSource.setCdmVersion(null);
         }
         DS savedDataSource = dataSourceRepository.save(dataSource);
-        afterCreate(savedDataSource, virtual);
+        //afterCreate(savedDataSource, virtual);
         return savedDataSource;
     }
 
     protected void beforeCreate(DS dataSource, boolean virtual) {
 
+        dataSource.setPublished(false);
         dataSource.setCreated(new Date());
     }
 
-    protected void afterCreate(DS dataSource, boolean virtual)
+/*
+   protected void afterCreate(DS dataSource, boolean virtual)
             throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
-        if (!virtual) {
+        if (!virtual) { // NO AFTER REGISTRATION не надо
             indexBySolr(dataSource);
         }
     }
+*/
 
     protected QueryResponse solrSearch(SolrQuery solrQuery) throws IOException, SolrServerException, NoSuchFieldException {
 
@@ -130,7 +127,7 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
                 .collect(Collectors.toList());
 
         // We need to repeat sorting, because repository doesn't prevent order of passed ids
-        dataSourceList = dataSourceRepository.findByIdInAndDeletedIsNull(docIdList);
+        dataSourceList = dataSourceRepository.findByIdInAndDeletedIsNullAndPublishedTrue(docIdList);
         dataSourceList.sort(Comparator.comparing(item -> docIdList.indexOf(item.getId())));
 
         return new SearchResult<>(solrQuery, solrResponse, dataSourceList);
@@ -148,7 +145,7 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
 
     @Transactional
     @PreAuthorize("hasPermission(#dataSource, "
-            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).CREATE_DATASOURCE)")
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_DATASOURCE)")
     @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
     @Override
     public DS update(DS dataSource)
@@ -166,13 +163,15 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
         }
 
         if (dataSource.getCdmVersion() != null) {
-            exist.setCdmVersion(dataSource.getModelType().equals(CommonModelType.CDM) ? dataSource.getCdmVersion() : null);
+            exist.setCdmVersion(CommonModelType.CDM.equals(dataSource.getModelType()) ? dataSource.getCdmVersion() : null);
         }
 
         if (dataSource.getOrganization() != null) {
             exist.setOrganization(dataSource.getOrganization());
         }
-
+        if (dataSource.getPublished() != null) {
+            exist.setPublished(dataSource.getPublished());
+        }
         beforeUpdate(exist, dataSource);
 
         DS savedDataSource = dataSourceRepository.save(exist);
@@ -220,12 +219,12 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
     @Override
     public List<DS> getAllNotDeletedIsNotVirtualUnsecured() {
 
-        return dataSourceRepository.getByDataNodeVirtualAndDeletedIsNull(false);
+        return dataSourceRepository.getByDataNodeVirtualAndDeletedIsNullAndPublishedTrue(false);
     }
 
     private List<DS> getAllNotDeletedAndIsNotVirtualFromAllTenants() {
 
-        return dataSourceRepository.getAllNotDeletedAndIsNotVirtualFromAllTenants();
+        return dataSourceRepository.getAllNotDeletedAndIsNotVirtualAndPublishedTrueFromAllTenants();
     }
 
     @Override

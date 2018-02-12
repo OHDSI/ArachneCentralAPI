@@ -44,8 +44,8 @@ import com.odysseusinc.arachne.portal.repository.DataNodeRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeUserRepository;
 import com.odysseusinc.arachne.portal.repository.ResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.StudyRepository;
-import com.odysseusinc.arachne.portal.repository.TenantRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionInsightSubmissionFileRepository;
+import com.odysseusinc.arachne.portal.repository.TenantRepository;
 import com.odysseusinc.arachne.portal.repository.UserStudyExtendedRepository;
 import com.odysseusinc.arachne.portal.repository.UserStudyGroupedRepository;
 import com.odysseusinc.arachne.portal.repository.submission.SubmissionRepository;
@@ -202,7 +202,10 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends D
                 .ifPresent(dataNodeUser -> {
                     final Set<DataNodeRole> dataNodeRoles = dataNodeUser.getDataNodeRole();
                     if (dataNodeRoles != null && !dataNodeRoles.isEmpty() && dataNodeRoles.contains(DataNodeRole.ADMIN)) {
-                        participantRoles.add(ParticipantRole.DATA_SET_OWNER);
+                        //participantRoles.add(ParticipantRole.DATA_SET_OWNER); // TODO 1941
+                        //if(dataNodeRoles.contains(DataNodeRole.ADMIN)){
+                            participantRoles.add(ParticipantRole.DATANODE_ADMIN);
+                        //}
                     }
                 });
         return participantRoles;

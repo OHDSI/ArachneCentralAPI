@@ -34,6 +34,7 @@ import static com.odysseusinc.arachne.portal.security.ArachnePermission.DELETE_A
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.DELETE_DATASOURCE;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.EDIT_ANALYSIS;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.EDIT_DATANODE;
+import static com.odysseusinc.arachne.portal.security.ArachnePermission.EDIT_DATASOURCE;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.EDIT_INSIGHT;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.EDIT_PAPER;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.EDIT_STUDY;
@@ -89,7 +90,6 @@ public enum ParticipantRole {
             CREATE_SUBMISSION,
             UPLOAD_ANALYSIS_FILES,
             APPROVE_SUBMISSION,
-            EDIT_DATANODE,
             CREATE_DATASOURCE,
             DELETE_DATASOURCE,
             ACCESS_DATASOURCE,
@@ -100,6 +100,10 @@ public enum ParticipantRole {
     }),
     STUDY_READER("Study reader", new ArachnePermission[]{
             ACCESS_STUDY,
+    }),
+    DATANODE_ADMIN("DataNode admin", new ArachnePermission[]{
+            EDIT_DATANODE,
+            EDIT_DATASOURCE,
     }),
     STUDY_PENDING_CONTRIBUTOR("Pending contributor", new ArachnePermission[]{
             ACCESS_STUDY,

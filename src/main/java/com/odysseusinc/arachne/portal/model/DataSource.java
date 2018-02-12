@@ -29,15 +29,10 @@ import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
+import java.io.Serializable;
+import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import org.hibernate.annotations.DiscriminatorFormula;
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.validator.constraints.NotBlank;
-
+import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -48,15 +43,18 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
-import java.io.Serializable;
-import java.util.Date;
-import java.util.Set;
+import org.hibernate.annotations.DiscriminatorFormula;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.validator.constraints.NotBlank;
 
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
@@ -87,7 +85,6 @@ public class DataSource implements Serializable, HasArachnePermissions {
     @Transient
     protected Set<ArachnePermission> permissions;
     @SolrFieldAnno(query = true, filter = true)
-    @NotNull
     @Column
     @Enumerated(EnumType.STRING)
     protected CommonModelType modelType;
@@ -105,7 +102,6 @@ public class DataSource implements Serializable, HasArachnePermissions {
     @Enumerated(EnumType.STRING)
     protected CommonCDMVersionDTO cdmVersion;
     @SolrFieldAnno(query = true, filter = true)
-    @NotBlank
     @Column
     protected String organization;
 
@@ -115,6 +111,9 @@ public class DataSource implements Serializable, HasArachnePermissions {
             inverseJoinColumns = @JoinColumn(name = "tenant_id", referencedColumnName = "id"))
     @SolrFieldAnno(filter = true)
     private Set<Tenant> tenants = new HashSet<>();
+
+    @Column
+    private Boolean published;
 
     @Override
     public boolean equals(final Object obj) {
@@ -263,5 +262,13 @@ public class DataSource implements Serializable, HasArachnePermissions {
     public void setTenants(Set<Tenant> tenants) {
 
         this.tenants = tenants;
+    }
+
+    public Boolean getPublished() {
+        return published;
+    }
+
+    public void setPublished(Boolean published) {
+        this.published = published;
     }
 }

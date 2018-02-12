@@ -50,6 +50,7 @@ public enum ArachnePermission {
     EDIT_DATANODE(DataNode.class),
     ACCESS_DATASOURCE(DataSource.class),
     CREATE_DATASOURCE(DataNode.class),
+    EDIT_DATASOURCE(DataNode.class),
     DELETE_DATASOURCE(DataSource.class),
     SENDING_UNLOCK_ANALYSIS_REQUEST(Analysis.class),
     EDIT_PAPER(Paper.class),
