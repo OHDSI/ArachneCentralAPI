@@ -26,6 +26,7 @@ import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.repository.BaseDataSourceRepository;
 import com.odysseusinc.arachne.portal.service.DataSourceService;
 import com.odysseusinc.arachne.portal.service.SolrService;
+import com.odysseusinc.arachne.portal.service.TenantService;
 import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.support.GenericConversionService;
@@ -43,10 +44,11 @@ public class DataSourceServiceImpl extends BaseDataSourceServiceImpl<DataSource,
     public DataSourceServiceImpl(
             BaseDataSourceRepository dataSourceRepository,
             SolrService solrService,
-            GenericConversionService conversionService
+            GenericConversionService conversionService,
+            TenantService tenantService
     ) {
 
-        super(solrService, dataSourceRepository, conversionService);
+        super(solrService, dataSourceRepository, conversionService, tenantService);
     }
 
     @Override
