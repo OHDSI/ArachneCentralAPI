@@ -39,4 +39,6 @@ public interface TenantRepository<T extends Tenant> extends JpaRepository<T, Lon
                     "WHERE u1.id = :firstUserId AND u2.id = :secondUserId AND t1.id = t2.id"
     )
     List<Tenant> findCommonForUsers(@Param("firstUserId") Long firstUserId, @Param("secondUserId") Long secondUserId);
+
+    List<Tenant> findAllByIsDefaultTrue();
 }

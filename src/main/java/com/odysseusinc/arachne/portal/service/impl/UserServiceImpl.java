@@ -35,6 +35,7 @@ import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePassword
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
 import com.odysseusinc.arachne.portal.service.SkillService;
 import com.odysseusinc.arachne.portal.service.SolrService;
+import com.odysseusinc.arachne.portal.service.TenantService;
 import com.odysseusinc.arachne.portal.service.UserLinkService;
 import com.odysseusinc.arachne.portal.service.UserPublicationService;
 import com.odysseusinc.arachne.portal.service.UserRegistrantService;
@@ -68,7 +69,8 @@ public class UserServiceImpl extends BaseUserServiceImpl<User, Skill, SolrField>
                            AnalysisUnlockRequestRepository analysisUnlockRequestRepository,
                            SkillService skillService,
                            RoleRepository roleRepository,
-                           UserLinkService userLinkService) {
+                           UserLinkService userLinkService,
+                           TenantService tenantService) {
 
         super(stateProvinceRepository,
                 messageSource,
@@ -87,6 +89,7 @@ public class UserServiceImpl extends BaseUserServiceImpl<User, Skill, SolrField>
                 analysisUnlockRequestRepository,
                 skillService,
                 roleRepository,
-                userLinkService);
+                userLinkService,
+                tenantService);
     }
 }
