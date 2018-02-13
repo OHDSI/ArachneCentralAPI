@@ -1020,18 +1020,14 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     @Override
     public void setActiveTenant(U user, Long tenantId) {
 
-        Boolean exists = false;
         for (Tenant t : user.getTenants()) {
             if (t.getId().equals(tenantId)) {
                 user.setActiveTenant(t);
-                exists = true;
+                userRepository.save(user);
+                return;
             }
         }
-        if (!exists) {
-            throw new NotExistException(Tenant.class);
-        } else {
-            userRepository.save(user);
-        }
+        throw new NotExistException(Tenant.class);
     }
 
     private class AvatarResolver implements AutoCloseable {
