@@ -40,16 +40,16 @@ import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 
-public abstract class BaseController<DN extends DataNode> {
+public abstract class BaseController<DN extends DataNode, U extends User> {
 
     @Autowired
-    protected BaseUserService<User, Skill> userService;
+    protected BaseUserService<U, Skill> userService;
 
     @Autowired
     protected GenericConversionService conversionService;
 
 
-    protected User getUser(Principal principal) throws PermissionDeniedException {
+    protected U getUser(Principal principal) throws PermissionDeniedException {
 
         return userService.getUser(principal);
     }

@@ -141,7 +141,7 @@ import org.springframework.web.multipart.MultipartFile;
 public abstract class BaseAnalysisController<T extends Analysis,
         D extends AnalysisDTO,
         DN extends DataNode,
-        A_C_DTO extends AnalysisCreateDTO> extends BaseController<DN> {
+        A_C_DTO extends AnalysisCreateDTO> extends BaseController<DN, User> {
     protected static final Map<CommonAnalysisType, String> ANALISYS_MIMETYPE_MAP = new HashMap<>();
     private static final Logger LOGGER = LoggerFactory.getLogger(AnalysisController.class);
     private static final String ENTITY_IS_NOT_AVAILABLE

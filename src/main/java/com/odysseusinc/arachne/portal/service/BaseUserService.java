@@ -202,4 +202,6 @@ public interface BaseUserService<U extends User, S extends Skill> {
     List<U> findUsersApprovedInDataSource(Long id);
 
     void putAvatarToResponse(HttpServletResponse response, U user) throws IOException;
+
+    void setActiveTenant(U user, Long tenantId);
 }

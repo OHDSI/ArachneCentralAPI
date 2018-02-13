@@ -72,7 +72,7 @@ import javax.validation.Valid;
 import java.io.IOException;
 import java.security.Principal;
 
-public abstract class BaseAuthenticationController extends BaseController<DataNode> {
+public abstract class BaseAuthenticationController extends BaseController<DataNode, User> {
 
     private static final Logger log = LoggerFactory.getLogger(BaseAuthenticationController.class);
 
