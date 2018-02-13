@@ -91,6 +91,7 @@ public enum ParticipantRole {
             UPLOAD_ANALYSIS_FILES,
             APPROVE_SUBMISSION,
             CREATE_DATASOURCE,
+            EDIT_DATANODE,
             DELETE_DATASOURCE,
             ACCESS_DATASOURCE,
             UNLINK_DATASOURCE,
@@ -104,6 +105,8 @@ public enum ParticipantRole {
     DATANODE_ADMIN("DataNode admin", new ArachnePermission[]{
             EDIT_DATANODE,
             EDIT_DATASOURCE,
+            CREATE_DATASOURCE,
+            ACCESS_DATASOURCE
     }),
     STUDY_PENDING_CONTRIBUTOR("Pending contributor", new ArachnePermission[]{
             ACCESS_STUDY,

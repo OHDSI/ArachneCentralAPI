@@ -87,7 +87,7 @@ public abstract class BaseDataSourceController<DS extends DataSource,
     public JsonResult<DTO> update(
             Principal principal,
             @PathVariable("id") Long dataSourceId,
-            @RequestBody @Valid DTO commonDataSourceDTO, // c model type ?
+            @RequestBody @Valid DTO commonDataSourceDTO,
             BindingResult bindingResult
     ) throws NotExistException,
             PermissionDeniedException,
@@ -108,7 +108,6 @@ public abstract class BaseDataSourceController<DS extends DataSource,
             dataSource.setId(dataSourceId);
             dataSource.setDataNode(exist.getDataNode());
             dataSource.setPublished(true);
-            //dataSource.setModelType(null); // filled during creating
             dataSource = dataSourceService.update(dataSource);
             result = new JsonResult<>(NO_ERROR);
             result.setResult(convertDataSourceToDTO(dataSource));

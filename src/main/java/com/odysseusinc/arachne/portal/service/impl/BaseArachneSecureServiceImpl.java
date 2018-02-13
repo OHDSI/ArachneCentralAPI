@@ -189,6 +189,15 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends D
         if (tenantRepository.findFirstByDataSourcesIdAndUsersId(dataSource.getId(), user.getId()).isPresent()) {
             participantRoles.add(ParticipantRole.DATA_SET_USER);
         }
+        final User standardUser = new User();
+        standardUser.setId(user.getId());
+        dataNodeUserRepository.findByDataNodeAndUser(dataSource.getDataNode(), standardUser)
+                .ifPresent(dataNodeUser -> {
+                    final Set<DataNodeRole> dataNodeRoles = dataNodeUser.getDataNodeRole();
+                    if (dataNodeRoles != null && !dataNodeRoles.isEmpty() && dataNodeRoles.contains(DataNodeRole.ADMIN)) {
+                        participantRoles.add(ParticipantRole.DATANODE_ADMIN);
+                    }
+                });
         return participantRoles;
     }
 
@@ -202,10 +211,8 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends D
                 .ifPresent(dataNodeUser -> {
                     final Set<DataNodeRole> dataNodeRoles = dataNodeUser.getDataNodeRole();
                     if (dataNodeRoles != null && !dataNodeRoles.isEmpty() && dataNodeRoles.contains(DataNodeRole.ADMIN)) {
-                        //participantRoles.add(ParticipantRole.DATA_SET_OWNER); // TODO 1941
-                        //if(dataNodeRoles.contains(DataNodeRole.ADMIN)){
-                            participantRoles.add(ParticipantRole.DATANODE_ADMIN);
-                        //}
+                        participantRoles.add(ParticipantRole.DATA_SET_OWNER);
+                        participantRoles.add(ParticipantRole.DATANODE_ADMIN);
                     }
                 });
         return participantRoles;

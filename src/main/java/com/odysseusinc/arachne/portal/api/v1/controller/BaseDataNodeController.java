@@ -86,7 +86,6 @@ public abstract class BaseDataNodeController
     @ApiOperation("Create new data node.")
     @RequestMapping(value = "/api/v1/data-nodes", method = RequestMethod.POST)
     public JsonResult<CommonDataNodeCreationResponseDTO> createDataNode(
-      /*      @RequestBody *//*@Valid *//* CommonDataNodeRegisterDTO commonDataNodeRegisterDTO,*/
             Principal principal
     ) throws PermissionDeniedException {
 
@@ -113,6 +112,8 @@ public abstract class BaseDataNodeController
         final User user = getUser(principal);
         final DN dataNode = createEmptyDataNode();
         dataNode.setId(dataNodeId);
+        dataNode.setName(commonDataNodeRegisterDTO.getName());
+        dataNode.setDescription(commonDataNodeRegisterDTO.getDescription());
         final DN updatedDataNode = baseDataNodeService.update(dataNode);
         final CommonDataNodeDTO dataNodeRegisterResponseDTO
                 = conversionService.convert(updatedDataNode, CommonDataNodeDTO.class);
@@ -124,7 +125,7 @@ public abstract class BaseDataNodeController
     @ApiOperation("Create new data source of datanode.")
     @RequestMapping(value = "/api/v1/data-nodes/{dataNodeId}/data-sources", method = RequestMethod.POST)
     public JsonResult createDataSource(@PathVariable("dataNodeId") Long id,
-                                         @RequestBody /*@Valid*/ C_DS_DTO commonDataSourceDTO // todo 1941
+                                       @RequestBody C_DS_DTO commonDataSourceDTO
     ) throws FieldException,
             NotExistException,
             ValidationException,
