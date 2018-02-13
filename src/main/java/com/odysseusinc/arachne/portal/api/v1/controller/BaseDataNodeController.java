@@ -91,7 +91,7 @@ public abstract class BaseDataNodeController
 
         final User user = getUser(principal);
         final DN dataNode = createEmptyDataNode();
-        final DN registeredDataNode = baseDataNodeService.register(dataNode);
+        final DN registeredDataNode = baseDataNodeService.create(dataNode);
         final CommonDataNodeCreationResponseDTO dataNodeRegisterResponseDTO
                 = conversionService.convert(registeredDataNode, CommonDataNodeCreationResponseDTO.class);
         final JsonResult<CommonDataNodeCreationResponseDTO> result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
@@ -169,16 +169,4 @@ public abstract class BaseDataNodeController
     }
 
     protected abstract DS convertCommonDataSourceDtoToDataSource(C_DS_DTO commonDataSourceDTO);
-
-    @ApiOperation("Unregister data source of datanode")
-    @RequestMapping(value = "/api/v1/data-nodes/{dataNodeId}/data-sources/{dataSourceId}", method = RequestMethod.DELETE)
-    public JsonResult unregisterDataSource(@PathVariable("dataNodeId") Long dataNodeId,
-                                           @PathVariable("dataSourceId") Long dataSourceId)
-            throws PermissionDeniedException, IOException, SolrServerException {
-
-        final DS dataSource = dataSourceService.findById(dataSourceId);
-        studyDataSourceService.softDeletingDataSource(dataSource);
-        return new JsonResult(JsonResult.ErrorCode.NO_ERROR);
-    }
-
 }

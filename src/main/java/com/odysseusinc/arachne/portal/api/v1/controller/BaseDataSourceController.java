@@ -41,6 +41,7 @@ import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.StudyDataSourceService;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
 import com.odysseusinc.arachne.portal.util.ConverterUtils;
+import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Arrays;
@@ -80,8 +81,6 @@ public abstract class BaseDataSourceController<DS extends DataSource,
         this.converterUtils = converterUtils;
         this.studyDataSourceService = studyDataSourceService;
     }
-
-
 
     @RequestMapping(value = "/api/v1/data-sources/{id}", method = RequestMethod.PUT)
     public JsonResult<DTO> update(
@@ -168,11 +167,27 @@ public abstract class BaseDataSourceController<DS extends DataSource,
         return result;
     }
 
+    @ApiOperation("Unpublish and delete data source")
     @RequestMapping(value = "/api/v1/data-sources/{id}", method = RequestMethod.DELETE)
-    public void deleteDataSource(@PathVariable("id") Long id) throws IOException, SolrServerException {
+    public JsonResult deleteDataSource(@PathVariable("id") Long dataSourceId) throws IOException, SolrServerException,
+            IllegalAccessException, NoSuchFieldException, ValidationException {
 
-        final DS dataSource = dataSourceService.findById(id);
+        final DS dataSource = dataSourceService.findById(dataSourceId);
+        dataSource.setPublished(false);
+        dataSourceService.update(dataSource);
         studyDataSourceService.softDeletingDataSource(dataSource);
+        return new JsonResult(JsonResult.ErrorCode.NO_ERROR);
+    }
+
+    @ApiOperation("Unpublish data source")
+    @RequestMapping(value = "/api/v1/data-sources/{id}/unpublish", method = RequestMethod.PUT)
+    public JsonResult unpublishDataSource(@PathVariable("id") Long dataSourceId) throws IOException, SolrServerException,
+            IllegalAccessException, NoSuchFieldException, ValidationException {
+
+        final DS dataSource = dataSourceService.findById(dataSourceId);
+        dataSource.setPublished(false);
+        dataSourceService.update(dataSource);
+        return new JsonResult(JsonResult.ErrorCode.NO_ERROR);
     }
 
     @RequestMapping(value = "/api/v1/data-sources/cdm-versions", method = RequestMethod.GET)

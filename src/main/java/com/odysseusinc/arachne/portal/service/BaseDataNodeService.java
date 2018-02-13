@@ -28,13 +28,12 @@ import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataNodeRole;
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
 import com.odysseusinc.arachne.portal.model.User;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 public interface BaseDataNodeService<DN extends DataNode> {
-    DN register(DN dataNode);
+    DN create(DN dataNode);
 
     DN update(DN dataNode) throws NotExistException;
 
