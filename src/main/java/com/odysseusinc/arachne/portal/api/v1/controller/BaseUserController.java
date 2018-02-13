@@ -53,6 +53,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.UserLinkDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserProfileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserProfileGeneralDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserPublicationDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.UserSettingsDTO;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.NotUniqueException;
@@ -140,7 +141,7 @@ public abstract class BaseUserController<
         PS extends PaperSearch,
         SK extends Skill,
         A extends Analysis,
-        SB extends Submission> {
+        SB extends Submission> extends BaseController<DN, U> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseUserController.class);
     private static final String AVATAR_CONTENT_TYPE = "image/*";
@@ -801,5 +802,18 @@ public abstract class BaseUserController<
         user.setEmailConfirmed(confirm);
         userService.update(user);
         return conversionService.convert(user, CommonUserDTO.class);
+    }
+
+    @ApiOperation("Set user's preferences")
+    @RequestMapping(value = "/api/v1/user-management/users/settings", method = RequestMethod.PUT)
+    public void updateUser(
+            Principal principal,
+            @RequestBody UserSettingsDTO dto
+    ) throws PermissionDeniedException {
+
+        U user = getUser(principal);
+        if (dto.getActiveTenantId() != null) {
+            userService.setActiveTenant(user, dto.getActiveTenantId());
+        }
     }
 }

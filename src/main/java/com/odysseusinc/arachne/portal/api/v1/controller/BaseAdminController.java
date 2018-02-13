@@ -79,7 +79,7 @@ public abstract class BaseAdminController<
         A extends Analysis,
         P extends Paper,
         PS extends PaperSearch,
-        SB extends Submission> extends BaseController<DataNode> {
+        SB extends Submission> extends BaseController<DataNode, User> {
 
     private final BaseDataSourceService<DS> dataSourceService;
     protected final ProfessionalTypeService professionalTypeService;

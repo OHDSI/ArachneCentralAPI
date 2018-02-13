@@ -65,6 +65,7 @@ import com.odysseusinc.arachne.portal.model.UserPublication;
 import com.odysseusinc.arachne.portal.model.UserRegistrant;
 import com.odysseusinc.arachne.portal.model.UserStudy;
 import com.odysseusinc.arachne.portal.model.search.UserSearch;
+import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.repository.AnalysisUnlockRequestRepository;
 import com.odysseusinc.arachne.portal.repository.BaseUserRepository;
 import com.odysseusinc.arachne.portal.repository.CountryRepository;
@@ -1013,6 +1014,23 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
             response.setHeader("Content-Disposition", "attachment; filename=avatar");
             org.apache.commons.io.IOUtils.copy(res.getInputStream(), response.getOutputStream());
             response.flushBuffer();
+        }
+    }
+
+    @Override
+    public void setActiveTenant(U user, Long tenantId) {
+
+        Boolean exists = false;
+        for (Tenant t : user.getTenants()) {
+            if (t.getId().equals(tenantId)) {
+                user.setActiveTenant(t);
+                exists = true;
+            }
+        }
+        if (!exists) {
+            throw new NotExistException(Tenant.class);
+        } else {
+            userRepository.save(user);
         }
     }
 

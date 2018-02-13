@@ -22,8 +22,15 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
+import com.odysseusinc.arachne.portal.api.v1.dto.TenantDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserInfoDTO;
 import com.odysseusinc.arachne.portal.model.User;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
 import org.springframework.core.convert.support.GenericConversionService;
@@ -47,6 +54,16 @@ public class UserToUserInfoDTOConverter extends BaseConversionServiceAwareConver
         userInfoDTO.setFirstname(source.getFirstname());
         userInfoDTO.setMiddlename(source.getMiddlename());
         userInfoDTO.setLastname(source.getLastname());
+
+        List<TenantDTO> tenantDTOs = new ArrayList<>();
+        source.getTenants().forEach(t -> {
+            TenantDTO dto = conversionService.convert(t, TenantDTO.class);
+            dto.setActive(Objects.equals(source.getActiveTenant(), t));
+            tenantDTOs.add(dto);
+        });
+        tenantDTOs.sort(Comparator.comparing(TenantDTO::getName));
+        userInfoDTO.setTenants(tenantDTOs);
+
         return userInfoDTO;
     }
 }
