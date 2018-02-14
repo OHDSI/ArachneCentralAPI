@@ -55,7 +55,7 @@ public class DataNodeController extends BaseDataNodeController<DataSource, Commo
     protected DataNode createEmptyDataNode() {
         DataNode dataNode = new DataNode();
         dataNode.setVirtual(false);
-        dataNode.setName("Not published");
+        dataNode.setName(null);
         return dataNode;
     }
 

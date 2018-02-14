@@ -47,6 +47,7 @@ import java.security.Principal;
 import java.util.Arrays;
 import java.util.List;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.core.convert.support.GenericConversionService;
@@ -125,8 +126,7 @@ public abstract class BaseDataSourceController<DS extends DataSource,
             throw new javax.validation.ValidationException();
         }
         final User user = getUser(principal);
-        Sort sort = new Sort(Sort.Direction.ASC, "name");
-        PageRequest pageRequest = new PageRequest(pageDTO.getPage() - 1, pageDTO.getPageSize(), sort);
+        PageRequest pageRequest = getPageRequest(pageDTO);
 
         Page<DS> dataSources = dataSourceService.suggestDataSource(query, studyId, user.getId(), pageRequest);
         List<DS_DTO> dataSourceDTOs = converterUtils.convertList(dataSources.getContent(), getDataSourceDTOClass());
@@ -147,6 +147,27 @@ public abstract class BaseDataSourceController<DS extends DataSource,
         SolrQuery solrQuery = conversionService.convert(searchDTO, SolrQuery.class);
         SearchResult<DS> searchResult = dataSourceService.search(solrQuery, user);
         return new JsonResult<>(NO_ERROR, conversionService.convert(searchResult, getSearchResultClass()));
+    }
+
+    @RequestMapping(value = "/api/v1/data-sources/my", method = RequestMethod.GET)
+    public JsonResult<Page<DS_DTO>> getUserDataSources(Principal principal,
+                                                       @RequestParam("query") @NotNull String query,
+                                                       @ModelAttribute PageDTO pageDTO
+    ) throws PermissionDeniedException {
+
+        final User user = getUser(principal);
+        PageRequest pageRequest = getPageRequest(pageDTO);
+
+        Page<DS> dataSources = dataSourceService.getUserDataSources(query, user.getId(), pageRequest);
+        List<DS_DTO> dataSourceDTOs = converterUtils.convertList(dataSources.getContent(), getDataSourceDTOClass());
+        CustomPageImpl<DS_DTO> resultPage = new CustomPageImpl<>(dataSourceDTOs, pageRequest, dataSources.getTotalElements());
+        return new JsonResult<>(NO_ERROR, resultPage);
+    }
+
+    private PageRequest getPageRequest(PageDTO pageDTO) throws PermissionDeniedException {
+
+        Sort sort = new Sort(Sort.Direction.ASC, "name");
+        return new PageRequest(pageDTO.getPage() - 1, pageDTO.getPageSize(), sort);
     }
 
     @RequestMapping(value = "/api/v1/data-sources/byuuid/{uuid}", method = RequestMethod.GET)

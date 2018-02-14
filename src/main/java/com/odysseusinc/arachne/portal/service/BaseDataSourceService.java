@@ -82,4 +82,7 @@ public interface BaseDataSourceService<T extends DataSource> {
     void delete(Long id) throws IOException, SolrServerException;
 
     void unpublish(Long id) throws IOException, SolrServerException;
+
+    Page<T> getUserDataSources(final String query, final Long userId, PageRequest pageRequest);
+
 }

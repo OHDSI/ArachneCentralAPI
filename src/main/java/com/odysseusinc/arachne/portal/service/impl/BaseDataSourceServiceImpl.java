@@ -289,6 +289,14 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
         }
     }
 
+    @Override
+    public Page<DS> getUserDataSources(final String query, final Long userId, PageRequest pageRequest) {
+
+        final String[] split = query.trim().split(" ");
+        String suggestRequest = "%(" + String.join("|", split) + ")%";
+        return dataSourceRepository.getUserDataSources(suggestRequest, userId, pageRequest);
+    }
+
 
     public FieldList<SF> getSolrFields() {
 

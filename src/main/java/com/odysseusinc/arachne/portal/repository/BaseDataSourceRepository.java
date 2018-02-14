@@ -36,6 +36,15 @@ import org.springframework.transaction.annotation.Transactional;
 @NoRepositoryBean
 public interface BaseDataSourceRepository<T extends DataSource> extends CrudRepository<T, Long> {
 
+    String USERS_DATASOURCES_QUERY = "SELECT DISTINCT ON (ds.name) * FROM data_sources_data AS ds\n" +
+            " JOIN datanodes_users AS dnu ON ds.data_node_id=dnu.datanode_id\n" +
+            " JOIN datanodes AS dn ON ds.data_node_id=dn.id\n" +
+            " WHERE\n" +
+            " lower(ds.name || ' ' || dn.name) SIMILAR TO :suggestRequest\n" +
+            " AND dnu.user_id = :userId\n" +
+            " AND ds.deleted IS NULL\n" +
+            " AND dn.is_virtual = FALSE\n";
+
     T findOne(Long id);
 
     List<T> findByIdInAndDeletedIsNullAndPublishedTrue(List<Long> ids);
@@ -46,7 +55,6 @@ public interface BaseDataSourceRepository<T extends DataSource> extends CrudRepo
 
     Optional<T> findByIdAndDeletedIsNull(Long id);
 
-    // todo rename
     @Query(value = "SELECT *"
             + " FROM data_sources AS ds "
             + " JOIN datanodes_users AS u "
@@ -75,9 +83,9 @@ public interface BaseDataSourceRepository<T extends DataSource> extends CrudRepo
                     + " AND lower(ds.name || ' ' || dn.name) SIMILAR TO :suggestRequest "
                     + " AND ds.deleted IS NULL AND ds.published = TRUE"
                     + " AND dn.is_virtual = FALSE) as innerSelect"
-           )
+    )
     Page<T> suggest(@Param("suggestRequest") String suggestRequest, @Param("studyId") Long studyId,
-                             Pageable pageable);
+                    Pageable pageable);
 
     @Query(nativeQuery = true, value = "SELECT * FROM data_sources ds JOIN characterizations c ON c.datasource_id = ds.id "
             + "JOIN achilles_files f ON f.characterization_id = c.id WHERE f.id = :fileId")
@@ -100,9 +108,16 @@ public interface BaseDataSourceRepository<T extends DataSource> extends CrudRepo
 
     List<T> findByIdIn(List<Long> ids);
 
-    @Query( nativeQuery = true,
-            value =  "UPDATE data_sources_data "
-            + "SET deleted = current_timestamp, health_status = 'NOT_CONNECTED', health_status_description = 'Deleted'"
-            + " WHERE id = ?")
+    @Query(nativeQuery = true,
+            value = "UPDATE data_sources_data "
+                    + "SET deleted = current_timestamp, health_status = 'NOT_CONNECTED', health_status_description = 'Deleted'"
+                    + " WHERE id = ?")
     void delete(Long id);
+
+
+    @Query(nativeQuery = true, value = USERS_DATASOURCES_QUERY
+            + " \n--#pageable\n",
+            countQuery = "SELECT COUNT(*) FROM " + USERS_DATASOURCES_QUERY + " as innerSelect"
+    )
+    Page<T> getUserDataSources(@Param("suggestRequest") String suggestRequest, @Param("userId") Long userId, Pageable pageable);
 }
