@@ -23,6 +23,7 @@
 package com.odysseusinc.arachne.portal.model;
 
 import com.odysseusinc.arachne.portal.model.security.Tenant;
+import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
 import com.odysseusinc.arachne.portal.model.statemachine.HasState;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
@@ -79,12 +80,15 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
     private Long id;
 
     @Column(length = 1024)
+    @SolrFieldAnno(query = true)
     private String title;
 
     @Column(length = 10000)
+    @SolrFieldAnno(query = true)
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
+//    @SolrFieldAnno(query = true)
     private StudyType type;
 
     @Column
@@ -94,6 +98,7 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
     private Date updated;
 
     @ManyToOne(fetch = FetchType.LAZY)
+//    @SolrFieldAnno(query = true)
     private StudyStatus status;
 
     @OneToMany(mappedBy = "study", fetch = FetchType.LAZY)
@@ -126,6 +131,7 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
     protected Boolean privacy = Boolean.TRUE;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @SolrFieldAnno(filter = true)
     private Tenant tenant;
 
     public BreadcrumbType getCrumbType() {

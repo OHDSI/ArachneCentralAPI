@@ -23,6 +23,7 @@
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchDTO;
+import com.odysseusinc.arachne.portal.service.impl.BaseSolrServiceImpl;
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -63,7 +64,7 @@ public abstract class SearchDTOToSolrQuery {
 
     protected void setOutputFields(SolrQuery result) {
 
-        result.setFields("id");
+        result.setFields(BaseSolrServiceImpl.ID);
     }
 
     protected void setPagination(SearchDTO source, SolrQuery result) {

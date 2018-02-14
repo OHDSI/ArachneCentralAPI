@@ -41,6 +41,7 @@ import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.model.search.UserSearch;
 import com.odysseusinc.arachne.portal.service.BaseAdminService;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
+import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
 import io.swagger.annotations.ApiOperation;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -84,15 +85,19 @@ public abstract class BaseAdminController<
     private final BaseDataSourceService<DS> dataSourceService;
     protected final ProfessionalTypeService professionalTypeService;
     private final BaseAdminService<S, DS, SS, SU, A, P, PS, SB> adminService;
+    private final BaseStudyService<S, DS, SS, SU> studyService;
+
 
     @Autowired
-    public BaseAdminController(BaseDataSourceService<DS> dataSourceService,
-                               ProfessionalTypeService professionalTypeService,
-                               BaseAdminService<S, DS, SS, SU, A, P, PS, SB> adminService) {
+    public BaseAdminController(final BaseDataSourceService<DS> dataSourceService,
+                               final ProfessionalTypeService professionalTypeService,
+                               final BaseAdminService<S, DS, SS, SU, A, P, PS, SB> adminService,
+                               final BaseStudyService<S, DS, SS, SU> studyService) {
 
         this.dataSourceService = dataSourceService;
         this.professionalTypeService = professionalTypeService;
         this.adminService = adminService;
+        this.studyService = studyService;
     }
 
     @ApiOperation(value = "Enable user.", hidden = true)
@@ -213,6 +218,14 @@ public abstract class BaseAdminController<
             throws IllegalAccessException, NotExistException, NoSuchFieldException, SolrServerException, IOException {
 
         userService.indexAllBySolr();
+        return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
+    }
+
+    @RequestMapping(value = "/api/v1/admin/studies/reindex-solr", method = RequestMethod.POST)
+    public JsonResult reindexStudiesBySolr()
+            throws IllegalAccessException, NotExistException, NoSuchFieldException, SolrServerException, IOException {
+
+        studyService.indexAllBySolr();
         return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
     }
 }

@@ -51,11 +51,13 @@ import com.odysseusinc.arachne.portal.repository.UserStudyGroupedRepository;
 import com.odysseusinc.arachne.portal.repository.UserStudyRepository;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.DataSourceService;
+import com.odysseusinc.arachne.portal.service.SolrService;
 import com.odysseusinc.arachne.portal.service.StudyFileService;
 import com.odysseusinc.arachne.portal.service.StudyService;
 import com.odysseusinc.arachne.portal.service.StudyStatusService;
 import com.odysseusinc.arachne.portal.service.StudyTypeService;
 import com.odysseusinc.arachne.portal.service.UserService;
+import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import com.odysseusinc.arachne.portal.service.study.AddDataSourceStrategyFactory;
 import com.odysseusinc.arachne.portal.util.StudyHelper;
@@ -82,32 +84,34 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
         Study,
         DataSource,
         StudySearch,
-        StudyViewItem> implements StudyService {
-    public StudyServiceImpl(UserStudyExtendedRepository userStudyExtendedRepository,
-                            StudyFileService fileService,
-                            StudyViewItemRepository userStudyPublicItemRepository,
-                            UserStudyGroupedRepository userStudyGroupedRepository,
-                            UserStudyRepository userStudyRepository,
-                            ArachneMailSender arachneMailSender,
-                            StudyRepository studyRepository,
-                            FavouriteStudyRepository favouriteStudyRepository,
-                            RestTemplate restTemplate,
-                            StudyTypeService studyTypeService,
-                            DataSourceService dataSourceService,
-                            StudyDataSourceLinkRepository studyDataSourceLinkRepository,
-                            ResultFileRepository resultFileRepository,
-                            StudyFileRepository studyFileRepository,
-                            StudyHelper studyHelper,
-                            StudyDataSourceCommentRepository dataSourceCommentRepository,
-                            UserService userService,
-                            SimpMessagingTemplate wsTemplate,
-                            StudyStatusService studyStatusService,
-                            BaseDataNodeService baseDataNodeService,
-                            JavaMailSender javaMailSender,
-                            GenericConversionService conversionService,
-                            StudyStateMachine studyStateMachine,
-                            AddDataSourceStrategyFactory<DataSource> addDataSourceStrategyFactory,
-                            ApplicationEventPublisher eventPublisher) {
+        StudyViewItem,
+        SolrField> implements StudyService {
+    public StudyServiceImpl(final UserStudyExtendedRepository userStudyExtendedRepository,
+                            final StudyFileService fileService,
+                            final StudyViewItemRepository userStudyPublicItemRepository,
+                            final UserStudyGroupedRepository userStudyGroupedRepository,
+                            final UserStudyRepository userStudyRepository,
+                            final ArachneMailSender arachneMailSender,
+                            final StudyRepository studyRepository,
+                            final FavouriteStudyRepository favouriteStudyRepository,
+                            final RestTemplate restTemplate,
+                            final StudyTypeService studyTypeService,
+                            final DataSourceService dataSourceService,
+                            final StudyDataSourceLinkRepository studyDataSourceLinkRepository,
+                            final ResultFileRepository resultFileRepository,
+                            final StudyFileRepository studyFileRepository,
+                            final StudyHelper studyHelper,
+                            final StudyDataSourceCommentRepository dataSourceCommentRepository,
+                            final UserService userService,
+                            final SimpMessagingTemplate wsTemplate,
+                            final StudyStatusService studyStatusService,
+                            final BaseDataNodeService baseDataNodeService,
+                            final JavaMailSender javaMailSender,
+                            final GenericConversionService conversionService,
+                            final StudyStateMachine studyStateMachine,
+                            final AddDataSourceStrategyFactory<DataSource> addDataSourceStrategyFactory,
+                            final ApplicationEventPublisher eventPublisher,
+                            final SolrService solrService) {
 
         super(userStudyExtendedRepository,
                 fileService,
@@ -133,7 +137,8 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
                 conversionService,
                 studyStateMachine,
                 addDataSourceStrategyFactory,
-                eventPublisher);
+                eventPublisher,
+                solrService);
     }
 
     @Override

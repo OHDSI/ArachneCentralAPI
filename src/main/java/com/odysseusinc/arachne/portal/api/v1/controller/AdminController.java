@@ -33,6 +33,7 @@ import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.service.AdminService;
 import com.odysseusinc.arachne.portal.service.DataSourceService;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
+import com.odysseusinc.arachne.portal.service.StudyService;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.annotation.Secured;
@@ -45,8 +46,9 @@ public class AdminController extends BaseAdminController<Study, DataSource, Stud
     @Autowired
     public AdminController(DataSourceService dataSourceService,
                            ProfessionalTypeService professionalTypeService,
-                           AdminService adminService) {
+                           AdminService adminService,
+                           StudyService studyService) {
 
-        super(dataSourceService, professionalTypeService, adminService);
+        super(dataSourceService, professionalTypeService, adminService, studyService);
     }
 }

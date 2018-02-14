@@ -74,6 +74,7 @@ import com.odysseusinc.arachne.portal.repository.UserStudyGroupedRepository;
 import com.odysseusinc.arachne.portal.repository.UserStudyRepository;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
+import com.odysseusinc.arachne.portal.service.BaseSolrService;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
 import com.odysseusinc.arachne.portal.service.StudyFileService;
@@ -84,6 +85,7 @@ import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJob
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobFileType;
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobResponse;
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobStudyFileResponseEvent;
+import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import com.odysseusinc.arachne.portal.service.mail.InvitationCollaboratorMailSender;
 import com.odysseusinc.arachne.portal.service.study.AddDataSourceStrategy;
@@ -143,7 +145,8 @@ public abstract class BaseStudyServiceImpl<
         T extends Study,
         DS extends DataSource,
         SS extends StudySearch,
-        SU extends AbstractUserStudyListItem> extends CRUDLServiceImpl<T>
+        SU extends AbstractUserStudyListItem,
+        SF extends SolrField> extends CRUDLServiceImpl<T>
         implements BaseStudyService<T, DS, SS, SU> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StudyServiceImpl.class);
@@ -181,32 +184,34 @@ public abstract class BaseStudyServiceImpl<
     protected final StudyStateMachine studyStateMachine;
     private final Map<String, String[]> studySortPaths = new HashMap<>();
     private final ApplicationEventPublisher eventPublisher;
+    private final BaseSolrService<SF> solrService;
 
-    public BaseStudyServiceImpl(UserStudyExtendedRepository userStudyExtendedRepository,
-                                StudyFileService fileService,
-                                BaseUserStudyLinkRepository<SU> baseUserStudyLinkRepository,
-                                UserStudyGroupedRepository userStudyGroupedRepository,
-                                UserStudyRepository userStudyRepository,
-                                ArachneMailSender arachneMailSender,
-                                BaseStudyRepository<T> studyRepository,
-                                FavouriteStudyRepository favouriteStudyRepository,
-                                @Qualifier("restTemplate") RestTemplate restTemplate,
-                                StudyTypeService studyTypeService,
-                                BaseDataSourceService<DS> dataSourceService,
-                                StudyDataSourceLinkRepository studyDataSourceLinkRepository,
-                                ResultFileRepository resultFileRepository,
-                                StudyFileRepository studyFileRepository,
-                                BaseStudyHelper<DataNode, DS> studyHelper,
-                                StudyDataSourceCommentRepository dataSourceCommentRepository,
-                                BaseUserService userService,
-                                SimpMessagingTemplate wsTemplate,
-                                StudyStatusService studyStatusService,
-                                BaseDataNodeService dataNodeService,
-                                JavaMailSender javaMailSender,
-                                GenericConversionService conversionService,
-                                StudyStateMachine studyStateMachine,
-                                AddDataSourceStrategyFactory<DS> addDataSourceStrategyFactory,
-                                ApplicationEventPublisher eventPublisher) {
+    public BaseStudyServiceImpl(final UserStudyExtendedRepository userStudyExtendedRepository,
+                                final StudyFileService fileService,
+                                final BaseUserStudyLinkRepository<SU> baseUserStudyLinkRepository,
+                                final UserStudyGroupedRepository userStudyGroupedRepository,
+                                final UserStudyRepository userStudyRepository,
+                                final ArachneMailSender arachneMailSender,
+                                final BaseStudyRepository<T> studyRepository,
+                                final FavouriteStudyRepository favouriteStudyRepository,
+                                final @Qualifier("restTemplate") RestTemplate restTemplate,
+                                final StudyTypeService studyTypeService,
+                                final BaseDataSourceService<DS> dataSourceService,
+                                final StudyDataSourceLinkRepository studyDataSourceLinkRepository,
+                                final ResultFileRepository resultFileRepository,
+                                final StudyFileRepository studyFileRepository,
+                                final BaseStudyHelper<DataNode, DS> studyHelper,
+                                final StudyDataSourceCommentRepository dataSourceCommentRepository,
+                                final BaseUserService userService,
+                                final SimpMessagingTemplate wsTemplate,
+                                final StudyStatusService studyStatusService,
+                                final BaseDataNodeService dataNodeService,
+                                final JavaMailSender javaMailSender,
+                                final GenericConversionService conversionService,
+                                final StudyStateMachine studyStateMachine,
+                                final AddDataSourceStrategyFactory<DS> addDataSourceStrategyFactory,
+                                final ApplicationEventPublisher eventPublisher,
+                                final BaseSolrService<SF> solrService) {
 
         this.javaMailSender = javaMailSender;
         this.userStudyExtendedRepository = userStudyExtendedRepository;
@@ -232,6 +237,7 @@ public abstract class BaseStudyServiceImpl<
         this.studyStateMachine = studyStateMachine;
         this.addDataSourceStrategyFactory = addDataSourceStrategyFactory;
         this.eventPublisher = eventPublisher;
+        this.solrService = solrService;
     }
 
     public abstract Class<T> getType();
@@ -973,5 +979,26 @@ public abstract class BaseStudyServiceImpl<
             studyFile.setAntivirusDescription(antivirusJobResponse.getDescription());
             studyFileRepository.save(studyFile);
         }
+    }
+
+    @Override
+    public void indexAllBySolr() throws IOException, NotExistException, SolrServerException, NoSuchFieldException, IllegalAccessException {
+        solrService.deleteByQuery(SolrServiceImpl.STUDIES_COLLECTION, "*:*");
+        final List<T> studies = studyRepository.findAll();
+        for (final T study : studies) {
+            indexBySolr(study);
+        }
+    }
+
+    protected void indexBySolr(T study)
+            throws IOException, SolrServerException, NoSuchFieldException, IllegalAccessException {
+
+        final Map<SF, Object> values = solrService.getValuesByEntity(study);
+
+        solrService.putDocument(
+                SolrServiceImpl.STUDIES_COLLECTION,
+                study.getId(),
+                values
+        );
     }
 }

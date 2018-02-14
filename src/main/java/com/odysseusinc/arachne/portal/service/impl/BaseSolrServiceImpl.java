@@ -52,9 +52,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSolrService<T> {
     public static final String DATA_SOURCE_COLLECTION = "data-sources";
     public static final String USER_COLLECTION = "users";
+    public static final String STUDIES_COLLECTION = "studies";
     private static final String QUERY_FIELD_PREFIX = "query_";
     public static final String MULTI_METADATA_PREFIX = "multi_" + META_PREFIX;
-    private static final String ID = "id";
+    public static final String ID = "entity_id";
+    public static final String TYPE = "entity_type";
 
     @Autowired
     private SolrClient solrClient;
@@ -198,6 +200,7 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
         }
 
         document.addField(ID, id);
+        document.addField(TYPE, collection);
 
         // Example of calling RequestProcessorChain for update:
         // UpdateRequest updateRequest = new UpdateRequest();

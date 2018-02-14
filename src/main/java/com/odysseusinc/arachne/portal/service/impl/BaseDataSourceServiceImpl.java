@@ -131,7 +131,7 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
 
         List<Long> docIdList = solrResponse.getResults()
                 .stream()
-                .map(solrDoc -> Long.parseLong(solrDoc.get("id").toString()))
+                .map(solrDoc -> Long.parseLong(solrDoc.get(BaseSolrServiceImpl.ID).toString()))
                 .collect(Collectors.toList());
 
         // We need to repeat sorting, because repository doesn't prevent order of passed ids
@@ -286,11 +286,12 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
         return Collections.emptyList();
     }
 
+    @Override
     public void indexAllBySolr() throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
         solrService.deleteByQuery(SolrServiceImpl.DATA_SOURCE_COLLECTION, "*:*");
-        List<DS> dataSourceList = getAllNotDeletedAndIsNotVirtualFromAllTenants();
-        for (DS dataSource : dataSourceList) {
+        final List<DS> dataSourceList = getAllNotDeletedAndIsNotVirtualFromAllTenants();
+        for (final DS dataSource : dataSourceList) {
             indexBySolr(dataSource);
         }
     }

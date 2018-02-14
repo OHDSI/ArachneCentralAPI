@@ -804,6 +804,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         return Collections.emptyList();
     }
 
+    @Override
     public void indexBySolr(U user)
             throws IllegalAccessException, IOException, SolrServerException, NotExistException, NoSuchFieldException {
 
@@ -814,6 +815,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         );
     }
 
+    @Override
     public void indexAllBySolr()
             throws IOException, NotExistException, SolrServerException, NoSuchFieldException, IllegalAccessException {
 
@@ -842,7 +844,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         List<Long> docIdList = solrResponse
                 .getResults()
                 .stream()
-                .map(solrDoc -> Long.parseLong(solrDoc.get("id").toString()))
+                .map(solrDoc -> Long.parseLong(solrDoc.get(BaseSolrServiceImpl.ID).toString()))
                 .collect(Collectors.toList());
 
         userList = userRepository.findByIdIn(docIdList);
