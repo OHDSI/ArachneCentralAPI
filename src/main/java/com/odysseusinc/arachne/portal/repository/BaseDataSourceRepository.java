@@ -40,7 +40,7 @@ public interface BaseDataSourceRepository<T extends DataSource> extends CrudRepo
             " JOIN datanodes_users AS dnu ON ds.data_node_id=dnu.datanode_id\n" +
             " JOIN datanodes AS dn ON ds.data_node_id=dn.id\n" +
             " WHERE\n" +
-            " lower(ds.name || ' ' || dn.name) SIMILAR TO :suggestRequest\n" +
+            " lower(ds.name) SIMILAR TO :suggestRequest\n" +
             " AND dnu.user_id = :userId\n" +
             " AND ds.deleted IS NULL\n" +
             " AND dn.is_virtual = FALSE\n";
