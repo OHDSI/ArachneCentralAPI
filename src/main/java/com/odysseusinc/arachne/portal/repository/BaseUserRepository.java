@@ -47,6 +47,12 @@ public interface BaseUserRepository<U extends User> extends EntityGraphJpaReposi
     )
     U findLoginCandidate(@Param("origin") String userOrigin, @Param("username") String username);
 
+    @Query(
+            nativeQuery = true,
+            value = "SELECT * FROM users_data WHERE username = :email"
+    )
+    U findByEmail(@Param("email")String email/*, EntityGraph entityGraph*/);
+
     List<U> findByIdIn(List<Long> idList);
 
     U findByEmailAndEnabledTrue(String email);

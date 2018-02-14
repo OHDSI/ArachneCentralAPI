@@ -42,7 +42,6 @@ public class DataSourceToDataSourceDTOConverter extends BaseDataSourceToCommonDa
         dataSourceDTO.setDeleted(dataSource.getDeleted());
         DataNodeDTO dataNodeDTO = conversionService.convert(dataSource.getDataNode(), DataNodeDTO.class);
         dataSourceDTO.setDataNode(dataNodeDTO);
-        dataSourceDTO.setPublished(dataSource.getPublished());
         dataSourceDTO.setPermissions(conversionService.convert(dataSource, PermissionsDTO.class));
     }
 

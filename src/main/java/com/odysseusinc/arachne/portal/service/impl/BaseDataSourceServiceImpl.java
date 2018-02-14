@@ -266,10 +266,29 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
     public void delete(Long id) throws IOException, SolrServerException {
 
         log.info("Deleting datasource with id={}", id);
-        if (dataSourceRepository.deleteByIdAndDeletedIsNull(id) == 0) {
+        dataSourceRepository.delete(id);
+ /*       if (dataSourceRepository.deleteByIdAndDeletedIsNull(id) == 0) {//
             throw new NotExistException(getType());
+        }*/
+    }
+
+    @PreAuthorize("hasPermission(#id, 'DataSource', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_DATASOURCE)")
+    @Transactional
+    @Override
+    public void unpublish(Long id) throws IOException, SolrServerException {
+
+        log.info("Unpublishing datasource with id={}", id);
+        DS dataSource = getByIdUnsecured(id);
+
+        if (dataSource.getPublished()){
+            dataSource.setPublished(false);
+            dataSourceRepository.save(dataSource);
+
+            solrService.deleteByQuery(SolrServiceImpl.DATA_SOURCE_COLLECTION, "id:" + id);
         }
     }
+
 
     public FieldList<SF> getSolrFields() {
 

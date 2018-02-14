@@ -99,4 +99,10 @@ public interface BaseDataSourceRepository<T extends DataSource> extends CrudRepo
     int deleteByIdAndDeletedIsNull(Long id);
 
     List<T> findByIdIn(List<Long> ids);
+
+    @Query( nativeQuery = true,
+            value =  "UPDATE data_sources_data "
+            + "SET deleted = current_timestamp, health_status = 'NOT_CONNECTED', health_status_description = 'Deleted'"
+            + " WHERE id = ?")
+    void delete(Long id);
 }

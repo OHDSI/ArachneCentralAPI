@@ -46,6 +46,10 @@ public interface BaseDataNodeService<DN extends DataNode> {
     void linkUserToDataNode(DN dataNode, User user, Set<DataNodeRole> dataNodeRole)
             throws NotExistException, AlreadyExistException;
 
+    void linkUserToDataNodeUnsafe(DN dataNode, User user, Set<DataNodeRole> dataNodeRole)
+            throws NotExistException, AlreadyExistException;
+
+
     void unlinkUserToDataNode(DN datanode, User user) throws NotExistException;
 
     void relinkAllUsersToDataNode(DN dataNode, Set<DataNodeUser> user) throws NotExistException;

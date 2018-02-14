@@ -171,6 +171,14 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
     public void linkUserToDataNode(DN dataNode, User user, Set<DataNodeRole> roles)
             throws NotExistException, AlreadyExistException {
 
+        linkUserToDataNodeUnsafe(dataNode, user, roles);
+    }
+
+    @Transactional
+    @Override
+    public void linkUserToDataNodeUnsafe(DN dataNode, User user, Set<DataNodeRole> roles)
+            throws NotExistException {
+
         LOGGER.info(LINKING_USER_LOG, user.getId(), dataNode.getId());
         final DataNodeUser dataNodeUser = new DataNodeUser();
         dataNodeUser.setDataNode(dataNode);

@@ -27,11 +27,13 @@ import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeRegisterDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataSourceDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
+import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.DataNode;
+import com.odysseusinc.arachne.portal.model.DataNodeRole;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
@@ -42,6 +44,7 @@ import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
 import java.security.Principal;
+import java.util.Collections;
 import javax.validation.Valid;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
@@ -87,11 +90,13 @@ public abstract class BaseDataNodeController
     @RequestMapping(value = "/api/v1/data-nodes", method = RequestMethod.POST)
     public JsonResult<CommonDataNodeCreationResponseDTO> createDataNode(
             Principal principal
-    ) throws PermissionDeniedException {
+    ) throws PermissionDeniedException, AlreadyExistException {
 
         final User user = getUser(principal);
         final DN dataNode = createEmptyDataNode();
         final DN registeredDataNode = baseDataNodeService.create(dataNode);
+        baseDataNodeService.linkUserToDataNodeUnsafe(registeredDataNode, user, Collections.singleton(DataNodeRole.ADMIN));
+
         final CommonDataNodeCreationResponseDTO dataNodeRegisterResponseDTO
                 = conversionService.convert(registeredDataNode, CommonDataNodeCreationResponseDTO.class);
         final JsonResult<CommonDataNodeCreationResponseDTO> result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);

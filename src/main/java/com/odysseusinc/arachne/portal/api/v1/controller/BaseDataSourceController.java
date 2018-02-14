@@ -169,24 +169,20 @@ public abstract class BaseDataSourceController<DS extends DataSource,
 
     @ApiOperation("Unpublish and delete data source")
     @RequestMapping(value = "/api/v1/data-sources/{id}", method = RequestMethod.DELETE)
-    public JsonResult deleteDataSource(@PathVariable("id") Long dataSourceId) throws IOException, SolrServerException,
-            IllegalAccessException, NoSuchFieldException, ValidationException {
+    public JsonResult deleteDataSource(@PathVariable("id") Long dataSourceId) throws IOException, SolrServerException {
 
         final DS dataSource = dataSourceService.findById(dataSourceId);
-        dataSource.setPublished(false);
-        dataSourceService.update(dataSource);
+        dataSourceService.unpublish(dataSourceId);
+
         studyDataSourceService.softDeletingDataSource(dataSource);
         return new JsonResult(JsonResult.ErrorCode.NO_ERROR);
     }
 
     @ApiOperation("Unpublish data source")
     @RequestMapping(value = "/api/v1/data-sources/{id}/unpublish", method = RequestMethod.PUT)
-    public JsonResult unpublishDataSource(@PathVariable("id") Long dataSourceId) throws IOException, SolrServerException,
-            IllegalAccessException, NoSuchFieldException, ValidationException {
+    public JsonResult unpublishDataSource(@PathVariable("id") Long dataSourceId) throws IOException, SolrServerException {
 
-        final DS dataSource = dataSourceService.findById(dataSourceId);
-        dataSource.setPublished(false);
-        dataSourceService.update(dataSource);
+        dataSourceService.unpublish(dataSourceId);
         return new JsonResult(JsonResult.ErrorCode.NO_ERROR);
     }
 
@@ -207,9 +203,9 @@ public abstract class BaseDataSourceController<DS extends DataSource,
     protected abstract DS convertDTOToDataSource(DTO dto);
 
     @RequestMapping(value = "/api/v1/data-sources/{id}/complete", method = RequestMethod.GET)
-    public JsonResult<DS_DTO> getWhole(@PathVariable("id") Long dataSourceUuid) throws NotExistException {
+    public JsonResult<DS_DTO> getWhole(@PathVariable("id") Long dataSourceId) throws NotExistException {
 
-        DS dataSource = dataSourceService.findById(dataSourceUuid);
+        DS dataSource = dataSourceService.findById(dataSourceId);
         return new JsonResult<>(NO_ERROR, conversionService.convert(dataSource, getDataSourceDTOClass()));
     }
 }
