@@ -116,7 +116,8 @@
     <field name="_root_" type="string" indexed="true" stored="false" docValues="false" />
     <field name="_text_" type="text_general" indexed="true" stored="false" multiValued="true"/>
 
-    <field name="type" type="string" indexed="true" stored="true" required="true" />
+    <field name="entity_type" type="string" indexed="true" stored="true" required="true" />
+    <field name="entity_id" type="string" indexed="true" stored="true" required="true" />
 
     <!-- This can be enabled, in case the client does not know what fields may be searched. It isn't enabled by default
          because it's very expensive to index everything twice. -->

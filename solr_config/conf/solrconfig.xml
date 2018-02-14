@@ -800,6 +800,12 @@
     </lst>
   </requestHandler>
 
+  <requestHandler name="/update" class="solr.UpdateRequestHandler">
+    <lst name="defaults">
+      <str name="update.chain">composite-id</str>
+    </lst>
+  </requestHandler>
+
   <!-- Search Components
 
        Search components are registered to SolrCore and used by
@@ -1198,13 +1204,13 @@
 
   <updateRequestProcessorChain name="composite-id">
     <processor class="solr.CloneFieldUpdateProcessorFactory">
-      <str name="source">docid_s</str>
-      <str name="source">userid_s</str>
+      <str name="source">entity_id</str>
+      <str name="source">entity_type</str>
       <str name="dest">id</str>
     </processor>
     <processor class="solr.ConcatFieldUpdateProcessorFactory">
       <str name="fieldName">id</str>
-      <str name="delimiter">--</str>
+      <str name="delimiter">-</str>
     </processor>
     <processor class="solr.LogUpdateProcessorFactory" />
     <processor class="solr.RunUpdateProcessorFactory" />
