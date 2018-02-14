@@ -193,7 +193,7 @@ public class ExceptionHandlingController extends BaseController {
     @ExceptionHandler(NotExistException.class)
     public ResponseEntity<JsonResult> exceptionHandler(NotExistException ex) {
 
-        LOGGER.error(ex.getMessage(), ex);
+        LOGGER.error(ex.getMessage());
         JsonResult result = new JsonResult<>(VALIDATION_ERROR);
         result.setErrorMessage(ex.getMessage());
         result.getValidatorErrors().put(ex.getEntity().getSimpleName(), ex.getMessage());
