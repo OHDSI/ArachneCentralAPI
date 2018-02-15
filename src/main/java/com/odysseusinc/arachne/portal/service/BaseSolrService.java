@@ -22,6 +22,8 @@
 
 package com.odysseusinc.arachne.portal.service;
 
+import static com.odysseusinc.arachne.portal.service.impl.solr.SolrField.META_PREFIX;
+
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -33,6 +35,15 @@ import java.lang.reflect.Field;
 import java.util.Map;
 
 public interface BaseSolrService<T extends SolrField> {
+
+    String DATA_SOURCE_COLLECTION = "data-sources";
+    String USER_COLLECTION = "users";
+    String STUDIES_COLLECTION = "studies";
+    String MULTI_METADATA_PREFIX = "multi_" + META_PREFIX;
+    String ID = "entity_id";
+    String TYPE = "entity_type";
+    String TITLE = "entity_title";
+
     T getSolrField(Field field);
 
     FieldList<T> getFieldsOfClass(Class entity);

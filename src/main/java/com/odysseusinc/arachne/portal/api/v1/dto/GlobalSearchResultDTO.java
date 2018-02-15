@@ -1,5 +1,4 @@
 /*
- *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +14,24 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: January 25, 2017
- *
+ * Authors: Anton Gackovka
+ * Created: February 15, 2018
  */
 
-package com.odysseusinc.arachne.portal.service.impl;
+package com.odysseusinc.arachne.portal.api.v1.dto;
 
-import com.odysseusinc.arachne.portal.service.SolrService;
-import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
-import org.springframework.stereotype.Service;
+import com.odysseusinc.arachne.portal.api.v1.controller.CustomPageImpl;
+import java.util.List;
+import org.apache.solr.common.SolrDocument;
+import org.springframework.data.domain.Pageable;
 
-@Service
-public class SolrServiceImpl extends BaseSolrServiceImpl<SolrField> implements SolrService {
+public class GlobalSearchResultDTO extends CustomPageImpl<GlobalSearchDTO> {
+    public GlobalSearchResultDTO(
+            final List<GlobalSearchDTO> content,
+            final Pageable pageable,
+            final long total
+    ) {
 
-    protected SolrField newSolrField(String name) {
-
-        return new SolrField(name);
+        super(content, pageable, total);
     }
 }

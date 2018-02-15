@@ -25,6 +25,7 @@ package com.odysseusinc.arachne.portal.model;
 import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
+import com.odysseusinc.arachne.portal.model.solr.SolrTitleAnno;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashSet;
@@ -67,14 +68,17 @@ public class User implements Serializable {
     @Column(nullable = false)
     private String email;
 
+    @SolrTitleAnno(order = 0)
     @SolrFieldAnno(query = true)
     @Column(nullable = false, length = 100)
     private String firstname;
 
+    @SolrTitleAnno(order = 1)
     @SolrFieldAnno(query = true)
     @Column(nullable = false, length = 100)
     private String middlename;
 
+    @SolrTitleAnno(order = 2)
     @SolrFieldAnno(query = true)
     @Column(nullable = false, length = 100)
     private String lastname;

@@ -22,10 +22,9 @@
 
 package com.odysseusinc.arachne.portal.service.impl;
 
-import static com.odysseusinc.arachne.portal.service.impl.solr.SolrField.META_PREFIX;
-
 import com.odysseusinc.arachne.portal.config.tenancy.TenantContext;
 import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
+import com.odysseusinc.arachne.portal.model.solr.SolrTitleAnno;
 import com.odysseusinc.arachne.portal.model.solr.SolrValue;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
@@ -39,7 +38,9 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.StringJoiner;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -50,13 +51,8 @@ import org.apache.solr.common.SolrInputDocument;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSolrService<T> {
-    public static final String DATA_SOURCE_COLLECTION = "data-sources";
-    public static final String USER_COLLECTION = "users";
-    public static final String STUDIES_COLLECTION = "studies";
+
     private static final String QUERY_FIELD_PREFIX = "query_";
-    public static final String MULTI_METADATA_PREFIX = "multi_" + META_PREFIX;
-    public static final String ID = "entity_id";
-    public static final String TYPE = "entity_type";
 
     @Autowired
     private SolrClient solrClient;
@@ -66,7 +62,7 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
         T solrField = null;
         if (field.isAnnotationPresent(SolrFieldAnno.class)) {
             SolrFieldAnno solrFieldAnno = field.getAnnotation(SolrFieldAnno.class);
-            solrField = newSolrField();
+            solrField = newSolrField(null);
             solrField.setName(field.getName());
             solrField.setDataType(field.getType());
             solrField.setSearchable(solrFieldAnno.query());
@@ -75,7 +71,7 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
         return solrField;
     }
 
-    protected abstract T newSolrField();
+    protected abstract T newSolrField(String name);
 
     public FieldList<T> getFieldsOfClass(Class entity) {
 
@@ -116,21 +112,34 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
     }
 
     @Override
-    public Map<T, Object> getValuesByEntity(Object entity) throws IllegalAccessException, NoSuchFieldException {
+    public Map<T, Object> getValuesByEntity(final Object entity) throws IllegalAccessException, NoSuchFieldException {
 
-        Map<T, Object> values = new HashMap<>();
-
-        FieldList<T> fieldList = getFieldsOfClass(entity.getClass());
-        for (T solrField : fieldList) {
-            Optional<Field> fieldOptional = getDeclaredField(entity.getClass(), solrField.getName());
+        final Map<T, Object> values = new HashMap<>();
+        final StringJoiner title = new StringJoiner(" ");
+        final FieldList<T> fieldList = getFieldsOfClass(entity.getClass());
+        for (final T solrField : fieldList) {
+            final Optional<Field> fieldOptional = getDeclaredField(entity.getClass(), solrField.getName());
             if (fieldOptional.isPresent()) {
-                Field field = fieldOptional.get();
+                final Field field = fieldOptional.get();
                 field.setAccessible(true);
-                values.put(solrField, field.get(entity));
+                final Object fieldValue = field.get(entity);
+                values.put(solrField, fieldValue);
+                if (field.isAnnotationPresent(SolrTitleAnno.class)) {
+                    title.add(Objects.toString(fieldValue));
+                }
             }
         }
 
+        putTitleSolrField(values, title);
+
         return values;
+    }
+
+    private void putTitleSolrField(Map<T, Object> values, StringJoiner title) {
+
+        final T titleSorField = newSolrField(TITLE);
+        titleSorField.setPostfixNeeded(Boolean.FALSE);
+        values.put(titleSorField, title.toString());
     }
 
     @Override
@@ -199,6 +208,7 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
             }
         }
 
+        // these two fields will be concatenated into solr document id
         document.addField(ID, id);
         document.addField(TYPE, collection);
 

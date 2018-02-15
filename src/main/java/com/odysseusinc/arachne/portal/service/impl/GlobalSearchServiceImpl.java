@@ -1,5 +1,4 @@
 /*
- *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +14,21 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: January 25, 2017
- *
+ * Authors: Anton Gackovka
+ * Created: January 25, 2018
  */
 
 package com.odysseusinc.arachne.portal.service.impl;
 
+import com.odysseusinc.arachne.portal.service.GlobalSearchService;
 import com.odysseusinc.arachne.portal.service.SolrService;
 import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
 import org.springframework.stereotype.Service;
 
 @Service
-public class SolrServiceImpl extends BaseSolrServiceImpl<SolrField> implements SolrService {
+public class GlobalSearchServiceImpl extends BaseGlobalSearchServiceImpl<SolrField> implements GlobalSearchService {
+    protected GlobalSearchServiceImpl(SolrService solrService) {
 
-    protected SolrField newSolrField(String name) {
-
-        return new SolrField(name);
+        super(solrService);
     }
 }

@@ -21,6 +21,9 @@
 
 package com.odysseusinc.arachne.portal.util;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
 import org.hibernate.Hibernate;
 
 public class EntityUtils {
@@ -37,5 +40,20 @@ public class EntityUtils {
     public static <T> T unproxyAndConvert(Object object, Class<T> clazz) {
 
         return (T)Hibernate.unproxy(object);
+    }
+
+    public static <T, R> List<R> batchCall(Function<List<T>, List<R>> f, List<T> list, int batchSize) {
+
+        final List<R> result = new ArrayList<>(list.size());
+
+        while(true) {
+
+            final List<T> sublist = new ArrayList<>();
+            result.addAll(f.apply(sublist));
+
+            break;
+        }
+
+        return result;
     }
 }

@@ -24,6 +24,7 @@ package com.odysseusinc.arachne.portal.model;
 
 import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
+import com.odysseusinc.arachne.portal.model.solr.SolrTitleAnno;
 import com.odysseusinc.arachne.portal.model.statemachine.HasState;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
@@ -81,6 +82,7 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
 
     @Column(length = 1024)
     @SolrFieldAnno(query = true)
+    @SolrTitleAnno
     private String title;
 
     @Column(length = 10000)

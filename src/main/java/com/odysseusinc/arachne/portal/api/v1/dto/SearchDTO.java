@@ -22,6 +22,10 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto;
 
+import com.odysseusinc.arachne.portal.service.impl.SolrServiceImpl;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 public class SearchDTO extends PageDTO {
@@ -30,6 +34,9 @@ public class SearchDTO extends PageDTO {
     protected String order;
 
     protected String query;
+
+    protected String[] collections;
+    protected String[] resultFields = { SolrServiceImpl.ID };
 
     private boolean fullFacetsQuery = false;
 
@@ -92,8 +99,28 @@ public class SearchDTO extends PageDTO {
         return fullFacetsQuery;
     }
 
-    public void setFullFacetsQuery(boolean fullFacetsQuery) {
+    public void setFullFacetsQuery(final boolean fullFacetsQuery) {
 
         this.fullFacetsQuery = fullFacetsQuery;
+    }
+
+    public String[] getCollections() {
+
+        return collections;
+    }
+
+    public void setCollections(final String... collections) {
+
+        this.collections = collections;
+    }
+
+    public String[] getResultFields() {
+
+        return resultFields;
+    }
+
+    public void setResultFields(final String... resultFields) {
+
+        this.resultFields = resultFields;
     }
 }

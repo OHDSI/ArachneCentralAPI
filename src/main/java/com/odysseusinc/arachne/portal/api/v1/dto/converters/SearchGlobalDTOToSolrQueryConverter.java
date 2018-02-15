@@ -23,6 +23,7 @@
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchExpertListDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.SearchGlobalDTO;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -34,8 +35,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 @SuppressWarnings("unused")
-public class SearchExpertListDTOToSolrQueryConverter
-        extends SearchDTOToSolrQuery implements Converter<SearchExpertListDTO, SolrQuery>, InitializingBean {
+public class SearchGlobalDTOToSolrQueryConverter
+        extends SearchDTOToSolrQuery implements Converter<SearchGlobalDTO, SolrQuery>, InitializingBean {
 
     @Autowired
     private GenericConversionService conversionService;
@@ -49,13 +50,8 @@ public class SearchExpertListDTOToSolrQueryConverter
         conversionService.addConverter(this);
     }
 
-    protected FieldList getSolrFields() {
-
-        return userService.getSolrFields();
-    }
-
     @Override
-    public SolrQuery convert(SearchExpertListDTO source) {
+    public SolrQuery convert(SearchGlobalDTO source) {
 
         return super.convert(source);
     }

@@ -25,22 +25,25 @@ package com.odysseusinc.arachne.portal.service.impl.solr;
 import static com.odysseusinc.arachne.portal.service.impl.BaseSolrServiceImpl.MULTI_METADATA_PREFIX;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
 
 public class SolrField {
 
     public static final String META_PREFIX = "metadata_";
-
+    private static final String TXT_POSTFIX = "_txt";
     private String name;
     private Class dataType;
-    private Boolean isSearchable;
-    private Boolean isFaceted;
+    private Boolean isSearchable = Boolean.TRUE;
+    private Boolean isFaceted = Boolean.FALSE;
+    private Boolean isPostfixNeeded = Boolean.TRUE;
 
     public SolrField() {
         this.dataType = String.class;
     }
 
-    public SolrField(String name) {
+    public SolrField(final String name) {
         this();
         this.name = name;
     }
@@ -50,7 +53,7 @@ public class SolrField {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(final String name) {
 
         this.name = name;
     }
@@ -60,7 +63,7 @@ public class SolrField {
         return dataType;
     }
 
-    public void setDataType(Class dataType) {
+    public void setDataType(final Class dataType) {
 
         this.dataType = dataType;
     }
@@ -70,7 +73,7 @@ public class SolrField {
         return isSearchable;
     }
 
-    public void setSearchable(Boolean searchable) {
+    public void setSearchable(final Boolean searchable) {
 
         isSearchable = searchable;
     }
@@ -80,7 +83,7 @@ public class SolrField {
         return isFaceted;
     }
 
-    public void setFaceted(Boolean faceted) {
+    public void setFaceted(final Boolean faceted) {
 
         isFaceted = faceted;
     }
@@ -93,7 +96,7 @@ public class SolrField {
         } else if (isMultiValuesType()) {
             postfix = "_ts";
         } else {
-            postfix = "_txt";
+            postfix = TXT_POSTFIX;
         }
         return postfix;
     }
@@ -105,10 +108,40 @@ public class SolrField {
 
     public String getMultiValuesTypeFieldName () {
 
-        return MULTI_METADATA_PREFIX + getName() + "_txt";
+        return MULTI_METADATA_PREFIX + getName() + (this.isPostfixNeeded ? TXT_POSTFIX : StringUtils.EMPTY);
     }
 
     public String getSolrName() {
-        return name + getDynamicPostfix();
+        return name + getDynamicPostfixIfNeeded();
+    }
+
+    protected String getDynamicPostfixIfNeeded() {
+
+        return this.isPostfixNeeded ? getDynamicPostfix() : StringUtils.EMPTY;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        final SolrField solrField = (SolrField) o;
+        return Objects.equals(name, solrField.name);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(name);
+    }
+
+    public Boolean getPostfixNeeded() {
+
+        return isPostfixNeeded;
+    }
+
+    public void setPostfixNeeded(final Boolean postfixNeeded) {
+
+        isPostfixNeeded = postfixNeeded;
     }
 }

@@ -791,6 +791,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         arachneMailSender.send(mail);
     }
 
+    @Override
     public FieldList getSolrFields() {
 
         FieldList fieldList = new FieldList();
@@ -808,10 +809,12 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     public void indexBySolr(U user)
             throws IllegalAccessException, IOException, SolrServerException, NotExistException, NoSuchFieldException {
 
+        Map<SF, Object> values = solrService.getValuesByEntity(user);
+
         solrService.putDocument(
                 SolrServiceImpl.USER_COLLECTION,
                 user.getId(),
-                solrService.getValuesByEntity(user)
+                values
         );
     }
 
