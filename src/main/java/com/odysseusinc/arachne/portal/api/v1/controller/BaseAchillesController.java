@@ -105,7 +105,7 @@ public abstract class BaseAchillesController<DS extends DataSource> {
         DS dataSource = checkDataSource(datasourceId);
         final DataNode dataNode = dataSource.getDataNode();
         if (manually && dataNode.getVirtual()){
-            throw new ValidationException("for manually uploaded not a virtual datasource");
+            throw new ValidationException("virtual datasource is not allowed for manual uploading");
         }
         LOGGER.info(ACHILLES_RESULT_LOADED_LOG,
                 dataSource.getId(), dataSource.getName(), dataNode.getId(), dataNode.getName());
