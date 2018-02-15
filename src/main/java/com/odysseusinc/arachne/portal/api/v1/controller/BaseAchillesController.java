@@ -98,13 +98,12 @@ public abstract class BaseAchillesController<DS extends DataSource> {
     @RequestMapping(value = "datanode/datasource/{id}", method = RequestMethod.POST)
     public void receiveStats(
             @PathVariable("id") Long datasourceId,
-            @RequestParam(value = "file") MultipartFile data,
-            @RequestParam(value = "manually", defaultValue = "false") Boolean manually)
+            @RequestParam(value = "file") MultipartFile data)
             throws NotExistException, IOException, ValidationException {
 
         DS dataSource = checkDataSource(datasourceId);
         final DataNode dataNode = dataSource.getDataNode();
-        if (manually && dataNode.getVirtual()){
+        if (dataNode.getVirtual()){
             throw new ValidationException("virtual datasource is not allowed for manual uploading");
         }
         LOGGER.info(ACHILLES_RESULT_LOADED_LOG,
