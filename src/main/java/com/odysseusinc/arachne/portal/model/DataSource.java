@@ -27,8 +27,10 @@ import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonModelType;
 import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
+import com.odysseusinc.arachne.portal.model.solr.SolrTitleAnno;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
+import com.odysseusinc.arachne.portal.service.impl.SolrDomainType;
 import java.util.HashSet;
 import java.util.List;
 import javax.persistence.JoinColumn;
@@ -78,6 +80,7 @@ public class DataSource implements Serializable, HasArachnePermissions {
     @Column(name = "uuid", nullable = false, unique = true)
     protected String uuid;
     @SolrFieldAnno(query = true)
+    @SolrTitleAnno
     @NotBlank
     @Column(name = "name", nullable = false, unique = true)
     protected String name;
