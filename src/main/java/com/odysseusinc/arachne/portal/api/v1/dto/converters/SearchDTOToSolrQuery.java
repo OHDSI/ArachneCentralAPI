@@ -118,7 +118,9 @@ public abstract class SearchDTOToSolrQuery {
 
     protected void setCollections(SearchDTO source, SolrQuery result) {
 
-        result.setParam("collection", String.join(",", source.getCollections()));
+        if (source.getCollections() != null) {
+            result.setParam("collection", String.join(",", source.getCollections()));
+        }
     }
 
     public SolrQuery convert(SearchDTO source) {
