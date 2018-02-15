@@ -88,7 +88,6 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
             dataSource.setCdmVersion(null);
         }
         DS savedDataSource = dataSourceRepository.save(dataSource);
-        //afterCreate(savedDataSource, virtual);
         return savedDataSource;
     }
 
@@ -98,16 +97,6 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
         dataSource.setCreated(new Date());
         dataSource.setTenants(tenantService.getDefault());
     }
-
-/*
-   protected void afterCreate(DS dataSource, boolean virtual)
-            throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
-
-        if (!virtual) { // NO AFTER REGISTRATION не надо
-            indexBySolr(dataSource);
-        }
-    }
-*/
 
     protected QueryResponse solrSearch(SolrQuery solrQuery) throws IOException, SolrServerException, NoSuchFieldException {
 
@@ -263,13 +252,10 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).DELETE_DATASOURCE)")
     @Transactional
     @Override
-    public void delete(Long id) throws IOException, SolrServerException {
+    public void delete(Long id) {
 
         log.info("Deleting datasource with id={}", id);
         dataSourceRepository.delete(id);
- /*       if (dataSourceRepository.deleteByIdAndDeletedIsNull(id) == 0) {//
-            throw new NotExistException(getType());
-        }*/
     }
 
     @PreAuthorize("hasPermission(#id, 'DataSource', "

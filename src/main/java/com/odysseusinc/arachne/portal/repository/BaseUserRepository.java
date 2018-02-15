@@ -51,7 +51,7 @@ public interface BaseUserRepository<U extends User> extends EntityGraphJpaReposi
             nativeQuery = true,
             value = "SELECT * FROM users_data WHERE username = :email"
     )
-    U findByEmail(@Param("email")String email/*, EntityGraph entityGraph*/);
+    U findByEmail(@Param("email")String email, EntityGraph entityGraph);
 
     List<U> findByIdIn(List<Long> idList);
 
@@ -64,8 +64,6 @@ public interface BaseUserRepository<U extends User> extends EntityGraphJpaReposi
     U findByOriginAndUsernameAndEnabledTrue(String userOrigin, String username);
 
     U findByRegistrationCode(String activateCode);
-
-    U findByEmail(String email, EntityGraph entityGraph);
 
     @Query(nativeQuery = true, value = "SELECT * FROM users "
             + " WHERE "

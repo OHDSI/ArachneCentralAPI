@@ -1,11 +1,16 @@
 ALTER TABLE data_sources_data
-ADD COLUMN published BOOLEAN DEFAULT TRUE NOT NULL;
+ADD COLUMN published BOOLEAN DEFAULT FALSE NOT NULL;
+
+UPDATE data_sources_data set published = TRUE;
 
 ALTER TABLE data_sources_data ALTER organization DROP NOT NULL;
 ALTER TABLE data_sources_data ALTER model_type DROP NOT NULL;
 
 ALTER TABLE datanodes ALTER name DROP NOT NULL;
 ALTER TABLE datanodes ALTER description DROP NOT NULL;
+
+ALTER TABLE data_sources_data ADD CONSTRAINT data_sources_data_not_blank_fields_if_published
+CHECK (published = FALSE OR (organization <> '' AND model_type <> ''));
 
 --just recreating the views
 

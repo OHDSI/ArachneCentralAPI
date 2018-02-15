@@ -36,7 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 @NoRepositoryBean
 public interface BaseDataSourceRepository<T extends DataSource> extends CrudRepository<T, Long> {
 
-    String USERS_DATASOURCES_QUERY = "SELECT DISTINCT ON (ds.name) * FROM data_sources_data AS ds\n" +
+    String USERS_DATASOURCES_QUERY = "SELECT * FROM data_sources_data AS ds\n" +
             " JOIN datanodes_users AS dnu ON ds.data_node_id=dnu.datanode_id\n" +
             " JOIN datanodes AS dn ON ds.data_node_id=dn.id\n" +
             " WHERE\n" +

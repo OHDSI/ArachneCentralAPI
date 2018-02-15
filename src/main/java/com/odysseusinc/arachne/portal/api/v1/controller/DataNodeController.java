@@ -52,11 +52,18 @@ public class DataNodeController extends BaseDataNodeController<DataSource, Commo
     }
 
     @Override
-    protected DataNode createEmptyDataNode() {
+    protected DataNode buildEmptyDataNode() {
+
         DataNode dataNode = new DataNode();
         dataNode.setVirtual(false);
         dataNode.setName(null);
         return dataNode;
+    }
+
+    @Override
+    protected Class<DataNode> getDataNodeDNClass() {
+
+        return DataNode.class;
     }
 
     @Override

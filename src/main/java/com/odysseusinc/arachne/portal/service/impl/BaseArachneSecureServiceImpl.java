@@ -26,6 +26,7 @@ import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataNodeRole;
+import com.odysseusinc.arachne.portal.model.DataNodeUser;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
@@ -189,33 +190,34 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends D
         if (tenantRepository.findFirstByDataSourcesIdAndUsersId(dataSource.getId(), user.getId()).isPresent()) {
             participantRoles.add(ParticipantRole.DATA_SET_USER);
         }
-        final User standardUser = new User();
-        standardUser.setId(user.getId());
-        dataNodeUserRepository.findByDataNodeAndUser(dataSource.getDataNode(), standardUser)
-                .ifPresent(dataNodeUser -> {
-                    final Set<DataNodeRole> dataNodeRoles = dataNodeUser.getDataNodeRole();
-                    if (dataNodeRoles != null && !dataNodeRoles.isEmpty() && dataNodeRoles.contains(DataNodeRole.ADMIN)) {
-                        participantRoles.add(ParticipantRole.DATANODE_ADMIN);
-                    }
-                });
+        if (checkDataNodeAdmin(user, dataSource.getDataNode())) {
+            participantRoles.add(ParticipantRole.DATANODE_ADMIN);
+        }
         return participantRoles;
     }
 
     @Override
     public List<ParticipantRole> getRolesByDataNode(ArachneUser user, DataNode dataNode) {
 
+        List<ParticipantRole> participantRoles = new ArrayList<>();
+        if (checkDataNodeAdmin(user, dataNode)) {
+            participantRoles.add(ParticipantRole.DATA_SET_OWNER);
+            participantRoles.add(ParticipantRole.DATANODE_ADMIN);
+        }
+        return participantRoles;
+    }
+
+    public boolean checkDataNodeAdmin(ArachneUser user, DataNode dataNode) {
+
         final User standardUser = new User();
         standardUser.setId(user.getId());
-        List<ParticipantRole> participantRoles = new ArrayList<>();
-        dataNodeUserRepository.findByDataNodeAndUser(dataNode, standardUser)
-                .ifPresent(dataNodeUser -> {
-                    final Set<DataNodeRole> dataNodeRoles = dataNodeUser.getDataNodeRole();
-                    if (dataNodeRoles != null && !dataNodeRoles.isEmpty() && dataNodeRoles.contains(DataNodeRole.ADMIN)) {
-                        participantRoles.add(ParticipantRole.DATA_SET_OWNER);
-                        participantRoles.add(ParticipantRole.DATANODE_ADMIN);
-                    }
-                });
-        return participantRoles;
+
+        Optional<DataNodeUser> optionalDataNode = dataNodeUserRepository.findByDataNodeAndUser(dataNode, standardUser);
+        if (optionalDataNode.isPresent()) {
+            final Set<DataNodeRole> dataNodeRoles = optionalDataNode.get().getDataNodeRole();
+            return dataNodeRoles != null && !dataNodeRoles.isEmpty() && dataNodeRoles.contains(DataNodeRole.ADMIN);
+        }
+        return false;
     }
 
     @Override
