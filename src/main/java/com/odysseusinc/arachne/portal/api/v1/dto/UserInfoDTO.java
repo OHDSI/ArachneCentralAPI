@@ -22,7 +22,6 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto;
 
-import java.util.HashSet;
 import java.util.List;
 
 public class UserInfoDTO extends DTO {
@@ -33,7 +32,7 @@ public class UserInfoDTO extends DTO {
     private String middlename;
     private Integer notificationsCount;
     private Boolean isAdmin;
-    private List<TenantDTO> tenants;
+    private List<TenantPersonalDTO> tenants;
 
     public UserInfoDTO() {
     }
@@ -112,12 +111,12 @@ public class UserInfoDTO extends DTO {
         isAdmin = admin;
     }
 
-    public List<TenantDTO> getTenants() {
+    public List<TenantPersonalDTO> getTenants() {
 
         return tenants;
     }
 
-    public void setTenants(List<TenantDTO> tenants) {
+    public void setTenants(List<TenantPersonalDTO> tenants) {
 
         this.tenants = tenants;
     }

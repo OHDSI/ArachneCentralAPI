@@ -126,7 +126,7 @@ public class DataSource implements Serializable, HasArachnePermissions {
             return false;
         }
         final DataSource s = (DataSource) obj;
-        return java.util.Objects.equals(id, s.id);
+        return java.util.Objects.equals(getId(), s.getId());
     }
 
     @Override

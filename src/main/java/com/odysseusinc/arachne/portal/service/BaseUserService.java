@@ -62,8 +62,6 @@ public interface BaseUserService<U extends User, S extends Skill> {
 
     U getByEmail(String email);
 
-    U findLoginCandidate(final String email);
-
     U getByUnverifiedEmail(final String email);
 
     void remove(Long id)
@@ -164,9 +162,6 @@ public interface BaseUserService<U extends User, S extends Skill> {
     UserStudy getByIdAndStatusPendingAndToken(Long userStudyId, String token) throws NotExistException;
 
     FieldList getSolrFields();
-
-    void indexBySolr(U user)
-            throws IllegalAccessException, IOException, SolrServerException, NotExistException, NoSuchFieldException;
 
     void indexAllBySolr()
             throws IOException,

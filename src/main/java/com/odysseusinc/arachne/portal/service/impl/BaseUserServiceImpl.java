@@ -80,6 +80,7 @@ import com.odysseusinc.arachne.portal.service.BaseSkillService;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
+import com.odysseusinc.arachne.portal.service.RawUserService;
 import com.odysseusinc.arachne.portal.service.TenantService;
 import com.odysseusinc.arachne.portal.service.UserLinkService;
 import com.odysseusinc.arachne.portal.service.UserPublicationService;
@@ -137,6 +138,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -165,6 +167,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     private final UserRegistrantService userRegistrantService;
     private final PasswordValidator passwordValidator;
     private final TenantService tenantService;
+    private final RawUserService rawUserService;
     @Value("${files.store.path}")
     private String fileStorePath;
     @Value("${user.enabled.default}")
@@ -194,7 +197,8 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
                                BaseSkillService<S> skillService,
                                RoleRepository roleRepository,
                                UserLinkService userLinkService,
-                               TenantService tenantService) {
+                               TenantService tenantService,
+                               RawUserService rawUserService) {
 
         this.stateProvinceRepository = stateProvinceRepository;
         this.messageSource = messageSource;
@@ -215,6 +219,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         this.roleRepository = roleRepository;
         this.userLinkService = userLinkService;
         this.tenantService = tenantService;
+        this.rawUserService = rawUserService;
     }
 
     @Override
@@ -240,12 +245,6 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     public U getByUnverifiedEmail(final String email) {
 
         return userRepository.findByEmail(email, EntityGraphUtils.fromAttributePaths("roles", "professionalType"));
-    }
-
-    @Override
-    public U findLoginCandidate(final String email) {
-
-        return userRepository.findLoginCandidate(this.userOrigin, email);
     }
 
     @Override
@@ -286,6 +285,9 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         user.setPassword(passwordEncoder.encode(password));
 
         user.setTenants(tenantService.getDefault());
+        if (user.getTenants().size() > 0) {
+            user.setActiveTenant(user.getTenants().iterator().next());
+        }
 
         // The existing user check should come last:
         // it is muted in public registration form, so we need to show other errors ahead
@@ -804,14 +806,10 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         return Collections.emptyList();
     }
 
-    public void indexBySolr(U user)
+    private void indexBySolr(U user)
             throws IllegalAccessException, IOException, SolrServerException, NotExistException, NoSuchFieldException {
 
-        solrService.putDocument(
-                SolrServiceImpl.USER_COLLECTION,
-                user.getId(),
-                solrService.getValuesByEntity(user)
-        );
+        rawUserService.indexBySolr(user);
     }
 
     public void indexAllBySolr()
@@ -829,7 +827,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         return solrService.search(
                 SolrServiceImpl.USER_COLLECTION,
                 solrQuery,
-                User.class.getDeclaredField("tenants")
+                ReflectionUtils.findField(User.class, "tenants")
         );
     }
 

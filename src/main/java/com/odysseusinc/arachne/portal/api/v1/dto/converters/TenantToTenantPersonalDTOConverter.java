@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,17 +15,22 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: October 11, 2016
+ * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva
+ * Created: February 15, 2018
  *
  */
 
-package com.odysseusinc.arachne.portal.model;
+package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import com.odysseusinc.arachne.portal.api.v1.dto.TenantPersonalDTO;
+import org.springframework.stereotype.Component;
 
-@Entity
-@Table(name = "users")
-public class User extends RawUser {
+@Component
+public class TenantToTenantPersonalDTOConverter extends BaseTenantToTenantDTOConverter<TenantPersonalDTO> {
+
+    @Override
+    protected TenantPersonalDTO createResultObject() {
+
+        return new TenantPersonalDTO();
+    }
 }
