@@ -21,10 +21,11 @@
 package com.odysseusinc.arachne.portal.service;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.GlobalSearchResultDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.SearchGlobalDTO;
 import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
 import java.io.IOException;
 import org.apache.solr.client.solrj.SolrServerException;
 
 public interface BaseGlobalSearchService<SF extends SolrField> {
-    GlobalSearchResultDTO search(Long userId, String str) throws SolrServerException, NoSuchFieldException, IOException;
+    GlobalSearchResultDTO search(Long userId, SearchGlobalDTO searchDTO) throws SolrServerException, NoSuchFieldException, IOException;
 }

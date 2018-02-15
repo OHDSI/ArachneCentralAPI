@@ -55,11 +55,8 @@ public abstract class BaseGlobalSearchServiceImpl<SF extends SolrField> implemen
     }
 
     @Override
-    public GlobalSearchResultDTO search(final Long userId, final String str) throws SolrServerException, NoSuchFieldException, IOException {
+    public GlobalSearchResultDTO search(final Long userId, final SearchGlobalDTO searchDTO) throws SolrServerException, NoSuchFieldException, IOException {
 
-        final SearchGlobalDTO searchDTO = new SearchGlobalDTO();
-
-        searchDTO.setQuery(str);
         searchDTO.setCollections(STUDIES_COLLECTION, USER_COLLECTION, DATA_SOURCE_COLLECTION);
 
         searchDTO.setResultFields(ID, TITLE, TYPE);

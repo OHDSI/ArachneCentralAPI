@@ -26,6 +26,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.api.v1.dto.GlobalSearchResultDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.SearchGlobalDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.StudyDTO;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
@@ -41,6 +42,7 @@ import java.util.stream.StreamSupport;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -59,10 +61,10 @@ public class GlobalSearchController {
     private ConversionService conversionService;
 
     @ApiOperation("Global search.")
-    @RequestMapping(value = "/api/v1/search/{query}", method = GET)
+    @RequestMapping(value = "/api/v1/search", method = GET)
     public JsonResult<GlobalSearchResultDTO> list(
             Principal principal,
-            @PathVariable("query") String query)
+            @ModelAttribute SearchGlobalDTO searchDto)
             throws PermissionDeniedException, NotExistException, SolrServerException, NoSuchFieldException, IOException {
 
         final JsonResult<GlobalSearchResultDTO> result;
@@ -74,7 +76,7 @@ public class GlobalSearchController {
             return result;
         }
 
-        final GlobalSearchResultDTO globalSearchResult = searchService.search(user.getId(), query);
+        final GlobalSearchResultDTO globalSearchResult = searchService.search(user.getId(), searchDto);
 
         result = new JsonResult<>(NO_ERROR, globalSearchResult);
         return result;
