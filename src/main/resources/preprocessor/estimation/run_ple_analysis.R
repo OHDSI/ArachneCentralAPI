@@ -41,6 +41,7 @@ run_ple_analysis <- function(analysiDescriptionFile, outputFolder, targetCohortD
                    cdm_database_schema = cdmDatabaseSchema,
                    target_database_schema = resultsDatabaseSchema,
                    target_cohort_table = "cohort",
+                   vocabulary_database_schema = cdmDatabaseSchema,
                    target_cohort_id = targetCohortId)$sql
   sql <- translateSql(sql, targetDialect = connectionDetails$dbms)$sql
   executeSql(connection, sql)
@@ -50,6 +51,7 @@ run_ple_analysis <- function(analysiDescriptionFile, outputFolder, targetCohortD
                    cdm_database_schema = cdmDatabaseSchema,
                    target_database_schema = resultsDatabaseSchema,
                    target_cohort_table = "cohort",
+                   vocabulary_database_schema = cdmDatabaseSchema,
                    target_cohort_id = comparatorCohortId)$sql
   sql <- translateSql(sql, targetDialect = connectionDetails$dbms)$sql
   executeSql(connection, sql)
@@ -59,6 +61,7 @@ run_ple_analysis <- function(analysiDescriptionFile, outputFolder, targetCohortD
                    cdm_database_schema = cdmDatabaseSchema,
                    target_database_schema = resultsDatabaseSchema,
                    target_cohort_table = "cohort",
+                   vocabulary_database_schema = cdmDatabaseSchema,
                    target_cohort_id = outcomeCohortId)$sql
   sql <- translateSql(sql, targetDialect = connectionDetails$dbms)$sql
   executeSql(connection, sql)
@@ -87,7 +90,7 @@ run_ple_analysis <- function(analysiDescriptionFile, outputFolder, targetCohortD
     excludedConcepts <- c()
   }else{
     sql <- analysisSettings$psExclusionConceptSetSQL
-    sql <- SqlRender::renderSql(sql, cdm_database_schema = cdmDatabaseSchema)$sql
+    sql <- SqlRender::renderSql(sql, cdm_database_schema = cdmDatabaseSchema, vocabulary_database_schema = cdmDatabaseSchema)$sql
     sql <- SqlRender::translateSql(sql, targetDialect = connectionDetails$dbms)$sql
     excludedConcepts <- querySql(connection, sql)
     excludedConcepts <- excludedConcepts$CONCEPT_ID
@@ -99,7 +102,7 @@ run_ple_analysis <- function(analysiDescriptionFile, outputFolder, targetCohortD
     includedConcepts <- c()
   }else{
     sql <- analysisSettings$psInclusionConceptSetSQL
-    sql <- SqlRender::renderSql(sql, cdm_database_schema = cdmDatabaseSchema)$sql
+    sql <- SqlRender::renderSql(sql, cdm_database_schema = cdmDatabaseSchema, vocabulary_database_schema = cdmDatabaseSchema)$sql
     sql <- SqlRender::translateSql(sql, targetDialect = connectionDetails$dbms)$sql
     includedConcepts <- querySql(connection, sql)
     includedConcepts <- includedConcepts$CONCEPT_ID
@@ -110,7 +113,7 @@ run_ple_analysis <- function(analysiDescriptionFile, outputFolder, targetCohortD
     omExcludedConcepts <- c()
   }else{
     sql <- analysisSettings$omExclusionConceptSetSQL
-    sql <- SqlRender::renderSql(sql, cdm_database_schema = cdmDatabaseSchema)$sql
+    sql <- SqlRender::renderSql(sql, cdm_database_schema = cdmDatabaseSchema, vocabulary_database_schema = cdmDatabaseSchema)$sql
     sql <- SqlRender::translateSql(sql, targetDialect = connectionDetails$dbms)$sql
     omExcludedConcepts <- querySql(connection, sql)
     omExcludedConcepts <- omExcludedConcepts$CONCEPT_ID
@@ -120,7 +123,7 @@ run_ple_analysis <- function(analysiDescriptionFile, outputFolder, targetCohortD
     omIncludedConcepts <- c()
   }else{
     sql <- analysisSettings$omInclusionConceptSetSQL
-    sql <- SqlRender::renderSql(sql, cdm_database_schema = cdmDatabaseSchema)$sql
+    sql <- SqlRender::renderSql(sql, cdm_database_schema = cdmDatabaseSchema, vocabulary_database_schema = cdmDatabaseSchema)$sql
     sql <- SqlRender::translateSql(sql, targetDialect = connectionDetails$dbms)$sql
     omIncludedConcepts <- querySql(connection, sql)
     omIncludedConcepts <- omIncludedConcepts$CONCEPT_ID
@@ -133,7 +136,7 @@ run_ple_analysis <- function(analysiDescriptionFile, outputFolder, targetCohortD
     negativeControlConcepts <- c()
   }else{
     sql <- analysisSettings$negativeControlConceptSetSQL
-    sql <- SqlRender::renderSql(sql, cdm_database_schema = cdmDatabaseSchema)$sql
+    sql <- SqlRender::renderSql(sql, cdm_database_schema = cdmDatabaseSchema, vocabulary_database_schema = cdmDatabaseSchema)$sql
     sql <- SqlRender::translateSql(sql, targetDialect = connectionDetails$dbms)$sql
     negativeControlConcepts <- querySql(connection, sql)
     negativeControlConcepts <- negativeControlConcepts$CONCEPT_ID
