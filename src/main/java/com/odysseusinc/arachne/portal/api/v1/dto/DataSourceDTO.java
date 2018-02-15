@@ -35,7 +35,6 @@ public class DataSourceDTO extends CommonBaseDataSourceDTO implements IDataSourc
     private CommonHealthStatus healthStatus;
     private String healthStatusTitle;
     private Date deleted;
-    private Boolean published;
     private PermissionsDTO permissions;
 
     public String getStatus() {
@@ -98,11 +97,4 @@ public class DataSourceDTO extends CommonBaseDataSourceDTO implements IDataSourc
         this.permissions = permissions;
     }
 
-    public Boolean getPublished() {
-        return published;
-    }
-
-    public void setPublished(Boolean published) {
-        this.published = published;
-    }
 }
