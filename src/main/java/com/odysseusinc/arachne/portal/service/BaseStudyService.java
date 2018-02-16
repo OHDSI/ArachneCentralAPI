@@ -39,6 +39,7 @@ import com.odysseusinc.arachne.portal.model.SuggestSearchRegion;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserStudy;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
+import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobStudyFileResponseEvent;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -131,4 +132,6 @@ public interface BaseStudyService<
     List<StudyDataSourceLink> getLinksByStudyId(Long id, EntityGraph dataSource);
 
     List<StudyFile> getFilesByStudyId(Long id, EntityGraph author);
+
+    void processAntivirusResponse(AntivirusJobStudyFileResponseEvent event);
 }

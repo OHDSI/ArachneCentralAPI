@@ -24,10 +24,8 @@ package com.odysseusinc.arachne.portal.api.v1.dto.converters.paper;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.PaperFileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserInfoDTO;
-import com.odysseusinc.arachne.portal.model.AbstractPaperFile;
-import org.springframework.beans.factory.annotation.Autowired;
 import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
-import org.springframework.core.convert.support.GenericConversionService;
+import com.odysseusinc.arachne.portal.model.AbstractPaperFile;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -48,6 +46,8 @@ public class PaperFileToPaperFileDTOConverter
         final UserInfoDTO authorDTO = conversionService.convert(paperFile.getAuthor(), UserInfoDTO.class);
         paperFileDTO.setAuthor(authorDTO);
         paperFileDTO.setLink(paperFile.getLink());
+        paperFileDTO.setAntivirusStatus(paperFile.getAntivirusStatus());
+        paperFileDTO.setAntivirusDescription(paperFile.getAntivirusDescription());
 
         paperFileDTO.setInsightId(paperFile.getPaper().getId());
 

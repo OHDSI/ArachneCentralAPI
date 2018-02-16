@@ -34,6 +34,8 @@
         <dockerImagePrefix>hub.arachnenetwork.com</dockerImagePrefix>
         <jodConverter.version>4.1.0</jodConverter.version>
         <hibernate.version>5.2.12.Final</hibernate.version>
+        <clamav.version>2.0.1</clamav.version>
+        <springRetryVersion>1.2.1.RELEASE</springRetryVersion>
     </properties>
 
     <profiles>
@@ -323,6 +325,16 @@
             <artifactId>commons-csv</artifactId>
             <version>1.5</version>
         </dependency>
+        <dependency>
+            <groupId>xyz.capybara</groupId>
+            <artifactId>clamav-client</artifactId>
+            <version>${clamav.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.retry</groupId>
+            <artifactId>spring-retry</artifactId>
+            <version>${springRetryVersion}</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -446,6 +458,12 @@
             </plugin>
 
         </plugins>
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+                <filtering>true</filtering>
+            </testResource>
+        </testResources>
         <pluginManagement>
             <plugins>
                 <plugin>

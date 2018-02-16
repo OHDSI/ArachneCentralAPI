@@ -23,22 +23,63 @@
 package com.odysseusinc.arachne.portal.security.passwordvalidator;
 
 import edu.vt.middleware.password.MessageResolver;
-import edu.vt.middleware.password.PasswordValidator;
 import edu.vt.middleware.password.Rule;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-public class ArachnePasswordValidator extends PasswordValidator {
+public class ArachnePasswordValidator {
 
-    protected ArachnePasswordInfo passwordInfo;
+    private final List<Rule> passwordRules;
+    protected final ArachnePasswordInfo passwordInfo;
+    private final MessageResolver messageResolver;
 
-    protected ArachnePasswordValidator(MessageResolver resolver, List<Rule> rules, ArachnePasswordInfo passwordInfo) {
+    protected ArachnePasswordValidator(MessageResolver messageResolver, List<Rule> passwordRules, ArachnePasswordInfo passwordInfo) {
 
-        super(resolver, rules);
+        this.messageResolver = messageResolver;
+        this.passwordRules = passwordRules;
         this.passwordInfo = passwordInfo;
     }
 
     public ArachnePasswordInfo getPasswordInfo() {
 
         return passwordInfo;
+    }
+
+    public ArachnePasswordValidationResult validate(ArachnePasswordData passwordData) {
+
+        final ArachnePasswordValidationResult result = new ArachnePasswordValidationResult(true);
+
+        for (Rule rule : passwordRules) {
+            final ArachneRuleResult ruleResult = new ArachneRule(rule).validate(passwordData);
+            if (!ruleResult.isValid()) {
+                result.setValid(false);
+                result.addResult(ruleResult);
+            }
+        }
+        return result;
+    }
+
+    public ArachnePasswordInfo getMessages(ArachnePasswordValidationResult result) {
+
+        return new ArachnePasswordInfo(process(result.getResults()));
+    }
+
+    private Set<RuleInfo> process(List<ArachneRuleResult> ruleResult) {
+
+        final Set<RuleInfo> ruleInfos = new HashSet<>();
+        for (ArachneRuleResult arachneRuleResult : ruleResult) {
+            final RuleInfo ruleInfo;
+            if (arachneRuleResult instanceof ArachneComplexRuleResult) {
+                final ArachneComplexRuleResult arachneComplexRuleResult = (ArachneComplexRuleResult) arachneRuleResult;
+                final Set<RuleInfo> process = process(arachneComplexRuleResult.getResults());
+                ruleInfo = new ComplexRuleInfo(messageResolver.resolve(arachneComplexRuleResult.getDetails()), process);
+                ruleInfos.add(ruleInfo);
+            } else {
+                ruleInfo = new RuleInfo(messageResolver.resolve(arachneRuleResult.getDetails()));
+            }
+            ruleInfos.add(ruleInfo);
+        }
+        return ruleInfos;
     }
 }
