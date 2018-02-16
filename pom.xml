@@ -6,7 +6,7 @@
 
     <artifactId>portal</artifactId>
     <groupId>com.odysseusinc.arachne</groupId>
-    <version>1.11.0</version>
+    <version>1.11.1</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -103,13 +103,13 @@
         <dependency>
             <groupId>com.odysseusinc.arachne</groupId>
             <artifactId>arachne-commons</artifactId>
-            <version>${project.version}</version>
+            <version>1.11.0</version>
             <type>jar</type>
         </dependency>
         <dependency>
             <artifactId>arachne-sys-settings</artifactId>
             <groupId>com.odysseusinc.arachne</groupId>
-            <version>${project.version}</version>
+            <version>1.11.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.flywaydb</groupId>
@@ -120,7 +120,7 @@
         <dependency>
             <groupId>com.odysseusinc.arachne</groupId>
             <artifactId>arachne-storage</artifactId>
-            <version>${project.version}</version>
+            <version>1.11.0</version>
             <type>jar</type>
         </dependency>
         <dependency>
