@@ -42,12 +42,8 @@ import com.odysseusinc.arachne.portal.repository.AnalysisRepository;
 import com.odysseusinc.arachne.portal.repository.AnalysisUnlockRequestRepository;
 import com.odysseusinc.arachne.portal.repository.ResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionFileRepository;
-import com.odysseusinc.arachne.portal.repository.SubmissionInsightRepository;
-import com.odysseusinc.arachne.portal.repository.SubmissionInsightSubmissionFileRepository;
-import com.odysseusinc.arachne.portal.repository.SubmissionResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionStatusHistoryRepository;
 import com.odysseusinc.arachne.portal.repository.submission.SubmissionRepository;
-import com.odysseusinc.arachne.portal.service.CommentService;
 import com.odysseusinc.arachne.portal.service.ToPdfConverter;
 import com.odysseusinc.arachne.portal.service.StudyFileService;
 import com.odysseusinc.arachne.portal.service.StudyService;
@@ -58,6 +54,7 @@ import com.odysseusinc.arachne.portal.util.AnalysisHelper;
 import com.odysseusinc.arachne.portal.util.LegacyAnalysisHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.annotation.Secured;
@@ -98,7 +95,8 @@ public class AnalysisServiceImpl extends BaseAnalysisServiceImpl<Analysis, Study
                                StudyService studyService,
                                AnalysisHelper analysisHelper,
                                StudyFileService fileService,
-                               ToPdfConverter docToPdfConverter) {
+                               ToPdfConverter docToPdfConverter,
+                               ApplicationEventPublisher eventPublisher) {
 
 
         super(conversionService,
@@ -118,7 +116,8 @@ public class AnalysisServiceImpl extends BaseAnalysisServiceImpl<Analysis, Study
                 studyService,
                 analysisHelper,
                 fileService,
-                docToPdfConverter);
+                docToPdfConverter,
+                eventPublisher);
     }
 
     @Override

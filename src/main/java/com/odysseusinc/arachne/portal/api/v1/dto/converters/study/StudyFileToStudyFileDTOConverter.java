@@ -24,10 +24,8 @@ package com.odysseusinc.arachne.portal.api.v1.dto.converters.study;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.StudyFileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserInfoDTO;
-import com.odysseusinc.arachne.portal.model.StudyFile;
-import org.springframework.beans.factory.annotation.Autowired;
 import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
-import org.springframework.core.convert.support.GenericConversionService;
+import com.odysseusinc.arachne.portal.model.StudyFile;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -45,6 +43,8 @@ public class StudyFileToStudyFileDTOConverter extends BaseConversionServiceAware
         studyFileDTO.setStudyId(source.getStudy().getId());
         studyFileDTO.setAuthor(conversionService.convert(source.getAuthor(), UserInfoDTO.class));
         studyFileDTO.setDocType(source.getContentType());
+        studyFileDTO.setAntivirusStatus(source.getAntivirusStatus());
+        studyFileDTO.setAntivirusDescription(source.getAntivirusDescription());
         return studyFileDTO;
     }
 }

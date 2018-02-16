@@ -25,20 +25,20 @@ package com.odysseusinc.arachne.portal.service;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.AbstractPaperFile;
-import com.odysseusinc.arachne.portal.model.Invitationable;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.PaperFileType;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.PaperSearch;
-import org.springframework.data.domain.Page;
-import org.springframework.web.multipart.MultipartFile;
-
+import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobPaperPaperFileResponseEvent;
+import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobPaperProtocolFileResponseEvent;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface BasePaperService<T extends Paper, PS extends PaperSearch> {
     Page<T> getPapersAccordingToCurrentUser(PS paperSearch, User user);
@@ -77,4 +77,8 @@ public interface BasePaperService<T extends Paper, PS extends PaperSearch> {
     List<T> findByStudyIds(List<Long> ids);
 
     void fullDelete(List<T> ids);
+
+    void processAntivirusResponse(AntivirusJobPaperPaperFileResponseEvent event);
+
+    void processAntivirusResponse(AntivirusJobPaperProtocolFileResponseEvent event);
 }
