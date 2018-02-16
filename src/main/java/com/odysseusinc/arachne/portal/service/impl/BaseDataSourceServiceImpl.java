@@ -181,7 +181,7 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
     protected void afterUpdate(DS dataSource)
             throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
-        if (!dataSource.getDataNode().getVirtual()) {
+        if (!dataSource.getDataNode().getVirtual() && dataSource.getPublished()) {
             indexBySolr(dataSource);
         }
     }
@@ -255,7 +255,7 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
     public void delete(Long id) {
 
         log.info("Deleting datasource with id={}", id);
-        dataSourceRepository.delete(id);
+        dataSourceRepository.softDelete(id);
     }
 
     @PreAuthorize("hasPermission(#id, 'DataSource', "
