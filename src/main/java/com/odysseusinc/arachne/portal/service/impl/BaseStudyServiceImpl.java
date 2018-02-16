@@ -43,11 +43,13 @@ import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
 import com.odysseusinc.arachne.portal.model.AntivirusStatus;
+import com.odysseusinc.arachne.portal.model.BaseDataSource;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.DataSourceStatus;
 import com.odysseusinc.arachne.portal.model.FavouriteStudy;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import com.odysseusinc.arachne.portal.model.ParticipantStatus;
 import com.odysseusinc.arachne.portal.model.Study;
@@ -141,12 +143,13 @@ import org.springframework.web.multipart.MultipartFile;
 @Transactional(rollbackFor = Exception.class)
 public abstract class BaseStudyServiceImpl<
         T extends Study,
-        DS extends DataSource,
+        RDS extends IDataSource,
+        DS extends IDataSource,
         SS extends StudySearch,
         SU extends AbstractUserStudyListItem> extends CRUDLServiceImpl<T>
         implements BaseStudyService<T, DS, SS, SU> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(StudyServiceImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(BaseStudyServiceImpl.class);
 
     private static final String EX_STUDY_NOT_EXISTS = "The study does not exist";
     private static final String EX_USER_NOT_EXISTS = "The user does not exist";
@@ -165,7 +168,7 @@ public abstract class BaseStudyServiceImpl<
     private final RestTemplate restTemplate;
     protected final StudyFileRepository studyFileRepository;
     private final BaseUserService userService;
-    private final BaseDataSourceService<DS> dataSourceService;
+    private final BaseDataSourceService<RDS, DS> dataSourceService;
     private final BaseDataNodeService<DataNode> baseDataNodeService;
     private final StudyDataSourceLinkRepository studyDataSourceLinkRepository;
     private final StudyStatusService studyStatusService;
@@ -192,7 +195,7 @@ public abstract class BaseStudyServiceImpl<
                                 FavouriteStudyRepository favouriteStudyRepository,
                                 @Qualifier("restTemplate") RestTemplate restTemplate,
                                 StudyTypeService studyTypeService,
-                                BaseDataSourceService<DS> dataSourceService,
+                                BaseDataSourceService<RDS, DS> dataSourceService,
                                 StudyDataSourceLinkRepository studyDataSourceLinkRepository,
                                 ResultFileRepository resultFileRepository,
                                 StudyFileRepository studyFileRepository,
@@ -854,7 +857,7 @@ public abstract class BaseStudyServiceImpl<
     }
 
     @Override
-    public List<User> getApprovedUsers(DataSource dataSource) {
+    public List<User> getApprovedUsers(DS dataSource) {
 
         return userService.findUsersApprovedInDataSource(dataSource.getId());
     }

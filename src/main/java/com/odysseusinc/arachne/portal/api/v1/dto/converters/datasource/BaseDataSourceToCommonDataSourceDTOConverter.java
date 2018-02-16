@@ -24,9 +24,10 @@ package com.odysseusinc.arachne.portal.api.v1.dto.converters.datasource;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonBaseDataSourceDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
-import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.BaseDataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 
-public abstract class BaseDataSourceToCommonDataSourceDTOConverter<DS extends DataSource, DTO extends CommonBaseDataSourceDTO>
+public abstract class BaseDataSourceToCommonDataSourceDTOConverter<DS extends IDataSource, DTO extends CommonBaseDataSourceDTO>
         extends BaseConversionServiceAwareConverter<DS, DTO> {
 
     @Override

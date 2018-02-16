@@ -31,8 +31,10 @@ import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.exception.WrongFileFormatException;
+import com.odysseusinc.arachne.portal.model.BaseUser;
 import com.odysseusinc.arachne.portal.model.Country;
 import com.odysseusinc.arachne.portal.model.Invitationable;
+import com.odysseusinc.arachne.portal.model.RawUser;
 import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.StateProvince;
 import com.odysseusinc.arachne.portal.model.User;
@@ -54,13 +56,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.multipart.MultipartFile;
 
-public interface BaseUserService<U extends User, S extends Skill> {
+public interface BaseUserService<BU extends BaseUser, RU extends RawUser, U extends User, S extends Skill> {
 
     U getByUsername(final String username);
 
     U getByUsername(final String userOrigin, final String username);
 
     U getByEmail(String email);
+
+    RU findLoginCandidate(final String email);
+
+    RU getByIdInAnyTenant(final Long id);
 
     U getByUnverifiedEmail(final String email);
 
@@ -91,6 +97,14 @@ public interface BaseUserService<U extends User, S extends Skill> {
     List<U> getAllByIDs(List<Long> ids);
 
     U update(U user)
+            throws
+            IllegalAccessException,
+            SolrServerException,
+            IOException,
+            NotExistException,
+            NoSuchFieldException;
+
+    RU updateUnsafeInAnyTenant(RU user)
             throws
             IllegalAccessException,
             SolrServerException,
@@ -162,6 +176,9 @@ public interface BaseUserService<U extends User, S extends Skill> {
     UserStudy getByIdAndStatusPendingAndToken(Long userStudyId, String token) throws NotExistException;
 
     FieldList getSolrFields();
+
+    void indexBySolr(BU user)
+            throws IllegalAccessException, IOException, SolrServerException, NotExistException, NoSuchFieldException;
 
     void indexAllBySolr()
             throws IOException,

@@ -30,8 +30,10 @@ import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
+import com.odysseusinc.arachne.portal.model.BaseDataSource;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
@@ -54,14 +56,15 @@ import java.io.IOException;
 import java.security.Principal;
 
 @SuppressWarnings("unused")
-public abstract class BaseDataNodeController
-        <DS extends DataSource,
-                C_DS_DTO extends CommonDataSourceDTO,
-                DN extends DataNode> extends BaseController {
+public abstract class BaseDataNodeController<
+        RDS extends IDataSource,
+        DS extends IDataSource,
+        C_DS_DTO extends CommonDataSourceDTO,
+        DN extends DataNode> extends BaseController {
 
     private static final Logger log = LoggerFactory.getLogger(BaseDataNodeController.class);
     protected final BaseAnalysisService analysisService;
-    protected final BaseDataSourceService<DS> dataSourceService;
+    protected final BaseDataSourceService<RDS, DS> dataSourceService;
     protected final BaseDataNodeService<DN> baseDataNodeService;
     protected final GenericConversionService genericConversionService;
     protected final BaseUserService userService;
@@ -70,7 +73,7 @@ public abstract class BaseDataNodeController
     @Autowired
     public BaseDataNodeController(BaseAnalysisService analysisService,
                                   BaseDataNodeService<DN> dataNodeService,
-                                  BaseDataSourceService<DS> dataSourceService,
+                                  BaseDataSourceService<RDS, DS> dataSourceService,
                                   GenericConversionService genericConversionService,
                                   BaseUserService userService,
                                   StudyDataSourceService studyDataSourceService) {
@@ -176,7 +179,7 @@ public abstract class BaseDataNodeController
             throws PermissionDeniedException, IOException, SolrServerException {
 
         final DS dataSource = dataSourceService.findById(dataSourceId);
-        studyDataSourceService.softDeletingDataSource(dataSource);
+        studyDataSourceService.softDeletingDataSource(dataSource.getId());
         return new JsonResult(JsonResult.ErrorCode.NO_ERROR);
     }
 

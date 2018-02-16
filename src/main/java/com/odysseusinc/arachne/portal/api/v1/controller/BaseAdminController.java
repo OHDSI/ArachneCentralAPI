@@ -30,8 +30,10 @@ import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
 import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
 import com.odysseusinc.arachne.portal.model.Analysis;
+import com.odysseusinc.arachne.portal.model.BaseDataSource;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.Submission;
@@ -73,7 +75,8 @@ import java.util.stream.StreamSupport;
 @Secured("ROLE_ADMIN")
 public abstract class BaseAdminController<
         S extends Study,
-        DS extends DataSource,
+        RDS extends IDataSource,
+        DS extends IDataSource,
         SS extends StudySearch,
         SU extends AbstractUserStudyListItem,
         A extends Analysis,
@@ -81,12 +84,12 @@ public abstract class BaseAdminController<
         PS extends PaperSearch,
         SB extends Submission> extends BaseController<DataNode, User> {
 
-    private final BaseDataSourceService<DS> dataSourceService;
+    private final BaseDataSourceService<RDS, DS> dataSourceService;
     protected final ProfessionalTypeService professionalTypeService;
     private final BaseAdminService<S, DS, SS, SU, A, P, PS, SB> adminService;
 
     @Autowired
-    public BaseAdminController(BaseDataSourceService<DS> dataSourceService,
+    public BaseAdminController(BaseDataSourceService<RDS, DS> dataSourceService,
                                ProfessionalTypeService professionalTypeService,
                                BaseAdminService<S, DS, SS, SU, A, P, PS, SB> adminService) {
 

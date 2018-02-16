@@ -22,10 +22,12 @@
 
 package com.odysseusinc.arachne.portal.service;
 
+import com.odysseusinc.arachne.portal.model.BaseDataSource;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.RawDataSource;
 import java.util.List;
 
-public interface DataSourceService extends BaseDataSourceService<DataSource> {
+public interface DataSourceService extends BaseDataSourceService<RawDataSource, DataSource> {
 
     List<DataSource> getAllByUserId(Long userId);
 }

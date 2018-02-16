@@ -73,8 +73,8 @@ public class Submission implements HasArachnePermissions, Breadcrumb, Invitation
     @ManyToOne(fetch = FetchType.LAZY)
     private User author;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    private DataSource dataSource;
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = DataSource.class)
+    private IDataSource dataSource;
 
     @LazyCollection(LazyCollectionOption.EXTRA)
     @OneToMany(mappedBy = "submission", targetEntity = ResultFile.class)
@@ -147,12 +147,12 @@ public class Submission implements HasArachnePermissions, Breadcrumb, Invitation
         this.id = id;
     }
 
-    public DataSource getDataSource() {
+    public IDataSource getDataSource() {
 
         return dataSource;
     }
 
-    public void setDataSource(DataSource dataSource) {
+    public void setDataSource(IDataSource dataSource) {
 
         this.dataSource = dataSource;
     }

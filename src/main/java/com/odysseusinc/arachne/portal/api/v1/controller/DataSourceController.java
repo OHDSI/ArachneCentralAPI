@@ -25,7 +25,9 @@ package com.odysseusinc.arachne.portal.api.v1.controller;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataSourceDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.DataCatalogSearchResultDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.DataSourceDTO;
+import com.odysseusinc.arachne.portal.model.BaseDataSource;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.RawDataSource;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.StudyDataSourceService;
 import com.odysseusinc.arachne.portal.util.ConverterUtils;
@@ -38,13 +40,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @SuppressWarnings("unused")
 public class DataSourceController
-        extends BaseDataSourceController<DataSource, CommonDataSourceDTO, DataSourceDTO, DataCatalogSearchResultDTO> {
+        extends BaseDataSourceController<RawDataSource, DataSource, CommonDataSourceDTO, DataSourceDTO, DataCatalogSearchResultDTO> {
 
     Logger log = LoggerFactory.getLogger(DataSourceController.class);
 
     @Autowired
     public DataSourceController(GenericConversionService conversionService,
-                                BaseDataSourceService<DataSource> dataSourceService,
+                                BaseDataSourceService<RawDataSource, DataSource> dataSourceService,
                                 ConverterUtils converterUtils,
                                 StudyDataSourceService studyDataSourceService
     ) {

@@ -27,9 +27,13 @@ import com.odysseusinc.arachne.portal.api.v1.dto.SearchDataCatalogDTO;
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
+import com.odysseusinc.arachne.portal.model.BaseDataSource;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.model.RawDataSource;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.repository.BaseDataSourceRepository;
+import com.odysseusinc.arachne.portal.repository.BaseRawDataSourceRepository;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
 import com.odysseusinc.arachne.portal.service.TenantService;
@@ -44,6 +48,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,24 +60,32 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.util.ReflectionUtils;
 
 @Transactional(rollbackFor = Exception.class)
-public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extends SolrField> implements BaseDataSourceService<DS> {
-    private static final Logger log = LoggerFactory.getLogger(DataSourceServiceImpl.class);
+public abstract class BaseDataSourceServiceImpl<
+        RDS extends IDataSource, // tenant independent DataSource
+        DS extends IDataSource, // tenant dependent DataSource
+        SF extends SolrField> implements BaseDataSourceService<RDS, DS> {
+
+    private static final Logger log = LoggerFactory.getLogger(BaseDataSourceServiceImpl.class);
     protected BaseDataSourceRepository<DS> dataSourceRepository;
     protected BaseSolrService<SF> solrService;
     protected GenericConversionService conversionService;
     protected TenantService tenantService;
+    protected BaseRawDataSourceRepository<RDS> rawDataSourceRepository;
 
     public BaseDataSourceServiceImpl(BaseSolrService<SF> solrService,
                                      BaseDataSourceRepository<DS> dataSourceRepository,
                                      GenericConversionService conversionService,
-                                     TenantService tenantService) {
+                                     TenantService tenantService,
+                                     BaseRawDataSourceRepository<RDS> rawDataSourceRepository) {
 
         this.solrService = solrService;
         this.dataSourceRepository = dataSourceRepository;
         this.conversionService = conversionService;
         this.tenantService = tenantService;
+        this.rawDataSourceRepository = rawDataSourceRepository;
     }
 
     @Override
@@ -116,7 +129,7 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
         return solrService.search(
                 SolrServiceImpl.DATA_SOURCE_COLLECTION,
                 solrQuery,
-                DataSource.class.getDeclaredField("tenants")
+                ReflectionUtils.findField(DataSource.class, "tenants")
         );
     }
 
@@ -150,16 +163,7 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
         return result;
     }
 
-    @Transactional
-    @PreAuthorize("hasPermission(#dataSource, "
-            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).CREATE_DATASOURCE)")
-    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
-    @Override
-    public DS update(DS dataSource)
-            throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
-
-        DS exist = dataSourceRepository.findByIdAndDeletedIsNull(dataSource.getId())
-                .orElseThrow(() -> new NotExistException(DataSource.class));
+    private DS baseUpdate(DS exist, DS dataSource) throws IOException, NoSuchFieldException, SolrServerException, IllegalAccessException {
 
         if (dataSource.getName() != null) {
             exist.setName(dataSource.getName());
@@ -177,12 +181,40 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
             exist.setOrganization(dataSource.getOrganization());
         }
 
-        beforeUpdate(exist, dataSource);
+        if (dataSource.getTenants() != null) {
+            exist.setTenants(dataSource.getTenants());
+        }
 
+        return exist;
+    }
+
+    @Transactional
+    @PreAuthorize("hasPermission(#dataSource, "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).CREATE_DATASOURCE)")
+    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
+    @Override
+    public DS update(DS dataSource)
+            throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
+
+        DS exist = dataSourceRepository.findByIdAndDeletedIsNull(dataSource.getId())
+                .orElseThrow(() -> new NotExistException(DataSource.class));
+
+        exist = baseUpdate(exist, dataSource);
+
+        beforeUpdate(exist, dataSource);
         DS savedDataSource = dataSourceRepository.save(exist);
         afterUpdate(savedDataSource);
 
         return savedDataSource;
+    }
+
+    @Secured({"ROLE_ADMIN"})
+    @Override
+    public DS updateInAnyTenant(DS dataSource)
+            throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
+
+        DS exist = getNotDeletedByIdInAnyTenant(dataSource.getId());
+        return baseUpdate(exist, dataSource);
     }
 
     protected void beforeUpdate(DS target, DS dataSource) {
@@ -203,6 +235,14 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
     public DS getNotDeletedById(Long id) {
 
         return dataSourceRepository.findByIdAndDeletedIsNull(id)
+                .orElseThrow(() -> new NotExistException(DataSource.class));
+    }
+
+    @Secured({"ROLE_ADMIN"})
+    @Override
+    public DS getNotDeletedByIdInAnyTenant(Long id) {
+
+        return dataSourceRepository.getByIdNotDeletedInAnyTenant(id)
                 .orElseThrow(() -> new NotExistException(DataSource.class));
     }
 
@@ -310,7 +350,7 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
         return searchResult.excludedOptions();
     }
 
-    protected void indexBySolr(DS dataSource)
+    public void indexBySolr(DS dataSource)
             throws IOException, SolrServerException, NoSuchFieldException, IllegalAccessException {
 
         Map<SF, Object> values = solrService.getValuesByEntity(dataSource);

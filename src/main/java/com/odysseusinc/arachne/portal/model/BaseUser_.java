@@ -1,5 +1,4 @@
 /*
- *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +14,16 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: September 08, 2017
- *
+ * Authors: Anton Gackovka
+ * Created: December 13, 2017
  */
 
-package com.odysseusinc.arachne.portal.service.study;
+package com.odysseusinc.arachne.portal.model;
 
-import com.odysseusinc.arachne.portal.model.BaseDataSource;
-import com.odysseusinc.arachne.portal.model.DataSource;
-import com.odysseusinc.arachne.portal.model.IDataSource;
+import javax.persistence.metamodel.SingularAttribute;
+import javax.persistence.metamodel.StaticMetamodel;
 
-public interface AddDataSourceStrategyFactory<T extends IDataSource> {
-    AddDataSourceStrategy<T> getStrategy(T dataSource);
+@StaticMetamodel(BaseUser.class)
+public class BaseUser_ {
+    public static volatile SingularAttribute<User, Long> id;
 }

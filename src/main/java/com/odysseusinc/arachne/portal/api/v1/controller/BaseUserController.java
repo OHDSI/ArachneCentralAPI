@@ -65,13 +65,16 @@ import com.odysseusinc.arachne.portal.exception.WrongFileFormatException;
 import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.AnalysisUnlockRequest;
+import com.odysseusinc.arachne.portal.model.BaseUser;
 import com.odysseusinc.arachne.portal.model.Country;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataNodeRole;
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.Invitationable;
 import com.odysseusinc.arachne.portal.model.Paper;
+import com.odysseusinc.arachne.portal.model.RawUser;
 import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.StateProvince;
 import com.odysseusinc.arachne.portal.model.Study;
@@ -131,9 +134,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 public abstract class BaseUserController<
+        BU extends BaseUser,
+        RU extends RawUser,
         U extends User,
         S extends Study,
-        DS extends DataSource,
+        DS extends IDataSource,
         SS extends StudySearch,
         SU extends AbstractUserStudyListItem,
         DN extends DataNode,
@@ -149,7 +154,7 @@ public abstract class BaseUserController<
     private static final String INVITATION_HOME_PAGE = "/study-manager/studies/";
 
     protected final TokenUtils tokenUtils;
-    protected final BaseUserService<U, SK> userService;
+    protected final BaseUserService<BU, RU, U, SK> userService;
     protected final BaseStudyService<S, DS, SS, SU> studyService;
     protected final GenericConversionService conversionService;
     protected final BaseDataNodeService<DN> baseDataNodeService;
@@ -160,7 +165,7 @@ public abstract class BaseUserController<
     protected final ArachnePasswordValidator passwordValidator;
 
     public BaseUserController(TokenUtils tokenUtils,
-                              BaseUserService<U, SK> userService,
+                              BaseUserService<BU, RU, U, SK> userService,
                               BaseStudyService<S, DS, SS, SU> studyService,
                               GenericConversionService conversionService,
                               BaseDataNodeService<DN> baseDataNodeService,

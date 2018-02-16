@@ -16,16 +16,22 @@
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
  * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: September 08, 2017
+ * Created: November 07, 2016
  *
  */
 
-package com.odysseusinc.arachne.portal.service.study;
+package com.odysseusinc.arachne.portal.model;
 
-import com.odysseusinc.arachne.portal.model.BaseDataSource;
-import com.odysseusinc.arachne.portal.model.DataSource;
-import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
+import java.io.Serializable;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import org.hibernate.annotations.SQLDelete;
 
-public interface AddDataSourceStrategyFactory<T extends IDataSource> {
-    AddDataSourceStrategy<T> getStrategy(T dataSource);
+@Entity
+@Table(name = "data_sources_data")
+@SQLDelete(sql = "UPDATE data_sources_data "
+        + "SET deleted = current_timestamp, health_status = 'NOT_CONNECTED', health_status_description = 'Deleted'"
+        + " WHERE id = ?")
+public class RawDataSource extends BaseDataSource implements IDataSource, Serializable, HasArachnePermissions {
 }

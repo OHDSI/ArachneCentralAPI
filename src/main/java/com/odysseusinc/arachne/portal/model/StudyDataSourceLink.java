@@ -58,7 +58,7 @@ public class StudyDataSourceLink implements Invitationable {
 
     @ManyToOne(optional = false, targetEntity = DataSource.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "data_source_id")
-    private DataSource dataSource;
+    private IDataSource dataSource;
 
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
@@ -97,12 +97,12 @@ public class StudyDataSourceLink implements Invitationable {
         this.study = study;
     }
 
-    public DataSource getDataSource() {
+    public IDataSource getDataSource() {
 
         return dataSource;
     }
 
-    public void setDataSource(DataSource dataSource) {
+    public void setDataSource(IDataSource dataSource) {
 
         this.dataSource = dataSource;
     }

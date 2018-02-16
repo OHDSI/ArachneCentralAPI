@@ -23,15 +23,6 @@
 package com.odysseusinc.arachne.portal.repository;
 
 import com.odysseusinc.arachne.portal.model.RawUser;
-import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
-public interface RawUserRepository extends JpaRepository<RawUser, Long> {
-
-    Optional<RawUser> findById(Long id);
-
-    @Query("SELECT u FROM RawUser u WHERE u.origin = :userOrigin AND u.username = :username")
-    Optional<RawUser> findLoginCandidate(@Param("userOrigin") String userOrigin, @Param("username") String username);
+public interface RawUserRepository extends BaseUserRepository<RawUser> {
 }

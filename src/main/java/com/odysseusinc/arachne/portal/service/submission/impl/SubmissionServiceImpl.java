@@ -28,7 +28,9 @@ import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.Analysis;
+import com.odysseusinc.arachne.portal.model.BaseDataSource;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.RawDataSource;
 import com.odysseusinc.arachne.portal.model.ResultFile;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
@@ -67,12 +69,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @Transactional(rollbackFor = Exception.class)
-public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission, Analysis, DataSource>
+public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission, Analysis, RawDataSource, DataSource>
         implements SubmissionService {
 
     @Autowired
     public SubmissionServiceImpl(BaseSubmissionRepository<Submission> submissionRepository,
-                                 BaseDataSourceService<DataSource> dataSourceService,
+                                 BaseDataSourceService<RawDataSource, DataSource> dataSourceService,
                                  ArachneMailSender mailSender,
                                  AnalysisHelper analysisHelper,
                                  SimpMessagingTemplate wsTemplate,

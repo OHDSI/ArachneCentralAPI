@@ -25,8 +25,10 @@ package com.odysseusinc.arachne.portal.api.v1.controller;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeRegisterDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataSourceDTO;
 import com.odysseusinc.arachne.portal.model.Analysis;
+import com.odysseusinc.arachne.portal.model.BaseDataSource;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.RawDataSource;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
@@ -36,10 +38,10 @@ import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class DataNodeController extends BaseDataNodeController<DataSource, CommonDataSourceDTO, DataNode> {
+public class DataNodeController extends BaseDataNodeController<RawDataSource, DataSource, CommonDataSourceDTO, DataNode> {
     public DataNodeController(BaseAnalysisService<Analysis> analysisService,
                               BaseDataNodeService<DataNode> baseDataNodeService,
-                              BaseDataSourceService<DataSource> dataSourceService,
+                              BaseDataSourceService<RawDataSource, DataSource> dataSourceService,
                               GenericConversionService genericConversionService,
                               BaseUserService userService,
                               StudyDataSourceService studyDataSourceService) {

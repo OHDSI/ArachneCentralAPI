@@ -62,6 +62,7 @@ import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
@@ -112,7 +113,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 public abstract class BaseStudyController<
         T extends Study,
-        DS extends DataSource,
+        DS extends IDataSource,
         A extends Analysis,
         SD extends StudyDTO,
         SS extends StudySearch,
@@ -504,7 +505,7 @@ public abstract class BaseStudyController<
     ) throws PermissionDeniedException, NotExistException, IllegalAccessException, SolrServerException, IOException, ValidationException, FieldException, AlreadyExistException, NoSuchFieldException {
 
         final User createdBy = getUser(principal);
-        final DataSource dataSource = studyService.addVirtualDataSource(
+        final IDataSource dataSource = studyService.addVirtualDataSource(
                 createdBy,
                 studyId,
                 dataSourceDTO.getName(),
@@ -549,7 +550,7 @@ public abstract class BaseStudyController<
     ) throws PermissionDeniedException, ValidationException, IOException, NoSuchFieldException, SolrServerException, IllegalAccessException {
 
         final User user = getUser(principal);
-        DataSource dataSource = studyService.updateVirtualDataSource(
+        IDataSource dataSource = studyService.updateVirtualDataSource(
                 user, studyId, dataSourceId, dataSourceDTO.getName(), dataSourceDTO.getDataOwnersIds()
         );
         return new JsonResult<>(NO_ERROR, conversionService.convert(dataSource, DataSourceDTO.class));

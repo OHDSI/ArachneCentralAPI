@@ -1,6 +1,6 @@
 package com.odysseusinc.arachne.portal.model.security;
 
-import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.RawDataSource;
 import com.odysseusinc.arachne.portal.model.RawUser;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.solr.SolrValue;
@@ -39,11 +39,11 @@ public class Tenant implements SolrValue {
             inverseJoinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"))
     private Set<RawUser> users;
 
-    @ManyToMany(targetEntity = DataSource.class, fetch = FetchType.LAZY)
+    @ManyToMany(targetEntity = RawDataSource.class, fetch = FetchType.LAZY)
     @JoinTable(name = "tenants_data_sources",
             joinColumns = @JoinColumn(name = "tenant_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "data_source_id", referencedColumnName = "id"))
-    private Set<DataSource> dataSources;
+    private Set<RawDataSource> dataSources;
 
     @OneToMany(targetEntity = Study.class, mappedBy = "tenant")
     private Set<Study> studies;
@@ -89,12 +89,12 @@ public class Tenant implements SolrValue {
         this.users = users;
     }
 
-    public Set<DataSource> getDataSources() {
+    public Set<RawDataSource> getDataSources() {
 
         return dataSources;
     }
 
-    public void setDataSources(Set<DataSource> dataSources) {
+    public void setDataSources(Set<RawDataSource> dataSources) {
 
         this.dataSources = dataSources;
     }

@@ -22,6 +22,8 @@
 
 package com.odysseusinc.arachne.portal.service.impl;
 
+import com.odysseusinc.arachne.portal.model.BaseUser;
+import com.odysseusinc.arachne.portal.model.RawUser;
 import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.repository.AnalysisUnlockRequestRepository;
@@ -33,7 +35,6 @@ import com.odysseusinc.arachne.portal.repository.StudyDataSourceLinkRepository;
 import com.odysseusinc.arachne.portal.repository.UserStudyRepository;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
-import com.odysseusinc.arachne.portal.service.RawUserService;
 import com.odysseusinc.arachne.portal.service.SkillService;
 import com.odysseusinc.arachne.portal.service.SolrService;
 import com.odysseusinc.arachne.portal.service.TenantService;
@@ -52,7 +53,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @SuppressWarnings("unused")
 @Transactional(rollbackFor = Exception.class)
-public class UserServiceImpl extends BaseUserServiceImpl<User, Skill, SolrField> implements UserService {
+public class UserServiceImpl extends BaseUserServiceImpl<BaseUser, RawUser, User, Skill, SolrField> implements UserService {
     public UserServiceImpl(StateProvinceRepository stateProvinceRepository,
                            MessageSource messageSource,
                            ProfessionalTypeService professionalTypeService,
@@ -72,7 +73,7 @@ public class UserServiceImpl extends BaseUserServiceImpl<User, Skill, SolrField>
                            RoleRepository roleRepository,
                            UserLinkService userLinkService,
                            TenantService tenantService,
-                           RawUserService rawUserService) {
+                           BaseUserRepository<RawUser> rawUserRepository) {
 
         super(stateProvinceRepository,
                 messageSource,
@@ -93,6 +94,6 @@ public class UserServiceImpl extends BaseUserServiceImpl<User, Skill, SolrField>
                 roleRepository,
                 userLinkService,
                 tenantService,
-                rawUserService);
+                rawUserRepository);
     }
 }

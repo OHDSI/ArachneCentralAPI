@@ -20,23 +20,11 @@
  *
  */
 
-package com.odysseusinc.arachne.portal.api.v1.dto.converters;
+package com.odysseusinc.arachne.portal.repository;
 
-import com.odysseusinc.arachne.portal.model.RawUser;
-import com.odysseusinc.arachne.portal.model.User;
-import org.springframework.beans.BeanUtils;
-import org.springframework.stereotype.Component;
+import com.odysseusinc.arachne.portal.model.RawDataSource;
+import org.springframework.stereotype.Repository;
 
-@Component
-public class RawUserToUserConverter extends BaseConversionServiceAwareConverter<RawUser, User> {
-
-    @Override
-    public User convert(RawUser source) {
-
-        User user = new User();
-        if (source != null) {
-            BeanUtils.copyProperties(source, user);
-        }
-        return user;
-    }
+@Repository
+public interface RawDataSourceRepository extends BaseRawDataSourceRepository<RawDataSource> {
 }

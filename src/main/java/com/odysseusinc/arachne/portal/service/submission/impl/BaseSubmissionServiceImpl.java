@@ -47,7 +47,9 @@ import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.AnalysisFile;
+import com.odysseusinc.arachne.portal.model.BaseDataSource;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.ResultFile;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
@@ -120,7 +122,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends Analysis, DS extends DataSource>
+public abstract class BaseSubmissionServiceImpl<
+        T extends Submission,
+        A extends Analysis,
+        RDS extends IDataSource,
+        DS extends IDataSource>
         implements BaseSubmissionService<T, A> {
 
     public static final String SUBMISSION_NOT_EXIST_EXCEPTION = "Submission with id='%s' does not exist";
@@ -130,7 +136,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     protected static final Logger LOGGER = LoggerFactory.getLogger(BaseSubmissionService.class);
     private static final String FILE_NOT_UPLOADED_MANUALLY_EXCEPTION = "File %s was not uploaded manually";
     protected final BaseSubmissionRepository<T> submissionRepository;
-    protected final BaseDataSourceService<DS> dataSourceService;
+    protected final BaseDataSourceService<RDS, DS> dataSourceService;
     protected final ArachneMailSender mailSender;
     protected final AnalysisHelper analysisHelper;
     protected final SimpMessagingTemplate wsTemplate;
@@ -151,7 +157,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     private String fileStorePath;
 
     protected BaseSubmissionServiceImpl(BaseSubmissionRepository<T> submissionRepository,
-                                        BaseDataSourceService<DS> dataSourceService,
+                                        BaseDataSourceService<RDS, DS> dataSourceService,
                                         ArachneMailSender mailSender,
                                         AnalysisHelper analysisHelper,
                                         SimpMessagingTemplate wsTemplate,
@@ -209,7 +215,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
                               SubmissionGroup submissionGroup)
             throws NotExistException, IOException {
 
-        DataSource dataSource = dataSourceService.getByIdUnsecured(datasourceId);
+        DS dataSource = dataSourceService.getByIdUnsecured(datasourceId);
         T submission = newSubmission();
         submission.setAuthor(user);
         Date created = new Date();
@@ -248,7 +254,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
 
     }
 
-    protected SubmissionStatus calculateSubmissionStatusAccordingToDatasourceOwnership(DataSource dataSource, User user) {
+    protected SubmissionStatus calculateSubmissionStatusAccordingToDatasourceOwnership(DS dataSource, User user) {
 
         return PENDING;
     }

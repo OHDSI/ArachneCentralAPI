@@ -23,12 +23,14 @@
 package com.odysseusinc.arachne.portal.api.v1.dto.converters.datasource;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataSourceDTO;
+import com.odysseusinc.arachne.portal.model.BaseDataSource;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import org.springframework.stereotype.Component;
 
 @Component
 @SuppressWarnings("unused")
-public class DataSourceToCommonDataSourceDTOConverter extends BaseDataSourceToCommonDataSourceDTOConverter<DataSource, CommonDataSourceDTO> {
+public class DataSourceToCommonDataSourceDTOConverter extends BaseDataSourceToCommonDataSourceDTOConverter<IDataSource, CommonDataSourceDTO> {
 
     @Override
     protected CommonDataSourceDTO createResultObject() {

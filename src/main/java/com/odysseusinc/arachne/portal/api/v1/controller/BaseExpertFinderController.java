@@ -31,6 +31,8 @@ import com.odysseusinc.arachne.portal.api.v1.dto.ExpertListSearchResultDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchExpertListDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SuggestionTarget;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserProfileDTO;
+import com.odysseusinc.arachne.portal.model.BaseUser;
+import com.odysseusinc.arachne.portal.model.RawUser;
 import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
@@ -50,13 +52,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-public abstract class BaseExpertFinderController<U extends User, SK extends Skill> extends BaseController {
+public abstract class BaseExpertFinderController<BU extends BaseUser, RU extends RawUser, U extends User, SK extends Skill> extends BaseController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseExpertFinderController.class);
 
-    protected final BaseUserService<U, SK> userService;
+    protected final BaseUserService<BU, RU, U, SK> userService;
 
-    public BaseExpertFinderController(BaseUserService<U, SK> userService) {
+    public BaseExpertFinderController(BaseUserService<BU, RU, U, SK> userService) {
 
         this.userService = userService;
     }

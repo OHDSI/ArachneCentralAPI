@@ -35,7 +35,9 @@ import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
+import com.odysseusinc.arachne.portal.model.BaseDataSource;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.StudyDataSourceService;
@@ -61,18 +63,20 @@ import java.security.Principal;
 import java.util.Arrays;
 import java.util.List;
 
-public abstract class BaseDataSourceController<DS extends DataSource,
+public abstract class BaseDataSourceController<
+        RDS extends IDataSource,
+        DS extends IDataSource,
         DTO extends CommonBaseDataSourceDTO,
         DS_DTO extends IDataSourceDTO,
         R extends FacetedSearchResultDTO<?>> extends BaseController {
 
     protected final GenericConversionService conversionService;
-    protected final BaseDataSourceService<DS> dataSourceService;
+    protected final BaseDataSourceService<RDS, DS> dataSourceService;
     protected final ConverterUtils converterUtils;
     protected final StudyDataSourceService studyDataSourceService;
 
     public BaseDataSourceController(GenericConversionService conversionService,
-                                    BaseDataSourceService<DS> dataSourceService,
+                                    BaseDataSourceService<RDS, DS> dataSourceService,
                                     ConverterUtils converterUtils,
                                     StudyDataSourceService studyDataSourceService) {
 
@@ -170,7 +174,7 @@ public abstract class BaseDataSourceController<DS extends DataSource,
     public void deleteDataSource(@PathVariable("id") Long id) throws IOException, SolrServerException {
 
         final DS dataSource = dataSourceService.findById(id);
-        studyDataSourceService.softDeletingDataSource(dataSource);
+        studyDataSourceService.softDeletingDataSource(dataSource.getId());
     }
 
     @RequestMapping(value = "/api/v1/data-sources/cdm-versions", method = RequestMethod.GET)

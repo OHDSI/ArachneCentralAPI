@@ -28,6 +28,8 @@ import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.NotUniqueException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
+import com.odysseusinc.arachne.portal.model.BaseUser;
+import com.odysseusinc.arachne.portal.model.RawUser;
 import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.service.BaseSkillService;
@@ -46,13 +48,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-public abstract class BaseSkillController<S extends Skill, U extends User> {
+public abstract class BaseSkillController<BU extends BaseUser, RU extends RawUser, S extends Skill, U extends User> {
 
     protected final BaseSkillService<S> skillService;
     protected final GenericConversionService conversionService;
-    protected final BaseUserService<U, S> userService;
+    protected final BaseUserService<BU, RU, U, S> userService;
 
-    public BaseSkillController(BaseSkillService<S> skillService, GenericConversionService conversionService, BaseUserService<U, S> userService) {
+    public BaseSkillController(BaseSkillService<S> skillService, GenericConversionService conversionService, BaseUserService<BU, RU, U, S> userService) {
 
         this.skillService = skillService;
         this.conversionService = conversionService;

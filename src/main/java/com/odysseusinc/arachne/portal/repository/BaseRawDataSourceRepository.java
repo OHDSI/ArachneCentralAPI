@@ -16,16 +16,16 @@
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
  * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: September 08, 2017
+ * Created: September 17, 2017
  *
  */
 
-package com.odysseusinc.arachne.portal.service.study;
+package com.odysseusinc.arachne.portal.repository;
 
-import com.odysseusinc.arachne.portal.model.BaseDataSource;
-import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.NoRepositoryBean;
 
-public interface AddDataSourceStrategyFactory<T extends IDataSource> {
-    AddDataSourceStrategy<T> getStrategy(T dataSource);
+@NoRepositoryBean
+public interface BaseRawDataSourceRepository<T extends IDataSource> extends CrudRepository<T, Long> {
 }

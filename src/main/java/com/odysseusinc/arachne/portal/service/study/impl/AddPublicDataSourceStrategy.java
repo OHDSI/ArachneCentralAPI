@@ -24,7 +24,9 @@ package com.odysseusinc.arachne.portal.service.study.impl;
 
 import static com.odysseusinc.arachne.portal.model.DataSourceStatus.APPROVED;
 
+import com.odysseusinc.arachne.portal.model.BaseDataSource;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.repository.StudyDataSourceLinkRepository;
@@ -33,7 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class AddPublicDataSourceStrategy<T extends DataSource> extends AbstractAddDataSourceStrategy implements AddDataSourceStrategy<T> {
+public class AddPublicDataSourceStrategy<T extends IDataSource> extends AbstractAddDataSourceStrategy implements AddDataSourceStrategy<T> {
 
     @Autowired
     public AddPublicDataSourceStrategy(StudyDataSourceLinkRepository studyDataSourceLinkRepository) {

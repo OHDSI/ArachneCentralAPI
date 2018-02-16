@@ -26,6 +26,7 @@ import com.odysseusinc.arachne.portal.model.AnalysisFile;
 import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import com.odysseusinc.arachne.portal.model.PublishState;
@@ -70,7 +71,7 @@ import static com.odysseusinc.arachne.portal.security.ArachnePermission.DELETE_D
 
 
 @Component("ArachnePermissionEvaluator")
-public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> implements PermissionEvaluator {
+public class ArachnePermissionEvaluator<T extends Paper, D extends IDataSource> implements PermissionEvaluator {
 
     protected final BaseArachneSecureService<T, D> secureService;
     protected final DomainObjectLoaderFactory domainObjectLoaderFactory;
