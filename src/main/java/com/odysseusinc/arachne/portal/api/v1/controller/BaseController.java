@@ -46,7 +46,7 @@ import org.springframework.validation.FieldError;
 public abstract class BaseController<DN extends DataNode, U extends IUser> {
 
     @Autowired
-    protected BaseUserService<BaseUser, RawUser, U, Skill> userService;
+    protected BaseUserService<U, Skill> userService;
 
     @Autowired
     protected GenericConversionService conversionService;

@@ -38,7 +38,7 @@ import org.springframework.data.domain.PageRequest;
 import java.io.IOException;
 import java.util.List;
 
-public interface BaseDataSourceService<BDS extends IDataSource, RDS extends IDataSource, DS extends IDataSource> {
+public interface BaseDataSourceService<DS extends IDataSource> {
 
     FieldList getSolrFields();
 
@@ -65,8 +65,8 @@ public interface BaseDataSourceService<BDS extends IDataSource, RDS extends IDat
                     NoSuchFieldException,
                     IllegalAccessException, NotUniqueException;
 
-    RDS updateInAnyTenant(
-            RDS dataSource
+    DS updateInAnyTenant(
+            DS dataSource
     ) throws
             NotExistException,
             ValidationException,
@@ -77,7 +77,7 @@ public interface BaseDataSourceService<BDS extends IDataSource, RDS extends IDat
 
     DS getNotDeletedById(Long id);
 
-    RDS getNotDeletedByIdInAnyTenant(Long id);
+    DS getNotDeletedByIdInAnyTenant(Long id);
 
     DS getByIdUnsecured(Long id) throws NotExistException;
 
@@ -85,7 +85,7 @@ public interface BaseDataSourceService<BDS extends IDataSource, RDS extends IDat
 
     DS findByUuidUnsecured(String uuid) throws NotExistException;
 
-    void indexBySolr(BDS dataSource)
+    void indexBySolr(DS dataSource)
             throws IOException, SolrServerException, NoSuchFieldException, IllegalAccessException;
 
     DS findById(Long dataSourceId);

@@ -23,8 +23,15 @@
 package com.odysseusinc.arachne.portal.repository;
 
 import com.odysseusinc.arachne.portal.model.IUser;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.NoRepositoryBean;
 
 @NoRepositoryBean
-public interface BaseRawUserRepository<U extends IUser> extends BaseUserRepository<U> {
+public interface BaseRawUserRepository<U extends IUser> extends JpaRepository<U, Long> {
+
+    U findByIdAndEnabledTrue(Long id);
+
+    U findByOriginAndUsername(String userOrigin, String username);
+
+    U findByRegistrationCode(String activateCode);
 }

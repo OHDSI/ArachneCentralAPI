@@ -528,7 +528,7 @@ public abstract class BaseStudyController<
         final DataSourceDTO dataSourceDTO = conversionService.convert(dataSource, DataSourceDTO.class);
         final List<ShortUserDTO> userDTOs = dataSource.getDataNode().getDataNodeUsers().stream()
                 .map(dnu -> {
-                    final User user = dnu.getUser();
+                    final IUser user = dnu.getUser();
                     final ShortUserDTO userDTO = new ShortUserDTO();
                     userDTO.setId(user.getUuid());
                     userDTO.setFirstname(user.getFirstname());

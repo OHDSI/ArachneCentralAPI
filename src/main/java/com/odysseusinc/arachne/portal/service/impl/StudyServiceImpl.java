@@ -82,8 +82,6 @@ import org.springframework.web.multipart.MultipartFile;
 @Transactional(rollbackFor = Exception.class)
 public class StudyServiceImpl extends BaseStudyServiceImpl<
         Study,
-        BaseDataSource,
-        RawDataSource,
         DataSource,
         StudySearch,
         StudyViewItem> implements StudyService {

@@ -39,7 +39,7 @@ public class DataNodeUtils {
 
     }
 
-    public static Set<User> getDataNodeOwners(DataNode dataNode) {
+    public static Set<IUser> getDataNodeOwners(DataNode dataNode) {
 
         return dataNode.getDataNodeUsers()
                 .stream()

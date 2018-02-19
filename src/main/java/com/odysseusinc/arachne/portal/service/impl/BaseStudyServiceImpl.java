@@ -143,9 +143,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Transactional(rollbackFor = Exception.class)
 public abstract class BaseStudyServiceImpl<
         T extends Study,
-        BDS extends IDataSource,
-        RDS extends IDataSource,
-        DS extends IDataSource,
+                DS extends IDataSource,
         SS extends StudySearch,
         SU extends AbstractUserStudyListItem> extends CRUDLServiceImpl<T>
         implements BaseStudyService<T, DS, SS, SU> {
@@ -169,7 +167,7 @@ public abstract class BaseStudyServiceImpl<
     private final RestTemplate restTemplate;
     protected final StudyFileRepository studyFileRepository;
     private final BaseUserService userService;
-    private final BaseDataSourceService<BDS, RDS, DS> dataSourceService;
+    private final BaseDataSourceService<DS> dataSourceService;
     private final BaseDataNodeService<DataNode> baseDataNodeService;
     private final StudyDataSourceLinkRepository studyDataSourceLinkRepository;
     private final StudyStatusService studyStatusService;
@@ -196,7 +194,7 @@ public abstract class BaseStudyServiceImpl<
                                 FavouriteStudyRepository favouriteStudyRepository,
                                 @Qualifier("restTemplate") RestTemplate restTemplate,
                                 StudyTypeService studyTypeService,
-                                BaseDataSourceService<BDS, RDS, DS> dataSourceService,
+                                BaseDataSourceService<DS> dataSourceService,
                                 StudyDataSourceLinkRepository studyDataSourceLinkRepository,
                                 ResultFileRepository resultFileRepository,
                                 StudyFileRepository studyFileRepository,
@@ -828,7 +826,7 @@ public abstract class BaseStudyServiceImpl<
     }
 
     @Override
-    public void processDataSourceInvitation(User user,
+    public void processDataSourceInvitation(IUser user,
                                             Long id, Boolean accepted, String comment) {
 
         StudyDataSourceLink studyDataSourceLink = studyDataSourceLinkRepository.findByIdAndOwner(id, user);

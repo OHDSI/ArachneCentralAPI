@@ -24,6 +24,7 @@ package com.odysseusinc.arachne.portal.api.v1.controller;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.dictionary.SkillDTO;
 import com.odysseusinc.arachne.portal.model.BaseUser;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.RawUser;
 import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.User;
@@ -34,7 +35,7 @@ import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class SkillController extends BaseSkillController<Skill, BaseUser, RawUser, User> {
+public class SkillController extends BaseSkillController<Skill, IUser> {
 
     @Autowired
     public SkillController(

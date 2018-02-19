@@ -52,7 +52,7 @@ public interface StudyDataSourceLinkRepository extends EntityGraphJpaRepository<
             + " JOIN l.dataSource.dataNode.dataNodeUsers u "
             + " JOIN u.dataNodeRole r"
             + " WHERE :owner = u.user AND r = 'ADMIN' AND l.id=:id")
-    StudyDataSourceLink findByIdAndOwner(@Param("id") Long id, @Param("owner") User owner);
+    StudyDataSourceLink findByIdAndOwner(@Param("id") Long id, @Param("owner") IUser owner);
 
     @Query(nativeQuery = true, value = "SELECT * FROM studies_data_sources l WHERE "
             + "l.study_id=:studyId AND l.data_source_id=:dataSourceId")

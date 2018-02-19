@@ -144,11 +144,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 
 public abstract class BaseUserServiceImpl<
-        BU extends IUser,
-        RU extends IUser,
         U extends IUser,
         S extends Skill,
-        SF extends SolrField> implements BaseUserService<BU, RU, U, S> {
+        SF extends SolrField> implements BaseUserService<U, S> {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseUserServiceImpl.class);
     private static final String USERS_DIR = "users";
     private static final String AVATAR_FILE_NAME = "avatar.jpg";
@@ -172,7 +170,7 @@ public abstract class BaseUserServiceImpl<
     private final UserRegistrantService userRegistrantService;
     private final PasswordValidator passwordValidator;
     private final TenantService tenantService;
-    private final BaseRawUserRepository<RU> rawUserRepository;
+    private final BaseRawUserRepository<U> rawUserRepository;
 
     @Value("${files.store.path}")
     private String fileStorePath;
@@ -204,7 +202,7 @@ public abstract class BaseUserServiceImpl<
                                RoleRepository roleRepository,
                                BaseUserLinkService<UserLink> userLinkService,
                                TenantService tenantService,
-                               BaseRawUserRepository<RU> rawUserRepository) {
+                               BaseRawUserRepository<U> rawUserRepository) {
 
         this.stateProvinceRepository = stateProvinceRepository;
         this.messageSource = messageSource;
@@ -254,14 +252,14 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    public RU findLoginCandidate(final String email) {
+    public U findLoginCandidate(final String email) {
 
         return rawUserRepository.findByOriginAndUsername(this.userOrigin, email);
     }
 
     @Override
     @Secured({"ROLE_ADMIN"})
-    public RU getByIdInAnyTenant(final Long id) {
+    public U getByIdInAnyTenant(final Long id) {
 
         return rawUserRepository.findByIdAndEnabledTrue(id);
     }
@@ -338,7 +336,7 @@ public abstract class BaseUserServiceImpl<
 
 
     @Override
-    public void confirmUserEmail(RU user)
+    public void confirmUserEmail(U user)
             throws IOException, NotExistException,
             SolrServerException, NoSuchFieldException, IllegalAccessException {
 
@@ -346,8 +344,8 @@ public abstract class BaseUserServiceImpl<
         user.setRegistrationCode("");
         user.setUpdated(new Date());
         user.setEnabled(userEnableDefault);
-        RU savedUser = rawUserRepository.save(user);
-        indexBySolr((BU) savedUser);
+        U savedUser = rawUserRepository.save(user);
+        indexBySolr(savedUser);
     }
 
     @Override
@@ -355,7 +353,7 @@ public abstract class BaseUserServiceImpl<
             throws UserNotFoundException, IOException, NotExistException,
             SolrServerException, NoSuchFieldException, IllegalAccessException {
 
-        RU user = rawUserRepository.findByRegistrationCode(activateCode);
+        U user = rawUserRepository.findByRegistrationCode(activateCode);
         if (user == null) {
             throw new UserNotFoundException("activationCode", "user not found by registration code " + activateCode);
         }
@@ -375,7 +373,7 @@ public abstract class BaseUserServiceImpl<
     @Override
     public U getByIdAndInitializeCollections(Long id) {
 
-        return (U) initUserCollections((BU) getById(id));
+        return initUserCollections(getById(id));
     }
 
     @Override
@@ -391,7 +389,7 @@ public abstract class BaseUserServiceImpl<
         return userRepository.findByIdIn(ids);
     }
 
-    private void afterUpdate(BU savedUser) throws IOException, SolrServerException, NoSuchFieldException, IllegalAccessException {
+    private void afterUpdate(U savedUser) throws IOException, SolrServerException, NoSuchFieldException, IllegalAccessException {
 
         if (savedUser.getEnabled()) {
             indexBySolr(savedUser);
@@ -400,7 +398,7 @@ public abstract class BaseUserServiceImpl<
         }
     }
 
-    private BU baseUpdate(BU forUpdate, BU user) throws IOException, SolrServerException, NoSuchFieldException, IllegalAccessException {
+    private U baseUpdate(U forUpdate, U user) throws IOException, SolrServerException, NoSuchFieldException, IllegalAccessException {
 
         final Date date = new Date();
         forUpdate.setId(user.getId());
@@ -472,23 +470,23 @@ public abstract class BaseUserServiceImpl<
             throws IllegalAccessException, SolrServerException, IOException, NotExistException, NoSuchFieldException {
 
         U forUpdate = userRepository.findOne(user.getId());
-        forUpdate = (U) baseUpdate((BU) forUpdate, (BU) user);
+        forUpdate = baseUpdate(forUpdate, user);
         U savedUser = userRepository.save(forUpdate);
-        savedUser = (U) initUserCollections((BU) savedUser);
-        afterUpdate((BU) savedUser);
+        savedUser = initUserCollections(savedUser);
+        afterUpdate(savedUser);
         return savedUser;
     }
 
     @Override
     @Secured({"ROLE_ADMIN"})
-    public RU updateUnsafeInAnyTenant(RU user)
+    public U updateUnsafeInAnyTenant(U user)
             throws IllegalAccessException, SolrServerException, IOException, NotExistException, NoSuchFieldException {
 
-        RU forUpdate = getByIdInAnyTenant(user.getId());
-        forUpdate = (RU) baseUpdate((BU) forUpdate, (BU) user);
-        RU savedUser = rawUserRepository.saveAndFlush(forUpdate);
-        savedUser = (RU) initUserCollections((BU) savedUser);
-        afterUpdate((BU) savedUser);
+        U forUpdate = getByIdInAnyTenant(user.getId());
+        forUpdate = baseUpdate(forUpdate, user);
+        U savedUser = rawUserRepository.saveAndFlush(forUpdate);
+        savedUser = initUserCollections(savedUser);
+        afterUpdate(savedUser);
         return user;
     }
 
@@ -505,7 +503,7 @@ public abstract class BaseUserServiceImpl<
     @Override
     public U getByUuidAndInitializeCollections(String uuid) {
 
-        return (U) initUserCollections((BU) getByUuid(uuid));
+        return (U) initUserCollections(getByUuid(uuid));
     }
 
     @Override
@@ -619,8 +617,8 @@ public abstract class BaseUserServiceImpl<
         U forUpdate = userRepository.findOne(userId);
         S skill = skillService.getById(skillId);
         forUpdate.getSkills().add(skill);
-        U savedUser = (U) initUserCollections((BU) userRepository.save(forUpdate));
-        indexBySolr((BU) savedUser);
+        U savedUser = initUserCollections(userRepository.save(forUpdate));
+        indexBySolr(savedUser);
 
         return savedUser;
     }
@@ -632,8 +630,8 @@ public abstract class BaseUserServiceImpl<
         U forUpdate = userRepository.findOne(userId);
         Skill skill = skillService.getById(skillId);
         forUpdate.getSkills().remove(skill);
-        U savedUser = (U) initUserCollections((BU) userRepository.save(forUpdate));
-        indexBySolr((BU) savedUser);
+        U savedUser = initUserCollections(userRepository.save(forUpdate));
+        indexBySolr(savedUser);
 
         return savedUser;
     }
@@ -645,10 +643,10 @@ public abstract class BaseUserServiceImpl<
         U forUpdate = userRepository.findOne(userId);
         link.setUser(forUpdate);
         userLinkService.create(link);
-        return (U) initUserCollections((BU) forUpdate);
+        return initUserCollections(forUpdate);
     }
 
-    private BU initUserCollections(BU user) {
+    private U initUserCollections(U user) {
 
         if (user != null) {
             user.setRoles(roleRepository.findByUser(user.getId()));
@@ -664,7 +662,7 @@ public abstract class BaseUserServiceImpl<
         userLinkService.delete(linkId);
         U user = userRepository.findOne(userId);
         user.getLinks().size();
-        return (U) initUserCollections((BU) user);
+        return initUserCollections(user);
     }
 
     @Override
@@ -675,7 +673,7 @@ public abstract class BaseUserServiceImpl<
         publication.setUser(forUpdate);
         UserPublication userPublication = userPublicationService.create(publication);
         forUpdate.getPublications().add(userPublication);
-        return (U) initUserCollections((BU) userPublication.getUser());
+        return initUserCollections((U) userPublication.getUser());
     }
 
     @Override
@@ -684,7 +682,7 @@ public abstract class BaseUserServiceImpl<
         userPublicationService.delete(publicationId);
         U user = userRepository.findOne(userId);
         user.getPublications().size();
-        return (U) initUserCollections((BU) user);
+        return (U) initUserCollections(user);
     }
 
     @Override
@@ -750,7 +748,7 @@ public abstract class BaseUserServiceImpl<
         ImageIO.write(thumbnail, fileExt, avatar);
         user.setUpdated(new Date());
         U savedUser = userRepository.save(user);
-        indexBySolr((BU) savedUser);
+        indexBySolr(savedUser);
 
 
     }
@@ -853,7 +851,7 @@ public abstract class BaseUserServiceImpl<
         return Collections.emptyList();
     }
 
-    public void indexBySolr(BU user)
+    public void indexBySolr(U user)
             throws IllegalAccessException, IOException, SolrServerException, NotExistException, NoSuchFieldException {
 
         solrService.putDocument(
@@ -869,7 +867,7 @@ public abstract class BaseUserServiceImpl<
         solrService.deleteByQuery(SolrServiceImpl.USER_COLLECTION, "*:*");
         List<U> userList = getAllEnabledFromAllTenants();
         for (U user : userList) {
-            indexBySolr((BU) user);
+            indexBySolr(user);
         }
     }
 

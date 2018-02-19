@@ -38,10 +38,10 @@ import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class DataNodeController extends BaseDataNodeController<BaseDataSource, RawDataSource, DataSource, CommonDataSourceDTO, DataNode> {
+public class DataNodeController extends BaseDataNodeController<DataSource, CommonDataSourceDTO, DataNode> {
     public DataNodeController(BaseAnalysisService<Analysis> analysisService,
                               BaseDataNodeService<DataNode> baseDataNodeService,
-                              BaseDataSourceService<BaseDataSource, RawDataSource, DataSource> dataSourceService,
+                              BaseDataSourceService<DataSource> dataSourceService,
                               GenericConversionService genericConversionService,
                               BaseUserService userService,
                               StudyDataSourceService studyDataSourceService) {

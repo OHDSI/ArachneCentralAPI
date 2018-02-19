@@ -44,8 +44,6 @@ public interface BaseUserRepository<U extends IUser> extends EntityGraphJpaRepos
 
     List<U> findByIdIn(List<Long> idList);
 
-    U findByIdAndEnabledTrue(Long id);
-
     U findByEmailAndEnabledTrue(String email);
 
     U findByEmailAndEnabledFalse(String email);
@@ -53,8 +51,6 @@ public interface BaseUserRepository<U extends IUser> extends EntityGraphJpaRepos
     U findByOriginAndUsername(String userOrigin, String username);
 
     U findByOriginAndUsernameAndEnabledTrue(String userOrigin, String username);
-
-    U findByRegistrationCode(String activateCode);
 
     U findByEmail(String email, EntityGraph entityGraph);
 

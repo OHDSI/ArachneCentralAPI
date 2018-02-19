@@ -62,23 +62,21 @@ import org.springframework.util.ReflectionUtils;
 
 @Transactional(rollbackFor = Exception.class)
 public abstract class BaseDataSourceServiceImpl<
-        BDS extends IDataSource, // greatest common divisor for RDS and DS
-        RDS extends IDataSource, // tenant independent DataSource
         DS extends IDataSource, // tenant dependent DataSource
-        SF extends SolrField> implements BaseDataSourceService<BDS, RDS, DS> {
+        SF extends SolrField> implements BaseDataSourceService<DS> {
 
     private static final Logger log = LoggerFactory.getLogger(BaseDataSourceServiceImpl.class);
     protected BaseDataSourceRepository<DS> dataSourceRepository;
     protected BaseSolrService<SF> solrService;
     protected GenericConversionService conversionService;
     protected TenantService tenantService;
-    protected BaseRawDataSourceRepository<RDS> rawDataSourceRepository;
+    protected BaseRawDataSourceRepository<DS> rawDataSourceRepository;
 
     public BaseDataSourceServiceImpl(BaseSolrService<SF> solrService,
                                      BaseDataSourceRepository<DS> dataSourceRepository,
                                      GenericConversionService conversionService,
                                      TenantService tenantService,
-                                     BaseRawDataSourceRepository<RDS> rawDataSourceRepository) {
+                                     BaseRawDataSourceRepository<DS> rawDataSourceRepository) {
 
         this.solrService = solrService;
         this.dataSourceRepository = dataSourceRepository;
@@ -119,7 +117,7 @@ public abstract class BaseDataSourceServiceImpl<
             throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
         if (!virtual) {
-            indexBySolr((BDS) dataSource);
+            indexBySolr(dataSource);
         }
     }
 
@@ -162,7 +160,7 @@ public abstract class BaseDataSourceServiceImpl<
         return result;
     }
 
-    private BDS baseUpdate(BDS exist, BDS dataSource) throws IOException, NoSuchFieldException, SolrServerException, IllegalAccessException {
+    private DS baseUpdate(DS exist, DS dataSource) throws IOException, NoSuchFieldException, SolrServerException, IllegalAccessException {
 
         if (dataSource.getName() != null) {
             exist.setName(dataSource.getName());
@@ -197,31 +195,31 @@ public abstract class BaseDataSourceServiceImpl<
 
         DS forUpdate = dataSourceRepository.findByIdAndDeletedIsNull(dataSource.getId())
                 .orElseThrow(() -> new NotExistException(DataSource.class));
-        forUpdate = (DS) baseUpdate((BDS) forUpdate, (BDS) dataSource);
-        beforeUpdate((BDS) forUpdate, (BDS) dataSource);
+        forUpdate = baseUpdate(forUpdate, dataSource);
+        beforeUpdate(forUpdate, dataSource);
         DS savedDataSource = dataSourceRepository.save(forUpdate);
-        afterUpdate((BDS) savedDataSource);
+        afterUpdate(savedDataSource);
         return savedDataSource;
     }
 
     @Secured({"ROLE_ADMIN"})
     @Override
-    public RDS updateInAnyTenant(RDS dataSource)
+    public DS updateInAnyTenant(DS dataSource)
             throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
-        RDS forUpdate = getNotDeletedByIdInAnyTenant(dataSource.getId());
-        forUpdate = (RDS) baseUpdate((BDS) forUpdate, (BDS) dataSource);
-        beforeUpdate((BDS) forUpdate, (BDS) dataSource);
-        RDS savedDataSource = rawDataSourceRepository.save(forUpdate);
-        afterUpdate((BDS) savedDataSource);
+        DS forUpdate = getNotDeletedByIdInAnyTenant(dataSource.getId());
+        forUpdate = baseUpdate(forUpdate, dataSource);
+        beforeUpdate(forUpdate, dataSource);
+        DS savedDataSource = rawDataSourceRepository.save(forUpdate);
+        afterUpdate(savedDataSource);
         return savedDataSource;
     }
 
-    protected void beforeUpdate(BDS target, BDS dataSource) {
+    protected void beforeUpdate(DS target, DS dataSource) {
 
     }
 
-    protected void afterUpdate(BDS dataSource)
+    protected void afterUpdate(DS dataSource)
             throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
         if (!dataSource.getDataNode().getVirtual()) {
@@ -240,7 +238,7 @@ public abstract class BaseDataSourceServiceImpl<
 
     @Secured({"ROLE_ADMIN"})
     @Override
-    public RDS getNotDeletedByIdInAnyTenant(Long id) {
+    public DS getNotDeletedByIdInAnyTenant(Long id) {
 
         return rawDataSourceRepository.findByIdAndDeletedIsNull(id)
                 .orElseThrow(() -> new NotExistException(DataSource.class));
@@ -330,7 +328,7 @@ public abstract class BaseDataSourceServiceImpl<
         solrService.deleteByQuery(SolrServiceImpl.DATA_SOURCE_COLLECTION, "*:*");
         List<DS> dataSourceList = getAllNotDeletedAndIsNotVirtualFromAllTenants();
         for (DS dataSource : dataSourceList) {
-            indexBySolr((BDS) dataSource);
+            indexBySolr(dataSource);
         }
     }
 
@@ -350,7 +348,7 @@ public abstract class BaseDataSourceServiceImpl<
         return searchResult.excludedOptions();
     }
 
-    public void indexBySolr(BDS dataSource)
+    public void indexBySolr(DS dataSource)
             throws IOException, SolrServerException, NoSuchFieldException, IllegalAccessException {
 
         Map<SF, Object> values = solrService.getValuesByEntity(dataSource);

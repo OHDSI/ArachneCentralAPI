@@ -58,15 +58,13 @@ import java.security.Principal;
 
 @SuppressWarnings("unused")
 public abstract class BaseDataNodeController<
-        BDS extends IDataSource,
-        RDS extends IDataSource,
-        DS extends IDataSource,
+                DS extends IDataSource,
         C_DS_DTO extends CommonDataSourceDTO,
         DN extends DataNode> extends BaseController {
 
     private static final Logger log = LoggerFactory.getLogger(BaseDataNodeController.class);
     protected final BaseAnalysisService analysisService;
-    protected final BaseDataSourceService<BDS, RDS, DS> dataSourceService;
+    protected final BaseDataSourceService<DS> dataSourceService;
     protected final BaseDataNodeService<DN> baseDataNodeService;
     protected final GenericConversionService genericConversionService;
     protected final BaseUserService userService;
@@ -75,7 +73,7 @@ public abstract class BaseDataNodeController<
     @Autowired
     public BaseDataNodeController(BaseAnalysisService analysisService,
                                   BaseDataNodeService<DN> dataNodeService,
-                                  BaseDataSourceService<BDS, RDS, DS> dataSourceService,
+                                  BaseDataSourceService<DS> dataSourceService,
                                   GenericConversionService genericConversionService,
                                   BaseUserService userService,
                                   StudyDataSourceService studyDataSourceService) {

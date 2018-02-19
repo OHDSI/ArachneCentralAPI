@@ -42,7 +42,7 @@ import java.util.List;
 @Service
 @SuppressWarnings("unused")
 @Transactional(rollbackFor = Exception.class)
-public class DataSourceServiceImpl extends BaseDataSourceServiceImpl<BaseDataSource, RawDataSource, DataSource, SolrField> implements DataSourceService {
+public class DataSourceServiceImpl extends BaseDataSourceServiceImpl<DataSource, SolrField> implements DataSourceService {
 
     public DataSourceServiceImpl(SolrService solrService, BaseDataSourceRepository dataSourceRepository, GenericConversionService conversionService, TenantService tenantService, BaseRawDataSourceRepository rawDataSourceRepository) {
 

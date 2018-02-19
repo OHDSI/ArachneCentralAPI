@@ -65,20 +65,18 @@ import java.util.Arrays;
 import java.util.List;
 
 public abstract class BaseDataSourceController<
-        BDS extends IDataSource,
-        RDS extends IDataSource,
-        DS extends IDataSource,
+                DS extends IDataSource,
         DTO extends CommonBaseDataSourceDTO,
         DS_DTO extends IDataSourceDTO,
         R extends FacetedSearchResultDTO<?>> extends BaseController {
 
     protected final GenericConversionService conversionService;
-    protected final BaseDataSourceService<BDS, RDS, DS> dataSourceService;
+    protected final BaseDataSourceService<DS> dataSourceService;
     protected final ConverterUtils converterUtils;
     protected final StudyDataSourceService studyDataSourceService;
 
     public BaseDataSourceController(GenericConversionService conversionService,
-                                    BaseDataSourceService<BDS, RDS, DS> dataSourceService,
+                                    BaseDataSourceService<DS> dataSourceService,
                                     ConverterUtils converterUtils,
                                     StudyDataSourceService studyDataSourceService) {
 

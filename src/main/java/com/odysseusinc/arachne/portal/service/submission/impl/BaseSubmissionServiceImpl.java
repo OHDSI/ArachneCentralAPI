@@ -124,9 +124,7 @@ import org.springframework.web.multipart.MultipartFile;
 public abstract class BaseSubmissionServiceImpl<
         T extends Submission,
         A extends Analysis,
-        BDS extends IDataSource,
-        RDS extends IDataSource,
-        DS extends IDataSource>
+                DS extends IDataSource>
         implements BaseSubmissionService<T, A> {
 
     public static final String SUBMISSION_NOT_EXIST_EXCEPTION = "Submission with id='%s' does not exist";
@@ -136,7 +134,7 @@ public abstract class BaseSubmissionServiceImpl<
     protected static final Logger LOGGER = LoggerFactory.getLogger(BaseSubmissionService.class);
     private static final String FILE_NOT_UPLOADED_MANUALLY_EXCEPTION = "File %s was not uploaded manually";
     protected final BaseSubmissionRepository<T> submissionRepository;
-    protected final BaseDataSourceService<BDS, RDS, DS> dataSourceService;
+    protected final BaseDataSourceService<DS> dataSourceService;
     protected final ArachneMailSender mailSender;
     protected final AnalysisHelper analysisHelper;
     protected final SimpMessagingTemplate wsTemplate;
@@ -157,7 +155,7 @@ public abstract class BaseSubmissionServiceImpl<
     private String fileStorePath;
 
     protected BaseSubmissionServiceImpl(BaseSubmissionRepository<T> submissionRepository,
-                                        BaseDataSourceService<BDS, RDS, DS> dataSourceService,
+                                        BaseDataSourceService<DS> dataSourceService,
                                         ArachneMailSender mailSender,
                                         AnalysisHelper analysisHelper,
                                         SimpMessagingTemplate wsTemplate,
@@ -262,10 +260,10 @@ public abstract class BaseSubmissionServiceImpl<
     @Override
     public void notifyOwnersAboutNewSubmission(T submission) {
 
-        Set<User> dnOwners = DataNodeUtils.getDataNodeOwners(submission.getDataSource().getDataNode());
+        Set<IUser> dnOwners = DataNodeUtils.getDataNodeOwners(submission.getDataSource().getDataNode());
 
         try {
-            for (User owner : dnOwners) {
+            for (IUser owner : dnOwners) {
                 mailSender.send(new InvitationApprovalSubmissionArachneMailMessage(
                         WebSecurityConfig.getDefaultPortalURI(), owner, submission)
                 );
@@ -280,9 +278,9 @@ public abstract class BaseSubmissionServiceImpl<
     @Override
     public void notifyOwnersAboutSubmissionUpdateViaSocket(T submission) {
 
-        Set<User> dnOwners = DataNodeUtils.getDataNodeOwners(submission.getDataSource().getDataNode());
+        Set<IUser> dnOwners = DataNodeUtils.getDataNodeOwners(submission.getDataSource().getDataNode());
 
-        for (User owner : dnOwners) {
+        for (IUser owner : dnOwners) {
             wsTemplate.convertAndSendToUser(
                     owner.getUsername(),
                     "/topic/invitations",
@@ -523,7 +521,7 @@ public abstract class BaseSubmissionServiceImpl<
     public ResultFile uploadResultsByDataOwner(Long submissionId, String name, MultipartFile file) throws NotExistException, IOException {
 
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        User user = userService.getByUsername(userDetails.getUsername());
+        IUser user = userService.getByUsername(userDetails.getUsername());
 
         T submission = submissionRepository.findByIdAndStatusIn(submissionId,
                 Collections.singletonList(IN_PROGRESS.name()));

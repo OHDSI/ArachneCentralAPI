@@ -23,6 +23,8 @@
 package com.odysseusinc.arachne.portal.repository;
 
 import com.odysseusinc.arachne.portal.model.RawUser;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface RawUserRepository extends BaseRawUserRepository<RawUser> {
 }

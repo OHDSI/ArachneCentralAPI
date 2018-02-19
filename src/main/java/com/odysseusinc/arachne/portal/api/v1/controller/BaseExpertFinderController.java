@@ -53,13 +53,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-public abstract class BaseExpertFinderController<BU extends IUser, RU extends IUser, U extends IUser, SK extends Skill> extends BaseController {
+public abstract class BaseExpertFinderController<U extends IUser, SK extends Skill> extends BaseController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseExpertFinderController.class);
 
-    protected final BaseUserService<BU, RU, U, SK> userService;
+    protected final BaseUserService<U, SK> userService;
 
-    public BaseExpertFinderController(BaseUserService<BU, RU, U, SK> userService) {
+    public BaseExpertFinderController(BaseUserService<U, SK> userService) {
 
         this.userService = userService;
     }

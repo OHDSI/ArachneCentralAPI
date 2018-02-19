@@ -72,6 +72,7 @@ import com.odysseusinc.arachne.portal.model.DataNodeRole;
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Invitationable;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.RawUser;
@@ -134,9 +135,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 public abstract class BaseUserController<
-        BU extends BaseUser,
-        RU extends RawUser,
-        U extends User,
+        U extends IUser,
         S extends Study,
         DS extends IDataSource,
         SS extends StudySearch,
@@ -154,7 +153,7 @@ public abstract class BaseUserController<
     private static final String INVITATION_HOME_PAGE = "/study-manager/studies/";
 
     protected final TokenUtils tokenUtils;
-    protected final BaseUserService<BU, RU, U, SK> userService;
+    protected final BaseUserService<U, SK> userService;
     protected final BaseStudyService<S, DS, SS, SU> studyService;
     protected final GenericConversionService conversionService;
     protected final BaseDataNodeService<DN> baseDataNodeService;
@@ -165,7 +164,7 @@ public abstract class BaseUserController<
     protected final ArachnePasswordValidator passwordValidator;
 
     public BaseUserController(TokenUtils tokenUtils,
-                              BaseUserService<BU, RU, U, SK> userService,
+                              BaseUserService<U, SK> userService,
                               BaseStudyService<S, DS, SS, SU> studyService,
                               GenericConversionService conversionService,
                               BaseDataNodeService<DN> baseDataNodeService,
@@ -237,7 +236,7 @@ public abstract class BaseUserController<
             throws UserNotFoundException {
 
         JsonResult<CommonArachneUserStatusDTO> result;
-        User user = userService.getByUuid(uuid);
+        IUser user = userService.getByUuid(uuid);
         if (user == null) {
             throw new UserNotFoundException("userUuid", "user not found");
         } else {
@@ -336,7 +335,7 @@ public abstract class BaseUserController<
             NoSuchFieldException {
 
         JsonResult<UserProfileDTO> result;
-        User owner = userService.getByEmail(principal.getName());
+        IUser owner = userService.getByEmail(principal.getName());
         if (binding.hasErrors()) {
             result = new JsonResult<>(VALIDATION_ERROR);
             for (FieldError fieldError : binding.getFieldErrors()) {

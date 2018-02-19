@@ -54,7 +54,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.multipart.MultipartFile;
 
-public interface BaseUserService<BU extends IUser, RU extends IUser, U extends IUser, S extends Skill> {
+public interface BaseUserService<U extends IUser, S extends Skill> {
 
     U getByUsername(final String username);
 
@@ -62,9 +62,9 @@ public interface BaseUserService<BU extends IUser, RU extends IUser, U extends I
 
     U getByEmail(String email);
 
-    RU findLoginCandidate(final String email);
+    U findLoginCandidate(final String email);
 
-    RU getByIdInAnyTenant(final Long id);
+    U getByIdInAnyTenant(final Long id);
 
     U getByUnverifiedEmail(final String email);
 
@@ -74,7 +74,7 @@ public interface BaseUserService<BU extends IUser, RU extends IUser, U extends I
     U register(@NotNull U user, String registrantToken, String callbackUrl)
             throws NotUniqueException, NotExistException, PasswordValidationException;
 
-    void confirmUserEmail(RU user)
+    void confirmUserEmail(U user)
             throws IOException, NotExistException,
             SolrServerException, NoSuchFieldException, IllegalAccessException;
 
@@ -102,7 +102,7 @@ public interface BaseUserService<BU extends IUser, RU extends IUser, U extends I
             NotExistException,
             NoSuchFieldException;
 
-    RU updateUnsafeInAnyTenant(RU user)
+    U updateUnsafeInAnyTenant(U user)
             throws
             IllegalAccessException,
             SolrServerException,
@@ -175,7 +175,7 @@ public interface BaseUserService<BU extends IUser, RU extends IUser, U extends I
 
     FieldList getSolrFields();
 
-    void indexBySolr(BU user)
+    void indexBySolr(U user)
             throws IllegalAccessException, IOException, SolrServerException, NotExistException, NoSuchFieldException;
 
     void indexAllBySolr()

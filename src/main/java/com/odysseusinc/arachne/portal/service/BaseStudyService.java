@@ -113,7 +113,7 @@ public interface BaseStudyService<
 
     void removeDataSourceUnsecured(Long studyId, Long dataSourceId);
 
-    void processDataSourceInvitation(User user, Long id, Boolean accepted,
+    void processDataSourceInvitation(IUser user, Long id, Boolean accepted,
                                      String comment);
 
     Iterable<T> suggestStudy(String query, IUser owner, Long id, SuggestSearchRegion region);

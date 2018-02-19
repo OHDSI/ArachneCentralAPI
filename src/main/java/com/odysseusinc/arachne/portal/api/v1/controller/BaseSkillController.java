@@ -49,13 +49,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-public abstract class BaseSkillController<S extends Skill, BU extends IUser, RU extends IUser, U extends IUser> {
+public abstract class BaseSkillController<S extends Skill, U extends IUser> {
 
     protected final BaseSkillService<S> skillService;
     protected final GenericConversionService conversionService;
-    protected final BaseUserService<BU, RU, U, S> userService;
+    protected final BaseUserService<U, S> userService;
 
-    public BaseSkillController(BaseSkillService<S> skillService, GenericConversionService conversionService, BaseUserService<BU, RU, U, S> userService) {
+    public BaseSkillController(BaseSkillService<S> skillService, GenericConversionService conversionService, BaseUserService<U, S> userService) {
 
         this.skillService = skillService;
         this.conversionService = conversionService;

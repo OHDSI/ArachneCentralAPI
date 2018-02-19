@@ -70,12 +70,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @Transactional(rollbackFor = Exception.class)
-public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission, Analysis, BaseDataSource, RawDataSource, DataSource>
+public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission, Analysis, DataSource>
         implements SubmissionService {
 
     @Autowired
     public SubmissionServiceImpl(BaseSubmissionRepository<Submission> submissionRepository,
-                                 BaseDataSourceService<BaseDataSource, RawDataSource, DataSource> dataSourceService,
+                                 BaseDataSourceService<DataSource> dataSourceService,
                                  ArachneMailSender mailSender,
                                  AnalysisHelper analysisHelper,
                                  SimpMessagingTemplate wsTemplate,
