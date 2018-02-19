@@ -28,6 +28,7 @@ import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCo
 import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.SYSTEM_ERROR;
 import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.VALIDATION_ERROR;
 
+import com.odysseusinc.arachne.commons.api.v1.dto.ArachnePasswordInfoDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.FieldException;
@@ -43,7 +44,6 @@ import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.exception.WrongFileFormatException;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -161,10 +161,11 @@ public class ExceptionHandlingController extends BaseController {
     @ExceptionHandler(PasswordValidationException.class)
     public ResponseEntity<JsonResult> exceptionHandler(PasswordValidationException ex) {
 
-        LOGGER.error(ex.getMessages().stream().collect(Collectors.joining(", ")));
+        LOGGER.error("User tried to register with weak password");
         JsonResult result = new JsonResult<>(VALIDATION_ERROR);
         result.setErrorMessage("You have provided a weak password");
-        result.getValidatorErrors().put("password", ex.getMessages());
+        final ArachnePasswordInfoDTO passwordInfoDTO = conversionService.convert(ex.getPasswordInfo(), ArachnePasswordInfoDTO.class);
+        result.getValidatorErrors().put("password", passwordInfoDTO);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 

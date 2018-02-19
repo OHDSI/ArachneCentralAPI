@@ -75,6 +75,7 @@ import com.odysseusinc.arachne.portal.repository.StudyDataSourceLinkRepository;
 import com.odysseusinc.arachne.portal.repository.UserSpecifications;
 import com.odysseusinc.arachne.portal.repository.UserStudyRepository;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordData;
+import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidationResult;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
 import com.odysseusinc.arachne.portal.service.BaseSkillService;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
@@ -91,8 +92,6 @@ import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import com.odysseusinc.arachne.portal.service.mail.RegistrationMailMessage;
 import com.odysseusinc.arachne.portal.service.mail.RemindPasswordMailMessage;
 import edu.vt.middleware.password.Password;
-import edu.vt.middleware.password.PasswordValidator;
-import edu.vt.middleware.password.RuleResult;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
@@ -163,7 +162,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     private final AnalysisUnlockRequestRepository analysisUnlockRequestRepository;
     private final ArachneMailSender arachneMailSender;
     private final UserRegistrantService userRegistrantService;
-    private final PasswordValidator passwordValidator;
+    private final ArachnePasswordValidator passwordValidator;
     private final TenantService tenantService;
     @Value("${files.store.path}")
     private String fileStorePath;
@@ -990,7 +989,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         passwordData.setFirstName(firstName);
         passwordData.setLastName(lastName);
         passwordData.setMiddleName(middleName);
-        RuleResult result = passwordValidator.validate(passwordData);
+        final ArachnePasswordValidationResult result = passwordValidator.validate(passwordData);
         if (!result.isValid()) {
             throw new PasswordValidationException(passwordValidator.getMessages(result));
         }

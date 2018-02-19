@@ -191,7 +191,7 @@ public class UserControllerTests extends BaseControllerTest {
     public void testActivateUser() throws Exception {
 
         mvc.perform(
-                post("/api/v1/user-management/activation/" + ACTIVATION_CODE)
+                get("/api/v1/user-management/activation/" + ACTIVATION_CODE)
                         .with(anonymous()))
 
                 .andExpect(status().isFound())
