@@ -74,6 +74,8 @@ public interface BaseDataSourceService<T extends DataSource> {
 
     T findById(Long dataSourceId);
 
+     List<T> findByIdsAndNotDeleted(List<Long> dataSourceIds);
+
     Page<T> suggestDataSource(String query, Long studyId, Long userId,
                                        PageRequest pageRequest);
 

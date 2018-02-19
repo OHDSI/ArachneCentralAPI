@@ -48,7 +48,22 @@ public interface BaseDataSourceRepository<T extends DataSource> extends CrudRepo
 
     T findOne(Long id);
 
+    @Query(value = "SELECT *"
+            + " FROM data_sources_data AS ds "
+            + " WHERE ds.id=:id ",
+            nativeQuery = true)
+    T findOneUnsecured(@Param("id") Long id);
+
     List<T> findByIdInAndDeletedIsNullAndPublishedTrue(List<Long> ids);
+
+    @Query(
+            nativeQuery = true,
+            value = "SELECT * " +
+                    "FROM data_sources_data ds " +
+                    "JOIN datanodes dn ON dn.id = ds.data_node_id " +
+                    "WHERE dn.is_virtual = FALSE " +
+                    "AND ds.deleted IS NULL AND ds.id in :ids")
+    List<T> findByIdInAndDeletedIsNull(@Param("ids") List<Long> ids);
 
     Optional<T> findByName(String name);
 
@@ -117,9 +132,9 @@ public interface BaseDataSourceRepository<T extends DataSource> extends CrudRepo
                     + "WHERE id = :id")
     void softDelete(@Param("id") Long id);
 
-    @Query(nativeQuery = true, value = USERS_DATASOURCES_QUERY
+    @Query(nativeQuery = true, value = USERS_DATASOURCES_QUERY +"\n"
             + " \n--#pageable\n",
-            countQuery = "SELECT COUNT(*) FROM " + USERS_DATASOURCES_QUERY + " as innerSelect"
+            countQuery = "SELECT COUNT(*) FROM (" + USERS_DATASOURCES_QUERY + ") as innerSelect"
     )
     Page<T> getUserDataSources(@Param("suggestRequest") String suggestRequest, @Param("userId") Long userId, Pageable pageable);
 }

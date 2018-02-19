@@ -181,7 +181,8 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
     protected void afterUpdate(DS dataSource)
             throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
-        if (!dataSource.getDataNode().getVirtual() && dataSource.getPublished()) {
+        if (!dataSource.getDataNode().getVirtual() && dataSource.getPublished()!= null
+                && dataSource.getPublished()) {
             indexBySolr(dataSource);
         }
     }
@@ -201,7 +202,7 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
         if (id == null) {
             throw new NotExistException("id is null", getType());
         }
-        DS dataSource = dataSourceRepository.findOne(id);
+        DS dataSource = dataSourceRepository.findOneUnsecured(id);
         if (dataSource == null) {
             throw new NotExistException(getType());
         }
@@ -267,7 +268,7 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
         log.info("Unpublishing datasource with id={}", id);
         DS dataSource = getByIdUnsecured(id);
 
-        if (dataSource.getPublished()){
+        if (dataSource.getPublished()!= null && dataSource.getPublished()){
             dataSource.setPublished(false);
             dataSourceRepository.save(dataSource);
 
@@ -342,6 +343,11 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
     public DS findById(Long dataSourceId) {
 
         return dataSourceRepository.findByIdAndDeletedIsNull(dataSourceId).orElseThrow(() -> new NotExistException(getType()));
+    }
+
+    public List<DS> findByIdsAndNotDeleted(List<Long> dataSourceIds) {
+
+        return dataSourceRepository.findByIdInAndDeletedIsNull(dataSourceIds);
     }
 
     public abstract List<DS> getAllByUserId(Long userId);

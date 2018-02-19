@@ -26,6 +26,7 @@ import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCo
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonBaseDataSourceDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonCDMVersionDTO;
+import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataSourceDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.api.v1.dto.FacetedSearchResultDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.IDataSourceDTO;
@@ -118,7 +119,6 @@ public abstract class BaseDataSourceController<DS extends DataSource,
 
     @RequestMapping(value = "/api/v1/data-sources/{id}/model-type", method = RequestMethod.PUT)
     public JsonResult<DTO> updateModelType(
-            Principal principal,
             @PathVariable("id") Long dataSourceId,
             @RequestBody DTO commonDataSourceDTO
     ) throws IllegalAccessException, IOException, NoSuchFieldException, SolrServerException, ValidationException {
@@ -133,8 +133,7 @@ public abstract class BaseDataSourceController<DS extends DataSource,
             updating.setCdmVersion(commonDataSourceDTO.getCdmVersion());
             updating.setName(commonDataSourceDTO.getName());
             updating = dataSourceService.update(updating);
-
-            result.setResult(convertDataSourceToDTO(dataSourceService.update(updating)));
+            result.setResult(convertDataSourceToDTO(updating));
         }
         return result;
     }
@@ -209,6 +208,16 @@ public abstract class BaseDataSourceController<DS extends DataSource,
         JsonResult<DTO> result = new JsonResult<>(NO_ERROR);
         DS dataSource = dataSourceService.findById(dataSourceId);
         result.setResult(convertDataSourceToDTO(dataSource));
+        return result;
+    }
+
+    @RequestMapping(value = "/api/v1/data-sources/commondata", method = RequestMethod.GET)
+    public JsonResult<List<CommonDataSourceDTO>> getCommonBaseDataSourceDTOs(
+            @RequestParam("id") List<Long> dataSourceIds) throws NotExistException {
+
+        JsonResult<List<CommonDataSourceDTO>> result = new JsonResult<>(NO_ERROR);
+        List<DS> dataSources = dataSourceService.findByIdsAndNotDeleted(dataSourceIds);
+        result.setResult(this.converterUtils.convertList(dataSources, CommonDataSourceDTO.class));
         return result;
     }
 
