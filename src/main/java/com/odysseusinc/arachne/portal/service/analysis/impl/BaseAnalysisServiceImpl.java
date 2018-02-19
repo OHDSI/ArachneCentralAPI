@@ -52,8 +52,8 @@ import com.odysseusinc.arachne.portal.model.AnalysisUnlockRequestStatus;
 import com.odysseusinc.arachne.portal.model.AntivirusStatus;
 import com.odysseusinc.arachne.portal.model.ArachneFile;
 import com.odysseusinc.arachne.portal.model.DataReference;
-import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Invitationable;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.Submission;
@@ -349,7 +349,7 @@ public abstract class BaseAnalysisServiceImpl<
     }
 
     @Override
-    public AnalysisFile saveFile(MultipartFile multipartFile, User user, A analysis, String label,
+    public AnalysisFile saveFile(MultipartFile multipartFile, IUser user, A analysis, String label,
                                  Boolean isExecutable, DataReference dataReference) throws IOException {
 
         String originalFilename = multipartFile.getOriginalFilename();
@@ -825,7 +825,7 @@ public abstract class BaseAnalysisServiceImpl<
 
 
     @Override
-    public List<User> findLeads(Analysis analysis) {
+    public List<IUser> findLeads(Analysis analysis) {
 
         return studyService.findLeads((S)analysis.getStudy());
     }

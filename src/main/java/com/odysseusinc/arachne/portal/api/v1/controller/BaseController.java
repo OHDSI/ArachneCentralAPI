@@ -29,6 +29,7 @@ import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.model.BaseUser;
 import com.odysseusinc.arachne.portal.model.DataNode;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.RawUser;
 import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.User;
@@ -42,7 +43,7 @@ import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 
-public abstract class BaseController<DN extends DataNode, U extends User> {
+public abstract class BaseController<DN extends DataNode, U extends IUser> {
 
     @Autowired
     protected BaseUserService<BaseUser, RawUser, U, Skill> userService;

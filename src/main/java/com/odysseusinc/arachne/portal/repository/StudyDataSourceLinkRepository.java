@@ -25,6 +25,7 @@ package com.odysseusinc.arachne.portal.repository;
 import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
 import com.cosium.spring.data.jpa.entity.graph.repository.EntityGraphJpaRepository;
 import com.odysseusinc.arachne.portal.model.DataSourceStatus;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
 import com.odysseusinc.arachne.portal.model.User;
 import java.util.List;
@@ -38,14 +39,14 @@ public interface StudyDataSourceLinkRepository extends EntityGraphJpaRepository<
             + " JOIN l.dataSource.dataNode.dataNodeUsers u "
             + " JOIN u.dataNodeRole r"
             + " WHERE :owner = u.user AND r = 'ADMIN' AND l.status=:status")
-    List<StudyDataSourceLink> findByOwnerAndStatus(@Param("owner") User owner, @Param("status") DataSourceStatus status);
+    List<StudyDataSourceLink> findByOwnerAndStatus(@Param("owner") IUser owner, @Param("status") DataSourceStatus status);
 
     @Query("SELECT l FROM StudyDataSourceLink l "
             + " JOIN l.study s"
             + " JOIN l.dataSource.dataNode.dataNodeUsers u "
             + " JOIN u.dataNodeRole r"
             + " WHERE :owner = u.user AND r = 'ADMIN' AND s.id = :studyId AND l.status=:status")
-    List<StudyDataSourceLink> findByOwnerAndStudyIdAndStatus(@Param("owner") User owner, @Param("studyId") Long studyId, @Param("status") DataSourceStatus status);
+    List<StudyDataSourceLink> findByOwnerAndStudyIdAndStatus(@Param("owner") IUser owner, @Param("studyId") Long studyId, @Param("status") DataSourceStatus status);
 
     @Query("SELECT l FROM StudyDataSourceLink l "
             + " JOIN l.dataSource.dataNode.dataNodeUsers u "

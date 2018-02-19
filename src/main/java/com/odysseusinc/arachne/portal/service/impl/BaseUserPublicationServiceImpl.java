@@ -22,18 +22,15 @@
 
 package com.odysseusinc.arachne.portal.service.impl;
 
-import com.odysseusinc.arachne.portal.model.User;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.UserPublication;
 import com.odysseusinc.arachne.portal.repository.UserPublicationRepository;
 import com.odysseusinc.arachne.portal.service.BaseUserPublicationService;
-import com.odysseusinc.arachne.portal.service.UserPublicationService;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-public abstract class BaseUserPublicationServiceImpl<U extends User, UP extends UserPublication> extends CRUDLServiceImpl<UP> implements BaseUserPublicationService<U, UP> {
+public abstract class BaseUserPublicationServiceImpl<UP extends UserPublication> extends CRUDLServiceImpl<UP> implements BaseUserPublicationService<UP> {
 
     @Autowired
     private UserPublicationRepository<UP> userPublicationRepository;
@@ -45,8 +42,8 @@ public abstract class BaseUserPublicationServiceImpl<U extends User, UP extends 
     }
 
     @Override
-    public List<UP> findByUser(U user) {
+    public List<UP> findByUserId(Long userId) {
 
-        return userPublicationRepository.findByUser(user);
+        return userPublicationRepository.findByUserId(userId);
     }
 }

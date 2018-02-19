@@ -42,6 +42,7 @@ import com.odysseusinc.arachne.portal.exception.NotUniqueException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.AbstractPaperFile;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.PaperFileType;
 import com.odysseusinc.arachne.portal.model.User;
@@ -108,7 +109,7 @@ public abstract class BasePaperController
     ) throws PermissionDeniedException, IOException {
 
         handleInputParams(paperSearch);
-        final User user = getUser(principal);
+        final IUser user = getUser(principal);
         final Page<P> paperPage = paperService.getPapersAccordingToCurrentUser(paperSearch, user);
         Page<S_P_DTO> result = paperPage.map(paper -> {
             final S_P_DTO dto = convertPaperToShortPaperDTO(paper);
@@ -143,7 +144,7 @@ public abstract class BasePaperController
     public DTO createPaper(@RequestBody C_P_DTO createPaperDTO, Principal principal)
             throws PermissionDeniedException {
 
-        final User user = getUser(principal);
+        final IUser user = getUser(principal);
         final P paper = paperService.create(user, createPaperDTO.getStudyId());
         return convertPaperToPaperDTO(paper);
     }
@@ -168,7 +169,7 @@ public abstract class BasePaperController
             Principal principal)
             throws PermissionDeniedException, NotUniqueException, ValidationException {
 
-        final User user = getUser(principal);
+        final IUser user = getUser(principal);
         paperService.setFavourite(user.getId(), id, isFavourite.isValue());
     }
 
@@ -240,7 +241,7 @@ public abstract class BasePaperController
                            Principal principal
     ) throws PermissionDeniedException, IOException {
 
-        final User user = getUser(principal);
+        final IUser user = getUser(principal);
         paperService.updateFile(id, uuid, file, type, user);
     }
 

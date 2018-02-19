@@ -27,6 +27,7 @@ import static com.odysseusinc.arachne.portal.service.RoleService.ROLE_ADMIN;
 import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
 import com.cosium.spring.data.jpa.entity.graph.repository.EntityGraphJpaRepository;
 import com.odysseusinc.arachne.portal.model.BaseUser;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.User;
 import java.util.List;
 import org.springframework.data.domain.Page;
@@ -38,7 +39,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.query.Param;
 
 @NoRepositoryBean
-public interface BaseUserRepository<U extends BaseUser> extends EntityGraphJpaRepository<U, Long>,
+public interface BaseUserRepository<U extends IUser> extends EntityGraphJpaRepository<U, Long>,
         JpaSpecificationExecutor<U> {
 
     List<U> findByIdIn(List<Long> idList);

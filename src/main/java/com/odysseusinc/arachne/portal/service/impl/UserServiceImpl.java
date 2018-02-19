@@ -27,6 +27,7 @@ import com.odysseusinc.arachne.portal.model.RawUser;
 import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.repository.AnalysisUnlockRequestRepository;
+import com.odysseusinc.arachne.portal.repository.BaseRawUserRepository;
 import com.odysseusinc.arachne.portal.repository.BaseUserRepository;
 import com.odysseusinc.arachne.portal.repository.CountryRepository;
 import com.odysseusinc.arachne.portal.repository.RoleRepository;
@@ -73,7 +74,7 @@ public class UserServiceImpl extends BaseUserServiceImpl<BaseUser, RawUser, User
                            RoleRepository roleRepository,
                            UserLinkService userLinkService,
                            TenantService tenantService,
-                           BaseUserRepository<RawUser> rawUserRepository) {
+                           BaseRawUserRepository<RawUser> rawUserRepository) {
 
         super(stateProvinceRepository,
                 messageSource,

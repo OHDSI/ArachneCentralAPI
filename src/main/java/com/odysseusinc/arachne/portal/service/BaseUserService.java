@@ -31,13 +31,11 @@ import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.exception.WrongFileFormatException;
-import com.odysseusinc.arachne.portal.model.BaseUser;
 import com.odysseusinc.arachne.portal.model.Country;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Invitationable;
-import com.odysseusinc.arachne.portal.model.RawUser;
 import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.StateProvince;
-import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserLink;
 import com.odysseusinc.arachne.portal.model.UserPublication;
 import com.odysseusinc.arachne.portal.model.UserStudy;
@@ -56,7 +54,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.multipart.MultipartFile;
 
-public interface BaseUserService<BU extends BaseUser, RU extends RawUser, U extends User, S extends Skill> {
+public interface BaseUserService<BU extends IUser, RU extends IUser, U extends IUser, S extends Skill> {
 
     U getByUsername(final String username);
 
@@ -76,7 +74,7 @@ public interface BaseUserService<BU extends BaseUser, RU extends RawUser, U exte
     U register(@NotNull U user, String registrantToken, String callbackUrl)
             throws NotUniqueException, NotExistException, PasswordValidationException;
 
-    void confirmUserEmail(U user)
+    void confirmUserEmail(RU user)
             throws IOException, NotExistException,
             SolrServerException, NoSuchFieldException, IllegalAccessException;
 

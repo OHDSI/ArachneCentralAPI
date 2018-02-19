@@ -37,6 +37,7 @@ import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.UserNotActivatedException;
 import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
 import com.odysseusinc.arachne.portal.model.DataNode;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.PasswordReset;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
@@ -174,7 +175,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
         );
     }
 
-    protected User getUser(String userName) {
+    protected IUser getUser(String userName) {
 
         return userService.getByUsername(userName);
     }
@@ -228,7 +229,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
     public void remindPassword(@RequestBody @Valid RemindPasswordDTO remindPasswordDTO) throws InterruptedException {
 
         String email = remindPasswordDTO.getEmail();
-        User user = userService.getByUnverifiedEmail(email);
+        IUser user = userService.getByUnverifiedEmail(email);
         // If user was not found,
         // do not throw exception to prevent "Unauthenticated Email Address Enumeration" security issue
         if (user != null) {
@@ -267,7 +268,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
                 throw new PasswordValidationException(passwordValidator.getMessages(validationResult));
             }
             if (passwordResetService.canReset(email, token)) {
-                User user = userService.getByUnverifiedEmail(email);
+                IUser user = userService.getByUnverifiedEmail(email);
                 user.setPassword(newPassword);
                 userService.resetPassword(user);
                 result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
@@ -284,7 +285,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
     public JsonResult<UserInfoDTO> info(Principal principal) {
 
         final JsonResult<UserInfoDTO> result;
-        User user = userService.getByEmail(principal.getName());
+        IUser user = userService.getByEmail(principal.getName());
         final UserInfoDTO userInfo = conversionService.convert(user, UserInfoDTO.class);
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
         result.setResult(userInfo);

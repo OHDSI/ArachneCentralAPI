@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.repository;
 
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import com.odysseusinc.arachne.portal.model.ParticipantStatus;
 import com.odysseusinc.arachne.portal.model.Study;
@@ -43,15 +44,15 @@ public interface UserStudyRepository extends CrudRepository<UserStudy, Long>, Jp
             + " AND user_id= :userId")
     UserStudy findOneByStudyIdAndUserId(@Param("studyId") Long studyId, @Param("userId") Long userId);
 
-    UserStudy findOneByStudyAndUser(Study study, User user);
+    UserStudy findOneByStudyAndUser(Study study, IUser user);
 
     List<UserStudy> findByStudyAndRole(Study study, ParticipantRole role);
 
-    List<UserStudy> findByUserAndStatus(User user, ParticipantStatus pending);
+    List<UserStudy> findByUserAndStatus(IUser user, ParticipantStatus pending);
 
-    List<UserStudy> findByUserAndStudyIdAndStatus(User user, Long studyId, ParticipantStatus pending);
+    List<UserStudy> findByUserAndStudyIdAndStatus(IUser user, Long studyId, ParticipantStatus pending);
 
-    UserStudy findByIdAndUser(Long id, User user);
+    UserStudy findByIdAndUser(Long id, IUser user);
 
     UserStudy findByIdAndStatusAndToken(Long id, ParticipantStatus pending, String token);
 

@@ -75,6 +75,7 @@ import java.util.stream.StreamSupport;
 @Secured("ROLE_ADMIN")
 public abstract class BaseAdminController<
         S extends Study,
+        BDS extends IDataSource,
         RDS extends IDataSource,
         DS extends IDataSource,
         SS extends StudySearch,
@@ -84,12 +85,12 @@ public abstract class BaseAdminController<
         PS extends PaperSearch,
         SB extends Submission> extends BaseController<DataNode, User> {
 
-    private final BaseDataSourceService<RDS, DS> dataSourceService;
+    private final BaseDataSourceService<BDS, RDS, DS> dataSourceService;
     protected final ProfessionalTypeService professionalTypeService;
     private final BaseAdminService<S, DS, SS, SU, A, P, PS, SB> adminService;
 
     @Autowired
-    public BaseAdminController(BaseDataSourceService<RDS, DS> dataSourceService,
+    public BaseAdminController(BaseDataSourceService<BDS, RDS, DS> dataSourceService,
                                ProfessionalTypeService professionalTypeService,
                                BaseAdminService<S, DS, SS, SU, A, P, PS, SB> adminService) {
 

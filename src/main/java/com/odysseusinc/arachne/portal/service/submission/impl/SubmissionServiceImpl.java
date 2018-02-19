@@ -30,6 +30,7 @@ import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.BaseDataSource;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.RawDataSource;
 import com.odysseusinc.arachne.portal.model.ResultFile;
 import com.odysseusinc.arachne.portal.model.Submission;
@@ -69,12 +70,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @Transactional(rollbackFor = Exception.class)
-public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission, Analysis, RawDataSource, DataSource>
+public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission, Analysis, BaseDataSource, RawDataSource, DataSource>
         implements SubmissionService {
 
     @Autowired
     public SubmissionServiceImpl(BaseSubmissionRepository<Submission> submissionRepository,
-                                 BaseDataSourceService<RawDataSource, DataSource> dataSourceService,
+                                 BaseDataSourceService<BaseDataSource, RawDataSource, DataSource> dataSourceService,
                                  ArachneMailSender mailSender,
                                  AnalysisHelper analysisHelper,
                                  SimpMessagingTemplate wsTemplate,
@@ -120,7 +121,7 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
     @PreAuthorize("hasPermission(#submissionId, 'Submission', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).APPROVE_SUBMISSION)")
     @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
-    public Submission approveSubmissionResult(Long submissionId, ApproveDTO approveDTO, User user) {
+    public Submission approveSubmissionResult(Long submissionId, ApproveDTO approveDTO, IUser user) {
 
         return super.approveSubmissionResult(submissionId, approveDTO, user);
     }
@@ -128,7 +129,7 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
     @Override
     @PreAuthorize("hasPermission(#analysis, "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).CREATE_SUBMISSION)")
-    public Submission createSubmission(User user, Analysis analysis, Long datasourceId, SubmissionGroup submissionGroup) throws NotExistException, IOException {
+    public Submission createSubmission(IUser user, Analysis analysis, Long datasourceId, SubmissionGroup submissionGroup) throws NotExistException, IOException {
 
         return super.createSubmission(user, analysis, datasourceId, submissionGroup);
     }
@@ -136,7 +137,7 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
     @Override
     @PreAuthorize("hasPermission(#analysis, "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).CREATE_SUBMISSION)")
-    public SubmissionGroup createSubmissionGroup(User user, Analysis analysis) throws IOException, NoExecutableFileException {
+    public SubmissionGroup createSubmissionGroup(IUser user, Analysis analysis) throws IOException, NoExecutableFileException {
 
         return super.createSubmissionGroup(user, analysis);
     }
@@ -161,7 +162,7 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
     @PreAuthorize("hasPermission(#submissionId, 'Submission', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).APPROVE_SUBMISSION)")
     @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
-    public Submission approveSubmission(Long submissionId, Boolean isApproved, String comment, User user) throws IOException, NotExistException {
+    public Submission approveSubmission(Long submissionId, Boolean isApproved, String comment, IUser user) throws IOException, NotExistException {
 
         return super.approveSubmission(submissionId, isApproved, comment, user);
     }
@@ -177,7 +178,7 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
     @Override
     @PreAuthorize("hasPermission(#analysisId, 'Analysis', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
-    public void getSubmissionResultAllFiles(User user, Long analysisId, Long submissionId, String archiveName, OutputStream os) throws IOException, PermissionDeniedException {
+    public void getSubmissionResultAllFiles(IUser user, Long analysisId, Long submissionId, String archiveName, OutputStream os) throws IOException, PermissionDeniedException {
 
         super.getSubmissionResultAllFiles(user, analysisId, submissionId, archiveName, os);
     }
@@ -185,7 +186,7 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
     @Override
     @PreAuthorize("hasPermission(#submissionId, 'Submission', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
-    public List<ArachneFileMeta> getResultFiles(User user, Long submissionId, ResultFileSearch resultFileSearch) throws PermissionDeniedException {
+    public List<ArachneFileMeta> getResultFiles(IUser user, Long submissionId, ResultFileSearch resultFileSearch) throws PermissionDeniedException {
 
         return super.getResultFiles(user, submissionId, resultFileSearch);
     }
@@ -193,7 +194,7 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
     @Override
     @PreAuthorize("hasPermission(#analysisId,  'Analysis', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
-    public ArachneFileMeta getResultFileAndCheckPermission(User user, Submission submission, Long analysisId, String fileUuid)
+    public ArachneFileMeta getResultFileAndCheckPermission(IUser user, Submission submission, Long analysisId, String fileUuid)
             throws PermissionDeniedException {
 
         return super.getResultFileAndCheckPermission(user, submission, analysisId, fileUuid);

@@ -38,6 +38,7 @@ import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.BaseDataSource;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.StudyDataSourceService;
@@ -64,6 +65,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public abstract class BaseDataSourceController<
+        BDS extends IDataSource,
         RDS extends IDataSource,
         DS extends IDataSource,
         DTO extends CommonBaseDataSourceDTO,
@@ -71,12 +73,12 @@ public abstract class BaseDataSourceController<
         R extends FacetedSearchResultDTO<?>> extends BaseController {
 
     protected final GenericConversionService conversionService;
-    protected final BaseDataSourceService<RDS, DS> dataSourceService;
+    protected final BaseDataSourceService<BDS, RDS, DS> dataSourceService;
     protected final ConverterUtils converterUtils;
     protected final StudyDataSourceService studyDataSourceService;
 
     public BaseDataSourceController(GenericConversionService conversionService,
-                                    BaseDataSourceService<RDS, DS> dataSourceService,
+                                    BaseDataSourceService<BDS, RDS, DS> dataSourceService,
                                     ConverterUtils converterUtils,
                                     StudyDataSourceService studyDataSourceService) {
 
@@ -105,7 +107,7 @@ public abstract class BaseDataSourceController<
         if (bindingResult.hasErrors()) {
             result = setValidationErrors(bindingResult);
         } else {
-            User user = getUser(principal);
+            IUser user = getUser(principal);
             final DS exist = dataSourceService.findById(dataSourceId);
             DS dataSource = convertDTOToDataSource(commonDataSourceDTO);
             dataSource.setId(dataSourceId);
@@ -127,7 +129,7 @@ public abstract class BaseDataSourceController<
         if (studyId == null || query == null) {
             throw new javax.validation.ValidationException();
         }
-        final User user = getUser(principal);
+        final IUser user = getUser(principal);
         Sort sort = new Sort(Sort.Direction.ASC, "name");
         PageRequest pageRequest = new PageRequest(pageDTO.getPage() - 1, pageDTO.getPageSize(), sort);
 
@@ -146,7 +148,7 @@ public abstract class BaseDataSourceController<
                               @ModelAttribute SearchDataCatalogDTO searchDTO
     ) throws IOException, SolrServerException, PermissionDeniedException, NoSuchFieldException {
 
-        final User user = getUser(principal);
+        final IUser user = getUser(principal);
         SolrQuery solrQuery = conversionService.convert(searchDTO, SolrQuery.class);
         SearchResult<DS> searchResult = dataSourceService.search(solrQuery, user);
         return new JsonResult<>(NO_ERROR, conversionService.convert(searchResult, getSearchResultClass()));

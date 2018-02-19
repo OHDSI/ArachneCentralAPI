@@ -27,7 +27,7 @@ import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.RawDataSource;
 import java.util.List;
 
-public interface DataSourceService extends BaseDataSourceService<RawDataSource, DataSource> {
+public interface DataSourceService extends BaseDataSourceService<BaseDataSource, RawDataSource, DataSource> {
 
     List<DataSource> getAllByUserId(Long userId);
 }

@@ -29,6 +29,7 @@ import com.odysseusinc.arachne.portal.exception.NotUniqueException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.BaseUser;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.RawUser;
 import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.User;
@@ -48,7 +49,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-public abstract class BaseSkillController<BU extends BaseUser, RU extends RawUser, S extends Skill, U extends User> {
+public abstract class BaseSkillController<S extends Skill, BU extends IUser, RU extends IUser, U extends IUser> {
 
     protected final BaseSkillService<S> skillService;
     protected final GenericConversionService conversionService;

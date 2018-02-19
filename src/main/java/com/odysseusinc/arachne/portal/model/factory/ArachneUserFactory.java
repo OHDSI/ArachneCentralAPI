@@ -23,6 +23,7 @@
 package com.odysseusinc.arachne.portal.model.factory;
 
 import com.odysseusinc.arachne.portal.model.BaseUser;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Role;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
 import java.util.LinkedList;
@@ -33,7 +34,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 public class ArachneUserFactory {
 
-    public static ArachneUser create(BaseUser user) {
+    public static ArachneUser create(IUser user) {
 
         List<GrantedAuthority> authorities = new LinkedList<>();
         for (Role role : user.getRoles()) {

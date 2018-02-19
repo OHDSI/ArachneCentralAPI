@@ -23,9 +23,13 @@
 package com.odysseusinc.arachne.portal.repository;
 
 import com.odysseusinc.arachne.portal.model.IDataSource;
+import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.NoRepositoryBean;
 
 @NoRepositoryBean
-public interface BaseRawDataSourceRepository<T extends IDataSource> extends CrudRepository<T, Long> {
+public interface BaseRawDataSourceRepository<T extends IDataSource> extends JpaRepository<T, Long> {
+
+    Optional<T> findByIdAndDeletedIsNull(Long id);
 }

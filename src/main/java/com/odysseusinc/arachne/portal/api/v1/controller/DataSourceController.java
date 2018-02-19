@@ -40,13 +40,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @SuppressWarnings("unused")
 public class DataSourceController
-        extends BaseDataSourceController<RawDataSource, DataSource, CommonDataSourceDTO, DataSourceDTO, DataCatalogSearchResultDTO> {
+        extends BaseDataSourceController<BaseDataSource, RawDataSource, DataSource, CommonDataSourceDTO, DataSourceDTO, DataCatalogSearchResultDTO> {
 
     Logger log = LoggerFactory.getLogger(DataSourceController.class);
 
     @Autowired
     public DataSourceController(GenericConversionService conversionService,
-                                BaseDataSourceService<RawDataSource, DataSource> dataSourceService,
+                                BaseDataSourceService<BaseDataSource, RawDataSource, DataSource> dataSourceService,
                                 ConverterUtils converterUtils,
                                 StudyDataSourceService studyDataSourceService
     ) {

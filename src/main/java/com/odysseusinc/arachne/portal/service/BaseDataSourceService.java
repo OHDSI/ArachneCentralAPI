@@ -26,9 +26,8 @@ import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.NotUniqueException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
-import com.odysseusinc.arachne.portal.model.BaseDataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
-import com.odysseusinc.arachne.portal.model.User;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -39,7 +38,7 @@ import org.springframework.data.domain.PageRequest;
 import java.io.IOException;
 import java.util.List;
 
-public interface BaseDataSourceService<RDS extends IDataSource, DS extends IDataSource> {
+public interface BaseDataSourceService<BDS extends IDataSource, RDS extends IDataSource, DS extends IDataSource> {
 
     FieldList getSolrFields();
 
@@ -54,7 +53,7 @@ public interface BaseDataSourceService<RDS extends IDataSource, DS extends IData
             SolrQuery solrQuery
     ) throws IOException, SolrServerException, NoSuchFieldException;
 
-    SearchResult<DS> search(SolrQuery solrQuery, User user) throws NoSuchFieldException, IOException, SolrServerException;
+    SearchResult<DS> search(SolrQuery solrQuery, IUser user) throws NoSuchFieldException, IOException, SolrServerException;
 
     DS update(
             DS dataSource
@@ -66,8 +65,8 @@ public interface BaseDataSourceService<RDS extends IDataSource, DS extends IData
                     NoSuchFieldException,
                     IllegalAccessException, NotUniqueException;
 
-    DS updateInAnyTenant(
-            DS dataSource
+    RDS updateInAnyTenant(
+            RDS dataSource
     ) throws
             NotExistException,
             ValidationException,
@@ -78,7 +77,7 @@ public interface BaseDataSourceService<RDS extends IDataSource, DS extends IData
 
     DS getNotDeletedById(Long id);
 
-    DS getNotDeletedByIdInAnyTenant(Long id);
+    RDS getNotDeletedByIdInAnyTenant(Long id);
 
     DS getByIdUnsecured(Long id) throws NotExistException;
 
@@ -86,7 +85,7 @@ public interface BaseDataSourceService<RDS extends IDataSource, DS extends IData
 
     DS findByUuidUnsecured(String uuid) throws NotExistException;
 
-    public void indexBySolr(DS dataSource)
+    void indexBySolr(BDS dataSource)
             throws IOException, SolrServerException, NoSuchFieldException, IllegalAccessException;
 
     DS findById(Long dataSourceId);

@@ -47,7 +47,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.SequenceGenerator;
 
 @MappedSuperclass
-public class BaseUser implements Serializable {
+public class BaseUser implements IUser, Serializable {
 
     @ManyToMany(targetEntity = Role.class, fetch = FetchType.LAZY)
     @JoinTable(name = "users_roles",

@@ -42,7 +42,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Api(hidden = true)
 @RestController
-public class AdminController extends BaseAdminController<Study, RawDataSource, DataSource, StudySearch, StudyViewItem, Analysis, Paper, PaperSearch, Submission> {
+public class AdminController extends BaseAdminController<Study, BaseDataSource, RawDataSource, DataSource, StudySearch, StudyViewItem, Analysis, Paper, PaperSearch, Submission> {
 
     @Autowired
     public AdminController(DataSourceService dataSourceService,

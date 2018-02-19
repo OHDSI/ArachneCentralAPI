@@ -27,5 +27,5 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "users")
-public class User extends BaseUser {
+public class User extends BaseUser implements IUser {
 }

@@ -34,6 +34,7 @@ import com.odysseusinc.arachne.portal.model.BaseDataSource;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
@@ -57,6 +58,7 @@ import java.security.Principal;
 
 @SuppressWarnings("unused")
 public abstract class BaseDataNodeController<
+        BDS extends IDataSource,
         RDS extends IDataSource,
         DS extends IDataSource,
         C_DS_DTO extends CommonDataSourceDTO,
@@ -64,7 +66,7 @@ public abstract class BaseDataNodeController<
 
     private static final Logger log = LoggerFactory.getLogger(BaseDataNodeController.class);
     protected final BaseAnalysisService analysisService;
-    protected final BaseDataSourceService<RDS, DS> dataSourceService;
+    protected final BaseDataSourceService<BDS, RDS, DS> dataSourceService;
     protected final BaseDataNodeService<DN> baseDataNodeService;
     protected final GenericConversionService genericConversionService;
     protected final BaseUserService userService;
@@ -73,7 +75,7 @@ public abstract class BaseDataNodeController<
     @Autowired
     public BaseDataNodeController(BaseAnalysisService analysisService,
                                   BaseDataNodeService<DN> dataNodeService,
-                                  BaseDataSourceService<RDS, DS> dataSourceService,
+                                  BaseDataSourceService<BDS, RDS, DS> dataSourceService,
                                   GenericConversionService genericConversionService,
                                   BaseUserService userService,
                                   StudyDataSourceService studyDataSourceService) {
@@ -93,7 +95,7 @@ public abstract class BaseDataNodeController<
             Principal principal
     ) throws PermissionDeniedException {
 
-        final User user = getUser(principal);
+        final IUser user = getUser(principal);
         final DN dataNode = convertRegisterDtoToDataNode(commonDataNodeRegisterDTO);
         final DN registeredDataNode = baseDataNodeService.register(dataNode);
         final CommonDataNodeRegisterResponseDTO dataNodeRegisterResponseDTO
@@ -113,7 +115,7 @@ public abstract class BaseDataNodeController<
             Principal principal
     ) throws PermissionDeniedException, NotExistException {
 
-        final User user = getUser(principal);
+        final IUser user = getUser(principal);
         final DN dataNode = convertRegisterDtoToDataNode(commonDataNodeRegisterDTO);
         dataNode.setId(dataNodeId);
         final DN updatedDataNode = baseDataNodeService.update(dataNode);

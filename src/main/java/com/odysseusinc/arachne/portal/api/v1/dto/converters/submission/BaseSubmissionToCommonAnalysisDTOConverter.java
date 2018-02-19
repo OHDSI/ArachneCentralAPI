@@ -28,6 +28,7 @@ import com.odysseusinc.arachne.commons.api.v1.dto.CommonArachneUserDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonStudyDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
 import com.odysseusinc.arachne.portal.model.Analysis;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
@@ -55,7 +56,7 @@ public abstract class BaseSubmissionToCommonAnalysisDTOConverter<T extends Submi
                 dto.setStudy(conversionService.convert(study, CommonStudyDTO.class));
             }
         }
-        User author = source.getSubmissionGroup().getAuthor();
+        IUser author = source.getSubmissionGroup().getAuthor();
         if (author != null && conversionService.canConvert(author.getClass(), CommonArachneUserDTO.class)) {
             CommonArachneUserDTO userDTO = conversionService.convert(author, CommonArachneUserDTO.class);
             dto.setOwner(userDTO);

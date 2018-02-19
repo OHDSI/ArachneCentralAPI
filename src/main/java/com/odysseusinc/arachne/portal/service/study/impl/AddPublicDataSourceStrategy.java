@@ -24,11 +24,9 @@ package com.odysseusinc.arachne.portal.service.study.impl;
 
 import static com.odysseusinc.arachne.portal.model.DataSourceStatus.APPROVED;
 
-import com.odysseusinc.arachne.portal.model.BaseDataSource;
-import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
-import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.repository.StudyDataSourceLinkRepository;
 import com.odysseusinc.arachne.portal.service.study.AddDataSourceStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +42,7 @@ public class AddPublicDataSourceStrategy<T extends IDataSource> extends Abstract
     }
 
     @Override
-    public void addDataSourceToStudy(User createdBy, T dataSource, StudyDataSourceLink link) {
+    public void addDataSourceToStudy(IUser createdBy, T dataSource, StudyDataSourceLink link) {
         saveStudyDataSourceLinkWithStatus(link, APPROVED);
     }
 

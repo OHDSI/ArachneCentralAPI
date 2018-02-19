@@ -32,6 +32,7 @@ import com.odysseusinc.arachne.portal.model.AnalysisFile;
 import com.odysseusinc.arachne.portal.model.AnalysisUnlockRequest;
 import com.odysseusinc.arachne.portal.model.DataReference;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyViewItem;
 import com.odysseusinc.arachne.portal.model.User;
@@ -187,7 +188,7 @@ public class AnalysisServiceImpl extends BaseAnalysisServiceImpl<Analysis, Study
     @Override
     @PreAuthorize("hasPermission(#analysis, "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).UPLOAD_ANALYSIS_FILES)")
-    public AnalysisFile saveFile(MultipartFile multipartFile, User user, Analysis analysis,
+    public AnalysisFile saveFile(MultipartFile multipartFile, IUser user, Analysis analysis,
                                  String label, Boolean isExecutable, DataReference dataReference)
             throws IOException {
 

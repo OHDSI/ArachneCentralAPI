@@ -22,7 +22,9 @@
 
 package com.odysseusinc.arachne.portal.repository;
 
-import com.odysseusinc.arachne.portal.model.RawUser;
+import com.odysseusinc.arachne.portal.model.IUser;
+import org.springframework.data.repository.NoRepositoryBean;
 
-public interface RawUserRepository extends BaseRawUserRepository<RawUser> {
+@NoRepositoryBean
+public interface BaseRawUserRepository<U extends IUser> extends BaseUserRepository<U> {
 }

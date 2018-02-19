@@ -34,6 +34,7 @@ import com.odysseusinc.arachne.portal.model.AnalysisFile;
 import com.odysseusinc.arachne.portal.model.AnalysisUnlockRequest;
 import com.odysseusinc.arachne.portal.model.ArachneFile;
 import com.odysseusinc.arachne.portal.model.DataReference;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Invitationable;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
 import com.odysseusinc.arachne.portal.model.User;
@@ -58,7 +59,7 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
 
     Boolean moveAnalysis(Long id, Integer index);
 
-    AnalysisFile saveFile(MultipartFile multipartFile, User user, T analysis, String label,
+    AnalysisFile saveFile(MultipartFile multipartFile, IUser user, T analysis, String label,
                           Boolean isExecutable, DataReference dataReference) throws IOException;
 
     AnalysisFile saveFile(String link, User user, T analysis, String label, Boolean isExecutable)
@@ -107,7 +108,7 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
 
     void getAnalysisAllFiles(Long analysisId, String archiveName, OutputStream os) throws IOException;
 
-    List<User> findLeads(T analysis);
+    List<IUser> findLeads(T analysis);
 
     List<? extends Invitationable> getWaitingForApprovalSubmissions(User user);
 

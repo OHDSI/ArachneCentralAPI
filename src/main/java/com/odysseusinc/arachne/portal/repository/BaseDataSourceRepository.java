@@ -90,13 +90,6 @@ public interface BaseDataSourceRepository<T extends IDataSource> extends CrudRep
             nativeQuery = true,
             value = "SELECT * " +
                     "FROM data_sources_data ds " +
-                    "WHERE ds.id = :dataSourceId AND ds.deleted IS NULL")
-    Optional<T> getByIdNotDeletedInAnyTenant(@Param("dataSourceId") Long dataSourceId);
-
-    @Query(
-            nativeQuery = true,
-            value = "SELECT * " +
-                    "FROM data_sources_data ds " +
                     "JOIN datanodes dn ON dn.id = ds.data_node_id " +
                     "WHERE dn.is_virtual = FALSE " +
                     "AND ds.deleted IS NULL")

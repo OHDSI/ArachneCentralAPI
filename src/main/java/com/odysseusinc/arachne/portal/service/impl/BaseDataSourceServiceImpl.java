@@ -27,11 +27,9 @@ import com.odysseusinc.arachne.portal.api.v1.dto.SearchDataCatalogDTO;
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
-import com.odysseusinc.arachne.portal.model.BaseDataSource;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
-import com.odysseusinc.arachne.portal.model.RawDataSource;
-import com.odysseusinc.arachne.portal.model.User;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.repository.BaseDataSourceRepository;
 import com.odysseusinc.arachne.portal.repository.BaseRawDataSourceRepository;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
@@ -64,9 +62,10 @@ import org.springframework.util.ReflectionUtils;
 
 @Transactional(rollbackFor = Exception.class)
 public abstract class BaseDataSourceServiceImpl<
+        BDS extends IDataSource, // greatest common divisor for RDS and DS
         RDS extends IDataSource, // tenant independent DataSource
         DS extends IDataSource, // tenant dependent DataSource
-        SF extends SolrField> implements BaseDataSourceService<RDS, DS> {
+        SF extends SolrField> implements BaseDataSourceService<BDS, RDS, DS> {
 
     private static final Logger log = LoggerFactory.getLogger(BaseDataSourceServiceImpl.class);
     protected BaseDataSourceRepository<DS> dataSourceRepository;
@@ -120,7 +119,7 @@ public abstract class BaseDataSourceServiceImpl<
             throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
         if (!virtual) {
-            indexBySolr(dataSource);
+            indexBySolr((BDS) dataSource);
         }
     }
 
@@ -154,7 +153,7 @@ public abstract class BaseDataSourceServiceImpl<
     }
 
     @Override
-    public SearchResult<DS> search(SolrQuery solrQuery, User user)
+    public SearchResult<DS> search(SolrQuery solrQuery, IUser user)
             throws NoSuchFieldException, IOException, SolrServerException {
 
         solrQuery = addFilterQuery(solrQuery, user);
@@ -163,7 +162,7 @@ public abstract class BaseDataSourceServiceImpl<
         return result;
     }
 
-    private DS baseUpdate(DS exist, DS dataSource) throws IOException, NoSuchFieldException, SolrServerException, IllegalAccessException {
+    private BDS baseUpdate(BDS exist, BDS dataSource) throws IOException, NoSuchFieldException, SolrServerException, IllegalAccessException {
 
         if (dataSource.getName() != null) {
             exist.setName(dataSource.getName());
@@ -196,32 +195,33 @@ public abstract class BaseDataSourceServiceImpl<
     public DS update(DS dataSource)
             throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
-        DS exist = dataSourceRepository.findByIdAndDeletedIsNull(dataSource.getId())
+        DS forUpdate = dataSourceRepository.findByIdAndDeletedIsNull(dataSource.getId())
                 .orElseThrow(() -> new NotExistException(DataSource.class));
-
-        exist = baseUpdate(exist, dataSource);
-
-        beforeUpdate(exist, dataSource);
-        DS savedDataSource = dataSourceRepository.save(exist);
-        afterUpdate(savedDataSource);
-
+        forUpdate = (DS) baseUpdate((BDS) forUpdate, (BDS) dataSource);
+        beforeUpdate((BDS) forUpdate, (BDS) dataSource);
+        DS savedDataSource = dataSourceRepository.save(forUpdate);
+        afterUpdate((BDS) savedDataSource);
         return savedDataSource;
     }
 
     @Secured({"ROLE_ADMIN"})
     @Override
-    public DS updateInAnyTenant(DS dataSource)
+    public RDS updateInAnyTenant(RDS dataSource)
             throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
-        DS exist = getNotDeletedByIdInAnyTenant(dataSource.getId());
-        return baseUpdate(exist, dataSource);
+        RDS forUpdate = getNotDeletedByIdInAnyTenant(dataSource.getId());
+        forUpdate = (RDS) baseUpdate((BDS) forUpdate, (BDS) dataSource);
+        beforeUpdate((BDS) forUpdate, (BDS) dataSource);
+        RDS savedDataSource = rawDataSourceRepository.save(forUpdate);
+        afterUpdate((BDS) savedDataSource);
+        return savedDataSource;
     }
 
-    protected void beforeUpdate(DS target, DS dataSource) {
+    protected void beforeUpdate(BDS target, BDS dataSource) {
 
     }
 
-    protected void afterUpdate(DS dataSource)
+    protected void afterUpdate(BDS dataSource)
             throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
         if (!dataSource.getDataNode().getVirtual()) {
@@ -240,9 +240,9 @@ public abstract class BaseDataSourceServiceImpl<
 
     @Secured({"ROLE_ADMIN"})
     @Override
-    public DS getNotDeletedByIdInAnyTenant(Long id) {
+    public RDS getNotDeletedByIdInAnyTenant(Long id) {
 
-        return dataSourceRepository.getByIdNotDeletedInAnyTenant(id)
+        return rawDataSourceRepository.findByIdAndDeletedIsNull(id)
                 .orElseThrow(() -> new NotExistException(DataSource.class));
     }
 
@@ -330,16 +330,16 @@ public abstract class BaseDataSourceServiceImpl<
         solrService.deleteByQuery(SolrServiceImpl.DATA_SOURCE_COLLECTION, "*:*");
         List<DS> dataSourceList = getAllNotDeletedAndIsNotVirtualFromAllTenants();
         for (DS dataSource : dataSourceList) {
-            indexBySolr(dataSource);
+            indexBySolr((BDS) dataSource);
         }
     }
 
-    protected SolrQuery addFilterQuery(SolrQuery solrQuery, User user) throws NoSuchFieldException {
+    protected SolrQuery addFilterQuery(SolrQuery solrQuery, IUser user) throws NoSuchFieldException {
 
         return solrQuery;
     }
 
-    private Map<String, List<String>> getExcludedOptions(User user) throws NoSuchFieldException,
+    private Map<String, List<String>> getExcludedOptions(IUser user) throws NoSuchFieldException,
             IOException, SolrServerException {
 
         SolrQuery solrQuery = conversionService.convert(new SearchDataCatalogDTO(true), SolrQuery.class);
@@ -350,7 +350,7 @@ public abstract class BaseDataSourceServiceImpl<
         return searchResult.excludedOptions();
     }
 
-    public void indexBySolr(DS dataSource)
+    public void indexBySolr(BDS dataSource)
             throws IOException, SolrServerException, NoSuchFieldException, IllegalAccessException {
 
         Map<SF, Object> values = solrService.getValuesByEntity(dataSource);

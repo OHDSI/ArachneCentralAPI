@@ -34,7 +34,7 @@ import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class SkillController extends BaseSkillController<BaseUser, RawUser, Skill, User> {
+public class SkillController extends BaseSkillController<Skill, BaseUser, RawUser, User> {
 
     @Autowired
     public SkillController(

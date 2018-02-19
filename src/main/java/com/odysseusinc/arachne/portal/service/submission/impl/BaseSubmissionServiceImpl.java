@@ -47,9 +47,8 @@ import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.AnalysisFile;
-import com.odysseusinc.arachne.portal.model.BaseDataSource;
-import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.ResultFile;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
@@ -125,6 +124,7 @@ import org.springframework.web.multipart.MultipartFile;
 public abstract class BaseSubmissionServiceImpl<
         T extends Submission,
         A extends Analysis,
+        BDS extends IDataSource,
         RDS extends IDataSource,
         DS extends IDataSource>
         implements BaseSubmissionService<T, A> {
@@ -136,7 +136,7 @@ public abstract class BaseSubmissionServiceImpl<
     protected static final Logger LOGGER = LoggerFactory.getLogger(BaseSubmissionService.class);
     private static final String FILE_NOT_UPLOADED_MANUALLY_EXCEPTION = "File %s was not uploaded manually";
     protected final BaseSubmissionRepository<T> submissionRepository;
-    protected final BaseDataSourceService<RDS, DS> dataSourceService;
+    protected final BaseDataSourceService<BDS, RDS, DS> dataSourceService;
     protected final ArachneMailSender mailSender;
     protected final AnalysisHelper analysisHelper;
     protected final SimpMessagingTemplate wsTemplate;
@@ -157,7 +157,7 @@ public abstract class BaseSubmissionServiceImpl<
     private String fileStorePath;
 
     protected BaseSubmissionServiceImpl(BaseSubmissionRepository<T> submissionRepository,
-                                        BaseDataSourceService<RDS, DS> dataSourceService,
+                                        BaseDataSourceService<BDS, RDS, DS> dataSourceService,
                                         ArachneMailSender mailSender,
                                         AnalysisHelper analysisHelper,
                                         SimpMessagingTemplate wsTemplate,
@@ -194,7 +194,7 @@ public abstract class BaseSubmissionServiceImpl<
     }
 
     @Override
-    public T approveSubmissionResult(Long submissionId, ApproveDTO approveDTO, User user) {
+    public T approveSubmissionResult(Long submissionId, ApproveDTO approveDTO, IUser user) {
 
         T submission = submissionRepository.findOne(submissionId);
         SubmissionStatus status = runApproveSubmissionProcess(submission,
@@ -211,7 +211,7 @@ public abstract class BaseSubmissionServiceImpl<
     }
 
     @Override
-    public T createSubmission(User user, A analysis, Long datasourceId,
+    public T createSubmission(IUser user, A analysis, Long datasourceId,
                               SubmissionGroup submissionGroup)
             throws NotExistException, IOException {
 
@@ -254,7 +254,7 @@ public abstract class BaseSubmissionServiceImpl<
 
     }
 
-    protected SubmissionStatus calculateSubmissionStatusAccordingToDatasourceOwnership(DS dataSource, User user) {
+    protected SubmissionStatus calculateSubmissionStatusAccordingToDatasourceOwnership(DS dataSource, IUser user) {
 
         return PENDING;
     }
@@ -298,7 +298,7 @@ public abstract class BaseSubmissionServiceImpl<
     }
 
     @Override
-    public T moveSubmissionToNewStatus(T submission, SubmissionStatus status, User user, String comment) {
+    public T moveSubmissionToNewStatus(T submission, SubmissionStatus status, IUser user, String comment) {
 
         List<SubmissionStatusHistoryElement> statusHistory = submission.getStatusHistory();
         statusHistory.add(new SubmissionStatusHistoryElement(new Date(), status, user, submission, comment));
@@ -371,7 +371,7 @@ public abstract class BaseSubmissionServiceImpl<
     }
 
     @Override
-    public SubmissionGroup createSubmissionGroup(User user, Analysis analysis) throws IOException, NoExecutableFileException {
+    public SubmissionGroup createSubmissionGroup(IUser user, Analysis analysis) throws IOException, NoExecutableFileException {
 
         checkBeforeCreateSubmissionGroup(analysis);
 
@@ -584,7 +584,7 @@ public abstract class BaseSubmissionServiceImpl<
     }
 
     @Override
-    public T approveSubmission(Long submissionId, Boolean isApproved, String comment, User user)
+    public T approveSubmission(Long submissionId, Boolean isApproved, String comment, IUser user)
             throws IOException, NotExistException {
 
         T submission = getSubmissionByIdAndStatus(submissionId, PENDING);
@@ -687,7 +687,7 @@ public abstract class BaseSubmissionServiceImpl<
     }
 
     @Override
-    public List<ArachneFileMeta> getResultFiles(User user, Long submissionId, ResultFileSearch resultFileSearch) throws PermissionDeniedException {
+    public List<ArachneFileMeta> getResultFiles(IUser user, Long submissionId, ResultFileSearch resultFileSearch) throws PermissionDeniedException {
 
         Submission submission = submissionRepository.findById(submissionId, EntityGraphUtils.fromAttributePaths("dataSource", "dataSource.dataNode"));
         checkSubmissionPermission(user, submission);
@@ -702,7 +702,7 @@ public abstract class BaseSubmissionServiceImpl<
     }
 
     @Override
-    public ArachneFileMeta getResultFileAndCheckPermission(User user, Submission submission, Long analysisId,
+    public ArachneFileMeta getResultFileAndCheckPermission(IUser user, Submission submission, Long analysisId,
                                                            String fileUuid) throws PermissionDeniedException {
 
         ArachneFileMeta byFileUuid = contentStorageService.getFileByIdentifier(fileUuid);
@@ -710,7 +710,7 @@ public abstract class BaseSubmissionServiceImpl<
         return byFileUuid;
     }
 
-    private void checkSubmissionPermission(User user, Submission submission) throws PermissionDeniedException {
+    private void checkSubmissionPermission(IUser user, Submission submission) throws PermissionDeniedException {
 
         if (!(EXECUTED_PUBLISHED.equals(submission.getStatus()) || FAILED_PUBLISHED.equals(submission.getStatus()))) {
             if (user == null || !isDataNodeOwner(submission.getDataSource().getDataNode(), user)) {
@@ -731,7 +731,7 @@ public abstract class BaseSubmissionServiceImpl<
 
     @Override
     public void getSubmissionResultAllFiles(
-            User user,
+            IUser user,
             Long analysisId,
             Long submissionId,
             String archiveName,
