@@ -277,11 +277,18 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
             final Analysis analysis = (Analysis) hasPermissionsObj;
             final List<SubmissionGroup> submissionGroups = analysis.getSubmissionGroups();
             if (!CollectionUtils.isEmpty(submissionGroups)) {
-                    submissionGroups.forEach(submissionGroup -> submissionGroup.getSubmissions().forEach(submission -> {
-                            final Set<ArachnePermission> submissionPermissions = getAllPermissions(submission, user);
-                            submission.setPermissions(submissionPermissions);
-                        }));
-                }
+                submissionGroups.forEach(submissionGroup -> submissionGroup.getSubmissions().forEach(submission -> {
+                    final Set<ArachnePermission> submissionPermissions = getAllPermissions(submission, user);
+                    submission.setPermissions(submissionPermissions);
+                }));
+            }
+            final List<AnalysisFile> files = analysis.getFiles();
+            if (!CollectionUtils.isEmpty(files)) {
+                files.forEach(file -> {
+                    final Set<ArachnePermission> filePermissions = getAllPermissions(file, user);
+                    file.setPermissions(filePermissions);
+                });
+            }
         }
         return true;
     }
