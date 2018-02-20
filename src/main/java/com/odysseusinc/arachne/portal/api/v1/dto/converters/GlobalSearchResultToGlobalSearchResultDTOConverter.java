@@ -72,11 +72,14 @@ public class GlobalSearchResultToGlobalSearchResultDTOConverter
         return source.getSolrResponse().getResults().stream().map(v -> {
             GlobalSearchDTO dto = new GlobalSearchDTO();
 
+            final String title = getValue(v, BaseSolrService.TITLE);
+            dto.setTitle(title);
             dto.setId(getValue(v, BaseSolrService.ID));
-            dto.setTitle(getValue(v, BaseSolrService.TITLE));
             dto.setLabel(getLabel(getValue(v, BaseSolrService.TYPE)));
 
-            dto.setBreadCrumbs(getBreadCrumbs(v));
+            List<BreadcrumbDTO> breadCrumbs = getBreadCrumbs(v);
+            breadCrumbs.get(breadCrumbs.size()-1).setTitle(title);
+            dto.setBreadCrumbs(breadCrumbs);
 
             return dto;
         }).collect(Collectors.toList());
