@@ -15,23 +15,25 @@
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
  * Authors: Anton Gackovka
- * Created: February 15, 2018
+ * Created: February 19, 2018
  */
 
-package com.odysseusinc.arachne.portal.api.v1.dto;
+package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
-public interface ArachneConsts {
+import com.odysseusinc.arachne.portal.model.DataSource;
+import java.util.function.Function;
 
-    interface Modules {
-        String STUDY_NOTEBOOK = "Study Notebook";
-        String EXPERT_FINDER = "Expert Finder";
-        String DATA_CATALOG = "Data Catalog";
-    }
+public class DataSourceSolrExtractors {
+    public static class DataSourceTitleExtractor implements Function<Object, Object> {
+        @Override
+        public String apply(final Object o) {
 
-    interface Domains {
-        String STUDIES = "studies";
-        String DATA_SOURCES = "data-sources";
-        String ANALYISES = "analyses";
-        String USERS = "users";
+            if (!(o instanceof DataSource)) {
+                throw new IllegalArgumentException("Title can be extracted only from DataSource object");
+            }
+
+            final DataSource ds = (DataSource) o;
+            return ds.getName();
+        }
     }
 }

@@ -23,9 +23,12 @@
 package com.odysseusinc.arachne.portal.model;
 
 import com.odysseusinc.arachne.commons.utils.UserIdUtils;
+import com.odysseusinc.arachne.portal.api.v1.dto.converters.UserSolrExtractors;
 import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
-import com.odysseusinc.arachne.portal.model.solr.SolrTitleAnno;
+import com.odysseusinc.arachne.portal.service.BaseSolrService;
+import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
+import com.odysseusinc.arachne.portal.service.impl.breadcrumb.BreadcrumbType;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashSet;
@@ -49,7 +52,8 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "users")
-public class User implements Serializable {
+@SolrFieldAnno(name = BaseSolrService.TITLE, isPostfixNeeded = false, extractors = UserSolrExtractors.TitleExtractor.class)
+public class User implements Serializable, Breadcrumb {
 
     @ManyToMany(targetEntity = Role.class, fetch = FetchType.LAZY)
     @JoinTable(name = "users_roles",
@@ -68,17 +72,14 @@ public class User implements Serializable {
     @Column(nullable = false)
     private String email;
 
-    @SolrTitleAnno(order = 0)
     @SolrFieldAnno(query = true)
     @Column(nullable = false, length = 100)
     private String firstname;
 
-    @SolrTitleAnno(order = 1)
     @SolrFieldAnno(query = true)
     @Column(nullable = false, length = 100)
     private String middlename;
 
-    @SolrTitleAnno(order = 2)
     @SolrFieldAnno(query = true)
     @Column(nullable = false, length = 100)
     private String lastname;
@@ -184,9 +185,33 @@ public class User implements Serializable {
     @JoinColumn(name = "active_tenant_id")
     private Tenant activeTenant;
 
+    @Override
+    public BreadcrumbType getCrumbType() {
+
+        return BreadcrumbType.USER;
+    }
+
     public Long getId() {
 
         return id;
+    }
+
+    @Override
+    public Long getCrumbId() {
+
+        return getId();
+    }
+
+    @Override
+    public String getCrumbTitle() {
+
+        return getFirstname() + " " + getMiddlename() + " " + getLastname();
+    }
+
+    @Override
+    public Breadcrumb getCrumbParent() {
+
+        return null;
     }
 
     public void setId(Long id) {

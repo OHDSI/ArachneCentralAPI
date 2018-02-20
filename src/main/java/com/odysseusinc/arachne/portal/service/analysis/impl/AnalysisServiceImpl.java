@@ -44,11 +44,13 @@ import com.odysseusinc.arachne.portal.repository.ResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionStatusHistoryRepository;
 import com.odysseusinc.arachne.portal.repository.submission.SubmissionRepository;
+import com.odysseusinc.arachne.portal.service.SolrService;
 import com.odysseusinc.arachne.portal.service.ToPdfConverter;
 import com.odysseusinc.arachne.portal.service.StudyFileService;
 import com.odysseusinc.arachne.portal.service.StudyService;
 import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
 import com.odysseusinc.arachne.portal.service.impl.AnalysisPreprocessorService;
+import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import com.odysseusinc.arachne.portal.util.AnalysisHelper;
 import com.odysseusinc.arachne.portal.util.LegacyAnalysisHelper;
@@ -74,7 +76,7 @@ import java.util.List;
 @Service
 @SuppressWarnings("unused")
 @Transactional(rollbackFor = Exception.class)
-public class AnalysisServiceImpl extends BaseAnalysisServiceImpl<Analysis, Study, DataSource, StudySearch, StudyViewItem> implements AnalysisService {
+public class AnalysisServiceImpl extends BaseAnalysisServiceImpl<Analysis, Study, DataSource, StudySearch, StudyViewItem, SolrField> implements AnalysisService {
 
     @Autowired
     public AnalysisServiceImpl(GenericConversionService conversionService,
@@ -96,7 +98,8 @@ public class AnalysisServiceImpl extends BaseAnalysisServiceImpl<Analysis, Study
                                AnalysisHelper analysisHelper,
                                StudyFileService fileService,
                                ToPdfConverter docToPdfConverter,
-                               ApplicationEventPublisher eventPublisher) {
+                               ApplicationEventPublisher eventPublisher,
+                               SolrService solrService) {
 
 
         super(conversionService,
@@ -117,7 +120,8 @@ public class AnalysisServiceImpl extends BaseAnalysisServiceImpl<Analysis, Study
                 analysisHelper,
                 fileService,
                 docToPdfConverter,
-                eventPublisher);
+                eventPublisher,
+                solrService);
     }
 
     @Override

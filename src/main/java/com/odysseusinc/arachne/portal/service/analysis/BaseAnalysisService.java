@@ -45,6 +45,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.List;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>, AnalysisPaths {
@@ -120,4 +121,14 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
     List<T> getByStudyId(Long id, EntityGraph author);
 
     void processAntivirusResponse(AntivirusJobAnalysisFileResponseEvent event);
+
+    void indexAllBySolr()
+            throws IOException,
+            NotExistException,
+            SolrServerException,
+            NoSuchFieldException,
+            IllegalAccessException;
+
+    void indexBySolr(T analysis)
+            throws IllegalAccessException, IOException, SolrServerException, NotExistException, NoSuchFieldException;
 }

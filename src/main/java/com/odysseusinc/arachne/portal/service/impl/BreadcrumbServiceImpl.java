@@ -23,11 +23,13 @@
 package com.odysseusinc.arachne.portal.service.impl;
 
 import com.odysseusinc.arachne.portal.exception.NotExistException;
-import com.odysseusinc.arachne.portal.model.Analysis;
+import com.odysseusinc.arachne.portal.repository.AnalysisRepository;
+import com.odysseusinc.arachne.portal.repository.StudyRepository;
+import com.odysseusinc.arachne.portal.repository.SubmissionGroupRepository;
+import com.odysseusinc.arachne.portal.repository.SubmissionInsightRepository;
+import com.odysseusinc.arachne.portal.repository.submission.SubmissionRepository;
 import com.odysseusinc.arachne.portal.service.BreadcrumbService;
-import com.odysseusinc.arachne.portal.service.StudyService;
 import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightService;
-import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.BreadcrumbType;
 import com.odysseusinc.arachne.portal.service.submission.SubmissionService;
@@ -39,21 +41,25 @@ import org.springframework.stereotype.Service;
 @Service
 public class BreadcrumbServiceImpl implements BreadcrumbService {
 
-    private StudyService studyService;
-    private BaseAnalysisService<Analysis> analysisService;
-    private final SubmissionService submissionService;
-    private final SubmissionInsightService submissionInsightService;
+    //TODO repositories are used here to avoid cycles in deps, should be fixed later ofc
+    private final StudyRepository studyRepository;
+    private final AnalysisRepository analysisRepository;
+    private final SubmissionRepository submissionRepository;
+    private final SubmissionGroupRepository submissionGroupRepository;
+    private final SubmissionInsightRepository submissionInsightRepository;
 
     @Autowired
-    public BreadcrumbServiceImpl(StudyService studyService,
-                                 BaseAnalysisService<Analysis> analysisService,
-                                 SubmissionService submissionService,
-                                 SubmissionInsightService submissionInsightService) {
+    public BreadcrumbServiceImpl(final StudyRepository studyService,
+                                 final AnalysisRepository analysisRepository,
+                                 final SubmissionRepository submissionService,
+                                 final SubmissionInsightRepository submissionInsightRepository,
+                                 final SubmissionGroupRepository submissionGroupRepository) {
 
-        this.studyService = studyService;
-        this.analysisService = analysisService;
-        this.submissionService = submissionService;
-        this.submissionInsightService = submissionInsightService;
+        this.studyRepository = studyService;
+        this.analysisRepository = analysisRepository;
+        this.submissionRepository = submissionService;
+        this.submissionInsightRepository = submissionInsightRepository;
+        this.submissionGroupRepository = submissionGroupRepository;
     }
 
     // Entry point which ensures that we verify permissions
@@ -61,15 +67,15 @@ public class BreadcrumbServiceImpl implements BreadcrumbService {
 
         switch (type) {
             case STUDY:
-                return studyService.getById(id);
+                return studyRepository.getOne(id);
             case ANALYSIS:
-                return analysisService.getById(id);
+                return analysisRepository.getOne(id);
             case SUBMISSION_GROUP:
-                return submissionService.getSubmissionGroupById(id);
+                return submissionGroupRepository.findOne(id);
             case SUBMISSION:
-                return submissionService.getSubmissionById(id);
+                return submissionRepository.getOne(id);
             case INSIGHT:
-                return submissionInsightService.getSubmissionInsight(id);
+                return submissionInsightRepository.getOne(id);
         }
         return null;
     }

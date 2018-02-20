@@ -15,12 +15,15 @@
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
  * Authors: Anton Gackovka
- * Created: February 15, 2018
+ * Created: February 20, 2018
  */
 
 package com.odysseusinc.arachne.portal.api.v1.dto;
 
-import com.odysseusinc.arachne.portal.service.BaseSolrService;
+import static com.odysseusinc.arachne.portal.service.BaseSolrService.ANALYSES_COLLECTION;
+import static com.odysseusinc.arachne.portal.service.BaseSolrService.DATA_SOURCE_COLLECTION;
+import static com.odysseusinc.arachne.portal.service.BaseSolrService.STUDIES_COLLECTION;
+import static com.odysseusinc.arachne.portal.service.BaseSolrService.USER_COLLECTION;
 
 public class GlobalSearchDomainDTO {
 
@@ -29,27 +32,26 @@ public class GlobalSearchDomainDTO {
         this.value = type;
 
         switch(type) {
-            case BaseSolrService.USER_COLLECTION:
-                this.module = ArachneConsts.Modules.EXPERT_FINDER;
+            case USER_COLLECTION:
                 this.label = "Users";
                 break;
-            case BaseSolrService.STUDIES_COLLECTION:
-                this.module = ArachneConsts.Modules.STUDY_NOTEBOOK;
+            case STUDIES_COLLECTION:
                 this.label = "Studies";
                 break;
-            case BaseSolrService.DATA_SOURCE_COLLECTION:
-                this.module = ArachneConsts.Modules.DATA_CATALOG;
+            case DATA_SOURCE_COLLECTION:
                 this.label = "Data Sources";
                 break;
+            case ANALYSES_COLLECTION:
+                this.label = "Analyses";
+                break;
             default:
-                throw new IllegalArgumentException("There is not Solr domain type for " + type);
+                throw new IllegalArgumentException("There is no Solr domain type for " + type);
 
         }
     }
 
     private String label;
     private String value;
-    private String module;
 
     public String getLabel() {
 
@@ -69,15 +71,5 @@ public class GlobalSearchDomainDTO {
     public void setValue(final String value) {
 
         this.value = value;
-    }
-
-    public String getModule() {
-
-        return module;
-    }
-
-    public void setModule(final String module) {
-
-        this.module = module;
     }
 }

@@ -15,24 +15,42 @@
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
  * Authors: Anton Gackovka
- * Created: February 15, 2018
+ * Created: February 20, 2018
  */
 
 package com.odysseusinc.arachne.portal.api.v1.dto;
 
-public class GlobalSearchDTO {
+import com.odysseusinc.arachne.portal.service.impl.breadcrumb.BreadcrumbType;
 
-    private String id;
+public class SolrBreadcrumbDTO {
+
+    private BreadcrumbType entityType;
+    private Long id;
     private String title;
-    private String label;
-    private String breadCrumbs;
 
-    public String getId() {
+    public SolrBreadcrumbDTO(BreadcrumbType entityType, Long id, String title) {
+
+        this.entityType = entityType;
+        this.id = id;
+        this.title = title;
+    }
+
+    public BreadcrumbType getEntityType() {
+
+        return entityType;
+    }
+
+    public void setEntityType(BreadcrumbType entityType) {
+
+        this.entityType = entityType;
+    }
+
+    public Long getId() {
 
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Long id) {
 
         this.id = id;
     }
@@ -45,25 +63,5 @@ public class GlobalSearchDTO {
     public void setTitle(String title) {
 
         this.title = title;
-    }
-
-    public String getBreadCrumbs() {
-
-        return breadCrumbs;
-    }
-
-    public void setBreadCrumbs(String breadCrumbs) {
-
-        this.breadCrumbs = breadCrumbs;
-    }
-
-    public String getLabel() {
-
-        return label;
-    }
-
-    public void setLabel(String label) {
-
-        this.label = label;
     }
 }

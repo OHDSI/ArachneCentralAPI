@@ -20,6 +20,11 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
+import static com.odysseusinc.arachne.portal.service.BaseSolrService.ANALYSES_COLLECTION;
+import static com.odysseusinc.arachne.portal.service.BaseSolrService.DATA_SOURCE_COLLECTION;
+import static com.odysseusinc.arachne.portal.service.BaseSolrService.STUDIES_COLLECTION;
+import static com.odysseusinc.arachne.portal.service.BaseSolrService.USER_COLLECTION;
+
 import com.odysseusinc.arachne.portal.api.v1.dto.GlobalSearchDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.GlobalSearchDomainDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.GlobalSearchResultDTO;
@@ -65,7 +70,8 @@ public class GlobalSearchResultToGlobalSearchResultDTOConverter
 
             dto.setId(getValue(v, BaseSolrService.ID));
             dto.setTitle(getValue(v, BaseSolrService.TITLE));
-            dto.setDomain(new GlobalSearchDomainDTO(getValue(v, BaseSolrService.TYPE)));
+            dto.setBreadCrumbs(getValue(v, BaseSolrService.BREADCRUMBS));
+            dto.setLabel(getLabel(getValue(v, BaseSolrService.TYPE)));
 
             return dto;
         }).collect(Collectors.toList());
@@ -74,5 +80,21 @@ public class GlobalSearchResultToGlobalSearchResultDTOConverter
     private String getValue(final SolrDocument document, final String field) {
 
         return String.valueOf(document.get(field));
+    }
+
+    private String getLabel(final String type) {
+
+        switch(type) {
+            case USER_COLLECTION:
+                return "Users";
+            case STUDIES_COLLECTION:
+                return "Studies";
+            case DATA_SOURCE_COLLECTION:
+                return "Data Sources";
+            case ANALYSES_COLLECTION:
+                return "Analyses";
+            default:
+                throw new IllegalArgumentException("There is no Solr domain type for " + type);
+        }
     }
 }

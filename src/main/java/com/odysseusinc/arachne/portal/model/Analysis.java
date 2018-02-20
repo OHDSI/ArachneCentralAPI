@@ -23,8 +23,12 @@
 package com.odysseusinc.arachne.portal.model;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
+import com.odysseusinc.arachne.portal.api.v1.dto.converters.AnalysisSolrExtractors;
+import com.odysseusinc.arachne.portal.api.v1.dto.converters.StudySolrExtractors;
+import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
+import com.odysseusinc.arachne.portal.service.BaseSolrService;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.BreadcrumbType;
 import java.util.ArrayList;
@@ -40,10 +44,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
-import javax.persistence.NamedAttributeNode;
-import javax.persistence.NamedEntityGraph;
-import javax.persistence.NamedEntityGraphs;
-import javax.persistence.NamedSubgraph;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.SequenceGenerator;
@@ -54,6 +54,7 @@ import org.hibernate.annotations.DiscriminatorFormula;
 @Entity
 @Table(name = "analyses")
 @DiscriminatorFormula("'ANALYSIS_ENTITY'")
+@SolrFieldAnno(name = "participants", isPostfixNeeded = false, extractors = AnalysisSolrExtractors.ParticipantsExtractor.class, filter = true)
 public class Analysis implements HasArachnePermissions, Breadcrumb {
 
     public Analysis() {
@@ -73,9 +74,11 @@ public class Analysis implements HasArachnePermissions, Breadcrumb {
     private Long id;
 
     @Column
+    @SolrFieldAnno(name = BaseSolrService.TITLE, isPostfixNeeded = false, query = true)
     private String title;
 
     @Column(length = 1000)
+    @SolrFieldAnno(query = true)
     private String description;
 
     @Column

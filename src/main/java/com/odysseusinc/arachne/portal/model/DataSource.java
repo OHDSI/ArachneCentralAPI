@@ -25,14 +25,15 @@ package com.odysseusinc.arachne.portal.model;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonCDMVersionDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonModelType;
+import com.odysseusinc.arachne.portal.api.v1.dto.converters.DataSourceSolrExtractors;
 import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
-import com.odysseusinc.arachne.portal.model.solr.SolrTitleAnno;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
-import com.odysseusinc.arachne.portal.service.impl.SolrDomainType;
+import com.odysseusinc.arachne.portal.service.BaseSolrService;
+import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
+import com.odysseusinc.arachne.portal.service.impl.breadcrumb.BreadcrumbType;
 import java.util.HashSet;
-import java.util.List;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
@@ -68,7 +69,8 @@ import java.util.Set;
 @SQLDelete(sql = "UPDATE data_sources "
         + "SET deleted = current_timestamp, health_status = 'NOT_CONNECTED', health_status_description = 'Deleted'"
         + " WHERE id = ?")
-public class DataSource implements Serializable, HasArachnePermissions {
+@SolrFieldAnno(name = BaseSolrService.TITLE, isPostfixNeeded = false, extractors = DataSourceSolrExtractors.DataSourceTitleExtractor.class)
+public class DataSource implements Serializable, HasArachnePermissions, Breadcrumb {
     @Id
     @SequenceGenerator(name = "data_sources_pk_sequence", sequenceName = "data_sources_id_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "data_sources_pk_sequence")
@@ -80,7 +82,6 @@ public class DataSource implements Serializable, HasArachnePermissions {
     @Column(name = "uuid", nullable = false, unique = true)
     protected String uuid;
     @SolrFieldAnno(query = true)
-    @SolrTitleAnno
     @NotBlank
     @Column(name = "name", nullable = false, unique = true)
     protected String name;
@@ -138,9 +139,33 @@ public class DataSource implements Serializable, HasArachnePermissions {
         return java.util.Objects.hashCode(this.id);
     }
 
+    @Override
+    public BreadcrumbType getCrumbType() {
+
+        return BreadcrumbType.DATA_SOURCE;
+    }
+
     public Long getId() {
 
         return id;
+    }
+
+    @Override
+    public Long getCrumbId() {
+
+        return getId();
+    }
+
+    @Override
+    public String getCrumbTitle() {
+
+        return getName();
+    }
+
+    @Override
+    public Breadcrumb getCrumbParent() {
+
+        return null;
     }
 
     public void setId(Long id) {

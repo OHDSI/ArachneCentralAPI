@@ -69,17 +69,20 @@ import com.odysseusinc.arachne.portal.repository.ResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionStatusHistoryRepository;
 import com.odysseusinc.arachne.portal.repository.submission.BaseSubmissionRepository;
+import com.odysseusinc.arachne.portal.service.BaseSolrService;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.StudyFileService;
 import com.odysseusinc.arachne.portal.service.ToPdfConverter;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.service.impl.AnalysisPreprocessorService;
 import com.odysseusinc.arachne.portal.service.impl.CRUDLServiceImpl;
+import com.odysseusinc.arachne.portal.service.impl.SolrServiceImpl;
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJob;
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobAnalysisFileResponseEvent;
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobEvent;
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobFileType;
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobResponse;
+import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import com.odysseusinc.arachne.portal.service.mail.UnlockAnalysisRequestMailMessage;
 import com.odysseusinc.arachne.portal.util.AnalysisHelper;
@@ -101,12 +104,14 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 import java.util.zip.ZipOutputStream;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -135,7 +140,8 @@ public abstract class BaseAnalysisServiceImpl<
         S extends Study,
         DS extends DataSource,
         SS extends StudySearch,
-        SU extends AbstractUserStudyListItem> extends CRUDLServiceImpl<A>
+        SU extends AbstractUserStudyListItem,
+        SF extends SolrField> extends CRUDLServiceImpl<A>
         implements BaseAnalysisService<A> {
 
     public static final String ILLEGAL_SUBMISSION_STATE_EXCEPTION = "Submission must be in EXECUTED or FAILED state before approve result";
@@ -170,27 +176,30 @@ public abstract class BaseAnalysisServiceImpl<
     protected final AnalysisHelper analysisHelper;
     protected final StudyFileService fileService;
     protected final ApplicationEventPublisher eventPublisher;
+    protected final BaseSolrService<SF> solrService;
 
-    public BaseAnalysisServiceImpl(GenericConversionService conversionService,
-                                   BaseAnalysisRepository<A> analysisRepository,
-                                   BaseSubmissionRepository submissionRepository,
-                                   AnalysisFileRepository analysisFileRepository,
-                                   SubmissionFileRepository submissionFileRepository,
-                                   ResultFileRepository resultFileRepository,
-                                   SubmissionStatusHistoryRepository submissionStatusHistoryRepository,
-                                   @SuppressWarnings("SpringJavaAutowiringInspection")
+    public BaseAnalysisServiceImpl(final GenericConversionService conversionService,
+                                   final BaseAnalysisRepository<A> analysisRepository,
+                                   final BaseSubmissionRepository submissionRepository,
+                                   final AnalysisFileRepository analysisFileRepository,
+                                   final SubmissionFileRepository submissionFileRepository,
+                                   final ResultFileRepository resultFileRepository,
+                                   final SubmissionStatusHistoryRepository submissionStatusHistoryRepository,
+                                   final @SuppressWarnings("SpringJavaAutowiringInspection")
                                    @Qualifier("restTemplate") RestTemplate restTemplate,
-                                   LegacyAnalysisHelper legacyAnalysisHelper,
-                                   AnalysisUnlockRequestRepository analysisUnlockRequestRepository,
-                                   ArachneMailSender mailSender,
-                                   SimpMessagingTemplate wsTemplate,
-                                   AnalysisPreprocessorService preprocessorService,
-                                   StudyStateMachine studyStateMachine,
-                                   BaseStudyService<S, DS, SS, SU> studyService,
-                                   AnalysisHelper analysisHelper,
-                                   StudyFileService fileService,
-                                   ToPdfConverter docToPdfConverter,
-                                   ApplicationEventPublisher eventPublisher) {
+                                   final LegacyAnalysisHelper legacyAnalysisHelper,
+                                   final AnalysisUnlockRequestRepository analysisUnlockRequestRepository,
+                                   final ArachneMailSender mailSender,
+                                   final SimpMessagingTemplate wsTemplate,
+                                   final AnalysisPreprocessorService preprocessorService,
+                                   final StudyStateMachine studyStateMachine,
+                                   final BaseStudyService<S, DS, SS, SU> studyService,
+                                   final AnalysisHelper analysisHelper,
+                                   final StudyFileService fileService,
+                                   final ToPdfConverter docToPdfConverter,
+                                   final ApplicationEventPublisher eventPublisher,
+                                   final BaseSolrService solrService
+                                   ) {
 
         this.docToPdfConverter = docToPdfConverter;
 
@@ -212,6 +221,7 @@ public abstract class BaseAnalysisServiceImpl<
         this.analysisHelper = analysisHelper;
         this.fileService = fileService;
         this.eventPublisher = eventPublisher;
+        this.solrService = solrService;
     }
 
     @Override
@@ -889,5 +899,27 @@ public abstract class BaseAnalysisServiceImpl<
             analysisFile.setAntivirusDescription(antivirusJobResponse.getDescription());
             analysisFileRepository.save(analysisFile);
         }
+    }
+
+    @Override
+    public void indexAllBySolr() throws IOException, NotExistException, SolrServerException, NoSuchFieldException, IllegalAccessException {
+        solrService.deleteByQuery(BaseSolrService.ANALYSES_COLLECTION, "*:*");
+        final List<A> analyses = analysisRepository.findAll();
+        for (final A user : analyses) {
+            indexBySolr(user);
+        }
+    }
+
+    @Override
+    public void indexBySolr(final A analysis)
+            throws IllegalAccessException, IOException, SolrServerException, NotExistException, NoSuchFieldException {
+
+        final Map<SF, Object> values = solrService.getValuesByEntity(analysis);
+
+        solrService.putDocument(
+                SolrServiceImpl.ANALYSES_COLLECTION,
+                analysis.getId(),
+                values
+        );
     }
 }

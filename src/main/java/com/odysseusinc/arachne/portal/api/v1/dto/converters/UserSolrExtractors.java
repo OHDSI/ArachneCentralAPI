@@ -15,18 +15,26 @@
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
  * Authors: Anton Gackovka
- * Created: February 15, 2018
+ * Created: February 19, 2018
  */
 
-package com.odysseusinc.arachne.portal.model.solr;
+package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import com.odysseusinc.arachne.portal.model.User;
+import java.util.function.Function;
 
-@Target(ElementType.FIELD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface SolrTitleAnno {
-    int order() default 0;
+public class UserSolrExtractors {
+
+    public static class TitleExtractor implements Function<Object, Object> {
+        @Override
+        public String apply(Object o) {
+
+            if (!(o instanceof User)) {
+                throw new IllegalArgumentException("User title can be extracted only from User");
+            }
+
+            final User user = (User)o;
+            return user.getFirstname() + " " + user.getMiddlename() + " " + user.getLastname();
+        }
+    }
 }

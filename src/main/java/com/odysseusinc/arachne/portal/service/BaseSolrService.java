@@ -38,15 +38,18 @@ public interface BaseSolrService<T extends SolrField> {
 
     String DATA_SOURCE_COLLECTION = "data-sources";
     String USER_COLLECTION = "users";
+    String ANALYSES_COLLECTION = "analyses";
     String STUDIES_COLLECTION = "studies";
     String MULTI_METADATA_PREFIX = "multi_" + META_PREFIX;
     String ID = "entity_id";
     String TYPE = "entity_type";
     String TITLE = "entity_title";
+    String BREADCRUMBS = "breadcrumbs";
+    String IS_PUBLIC = "is_public";
 
     T getSolrField(Field field);
 
-    FieldList<T> getFieldsOfClass(Class entity);
+    FieldList<T> getFieldsOfClass(Class<?> entity);
 
     Map<T, Object> getValuesByEntity(Object entity) throws IllegalAccessException, NoSuchFieldException;
 

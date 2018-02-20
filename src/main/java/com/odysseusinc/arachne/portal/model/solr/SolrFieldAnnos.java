@@ -15,23 +15,21 @@
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
  * Authors: Anton Gackovka
- * Created: February 15, 2018
+ * Created: February 19, 2018
  */
 
-package com.odysseusinc.arachne.portal.api.v1.dto;
+package com.odysseusinc.arachne.portal.model.solr;
 
-public interface ArachneConsts {
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Repeatable;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.util.function.Function;
+import org.apache.commons.lang3.StringUtils;
 
-    interface Modules {
-        String STUDY_NOTEBOOK = "Study Notebook";
-        String EXPERT_FINDER = "Expert Finder";
-        String DATA_CATALOG = "Data Catalog";
-    }
-
-    interface Domains {
-        String STUDIES = "studies";
-        String DATA_SOURCES = "data-sources";
-        String ANALYISES = "analyses";
-        String USERS = "users";
-    }
+@Target({ElementType.FIELD, ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface SolrFieldAnnos  {
+    SolrFieldAnno[] value();
 }

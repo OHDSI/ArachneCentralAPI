@@ -22,12 +22,13 @@
 
 package com.odysseusinc.arachne.portal.model;
 
+import com.odysseusinc.arachne.portal.api.v1.dto.converters.StudySolrExtractors;
 import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
-import com.odysseusinc.arachne.portal.model.solr.SolrTitleAnno;
 import com.odysseusinc.arachne.portal.model.statemachine.HasState;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
+import com.odysseusinc.arachne.portal.service.BaseSolrService;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.BreadcrumbType;
 import java.util.ArrayList;
@@ -52,6 +53,8 @@ import org.hibernate.annotations.DiscriminatorFormula;
 @Entity
 @Table(name = "studies")
 @DiscriminatorFormula("'STUDY_ENTITY'")
+@SolrFieldAnno(name = BaseSolrService.TITLE, isPostfixNeeded = false, extractors = StudySolrExtractors.TitleExtractor.class)
+@SolrFieldAnno(name = "participants", isPostfixNeeded = false, extractors = StudySolrExtractors.ParticipantsExtractor.class, filter = true)
 public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyStatus> {
     public Study() {
 
@@ -82,7 +85,6 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
 
     @Column(length = 1024)
     @SolrFieldAnno(query = true)
-    @SolrTitleAnno
     private String title;
 
     @Column(length = 10000)
@@ -90,7 +92,6 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
-//    @SolrFieldAnno(query = true)
     private StudyType type;
 
     @Column
@@ -100,7 +101,6 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
     private Date updated;
 
     @ManyToOne(fetch = FetchType.LAZY)
-//    @SolrFieldAnno(query = true)
     private StudyStatus status;
 
     @OneToMany(mappedBy = "study", fetch = FetchType.LAZY)
@@ -130,6 +130,10 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
     private Date endDate;
 
     @Column
+    @SolrFieldAnno(
+            name = BaseSolrService.IS_PUBLIC,
+            isPostfixNeeded = false,
+            extractors = StudySolrExtractors.PrivacyExtractor.class)
     protected Boolean privacy = Boolean.TRUE;
 
     @ManyToOne(fetch = FetchType.LAZY)

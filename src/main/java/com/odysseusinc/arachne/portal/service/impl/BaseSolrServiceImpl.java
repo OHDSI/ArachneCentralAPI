@@ -22,11 +22,15 @@
 
 package com.odysseusinc.arachne.portal.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.odysseusinc.arachne.portal.api.v1.dto.BreadcrumbDTO;
 import com.odysseusinc.arachne.portal.config.tenancy.TenantContext;
 import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
-import com.odysseusinc.arachne.portal.model.solr.SolrTitleAnno;
 import com.odysseusinc.arachne.portal.model.solr.SolrValue;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
+import com.odysseusinc.arachne.portal.service.BreadcrumbService;
+import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
 import java.io.IOException;
@@ -38,9 +42,9 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.StringJoiner;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -48,7 +52,10 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.convert.ConversionService;
 
 public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSolrService<T> {
 
@@ -57,35 +64,67 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
     @Autowired
     private SolrClient solrClient;
 
-    public T getSolrField(Field field) {
+    @Autowired
+    private BreadcrumbService breadcrumbService;
+
+    @Autowired
+    private ConversionService conversionService;
+
+    private ObjectMapper objectMapper = new ObjectMapper();
+
+    public T getSolrField(final Field field) {
 
         T solrField = null;
         if (field.isAnnotationPresent(SolrFieldAnno.class)) {
-            SolrFieldAnno solrFieldAnno = field.getAnnotation(SolrFieldAnno.class);
-            solrField = newSolrField(null);
-            solrField.setName(field.getName());
+            final SolrFieldAnno solrFieldAnno = field.getAnnotation(SolrFieldAnno.class);
+            solrField = extractSolrField(solrFieldAnno);
             solrField.setDataType(field.getType());
-            solrField.setSearchable(solrFieldAnno.query());
-            solrField.setFaceted(solrFieldAnno.filter());
+            solrField.setField(field);
+            if (StringUtils.isEmpty(solrField.getName())) {
+                solrField.setName(field.getName());
+            }
+        }
+        return solrField;
+    }
+
+    private T extractSolrField(final SolrFieldAnno solrFieldAnno) {
+
+        final T solrField = newSolrField(solrFieldAnno.name());
+        solrField.setSearchable(solrFieldAnno.query());
+        solrField.setFaceted(solrFieldAnno.filter());
+        solrField.setPostfixNeeded(solrFieldAnno.isPostfixNeeded());
+        final Class<? extends Function<Object, Object>>[] converters = solrFieldAnno.extractors();
+        if (converters.length > 0) {
+            solrField.setFieldConverter(BeanUtils.instantiate(converters[0]));
         }
         return solrField;
     }
 
     protected abstract T newSolrField(String name);
 
-    public FieldList<T> getFieldsOfClass(Class entity) {
+    public FieldList<T> getFieldsOfClass(final Class<?> entity) {
 
-        FieldList<T> result = new FieldList<>();
-        List<Field> fields = getDeclaredFields(entity);
+        final FieldList<T> result = new FieldList<>();
+        final List<Field> fields = getDeclaredFields(entity);
 
-        for (Field field : fields) {
-            T solrField = getSolrField(field);
+        for (final Field field : fields) {
+            final T solrField = getSolrField(field);
             if (solrField != null) {
                 result.add(solrField);
             }
         }
 
+        result.addAll(gatherClassSolrAnnotations(entity));
+
         return result;
+    }
+
+    private List<T> gatherClassSolrAnnotations(final Class<?> entity) {
+
+        return AnnotationUtils.getRepeatableAnnotations(entity, SolrFieldAnno.class)
+                .stream()
+                .map(this::extractSolrField)
+                .collect(Collectors.toList());
     }
 
     private List<Field> getDeclaredFields(Class<?> entity) {
@@ -115,31 +154,39 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
     public Map<T, Object> getValuesByEntity(final Object entity) throws IllegalAccessException, NoSuchFieldException {
 
         final Map<T, Object> values = new HashMap<>();
-        final StringJoiner title = new StringJoiner(" ");
         final FieldList<T> fieldList = getFieldsOfClass(entity.getClass());
         for (final T solrField : fieldList) {
-            final Optional<Field> fieldOptional = getDeclaredField(entity.getClass(), solrField.getName());
-            if (fieldOptional.isPresent()) {
-                final Field field = fieldOptional.get();
+            Object fieldValue = null;
+            final Field field = solrField.getField();
+            if (field != null) {
                 field.setAccessible(true);
-                final Object fieldValue = field.get(entity);
-                values.put(solrField, fieldValue);
-                if (field.isAnnotationPresent(SolrTitleAnno.class)) {
-                    title.add(Objects.toString(fieldValue));
-                }
+                fieldValue = field.get(entity);
             }
+            final Function<Object, Object> fieldConverter = solrField.getFieldConverter();
+            if (fieldConverter != null) {
+                fieldValue = fieldConverter.apply(entity);
+            }
+            values.put(solrField, fieldValue);
         }
 
-        putTitleSolrField(values, title);
+        addBreadcrumbsIfNeeded(entity, values);
 
         return values;
     }
 
-    private void putTitleSolrField(Map<T, Object> values, StringJoiner title) {
+    private void addBreadcrumbsIfNeeded(final Object entity, final Map<T, Object> values) {
 
-        final T titleSorField = newSolrField(TITLE);
-        titleSorField.setPostfixNeeded(Boolean.FALSE);
-        values.put(titleSorField, title.toString());
+        if (entity instanceof Breadcrumb) {
+            final Breadcrumb bc = (Breadcrumb)entity;
+            try {
+                final List<BreadcrumbDTO> breadcrumbs = breadcrumbService.getBreadcrumbs(bc.getCrumbType(), bc.getId()).stream().map(v -> conversionService.convert(v, BreadcrumbDTO.class)).collect(Collectors.toList());
+                final T field = newSolrField(BREADCRUMBS);
+                field.setPostfixNeeded(Boolean.FALSE);
+                values.put(field, objectMapper.writeValueAsString(breadcrumbs));
+            } catch (final JsonProcessingException e) {
+                throw new UnsupportedOperationException(e);
+            }
+        }
     }
 
     @Override

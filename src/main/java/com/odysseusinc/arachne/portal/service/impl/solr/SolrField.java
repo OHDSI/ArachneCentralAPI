@@ -24,9 +24,11 @@ package com.odysseusinc.arachne.portal.service.impl.solr;
 
 import static com.odysseusinc.arachne.portal.service.impl.BaseSolrServiceImpl.MULTI_METADATA_PREFIX;
 
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import org.apache.commons.lang3.StringUtils;
 
 public class SolrField {
@@ -35,6 +37,10 @@ public class SolrField {
     private static final String TXT_POSTFIX = "_txt";
     private String name;
     private Class dataType;
+
+    private Field field;
+    private Function<Object, Object> fieldConverter = null;
+
     private Boolean isSearchable = Boolean.TRUE;
     private Boolean isFaceted = Boolean.FALSE;
     private Boolean isPostfixNeeded = Boolean.TRUE;
@@ -135,6 +141,14 @@ public class SolrField {
         return Objects.hash(name);
     }
 
+    @Override
+    public String toString() {
+
+        return "SolrField{" +
+                "name='" + name + '\'' +
+                '}';
+    }
+
     public Boolean getPostfixNeeded() {
 
         return isPostfixNeeded;
@@ -143,5 +157,25 @@ public class SolrField {
     public void setPostfixNeeded(final Boolean postfixNeeded) {
 
         isPostfixNeeded = postfixNeeded;
+    }
+
+    public Field getField() {
+
+        return field;
+    }
+
+    public void setField(final Field field) {
+
+        this.field = field;
+    }
+
+    public Function<Object, Object> getFieldConverter() {
+
+        return fieldConverter;
+    }
+
+    public void setFieldConverter(final Function<Object, Object> fieldConverter) {
+
+        this.fieldConverter = fieldConverter;
     }
 }
