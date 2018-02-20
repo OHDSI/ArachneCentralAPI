@@ -20,12 +20,14 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto;
 
+import java.util.List;
+
 public class GlobalSearchDTO {
 
     private String id;
     private String title;
     private String label;
-    private String breadCrumbs;
+    private List<BreadcrumbDTO> breadCrumbs;
 
     public String getId() {
 
@@ -47,16 +49,6 @@ public class GlobalSearchDTO {
         this.title = title;
     }
 
-    public String getBreadCrumbs() {
-
-        return breadCrumbs;
-    }
-
-    public void setBreadCrumbs(String breadCrumbs) {
-
-        this.breadCrumbs = breadCrumbs;
-    }
-
     public String getLabel() {
 
         return label;
@@ -65,5 +57,15 @@ public class GlobalSearchDTO {
     public void setLabel(String label) {
 
         this.label = label;
+    }
+
+    public List<BreadcrumbDTO> getBreadCrumbs() {
+
+        return breadCrumbs;
+    }
+
+    public void setBreadCrumbs(List<BreadcrumbDTO> breadCrumbs) {
+
+        this.breadCrumbs = breadCrumbs;
     }
 }

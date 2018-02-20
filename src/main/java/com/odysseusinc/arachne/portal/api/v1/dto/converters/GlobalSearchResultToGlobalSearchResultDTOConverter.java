@@ -25,11 +25,14 @@ import static com.odysseusinc.arachne.portal.service.BaseSolrService.DATA_SOURCE
 import static com.odysseusinc.arachne.portal.service.BaseSolrService.STUDIES_COLLECTION;
 import static com.odysseusinc.arachne.portal.service.BaseSolrService.USER_COLLECTION;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.odysseusinc.arachne.portal.api.v1.dto.BreadcrumbDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.GlobalSearchDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.GlobalSearchDomainDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.GlobalSearchResultDTO;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.solr.common.SolrDocument;
@@ -46,6 +49,7 @@ public class GlobalSearchResultToGlobalSearchResultDTOConverter
 
     @Autowired
     private GenericConversionService conversionService;
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -70,11 +74,23 @@ public class GlobalSearchResultToGlobalSearchResultDTOConverter
 
             dto.setId(getValue(v, BaseSolrService.ID));
             dto.setTitle(getValue(v, BaseSolrService.TITLE));
-            dto.setBreadCrumbs(getValue(v, BaseSolrService.BREADCRUMBS));
             dto.setLabel(getLabel(getValue(v, BaseSolrService.TYPE)));
+
+            dto.setBreadCrumbs(getBreadCrumbs(v));
 
             return dto;
         }).collect(Collectors.toList());
+    }
+
+    private List<BreadcrumbDTO> getBreadCrumbs(final SolrDocument document)  {
+
+        final List<BreadcrumbDTO> result;
+        try {
+            result = objectMapper.readValue(getValue(document, BaseSolrService.BREADCRUMBS), new TypeReference<List<BreadcrumbDTO>>(){});
+        } catch (IOException e) {
+            throw new IllegalArgumentException(e);
+        }
+        return result;
     }
 
     private String getValue(final SolrDocument document, final String field) {
