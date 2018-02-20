@@ -33,7 +33,6 @@ import org.hibernate.annotations.SQLDelete;
 
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-//@DiscriminatorColumn(name = "data_source_type")
 @DiscriminatorFormula("'DATA_SOURCE_ENTITY'")
 @Table(name = "data_sources")
 @SQLDelete(sql = "UPDATE data_sources "
