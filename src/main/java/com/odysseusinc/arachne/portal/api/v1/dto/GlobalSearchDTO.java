@@ -27,7 +27,7 @@ public class GlobalSearchDTO {
     private String id;
     private String title;
     private String label;
-    private List<BreadcrumbDTO> breadCrumbs;
+    private List<BreadcrumbDTO> breadcrumbs;
 
     public String getId() {
 
@@ -59,13 +59,13 @@ public class GlobalSearchDTO {
         this.label = label;
     }
 
-    public List<BreadcrumbDTO> getBreadCrumbs() {
+    public List<BreadcrumbDTO> getBreadcrumbs() {
 
-        return breadCrumbs;
+        return breadcrumbs;
     }
 
-    public void setBreadCrumbs(List<BreadcrumbDTO> breadCrumbs) {
+    public void setBreadcrumbs(List<BreadcrumbDTO> breadcrumbs) {
 
-        this.breadCrumbs = breadCrumbs;
+        this.breadcrumbs = breadcrumbs;
     }
 }

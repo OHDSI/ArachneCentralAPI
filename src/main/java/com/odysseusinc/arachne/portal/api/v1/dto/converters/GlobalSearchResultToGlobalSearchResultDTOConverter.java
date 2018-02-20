@@ -77,9 +77,10 @@ public class GlobalSearchResultToGlobalSearchResultDTOConverter
             dto.setId(getValue(v, BaseSolrService.ID));
             dto.setLabel(getLabel(getValue(v, BaseSolrService.TYPE)));
 
-            List<BreadcrumbDTO> breadCrumbs = getBreadCrumbs(v);
-            breadCrumbs.get(breadCrumbs.size()-1).setTitle(title);
-            dto.setBreadCrumbs(breadCrumbs);
+            List<BreadcrumbDTO> breadcrumbs = getBreadCrumbs(v);
+            // last element of breadcrumbs should be with solr title
+            breadcrumbs.get(breadcrumbs.size()-1).setTitle(title);
+            dto.setBreadcrumbs(breadcrumbs);
 
             return dto;
         }).collect(Collectors.toList());
