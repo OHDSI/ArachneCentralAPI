@@ -7,7 +7,7 @@ import java.util.Set;
 
 public abstract class BaseTenantServiceImpl implements TenantService {
 
-    private TenantRepository<Tenant> tenantRepository;
+    protected TenantRepository<Tenant> tenantRepository;
 
     public BaseTenantServiceImpl(TenantRepository<Tenant> tenantRepository) {
 

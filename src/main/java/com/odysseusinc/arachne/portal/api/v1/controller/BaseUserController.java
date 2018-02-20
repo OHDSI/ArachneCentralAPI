@@ -69,7 +69,8 @@ import com.odysseusinc.arachne.portal.model.Country;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataNodeRole;
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
-import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Invitationable;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.Skill;
@@ -77,7 +78,6 @@ import com.odysseusinc.arachne.portal.model.StateProvince;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
 import com.odysseusinc.arachne.portal.model.Submission;
-import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserLink;
 import com.odysseusinc.arachne.portal.model.UserOrigin;
 import com.odysseusinc.arachne.portal.model.UserPublication;
@@ -130,9 +130,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 public abstract class BaseUserController<
-        U extends User,
+        U extends IUser,
         S extends Study,
-        DS extends DataSource,
+        DS extends IDataSource,
         SS extends StudySearch,
         SU extends AbstractUserStudyListItem,
         DN extends DataNode,
@@ -231,7 +231,7 @@ public abstract class BaseUserController<
             throws UserNotFoundException {
 
         JsonResult<CommonArachneUserStatusDTO> result;
-        User user = userService.getByUuid(uuid);
+        IUser user = userService.getByUuid(uuid);
         if (user == null) {
             throw new UserNotFoundException("userUuid", "user not found");
         } else {
@@ -330,7 +330,7 @@ public abstract class BaseUserController<
             NoSuchFieldException {
 
         JsonResult<UserProfileDTO> result;
-        User owner = userService.getByEmail(principal.getName());
+        IUser owner = userService.getByEmail(principal.getName());
         if (binding.hasErrors()) {
             result = new JsonResult<>(VALIDATION_ERROR);
             for (FieldError fieldError : binding.getFieldErrors()) {

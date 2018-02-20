@@ -62,6 +62,8 @@ import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
@@ -112,7 +114,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 public abstract class BaseStudyController<
         T extends Study,
-        DS extends DataSource,
+        DS extends IDataSource,
         A extends Analysis,
         SD extends StudyDTO,
         SS extends StudySearch,
@@ -163,7 +165,7 @@ public abstract class BaseStudyController<
             throws NotExistException, NotUniqueException {
 
         JsonResult<SD> result;
-        User user = userService.getByEmail(principal.getName());
+        IUser user = userService.getByEmail(principal.getName());
         if (user != null) {
             if (binding.hasErrors()) {
                 result = setValidationErrors(binding);
@@ -193,7 +195,7 @@ public abstract class BaseStudyController<
             throws PermissionDeniedException, NotExistException {
 
         JsonResult<SD> result;
-        User user = getUser(principal);
+        IUser user = getUser(principal);
         SU myStudy = studyService.getStudy(user, id);
         result = new JsonResult<>(NO_ERROR);
         SD studyDTO = convert(myStudy);
@@ -233,7 +235,7 @@ public abstract class BaseStudyController<
             Principal principal)
             throws PermissionDeniedException, NotExistException, NotUniqueException, ValidationException {
 
-        final User user = getUser(principal);
+        final IUser user = getUser(principal);
         studyService.setFavourite(user.getId(), studyId, isFavourite.isValue());
         return new JsonResult<>(NO_ERROR);
     }
@@ -277,7 +279,7 @@ public abstract class BaseStudyController<
 
         handleInputSearchParams(studySearch);
 
-        final User user = getUser(principal);
+        final IUser user = getUser(principal);
 
         studySearch.setUserId(user.getId());
 
@@ -315,8 +317,8 @@ public abstract class BaseStudyController<
         if (binding.hasErrors()) {
             return setValidationErrors(binding);
         }
-        final User createdBy = getUser(principal);
-        User participant = Optional.ofNullable(userService.getByUuid(addParticipantDTO.getUserId()))
+        final IUser createdBy = getUser(principal);
+        IUser participant = Optional.ofNullable(userService.getByUuid(addParticipantDTO.getUserId()))
                 .orElseThrow(() -> new NotExistException(EX_USER_NOT_EXISTS, User.class));
         UserStudy userStudy = studyService.addParticipant(
                 createdBy,
@@ -388,7 +390,7 @@ public abstract class BaseStudyController<
     ) throws PermissionDeniedException, NotExistException, IOException {
 
         JsonResult<Boolean> result = null;
-        final User user = getUser(principal);
+        final IUser user = getUser(principal);
         if (uploadFileDTO.getFile() != null) {
             studyService.saveFile(uploadFileDTO.getFile(), id, uploadFileDTO.getLabel(), user);
             result = new JsonResult<>(NO_ERROR);
@@ -503,8 +505,8 @@ public abstract class BaseStudyController<
             @RequestBody @Valid CreateVirtualDataSourceDTO dataSourceDTO
     ) throws PermissionDeniedException, NotExistException, IllegalAccessException, SolrServerException, IOException, ValidationException, FieldException, AlreadyExistException, NoSuchFieldException {
 
-        final User createdBy = getUser(principal);
-        final DataSource dataSource = studyService.addVirtualDataSource(
+        final IUser createdBy = getUser(principal);
+        final IDataSource dataSource = studyService.addVirtualDataSource(
                 createdBy,
                 studyId,
                 dataSourceDTO.getName(),
@@ -521,12 +523,12 @@ public abstract class BaseStudyController<
             @PathVariable("studyId") Long studyId,
             @PathVariable("dataSourceId") Long dataSourceId) throws PermissionDeniedException {
 
-        final User createdBy = getUser(principal);
+        final IUser createdBy = getUser(principal);
         final DS dataSource = studyService.getStudyDataSource(createdBy, studyId, dataSourceId);
         final DataSourceDTO dataSourceDTO = conversionService.convert(dataSource, DataSourceDTO.class);
         final List<ShortUserDTO> userDTOs = dataSource.getDataNode().getDataNodeUsers().stream()
                 .map(dnu -> {
-                    final User user = dnu.getUser();
+                    final IUser user = dnu.getUser();
                     final ShortUserDTO userDTO = new ShortUserDTO();
                     userDTO.setId(user.getUuid());
                     userDTO.setFirstname(user.getFirstname());
@@ -548,8 +550,8 @@ public abstract class BaseStudyController<
             @RequestBody @Valid CreateVirtualDataSourceDTO dataSourceDTO
     ) throws PermissionDeniedException, ValidationException, IOException, NoSuchFieldException, SolrServerException, IllegalAccessException {
 
-        final User user = getUser(principal);
-        DataSource dataSource = studyService.updateVirtualDataSource(
+        final IUser user = getUser(principal);
+        IDataSource dataSource = studyService.updateVirtualDataSource(
                 user, studyId, dataSourceId, dataSourceDTO.getName(), dataSourceDTO.getDataOwnersIds()
         );
         return new JsonResult<>(NO_ERROR, conversionService.convert(dataSource, DataSourceDTO.class));
@@ -563,7 +565,7 @@ public abstract class BaseStudyController<
             @PathVariable("dataSourceId") Long dataSourceId)
             throws PermissionDeniedException, NotExistException, AlreadyExistException {
 
-        final User createdBy = getUser(principal);
+        final IUser createdBy = getUser(principal);
         StudyDataSourceLink link = studyService.addDataSource(createdBy, studyId, dataSourceId);
         return conversionService.convert(link, EntityLinkDTO.class);
     }
@@ -589,14 +591,14 @@ public abstract class BaseStudyController<
             @RequestParam("region") SuggestSearchRegion region) throws PermissionDeniedException {
 
         JsonResult<List<StudyDTO>> result;
-        User owner = getUser(principal);
+        IUser owner = getUser(principal);
         Long id;
         switch (region) {
             case DATASOURCE:
                 id = Long.valueOf(requestId);
                 break;
             case PARTICIPANT:
-                User participant = Optional.ofNullable(userService.getByUuid(requestId))
+                IUser participant = Optional.ofNullable(userService.getByUuid(requestId))
                         .orElseThrow(() -> new NotExistException(EX_USER_NOT_EXISTS, User.class));
                 id = participant.getId();
                 break;

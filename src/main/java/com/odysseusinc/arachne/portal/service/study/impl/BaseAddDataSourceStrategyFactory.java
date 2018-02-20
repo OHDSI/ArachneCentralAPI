@@ -22,8 +22,10 @@
 
 package com.odysseusinc.arachne.portal.service.study.impl;
 
+import com.odysseusinc.arachne.portal.model.BaseDataSource;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.service.study.AddDataSourceStrategyFactory;
 
-public abstract class BaseAddDataSourceStrategyFactory<T extends DataSource> implements AddDataSourceStrategyFactory<T> {
+public abstract class BaseAddDataSourceStrategyFactory<T extends IDataSource> implements AddDataSourceStrategyFactory<T> {
 }

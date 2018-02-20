@@ -48,8 +48,8 @@ public class AnalysisUnlockRequest implements Invitationable, Serializable {
     )
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "analysis_unlock_requests_pk_sequence")
     private Long id;
-    @ManyToOne(fetch = FetchType.LAZY)
-    private User user;
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = User.class)
+    private IUser user;
     @ManyToOne(fetch = FetchType.LAZY)
     private Analysis analysis;
     @Column
@@ -73,12 +73,12 @@ public class AnalysisUnlockRequest implements Invitationable, Serializable {
         this.id = id;
     }
 
-    public User getUser() {
+    public IUser getUser() {
 
         return user;
     }
 
-    public void setUser(User user) {
+    public void setUser(IUser user) {
 
         this.user = user;
     }
@@ -140,7 +140,7 @@ public class AnalysisUnlockRequest implements Invitationable, Serializable {
     }
 
     @Override
-    public User getAuthor() {
+    public IUser getAuthor() {
 
         return getUser();
     }

@@ -31,8 +31,8 @@ import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.DataNode;
-import com.odysseusinc.arachne.portal.model.DataSource;
-import com.odysseusinc.arachne.portal.model.User;
+import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
@@ -54,10 +54,10 @@ import java.io.IOException;
 import java.security.Principal;
 
 @SuppressWarnings("unused")
-public abstract class BaseDataNodeController
-        <DS extends DataSource,
-                C_DS_DTO extends CommonDataSourceDTO,
-                DN extends DataNode> extends BaseController {
+public abstract class BaseDataNodeController<
+        DS extends IDataSource,
+        C_DS_DTO extends CommonDataSourceDTO,
+        DN extends DataNode> extends BaseController {
 
     private static final Logger log = LoggerFactory.getLogger(BaseDataNodeController.class);
     protected final BaseAnalysisService analysisService;
@@ -90,7 +90,7 @@ public abstract class BaseDataNodeController
             Principal principal
     ) throws PermissionDeniedException {
 
-        final User user = getUser(principal);
+        final IUser user = getUser(principal);
         final DN dataNode = convertRegisterDtoToDataNode(commonDataNodeRegisterDTO);
         final DN registeredDataNode = baseDataNodeService.register(dataNode);
         final CommonDataNodeRegisterResponseDTO dataNodeRegisterResponseDTO
@@ -110,7 +110,7 @@ public abstract class BaseDataNodeController
             Principal principal
     ) throws PermissionDeniedException, NotExistException {
 
-        final User user = getUser(principal);
+        final IUser user = getUser(principal);
         final DN dataNode = convertRegisterDtoToDataNode(commonDataNodeRegisterDTO);
         dataNode.setId(dataNodeId);
         final DN updatedDataNode = baseDataNodeService.update(dataNode);
@@ -176,7 +176,7 @@ public abstract class BaseDataNodeController
             throws PermissionDeniedException, IOException, SolrServerException {
 
         final DS dataSource = dataSourceService.findById(dataSourceId);
-        studyDataSourceService.softDeletingDataSource(dataSource);
+        studyDataSourceService.softDeletingDataSource(dataSource.getId());
         return new JsonResult(JsonResult.ErrorCode.NO_ERROR);
     }
 

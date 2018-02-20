@@ -69,6 +69,7 @@ import com.odysseusinc.arachne.portal.model.AnalysisUnlockRequestStatus;
 import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataReference;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionGroup;
 import com.odysseusinc.arachne.portal.model.SubmissionInsight;
@@ -141,7 +142,7 @@ import org.springframework.web.multipart.MultipartFile;
 public abstract class BaseAnalysisController<T extends Analysis,
         D extends AnalysisDTO,
         DN extends DataNode,
-        A_C_DTO extends AnalysisCreateDTO> extends BaseController<DN, User> {
+        A_C_DTO extends AnalysisCreateDTO> extends BaseController<DN, IUser> {
     protected static final Map<CommonAnalysisType, String> ANALISYS_MIMETYPE_MAP = new HashMap<>();
     private static final Logger LOGGER = LoggerFactory.getLogger(AnalysisController.class);
     private static final String ENTITY_IS_NOT_AVAILABLE
@@ -199,7 +200,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
             throws PermissionDeniedException, NotExistException, NotUniqueException {
 
         JsonResult<D> result;
-        User user = getUser(principal);
+        IUser user = getUser(principal);
 
         if (bindingResult.hasErrors()) {
             return setValidationErrors(bindingResult);
@@ -312,7 +313,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
             throws PermissionDeniedException, NotExistException {
 
         JsonResult<List<D>> result;
-        User user = userService.getByEmail(principal.getName());
+        IUser user = userService.getByEmail(principal.getName());
         if (user == null) {
             result = new JsonResult<>(PERMISSION_DENIED);
             return result;
@@ -347,7 +348,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
                                                 Principal principal)
             throws NotExistException, JMSException, IOException, PermissionDeniedException, URISyntaxException {
 
-        final User user = getUser(principal);
+        final IUser user = getUser(principal);
         final DataNode dataNode = dataNodeService.getById(entityReference.getDataNodeId());
         final T analysis = analysisService.getById(analysisId);
         final DataReference dataReference = dataReferenceService.addOrUpdate(entityReference.getEntityGuid(), dataNode);
@@ -356,7 +357,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
         return new JsonResult(NO_ERROR);
     }
 
-    protected void doAddCommonEntityToAnalysis(T analysis, DataReference dataReference, User user,
+    protected void doAddCommonEntityToAnalysis(T analysis, DataReference dataReference, IUser user,
                                                CommonAnalysisType analysisType,
                                                List<MultipartFile> files) throws IOException {
 
@@ -429,7 +430,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
                                                    Principal principal) throws IOException, JMSException,
             PermissionDeniedException, URISyntaxException {
 
-        final User user = getUser(principal);
+        final IUser user = getUser(principal);
         final AnalysisFile analysisFile = analysisService.getAnalysisFile(analysisId, fileUuid);
         T analysis = (T) analysisFile.getAnalysis();
         final DataReference dataReference = analysisFile.getDataReference();
@@ -455,7 +456,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
                                                         @PathVariable("analysisId") Long id)
             throws PermissionDeniedException, NotExistException, IOException {
 
-        User user = getUser(principal);
+        IUser user = getUser(principal);
         T analysis = analysisService.getById(id);
 
         JsonResult<List<AnalysisFileDTO>> result = new JsonResult<>(NO_ERROR);
@@ -631,7 +632,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
             throws NotExistException, PermissionDeniedException, AlreadyExistException {
 
         JsonResult result;
-        final User user = getUser(principal);
+        final IUser user = getUser(principal);
 
         final AnalysisUnlockRequest unlockRequest = new AnalysisUnlockRequest();
         unlockRequest.setUser(user);
@@ -686,7 +687,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
             @PathVariable("fileUuid") String uuid)
             throws PermissionDeniedException, NotExistException, IOException, URISyntaxException {
 
-        final User user = getUser(principal);
+        final IUser user = getUser(principal);
         AnalysisFile analysisFile = analysisService.getAnalysisFile(analysisId, uuid);
         analysisService.writeToFile(analysisFile, fileContentDTO, user);
         JsonResult<Boolean> result = new JsonResult<>(NO_ERROR);

@@ -31,8 +31,8 @@ import com.odysseusinc.arachne.portal.api.v1.dto.ExpertListSearchResultDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchExpertListDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SuggestionTarget;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserProfileDTO;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Skill;
-import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
 import io.swagger.annotations.ApiOperation;
@@ -50,7 +50,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-public abstract class BaseExpertFinderController<U extends User, SK extends Skill> extends BaseController {
+public abstract class BaseExpertFinderController<U extends IUser, SK extends Skill> extends BaseController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseExpertFinderController.class);
 
@@ -87,9 +87,9 @@ public abstract class BaseExpertFinderController<U extends User, SK extends Skil
             Principal principal,
             @PathVariable("userId") String userId) {
 
-        User logginedUser = userService.getByEmail(principal.getName());
+        IUser logginedUser = userService.getByEmail(principal.getName());
         JsonResult<UserProfileDTO> result;
-        User user = userService.getByUuidAndInitializeCollections(userId);
+        IUser user = userService.getByUuidAndInitializeCollections(userId);
         UserProfileDTO userProfileDTO = conversionService.convert(user, UserProfileDTO.class);
         userProfileDTO.setIsEditable(logginedUser.getUuid().equals(userId));
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);

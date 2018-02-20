@@ -30,6 +30,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.achilles.AchillesFile;
 import com.odysseusinc.arachne.portal.model.achilles.Characterization;
 import com.odysseusinc.arachne.portal.repository.AchillesFileRepository;
@@ -93,7 +94,7 @@ public class AchillesImportServiceImpl implements AchillesImportService {
     @Override
     @Async(value = "importAchillesReportsExecutor")
     @Transactional
-    public void importData(DataSource dataSource, File archivedData) throws IOException {
+    public void importData(IDataSource dataSource, File archivedData) throws IOException {
 
         Characterization characterization = new Characterization();
         characterization.setDataSource(dataSource);

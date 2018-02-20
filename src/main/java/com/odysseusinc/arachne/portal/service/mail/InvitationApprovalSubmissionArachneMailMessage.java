@@ -22,9 +22,8 @@
 
 package com.odysseusinc.arachne.portal.service.mail;
 
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Submission;
-import com.odysseusinc.arachne.portal.model.SubmissionStatus;
-import com.odysseusinc.arachne.portal.model.User;
 
 public class InvitationApprovalSubmissionArachneMailMessage extends InvitationArachneMailMessage {
 
@@ -32,7 +31,7 @@ public class InvitationApprovalSubmissionArachneMailMessage extends InvitationAr
 
     private final Submission submission;
 
-    public InvitationApprovalSubmissionArachneMailMessage(String portalUrl, User user, Submission submission) {
+    public InvitationApprovalSubmissionArachneMailMessage(String portalUrl, IUser user, Submission submission) {
         super(portalUrl, user, submission.getToken(), null);
 
         this.submission = submission;
