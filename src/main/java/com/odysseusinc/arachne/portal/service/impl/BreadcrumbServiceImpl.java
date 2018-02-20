@@ -24,15 +24,16 @@ package com.odysseusinc.arachne.portal.service.impl;
 
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.repository.AnalysisRepository;
+import com.odysseusinc.arachne.portal.repository.BaseDataSourceRepository;
+import com.odysseusinc.arachne.portal.repository.DataSourceRepository;
 import com.odysseusinc.arachne.portal.repository.StudyRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionGroupRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionInsightRepository;
+import com.odysseusinc.arachne.portal.repository.UserRepository;
 import com.odysseusinc.arachne.portal.repository.submission.SubmissionRepository;
 import com.odysseusinc.arachne.portal.service.BreadcrumbService;
-import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightService;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.BreadcrumbType;
-import com.odysseusinc.arachne.portal.service.submission.SubmissionService;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,19 +48,25 @@ public class BreadcrumbServiceImpl implements BreadcrumbService {
     private final SubmissionRepository submissionRepository;
     private final SubmissionGroupRepository submissionGroupRepository;
     private final SubmissionInsightRepository submissionInsightRepository;
+    private final UserRepository userRepository;
+    private final BaseDataSourceRepository dataSourceRepository;
 
     @Autowired
     public BreadcrumbServiceImpl(final StudyRepository studyService,
                                  final AnalysisRepository analysisRepository,
                                  final SubmissionRepository submissionService,
                                  final SubmissionInsightRepository submissionInsightRepository,
-                                 final SubmissionGroupRepository submissionGroupRepository) {
+                                 final SubmissionGroupRepository submissionGroupRepository,
+                                 final UserRepository userRepository,
+                                 final BaseDataSourceRepository dataSourceRepository) {
 
         this.studyRepository = studyService;
         this.analysisRepository = analysisRepository;
         this.submissionRepository = submissionService;
         this.submissionInsightRepository = submissionInsightRepository;
         this.submissionGroupRepository = submissionGroupRepository;
+        this.userRepository = userRepository;
+        this.dataSourceRepository = dataSourceRepository;
     }
 
     // Entry point which ensures that we verify permissions
@@ -76,13 +83,17 @@ public class BreadcrumbServiceImpl implements BreadcrumbService {
                 return submissionRepository.getOne(id);
             case INSIGHT:
                 return submissionInsightRepository.getOne(id);
+            case USER:
+                return userRepository.getOne(id);
+            case DATA_SOURCE:
+                return dataSourceRepository.findOne(id);
         }
         return null;
     }
 
     public List<Breadcrumb> getBreadcrumbs(BreadcrumbType type, Long id) throws NotExistException {
 
-        List<Breadcrumb> breadcrumbList = new ArrayList<>();
+        final List<Breadcrumb> breadcrumbList = new ArrayList<>();
         Breadcrumb breadcrumb = getBreadcrumbByTypeAndId(type, id);
         breadcrumbList.add(breadcrumb);
 
