@@ -23,11 +23,8 @@
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.dictionary.SkillDTO;
-import com.odysseusinc.arachne.portal.model.BaseUser;
 import com.odysseusinc.arachne.portal.model.IUser;
-import com.odysseusinc.arachne.portal.model.RawUser;
 import com.odysseusinc.arachne.portal.model.Skill;
-import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.service.SkillService;
 import com.odysseusinc.arachne.portal.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;

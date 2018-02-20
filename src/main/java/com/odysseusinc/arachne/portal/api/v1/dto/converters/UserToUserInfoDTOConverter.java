@@ -24,17 +24,17 @@ package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.TenantPersonalDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserInfoDTO;
-import com.odysseusinc.arachne.portal.model.BaseUser;
+import com.odysseusinc.arachne.portal.model.IUser;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UserToUserInfoDTOConverter extends BaseConversionServiceAwareConverter<BaseUser, UserInfoDTO> {
+public class UserToUserInfoDTOConverter extends BaseConversionServiceAwareConverter<IUser, UserInfoDTO> {
 
     @Override
-    public UserInfoDTO convert(BaseUser source) {
+    public UserInfoDTO convert(IUser source) {
 
         if (source == null) {
             return null;

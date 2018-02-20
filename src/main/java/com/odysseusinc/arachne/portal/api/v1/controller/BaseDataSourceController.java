@@ -35,11 +35,8 @@ import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
-import com.odysseusinc.arachne.portal.model.BaseDataSource;
-import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
-import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.StudyDataSourceService;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
@@ -65,7 +62,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public abstract class BaseDataSourceController<
-                DS extends IDataSource,
+        DS extends IDataSource,
         DTO extends CommonBaseDataSourceDTO,
         DS_DTO extends IDataSourceDTO,
         R extends FacetedSearchResultDTO<?>> extends BaseController {

@@ -23,8 +23,6 @@
 package com.odysseusinc.arachne.portal.api.v1.dto.converters.datasource;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataSourceDTO;
-import com.odysseusinc.arachne.portal.model.BaseDataSource;
-import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import org.springframework.stereotype.Component;
 

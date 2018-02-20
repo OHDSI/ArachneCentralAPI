@@ -27,12 +27,9 @@ import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCo
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
-import com.odysseusinc.arachne.portal.model.BaseUser;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.IUser;
-import com.odysseusinc.arachne.portal.model.RawUser;
 import com.odysseusinc.arachne.portal.model.Skill;
-import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.security.DataNodeAuthenticationToken;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
 import java.security.Principal;
