@@ -55,7 +55,7 @@ public interface BaseDataSourceService<T extends DataSource> {
     SearchResult<T> search(SolrQuery solrQuery, User user) throws NoSuchFieldException, IOException, SolrServerException;
 
     T update(
-            T dataSource
+            T dataSource, boolean onlyBaseFields
     ) throws
                     NotExistException,
                     ValidationException,

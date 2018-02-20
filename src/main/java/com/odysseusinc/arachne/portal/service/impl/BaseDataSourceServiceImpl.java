@@ -142,7 +142,7 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_DATASOURCE)")
     @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
     @Override
-    public DS update(DS dataSource)
+    public DS update(DS dataSource, boolean onlyBaseFields)
             throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
         DS exist = dataSourceRepository.findByIdAndDeletedIsNull(dataSource.getId())
@@ -166,8 +166,9 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
         if (dataSource.getPublished() != null) {
             exist.setPublished(dataSource.getPublished());
         }
-        beforeUpdate(exist, dataSource);
-
+        if (!onlyBaseFields) {
+            beforeUpdate(exist, dataSource);
+        }
         DS savedDataSource = dataSourceRepository.save(exist);
         afterUpdate(savedDataSource);
 
@@ -181,7 +182,7 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
     protected void afterUpdate(DS dataSource)
             throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
-        if (!dataSource.getDataNode().getVirtual() && dataSource.getPublished()!= null
+        if (!dataSource.getDataNode().getVirtual() && dataSource.getPublished() != null
                 && dataSource.getPublished()) {
             indexBySolr(dataSource);
         }
@@ -268,7 +269,7 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
         log.info("Unpublishing datasource with id={}", id);
         DS dataSource = getByIdUnsecured(id);
 
-        if (dataSource.getPublished()!= null && dataSource.getPublished()){
+        if (dataSource.getPublished() != null && dataSource.getPublished()) {
             dataSource.setPublished(false);
             dataSourceRepository.save(dataSource);
 
