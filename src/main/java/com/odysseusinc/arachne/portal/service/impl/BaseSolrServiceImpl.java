@@ -93,9 +93,9 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
         solrField.setSearchable(solrFieldAnno.query());
         solrField.setFaceted(solrFieldAnno.filter());
         solrField.setPostfixNeeded(solrFieldAnno.isPostfixNeeded());
-        final Class<? extends Function<Object, Object>>[] converters = solrFieldAnno.extractors();
-        if (converters.length > 0) {
-            solrField.setFieldConverter(BeanUtils.instantiate(converters[0]));
+        final Class<? extends Function<Object, Object>>[] extractors = solrFieldAnno.extractors();
+        if (extractors.length > 0) {
+            solrField.setExtractor(BeanUtils.instantiate(extractors[0]));
         }
         return solrField;
     }
@@ -162,7 +162,7 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
                 field.setAccessible(true);
                 fieldValue = field.get(entity);
             }
-            final Function<Object, Object> fieldConverter = solrField.getFieldConverter();
+            final Function<Object, Object> fieldConverter = solrField.getExtractor();
             if (fieldConverter != null) {
                 fieldValue = fieldConverter.apply(entity);
             }
@@ -182,6 +182,7 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
                 final List<BreadcrumbDTO> breadcrumbs = breadcrumbService.getBreadcrumbs(bc.getCrumbType(), bc.getId()).stream().map(v -> conversionService.convert(v, BreadcrumbDTO.class)).collect(Collectors.toList());
                 final T field = newSolrField(BREADCRUMBS);
                 field.setPostfixNeeded(Boolean.FALSE);
+                field.setSearchable(Boolean.FALSE);
                 values.put(field, objectMapper.writeValueAsString(breadcrumbs));
             } catch (final JsonProcessingException e) {
                 throw new UnsupportedOperationException(e);

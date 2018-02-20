@@ -39,7 +39,7 @@ public class SolrField {
     private Class dataType;
 
     private Field field;
-    private Function<Object, Object> fieldConverter = null;
+    private Function<Object, Object> extractor = null;
 
     private Boolean isSearchable = Boolean.TRUE;
     private Boolean isFaceted = Boolean.FALSE;
@@ -169,13 +169,13 @@ public class SolrField {
         this.field = field;
     }
 
-    public Function<Object, Object> getFieldConverter() {
+    public Function<Object, Object> getExtractor() {
 
-        return fieldConverter;
+        return extractor;
     }
 
-    public void setFieldConverter(final Function<Object, Object> fieldConverter) {
+    public void setExtractor(final Function<Object, Object> extractor) {
 
-        this.fieldConverter = fieldConverter;
+        this.extractor = extractor;
     }
 }
