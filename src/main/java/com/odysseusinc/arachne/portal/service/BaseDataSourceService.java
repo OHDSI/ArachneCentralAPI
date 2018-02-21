@@ -99,6 +99,6 @@ public interface BaseDataSourceService<DS extends IDataSource> {
 
     void unpublish(Long id) throws IOException, SolrServerException;
 
-    Page<T> getUserDataSources(final String query, final Long userId, PageRequest pageRequest);
+    Page<DS> getUserDataSources(final String query, final Long userId, PageRequest pageRequest);
 
 }

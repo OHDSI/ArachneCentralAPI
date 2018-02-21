@@ -108,4 +108,8 @@ public interface IDataSource {
     Set<Tenant> getTenants();
 
     void setTenants(Set<Tenant> tenants);
+
+    Boolean getPublished();
+
+    void setPublished(Boolean published);
 }

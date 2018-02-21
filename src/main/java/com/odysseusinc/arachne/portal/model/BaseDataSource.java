@@ -94,7 +94,8 @@ public abstract class BaseDataSource implements IDataSource, Serializable, HasAr
     @NotBlank
     @Column
     protected String organization;
-
+    @Column
+    private Boolean published;
     @ManyToMany(targetEntity = Tenant.class, fetch = FetchType.LAZY)
     @JoinTable(name = "tenants_data_sources",
             joinColumns = @JoinColumn(name = "data_source_id", referencedColumnName = "id"),
@@ -249,5 +250,13 @@ public abstract class BaseDataSource implements IDataSource, Serializable, HasAr
     public void setTenants(Set<Tenant> tenants) {
 
         this.tenants = tenants;
+    }
+
+    public Boolean getPublished() {
+        return published;
+    }
+
+    public void setPublished(Boolean published) {
+        this.published = published;
     }
 }

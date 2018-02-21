@@ -177,7 +177,7 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
 
     @Transactional
     @Override
-    public void linkUserToDataNodeUnsafe(DN dataNode, User user, Set<DataNodeRole> roles)
+    public void linkUserToDataNodeUnsafe(DN dataNode, IUser user, Set<DataNodeRole> roles)
             throws NotExistException {
 
         LOGGER.info(LINKING_USER_LOG, user.getId(), dataNode.getId());

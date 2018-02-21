@@ -179,7 +179,7 @@ public abstract class BaseDataSourceController<
                                                        @ModelAttribute PageDTO pageDTO
     ) throws PermissionDeniedException {
 
-        final User user = getUser(principal);
+        final IUser user = getUser(principal);
         PageRequest pageRequest = getPageRequest(pageDTO);
 
         Page<DS> dataSources = dataSourceService.getUserDataSources(query, user.getId(), pageRequest);

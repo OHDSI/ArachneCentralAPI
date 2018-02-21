@@ -34,14 +34,11 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.*;
-import java.io.Serializable;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import org.hibernate.annotations.DiscriminatorFormula;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.validator.constraints.NotBlank;
-import org.hibernate.annotations.DiscriminatorFormula;
-import org.hibernate.annotations.SQLDelete;
 
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
@@ -50,7 +47,7 @@ import org.hibernate.annotations.SQLDelete;
 @SQLDelete(sql = "UPDATE data_sources "
         + "SET deleted = current_timestamp, health_status = 'NOT_CONNECTED', health_status_description = 'Deleted'"
         + " WHERE id = ?")
-public class DataSource implements Serializable, HasArachnePermissions {
+public class DataSource extends BaseDataSource implements IDataSource, Serializable, HasArachnePermissions {
     @Id
     @SequenceGenerator(name = "data_sources_pk_sequence", sequenceName = "data_sources_id_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "data_sources_pk_sequence")
@@ -97,9 +94,6 @@ public class DataSource implements Serializable, HasArachnePermissions {
             inverseJoinColumns = @JoinColumn(name = "tenant_id", referencedColumnName = "id"))
     @SolrFieldAnno(filter = true)
     private Set<Tenant> tenants = new HashSet<>();
-
-    @Column
-    private Boolean published;
 
     @Override
     public boolean equals(final Object obj) {
@@ -249,13 +243,4 @@ public class DataSource implements Serializable, HasArachnePermissions {
 
         this.tenants = tenants;
     }
-
-    public Boolean getPublished() {
-        return published;
-    }
-
-    public void setPublished(Boolean published) {
-        this.published = published;
-    }
-public class DataSource extends BaseDataSource implements IDataSource, Serializable, HasArachnePermissions {
 }
