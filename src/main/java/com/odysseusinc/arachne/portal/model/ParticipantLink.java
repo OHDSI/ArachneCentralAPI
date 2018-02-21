@@ -25,6 +25,6 @@ package com.odysseusinc.arachne.portal.model;
 public interface ParticipantLink {
 
     ParticipantRole getRole();
-    User getUser();
+    IUser getUser();
     ParticipantStatus getStatus();
 }

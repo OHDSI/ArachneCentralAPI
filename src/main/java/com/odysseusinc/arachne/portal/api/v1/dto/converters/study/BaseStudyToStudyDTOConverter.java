@@ -36,6 +36,7 @@ import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
 import com.odysseusinc.arachne.portal.model.StudyFile;
+import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.StudyService;
 import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
 import java.util.List;
@@ -46,11 +47,11 @@ import org.springframework.util.CollectionUtils;
 public abstract class BaseStudyToStudyDTOConverter<S extends Study, DTO extends StudyDTO> extends BaseConversionServiceAwareConverter<S, DTO> {
 
 
-    private final StudyService studyService;
+    private final BaseStudyService studyService;
     protected final AnalysisService analysisService;
 
     @Autowired
-    public BaseStudyToStudyDTOConverter(StudyService studyService, AnalysisService analysisService) {
+    public BaseStudyToStudyDTOConverter(BaseStudyService studyService, AnalysisService analysisService) {
 
         this.studyService = studyService;
         this.analysisService = analysisService;

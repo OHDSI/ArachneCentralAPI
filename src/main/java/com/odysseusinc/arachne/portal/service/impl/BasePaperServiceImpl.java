@@ -30,6 +30,7 @@ import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.AbstractPaperFile;
 import com.odysseusinc.arachne.portal.model.AntivirusFile;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.PaperFavourite;
 import com.odysseusinc.arachne.portal.model.PaperFileType;
@@ -120,7 +121,7 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
     @Override
     @PreAuthorize("hasPermission(#studyId, 'Study', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_STUDY)")
-    public P create(User owner, Long studyId) {
+    public P create(IUser owner, Long studyId) {
 
         final Study study = studyService.getById(studyId);
         final P paper = createPaper();
@@ -144,7 +145,7 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
     public abstract P createPaper();
 
     @Override
-    public Page<P> getPapersAccordingToCurrentUser(PS paperSearch, User user) {
+    public Page<P> getPapersAccordingToCurrentUser(PS paperSearch, IUser user) {
 
         final PaperSpecification<P> paperSpecification = new PaperSpecification<>(paperSearch, user);
         return paperRepository.findAll(paperSpecification, new PageRequest(paperSearch.getPage(), paperSearch.getPageSize()));
@@ -225,7 +226,7 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).LIMITED_EDIT_PAPER)")
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public String saveFile(Long paperId, MultipartFile file, PaperFileType fileType, String label, User user) throws IOException {
+    public String saveFile(Long paperId, MultipartFile file, PaperFileType fileType, String label, IUser user) throws IOException {
 
         if (file == null) {
             throw new IllegalArgumentException("File must not be null");
@@ -256,7 +257,7 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).LIMITED_EDIT_PAPER)")
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public String saveFile(Long paperId, String link, PaperFileType type, String label, User user) throws MalformedURLException {
+    public String saveFile(Long paperId, String link, PaperFileType type, String label, IUser user) throws MalformedURLException {
 
         if (StringUtils.isEmpty(link)) {
             throw new IllegalArgumentException();
@@ -290,7 +291,7 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_PAPER)")
     @Override
     public void updateFile(Long paperId, String uuid, MultipartFile multipartFile,
-                           PaperFileType fileType, User user) throws IOException {
+                           PaperFileType fileType, IUser user) throws IOException {
 
         final AbstractPaperFile paperFile = getAbstractPaperFile(paperId, uuid, fileType);
         fileService.updateFile(multipartFile, paperFile);
@@ -358,7 +359,7 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
 
     private AbstractPaperFile savePaperFile(PaperFileType fileType,
                                             String label,
-                                            User user,
+                                            IUser user,
                                             Paper paper,
                                             String contentType,
                                             String realName,
@@ -387,7 +388,7 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
         return paperFile;
     }
 
-    private void enrichPaperFile(User user, String label, Paper paper, AbstractPaperFile paperFile,
+    private void enrichPaperFile(IUser user, String label, Paper paper, AbstractPaperFile paperFile,
                                  String contentType, String realName, String link) {
 
         paperFile.setPaper(paper);
@@ -412,7 +413,7 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
             Long id
     ) throws PermissionDeniedException, IOException, ValidationException {
 
-        final User user = userService.getUser(principal);
+        final IUser user = userService.getUser(principal);
         if (multipartFile != null) {
             this.saveFile(id, multipartFile, type, label, user);
         } else if (!org.apache.commons.lang3.StringUtils.isEmpty(link)) {

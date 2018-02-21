@@ -34,8 +34,8 @@ import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataNodeRole;
-import com.odysseusinc.arachne.portal.model.DataSource;
-import com.odysseusinc.arachne.portal.model.User;
+import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
@@ -57,10 +57,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 @SuppressWarnings("unused")
-public abstract class BaseDataNodeController
-        <DS extends DataSource,
-                C_DS_DTO extends CommonDataSourceDTO,
-                DN extends DataNode> extends BaseController {
+public abstract class BaseDataNodeController<
+        DS extends IDataSource,
+        C_DS_DTO extends CommonDataSourceDTO,
+        DN extends DataNode> extends BaseController {
 
     private static final Logger log = LoggerFactory.getLogger(BaseDataNodeController.class);
     protected final BaseAnalysisService analysisService;
@@ -92,7 +92,7 @@ public abstract class BaseDataNodeController
             Principal principal
     ) throws PermissionDeniedException, AlreadyExistException {
 
-        final User user = getUser(principal);
+        final IUser user = getUser(principal);
         final DN dataNode = buildEmptyDataNode();
         final DN registeredDataNode = baseDataNodeService.create(dataNode);
         baseDataNodeService.linkUserToDataNodeUnsafe(registeredDataNode, user, Collections.singleton(DataNodeRole.ADMIN));
@@ -116,7 +116,7 @@ public abstract class BaseDataNodeController
             Principal principal
     ) throws PermissionDeniedException, NotExistException {
 
-        final User user = getUser(principal);
+        final IUser user = getUser(principal);
         final DN dataNode = conversionService.convert(commonDataNodeRegisterDTO, getDataNodeDNClass());
         dataNode.setId(dataNodeId);
 
@@ -175,4 +175,16 @@ public abstract class BaseDataNodeController
     }
 
     protected abstract DS convertCommonDataSourceDtoToDataSource(C_DS_DTO commonDataSourceDTO);
+
+    @ApiOperation("Unregister data source of datanode")
+    @RequestMapping(value = "/api/v1/data-nodes/{dataNodeId}/data-sources/{dataSourceId}", method = RequestMethod.DELETE)
+    public JsonResult unregisterDataSource(@PathVariable("dataNodeId") Long dataNodeId,
+                                           @PathVariable("dataSourceId") Long dataSourceId)
+            throws PermissionDeniedException, IOException, SolrServerException {
+
+        final DS dataSource = dataSourceService.findById(dataSourceId);
+        studyDataSourceService.softDeletingDataSource(dataSource.getId());
+        return new JsonResult(JsonResult.ErrorCode.NO_ERROR);
+    }
+
 }

@@ -48,6 +48,8 @@ import com.odysseusinc.arachne.portal.model.DataNodeUser;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.DataSourceStatus;
 import com.odysseusinc.arachne.portal.model.FavouriteStudy;
+import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import com.odysseusinc.arachne.portal.model.ParticipantStatus;
 import com.odysseusinc.arachne.portal.model.Study;
@@ -141,12 +143,12 @@ import org.springframework.web.multipart.MultipartFile;
 @Transactional(rollbackFor = Exception.class)
 public abstract class BaseStudyServiceImpl<
         T extends Study,
-        DS extends DataSource,
+                DS extends IDataSource,
         SS extends StudySearch,
         SU extends AbstractUserStudyListItem> extends CRUDLServiceImpl<T>
         implements BaseStudyService<T, DS, SS, SU> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(StudyServiceImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(BaseStudyServiceImpl.class);
 
     private static final String EX_STUDY_NOT_EXISTS = "The study does not exist";
     private static final String EX_USER_NOT_EXISTS = "The user does not exist";
@@ -258,7 +260,7 @@ public abstract class BaseStudyServiceImpl<
     }
 
     @Override
-    public T create(User owner, T study) throws NotUniqueException, NotExistException {
+    public T create(IUser owner, T study) throws NotUniqueException, NotExistException {
 
         List<T> studies = studyRepository.findByTitle(study.getTitle());
         if (!studies.isEmpty()) {
@@ -284,7 +286,7 @@ public abstract class BaseStudyServiceImpl<
         return savedStudy;
     }
 
-    private UserStudy addDefaultLead(Study study, User owner) {
+    private UserStudy addDefaultLead(Study study, IUser owner) {
 
         UserStudy leadStudyLink = new UserStudy();
         leadStudyLink.setCreatedBy(owner);
@@ -410,7 +412,7 @@ public abstract class BaseStudyServiceImpl<
     }
 
     @Override
-    public SU getStudy(final User user, final Long studyId) {
+    public SU getStudy(final IUser user, final Long studyId) {
 
         if (user == null || user.getId() == null || studyId == null) {
             throw new IllegalArgumentException("Method arguments must not be null");
@@ -432,7 +434,7 @@ public abstract class BaseStudyServiceImpl<
         return userStudyItem;
     }
 
-    public List<User> findLeads(Study study) {
+    public List<IUser> findLeads(Study study) {
 
         List<UserStudyExtended> leadStudyLinkList = userStudyExtendedRepository.findByStudyAndRoleAndStatus(
                 study, LEAD_INVESTIGATOR, ParticipantStatus.APPROVED);
@@ -458,7 +460,7 @@ public abstract class BaseStudyServiceImpl<
     @PreAuthorize("hasPermission(#studyId, 'Study', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).INVITE_CONTRIBUTOR)")
     public UserStudy addParticipant(
-            User createdBy,
+            IUser createdBy,
             Long studyId,
             Long participantId,
             ParticipantRole role
@@ -467,7 +469,7 @@ public abstract class BaseStudyServiceImpl<
         Study study = Optional.ofNullable(studyRepository.findOne(studyId))
                 .orElseThrow(() -> new NotExistException(EX_STUDY_NOT_EXISTS, Study.class));
 
-        User participant = Optional.ofNullable(userService.findOne(participantId))
+        IUser participant = Optional.ofNullable(userService.findOne(participantId))
                 .orElseThrow(() -> new NotExistException(EX_USER_NOT_EXISTS, User.class));
 
         UserStudy studyLink = userStudyRepository.findOneByStudyIdAndUserId(study.getId(), participant.getId());
@@ -507,7 +509,7 @@ public abstract class BaseStudyServiceImpl<
 
         Study study = Optional.ofNullable(studyRepository.findOne(studyId))
                 .orElseThrow(() -> new NotExistException(EX_STUDY_NOT_EXISTS, Study.class));
-        User participant = Optional.ofNullable(userService.findOne(participantId))
+        IUser participant = Optional.ofNullable(userService.findOne(participantId))
                 .orElseThrow(() -> new NotExistException(EX_USER_NOT_EXISTS, User.class));
 
         UserStudy studyLink = Optional.ofNullable(
@@ -527,7 +529,7 @@ public abstract class BaseStudyServiceImpl<
             throws NotExistException, PermissionDeniedException, ValidationException {
 
         Study study = getById(id);
-        User participant = userService.findOne(participantId);
+        IUser participant = userService.findOne(participantId);
         UserStudy studyLink = Optional.ofNullable(
                 userStudyRepository.findOneByStudyAndUser(study, participant))
                 .orElseThrow(() -> new NotExistException(UserStudy.class));
@@ -550,7 +552,7 @@ public abstract class BaseStudyServiceImpl<
     @Override
     @PreAuthorize("hasPermission(#studyId, 'Study', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).UPLOAD_FILES)")
-    public String saveFile(MultipartFile multipartFile, Long studyId, String label, User user)
+    public String saveFile(MultipartFile multipartFile, Long studyId, String label, IUser user)
             throws IOException {
 
         Study study = studyRepository.findOne(studyId);
@@ -591,7 +593,7 @@ public abstract class BaseStudyServiceImpl<
     @Override
     @PreAuthorize("hasPermission(#studyId, 'Study', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).UPLOAD_FILES)")
-    public String saveFile(String link, Long studyId, String label, User user) throws IOException {
+    public String saveFile(String link, Long studyId, String label, IUser user) throws IOException {
 
         Study study = studyRepository.findOne(studyId);
         String fileNameLowerCase = UUID.randomUUID().toString();
@@ -676,7 +678,7 @@ public abstract class BaseStudyServiceImpl<
     //ordering annotations is important to check current participants before method invoke
     @PreAuthorize("hasPermission(#studyId, 'Study', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).INVITE_DATANODE)")
-    public StudyDataSourceLink addDataSource(User createdBy, Long studyId, Long dataSourceId)
+    public StudyDataSourceLink addDataSource(IUser createdBy, Long studyId, Long dataSourceId)
             throws NotExistException, AlreadyExistException {
 
         T study = studyRepository.findOne(studyId);
@@ -712,7 +714,7 @@ public abstract class BaseStudyServiceImpl<
     @PreAuthorize("hasPermission(#studyId, 'Study', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).INVITE_DATANODE)")
     public DS addVirtualDataSource(
-            User createdBy,
+            IUser createdBy,
             Long studyId,
             String dataSourceName,
             List<String> dataOwnerIds
@@ -768,7 +770,7 @@ public abstract class BaseStudyServiceImpl<
     @Override
     @PreAuthorize("hasPermission(#studyId, 'Study', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
-    public DS getStudyDataSource(User user, Long studyId, Long dataSourceId) {
+    public DS getStudyDataSource(IUser user, Long studyId, Long dataSourceId) {
 
         final StudyDataSourceLink studyDataSourceLink
                 = studyDataSourceLinkRepository.findByDataSourceIdAndStudyId(dataSourceId, studyId);
@@ -782,7 +784,7 @@ public abstract class BaseStudyServiceImpl<
     @Transactional
     @PreAuthorize("hasPermission(#dataSourceId, 'DataSource', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).DELETE_DATASOURCE)")
-    public DS updateVirtualDataSource(User user, Long studyId, Long dataSourceId, String name, List<String> dataOwnerIds) throws IllegalAccessException, IOException, NoSuchFieldException, SolrServerException, ValidationException {
+    public DS updateVirtualDataSource(IUser user, Long studyId, Long dataSourceId, String name, List<String> dataOwnerIds) throws IllegalAccessException, IOException, NoSuchFieldException, SolrServerException, ValidationException {
 
         Study study = studyRepository.findOne(studyId);
 
@@ -824,7 +826,7 @@ public abstract class BaseStudyServiceImpl<
     }
 
     @Override
-    public void processDataSourceInvitation(User user,
+    public void processDataSourceInvitation(IUser user,
                                             Long id, Boolean accepted, String comment) {
 
         StudyDataSourceLink studyDataSourceLink = studyDataSourceLinkRepository.findByIdAndOwner(id, user);
@@ -854,7 +856,7 @@ public abstract class BaseStudyServiceImpl<
     }
 
     @Override
-    public List<User> getApprovedUsers(DataSource dataSource) {
+    public List<User> getApprovedUsers(DS dataSource) {
 
         return userService.findUsersApprovedInDataSource(dataSource.getId());
     }
@@ -907,7 +909,7 @@ public abstract class BaseStudyServiceImpl<
     }
 
     @Override
-    public Iterable<T> suggestStudy(String query, User owner, Long id, SuggestSearchRegion region) {
+    public Iterable<T> suggestStudy(String query, IUser owner, Long id, SuggestSearchRegion region) {
 
         Iterable<T> suggest;
         final String suggestRequest = "%" + query.toLowerCase() + "%";

@@ -26,6 +26,7 @@ import com.odysseusinc.arachne.portal.model.AnalysisFile;
 import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import com.odysseusinc.arachne.portal.model.PublishState;
@@ -70,7 +71,7 @@ import static com.odysseusinc.arachne.portal.security.ArachnePermission.DELETE_D
 
 
 @Component("ArachnePermissionEvaluator")
-public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> implements PermissionEvaluator {
+public class ArachnePermissionEvaluator<T extends Paper, D extends IDataSource> implements PermissionEvaluator {
 
     protected final BaseArachneSecureService<T, D> secureService;
     protected final DomainObjectLoaderFactory domainObjectLoaderFactory;
@@ -277,11 +278,18 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
             final Analysis analysis = (Analysis) hasPermissionsObj;
             final List<SubmissionGroup> submissionGroups = analysis.getSubmissionGroups();
             if (!CollectionUtils.isEmpty(submissionGroups)) {
-                    submissionGroups.forEach(submissionGroup -> submissionGroup.getSubmissions().forEach(submission -> {
-                            final Set<ArachnePermission> submissionPermissions = getAllPermissions(submission, user);
-                            submission.setPermissions(submissionPermissions);
-                        }));
-                }
+                submissionGroups.forEach(submissionGroup -> submissionGroup.getSubmissions().forEach(submission -> {
+                    final Set<ArachnePermission> submissionPermissions = getAllPermissions(submission, user);
+                    submission.setPermissions(submissionPermissions);
+                }));
+            }
+            final List<AnalysisFile> files = analysis.getFiles();
+            if (!CollectionUtils.isEmpty(files)) {
+                files.forEach(file -> {
+                    final Set<ArachnePermission> filePermissions = getAllPermissions(file, user);
+                    file.setPermissions(filePermissions);
+                });
+            }
         }
         return true;
     }

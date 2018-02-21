@@ -29,13 +29,13 @@ import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.Analysis;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.ResultFile;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
 import com.odysseusinc.arachne.portal.model.SubmissionGroup;
 import com.odysseusinc.arachne.portal.model.SubmissionStatus;
 import com.odysseusinc.arachne.portal.model.SubmissionStatusHistoryElement;
-import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.ResultFileSearch;
 import com.odysseusinc.arachne.portal.service.impl.submission.SubmissionAction;
 import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
@@ -52,18 +52,18 @@ import java.nio.file.Path;
 import java.util.List;
 
 public interface BaseSubmissionService<T extends Submission, A extends Analysis> {
-    T approveSubmissionResult(Long submissionId, ApproveDTO approveDTO, User user);
+    T approveSubmissionResult(Long submissionId, ApproveDTO approveDTO, IUser user);
 
-    T approveSubmission(Long submissionId, Boolean isApproved, String comment, User user)
+    T approveSubmission(Long submissionId, Boolean isApproved, String comment, IUser user)
             throws IOException, NotExistException;
 
-    T createSubmission(User user, A analysis, Long datasourceId,
+    T createSubmission(IUser user, A analysis, Long datasourceId,
                                 SubmissionGroup submissionGroup)
             throws NotExistException, IOException;
 
     @PreAuthorize("hasPermission(#analysis, "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).CREATE_SUBMISSION)")
-    SubmissionGroup createSubmissionGroup(User user, Analysis analysis) throws IOException, NoExecutableFileException;
+    SubmissionGroup createSubmissionGroup(IUser user, Analysis analysis) throws IOException, NoExecutableFileException;
 
     Page<SubmissionGroup> getSubmissionGroups(Long analysisId, Pageable pageRequest);
 
@@ -80,7 +80,7 @@ public interface BaseSubmissionService<T extends Submission, A extends Analysis>
 
     T saveSubmissionAndFlush(T submission);
 
-    T moveSubmissionToNewStatus(T submission, SubmissionStatus status, User user, String comment);
+    T moveSubmissionToNewStatus(T submission, SubmissionStatus status, IUser user, String comment);
 
     T changeSubmissionState(Long id, String status);
 
@@ -105,18 +105,18 @@ public interface BaseSubmissionService<T extends Submission, A extends Analysis>
 
     @PreAuthorize("hasPermission(#submissionId, 'Submission', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
-    List<ArachneFileMeta> getResultFiles(User user, Long submissionId, ResultFileSearch resultFileSearch) throws PermissionDeniedException;
+    List<ArachneFileMeta> getResultFiles(IUser user, Long submissionId, ResultFileSearch resultFileSearch) throws PermissionDeniedException;
 
     @PreAuthorize("hasPermission(#analysisId,  'Analysis', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
-    ArachneFileMeta getResultFileAndCheckPermission(User user, Submission submission, Long analysisId, String fileUuid)
+    ArachneFileMeta getResultFileAndCheckPermission(IUser user, Submission submission, Long analysisId, String fileUuid)
             throws PermissionDeniedException;
 
     ResultFile getResultFileByPath(String path);
 
     ResultFile getResultFileById(Long fileId);
 
-    void getSubmissionResultAllFiles(User user, Long analysisId, Long submissionId, String archiveName, OutputStream os)
+    void getSubmissionResultAllFiles(IUser user, Long analysisId, Long submissionId, String archiveName, OutputStream os)
             throws IOException, PermissionDeniedException;
 
     Path getSubmissionArchiveChunk(Long id, String updatePassword, String fileName) throws FileNotFoundException;

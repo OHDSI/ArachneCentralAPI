@@ -32,6 +32,7 @@ import com.odysseusinc.arachne.portal.model.DataNodeJournalEntry;
 import com.odysseusinc.arachne.portal.model.DataNodeRole;
 import com.odysseusinc.arachne.portal.model.DataNodeStatus;
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.repository.DataNodeJournalRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeRepository;
@@ -168,7 +169,7 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
     @Transactional
     @Override
     @PreAuthorize("#dataNode == authentication.principal")
-    public void linkUserToDataNode(DN dataNode, User user, Set<DataNodeRole> roles)
+    public void linkUserToDataNode(DN dataNode, IUser user, Set<DataNodeRole> roles)
             throws NotExistException, AlreadyExistException {
 
         linkUserToDataNodeUnsafe(dataNode, user, roles);
@@ -190,7 +191,7 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
     @Transactional
     @Override
     @PreAuthorize("#dataNode == authentication.principal")
-    public void unlinkUserToDataNode(DN dataNode, User user) throws NotExistException {
+    public void unlinkUserToDataNode(DN dataNode, IUser user) throws NotExistException {
 
         LOGGER.info(UNLINKING_USER_LOG, user.getId(), dataNode.getId());
         final DataNodeUser existDataNodeUser

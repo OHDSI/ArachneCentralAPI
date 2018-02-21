@@ -32,10 +32,10 @@ import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.exception.WrongFileFormatException;
 import com.odysseusinc.arachne.portal.model.Country;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Invitationable;
 import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.StateProvince;
-import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserLink;
 import com.odysseusinc.arachne.portal.model.UserPublication;
 import com.odysseusinc.arachne.portal.model.UserStudy;
@@ -54,7 +54,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.multipart.MultipartFile;
 
-public interface BaseUserService<U extends User, S extends Skill> {
+public interface BaseUserService<U extends IUser, S extends Skill> {
 
     U getByUsername(final String username);
 
@@ -63,6 +63,8 @@ public interface BaseUserService<U extends User, S extends Skill> {
     U getByEmail(String email);
 
     U findLoginCandidate(final String email);
+
+    U getByIdInAnyTenant(final Long id);
 
     U getByUnverifiedEmail(final String email);
 
@@ -93,6 +95,14 @@ public interface BaseUserService<U extends User, S extends Skill> {
     List<U> getAllByIDs(List<Long> ids);
 
     U update(U user)
+            throws
+            IllegalAccessException,
+            SolrServerException,
+            IOException,
+            NotExistException,
+            NoSuchFieldException;
+
+    U updateUnsafeInAnyTenant(U user)
             throws
             IllegalAccessException,
             SolrServerException,
@@ -202,4 +212,6 @@ public interface BaseUserService<U extends User, S extends Skill> {
     List<U> findUsersApprovedInDataSource(Long id);
 
     void putAvatarToResponse(HttpServletResponse response, U user) throws IOException;
+
+    void setActiveTenant(U user, Long tenantId);
 }

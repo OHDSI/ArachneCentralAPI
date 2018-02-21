@@ -26,6 +26,8 @@ import static com.odysseusinc.arachne.portal.service.RoleService.ROLE_ADMIN;
 
 import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
 import com.cosium.spring.data.jpa.entity.graph.repository.EntityGraphJpaRepository;
+import com.odysseusinc.arachne.portal.model.BaseUser;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.User;
 import java.util.List;
 import org.springframework.data.domain.Page;
@@ -37,21 +39,8 @@ import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.query.Param;
 
 @NoRepositoryBean
-public interface BaseUserRepository<U extends User> extends EntityGraphJpaRepository<U, Long>,
+public interface BaseUserRepository<U extends IUser> extends EntityGraphJpaRepository<U, Long>,
         JpaSpecificationExecutor<U> {
-
-    // Querying data independently of tenant
-    @Query(
-            nativeQuery = true,
-            value = "SELECT * FROM users_data WHERE origin = :origin AND username = :username"
-    )
-    U findLoginCandidate(@Param("origin") String userOrigin, @Param("username") String username);
-
-    @Query(
-            nativeQuery = true,
-            value = "SELECT * FROM users_data WHERE username = :email"
-    )
-    U findByEmail(@Param("email")String email, EntityGraph entityGraph);
 
     List<U> findByIdIn(List<Long> idList);
 
@@ -64,6 +53,8 @@ public interface BaseUserRepository<U extends User> extends EntityGraphJpaReposi
     U findByOriginAndUsernameAndEnabledTrue(String userOrigin, String username);
 
     U findByRegistrationCode(String activateCode);
+
+    U findByEmail(String email, EntityGraph entityGraph);
 
     @Query(nativeQuery = true, value = "SELECT * FROM users "
             + " WHERE "

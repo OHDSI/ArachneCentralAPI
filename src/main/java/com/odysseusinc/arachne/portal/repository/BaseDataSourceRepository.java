@@ -22,7 +22,7 @@
 
 package com.odysseusinc.arachne.portal.repository;
 
-import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -35,7 +35,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 @NoRepositoryBean
-public interface BaseDataSourceRepository<T extends DataSource> extends CrudRepository<T, Long> {
+public interface BaseDataSourceRepository<T extends IDataSource> extends CrudRepository<T, Long> {
 
     String USERS_DATASOURCES_QUERY = "SELECT * FROM data_sources_data AS ds\n" +
             " JOIN datanodes_users AS dnu ON ds.data_node_id=dnu.datanode_id\n" +

@@ -35,6 +35,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.CharacterizationDTO;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.achilles.AchillesFile;
 import com.odysseusinc.arachne.portal.model.achilles.AchillesReport;
 import com.odysseusinc.arachne.portal.model.achilles.Characterization;
@@ -60,7 +61,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
-public abstract class BaseAchillesController<DS extends DataSource> {
+public abstract class BaseAchillesController<DS extends IDataSource> {
     private static final String ACHILLES_RESULT_LOADED_LOG
             = "Loaded Achilles result for Data Source with id='{}', name='{}', Data Node with id='{}' name='{}'";
     protected static Logger LOGGER = LoggerFactory.getLogger(BaseAchillesController.class);

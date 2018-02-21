@@ -33,32 +33,18 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
-import javax.persistence.Transient;
+import javax.persistence.*;
+import java.io.Serializable;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import org.hibernate.annotations.DiscriminatorFormula;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.validator.constraints.NotBlank;
+import org.hibernate.annotations.DiscriminatorFormula;
+import org.hibernate.annotations.SQLDelete;
 
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-//@DiscriminatorColumn(name = "data_source_type")
 @DiscriminatorFormula("'DATA_SOURCE_ENTITY'")
 @Table(name = "data_sources")
 @SQLDelete(sql = "UPDATE data_sources "
@@ -271,4 +257,5 @@ public class DataSource implements Serializable, HasArachnePermissions {
     public void setPublished(Boolean published) {
         this.published = published;
     }
+public class DataSource extends BaseDataSource implements IDataSource, Serializable, HasArachnePermissions {
 }

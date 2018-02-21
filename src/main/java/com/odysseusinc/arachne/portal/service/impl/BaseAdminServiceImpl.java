@@ -27,6 +27,7 @@ import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.Comment;
 import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.ResultFile;
 import com.odysseusinc.arachne.portal.model.Study;
@@ -54,7 +55,7 @@ import org.springframework.util.CollectionUtils;
 
 public abstract class BaseAdminServiceImpl<
         S extends Study,
-        DS extends DataSource,
+        DS extends IDataSource,
         SS extends StudySearch,
         SU extends AbstractUserStudyListItem,
         A extends Analysis,

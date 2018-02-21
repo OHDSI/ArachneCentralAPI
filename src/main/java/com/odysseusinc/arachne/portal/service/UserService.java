@@ -22,8 +22,8 @@
 
 package com.odysseusinc.arachne.portal.service;
 
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Skill;
-import com.odysseusinc.arachne.portal.model.User;
 
-public interface UserService extends BaseUserService<User, Skill> {
+public interface UserService extends BaseUserService<IUser, Skill> {
 }

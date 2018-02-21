@@ -23,6 +23,7 @@
 package com.odysseusinc.arachne.portal.model.achilles;
 
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import java.sql.Timestamp;
 import java.util.Set;
 import javax.persistence.CascadeType;
@@ -46,9 +47,9 @@ public class Characterization {
     @SequenceGenerator(name = "characterization_pk_sequence", sequenceName = "characterizations_id_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "characterization_pk_sequence")
     private Long id;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = DataSource.class)
     @JoinColumn(name = "datasource_id")
-    private DataSource dataSource;
+    private IDataSource dataSource;
     @Column
     private Timestamp date;
     @OneToMany(targetEntity = AchillesFile.class, cascade = CascadeType.REMOVE)
@@ -69,12 +70,12 @@ public class Characterization {
         this.id = id;
     }
 
-    public DataSource getDataSource() {
+    public IDataSource getDataSource() {
 
         return dataSource;
     }
 
-    public void setDataSource(DataSource dataSource) {
+    public void setDataSource(IDataSource dataSource) {
 
         this.dataSource = dataSource;
     }
