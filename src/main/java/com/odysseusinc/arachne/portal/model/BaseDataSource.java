@@ -91,7 +91,6 @@ public abstract class BaseDataSource implements IDataSource, Serializable, HasAr
     @Enumerated(EnumType.STRING)
     protected CommonCDMVersionDTO cdmVersion;
     @SolrFieldAnno(query = true, filter = true)
-    @NotBlank
     @Column
     protected String organization;
     @Column
