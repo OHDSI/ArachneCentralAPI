@@ -25,10 +25,15 @@ package com.odysseusinc.arachne.portal.model;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
 import java.io.Serializable;
 import javax.persistence.Entity;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 import javax.persistence.Table;
+import org.hibernate.annotations.DiscriminatorFormula;
 import org.hibernate.annotations.SQLDelete;
 
 @Entity
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorFormula("'DATA_SOURCE_ENTITY'")
 @Table(name = "data_sources_data")
 @SQLDelete(sql = "UPDATE data_sources_data "
         + "SET deleted = current_timestamp, health_status = 'NOT_CONNECTED', health_status_description = 'Deleted'"
