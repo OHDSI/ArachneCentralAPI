@@ -64,6 +64,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ReflectionUtils;
 
 @Transactional(rollbackFor = Exception.class)
@@ -197,7 +199,7 @@ public abstract class BaseDataSourceServiceImpl<
             exist.setPublished(dataSource.getPublished());
         }
 
-        if (dataSource.getTenants() != null) {
+        if (!CollectionUtils.isEmpty(dataSource.getTenants())) {
             exist.setTenants(dataSource.getTenants());
         }
 
