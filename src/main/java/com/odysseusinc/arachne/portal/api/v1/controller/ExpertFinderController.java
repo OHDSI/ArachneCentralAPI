@@ -22,15 +22,15 @@
 
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Skill;
-import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class ExpertFinderController extends BaseExpertFinderController<User, Skill> {
+public class ExpertFinderController extends BaseExpertFinderController<IUser, Skill> {
 
-    public ExpertFinderController(BaseUserService<User, Skill> userService) {
+    public ExpertFinderController(BaseUserService<IUser, Skill> userService) {
 
         super(userService);
     }

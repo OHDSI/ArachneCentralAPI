@@ -28,8 +28,8 @@ import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.model.DataNode;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Skill;
-import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.security.DataNodeAuthenticationToken;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
 import java.security.Principal;
@@ -40,16 +40,16 @@ import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 
-public abstract class BaseController<DN extends DataNode> {
+public abstract class BaseController<DN extends DataNode, U extends IUser> {
 
     @Autowired
-    protected BaseUserService<User, Skill> userService;
+    protected BaseUserService<U, Skill> userService;
 
     @Autowired
     protected GenericConversionService conversionService;
 
 
-    protected User getUser(Principal principal) throws PermissionDeniedException {
+    protected U getUser(Principal principal) throws PermissionDeniedException {
 
         return userService.getUser(principal);
     }

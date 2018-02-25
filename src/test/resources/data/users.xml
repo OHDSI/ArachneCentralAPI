@@ -3,6 +3,7 @@
     <tenants
             id="1"
             name = "Everyone"
+            is_default="1"
     />
     <professional_types
             id="1"

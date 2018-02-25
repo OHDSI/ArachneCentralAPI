@@ -27,10 +27,12 @@ import static com.odysseusinc.arachne.portal.service.AnalysisPaths.CONTENT_DIR;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonCDMVersionDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
+import com.odysseusinc.arachne.portal.model.BaseDataSource;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataNodeRole;
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.security.DataNodeAuthenticationToken;
@@ -57,7 +59,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public abstract class BaseStudyHelper<DN extends DataNode, DS extends DataSource> {
+public abstract class BaseStudyHelper<DN extends DataNode, DS extends IDataSource> {
 
     private final Logger LOGGER = LoggerFactory.getLogger(BaseStudyHelper.class);
 

@@ -31,6 +31,7 @@ import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.model.Comment;
 import com.odysseusinc.arachne.portal.model.CommentTopic;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.service.CommentService;
 import io.swagger.annotations.ApiOperation;
@@ -78,7 +79,7 @@ public class CommentController extends BaseController {
                                              Principal principal
     ) throws PermissionDeniedException {
 
-        final User user = getUser(principal);
+        final IUser user = getUser(principal);
         final Comment comment = conversionService.convert(commentDTO, Comment.class);
         comment.setAuthor(user);
         final Comment saved = commentService.addComment(topicId, commentDTO.getParentId(), comment);

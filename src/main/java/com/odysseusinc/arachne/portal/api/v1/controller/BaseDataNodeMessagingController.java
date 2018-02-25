@@ -36,6 +36,8 @@ import com.odysseusinc.arachne.commons.service.messaging.ConsumerTemplate;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.model.DataNode;
+import com.odysseusinc.arachne.portal.model.IUser;
+import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.messaging.BaseDataNodeMessageService;
 import com.odysseusinc.arachne.portal.service.messaging.MessagingUtils;
@@ -61,7 +63,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
-public abstract class BaseDataNodeMessagingController<DN extends DataNode> extends BaseController<DN> {
+public abstract class BaseDataNodeMessagingController<DN extends DataNode> extends BaseController<DN, IUser> {
 
     private static final Logger log = LoggerFactory.getLogger(BaseDataNodeController.class);
 

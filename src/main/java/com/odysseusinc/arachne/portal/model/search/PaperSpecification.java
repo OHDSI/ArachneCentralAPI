@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.model.search;
 
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.Paper_;
 import com.odysseusinc.arachne.portal.model.ParticipantStatus;
@@ -49,10 +50,10 @@ public class PaperSpecification<T extends Paper> implements Specification<T> {
 
     private static final String FAVOURITE = "favourite";
 
-    protected final User user;
+    protected final IUser user;
     private final PaperSearch criteria;
 
-    public PaperSpecification(@NotNull PaperSearch criteria, User user) {
+    public PaperSpecification(@NotNull PaperSearch criteria, IUser user) {
 
         this.user = user;
         this.criteria = criteria;

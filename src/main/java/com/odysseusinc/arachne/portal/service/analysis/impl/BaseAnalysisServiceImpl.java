@@ -52,13 +52,13 @@ import com.odysseusinc.arachne.portal.model.AnalysisUnlockRequestStatus;
 import com.odysseusinc.arachne.portal.model.AntivirusStatus;
 import com.odysseusinc.arachne.portal.model.ArachneFile;
 import com.odysseusinc.arachne.portal.model.DataReference;
-import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Invitationable;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
 import com.odysseusinc.arachne.portal.model.SubmissionStatus;
-import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.model.statemachine.study.StudyState;
 import com.odysseusinc.arachne.portal.model.statemachine.study.StudyStateMachine;
@@ -133,7 +133,7 @@ import org.springframework.web.multipart.MultipartFile;
 public abstract class BaseAnalysisServiceImpl<
         A extends Analysis,
         S extends Study,
-        DS extends DataSource,
+        DS extends IDataSource,
         SS extends StudySearch,
         SU extends AbstractUserStudyListItem> extends CRUDLServiceImpl<A>
         implements BaseAnalysisService<A> {
@@ -321,7 +321,7 @@ public abstract class BaseAnalysisServiceImpl<
 
 
     @Override
-    public List<A> list(User user, Long studyId) throws PermissionDeniedException, NotExistException {
+    public List<A> list(IUser user, Long studyId) throws PermissionDeniedException, NotExistException {
 
         Study study = studyService.getById(studyId);
         return analysisRepository.findByStudyOrderByOrd(study);
@@ -348,7 +348,7 @@ public abstract class BaseAnalysisServiceImpl<
     }
 
     @Override
-    public AnalysisFile saveFile(MultipartFile multipartFile, User user, A analysis, String label,
+    public AnalysisFile saveFile(MultipartFile multipartFile, IUser user, A analysis, String label,
                                  Boolean isExecutable, DataReference dataReference) throws IOException {
 
         String originalFilename = multipartFile.getOriginalFilename();
@@ -428,7 +428,7 @@ public abstract class BaseAnalysisServiceImpl<
     }
 
     @Override
-    public AnalysisFile saveFile(String link, User user, A analysis, String label, Boolean isExecutable)
+    public AnalysisFile saveFile(String link, IUser user, A analysis, String label, Boolean isExecutable)
             throws IOException {
 
         throwAccessDeniedExceptionIfLocked(analysis);
@@ -541,7 +541,7 @@ public abstract class BaseAnalysisServiceImpl<
                 new NotExistException(ANALYSIS_NOT_FOUND_EXCEPTION, Analysis.class)
         );
 
-        User user = analysisUnlockRequest.getUser();
+        IUser user = analysisUnlockRequest.getUser();
         final AnalysisUnlockRequest existUnlockRequest
                 = analysisUnlockRequestRepository.findByAnalysisAndStatus(analysis, AnalysisUnlockRequestStatus.PENDING);
         if (existUnlockRequest != null) {
@@ -559,7 +559,7 @@ public abstract class BaseAnalysisServiceImpl<
     }
 
     @Override
-    public void processAnalysisUnlockRequest(User user, Long invitationId, Boolean invitationAccepted)
+    public void processAnalysisUnlockRequest(IUser user, Long invitationId, Boolean invitationAccepted)
             throws NotExistException {
 
         final Long userId = user.getId();
@@ -653,7 +653,7 @@ public abstract class BaseAnalysisServiceImpl<
     public void writeToFile(
             AnalysisFile analysisFile,
             FileDTO fileContentDTO,
-            User updatedBy) throws IOException {
+            IUser updatedBy) throws IOException {
 
         Analysis analysis = analysisFile.getAnalysis();
         throwAccessDeniedExceptionIfLocked(analysis);
@@ -824,7 +824,7 @@ public abstract class BaseAnalysisServiceImpl<
 
 
     @Override
-    public List<User> findLeads(Analysis analysis) {
+    public List<IUser> findLeads(Analysis analysis) {
 
         return studyService.findLeads((S)analysis.getStudy());
     }
@@ -839,7 +839,7 @@ public abstract class BaseAnalysisServiceImpl<
     }
 
     @Override
-    public List<? extends Invitationable> getWaitingForApprovalSubmissions(User user) {
+    public List<? extends Invitationable> getWaitingForApprovalSubmissions(IUser user) {
 
         return submissionRepository.findWaitingForApprovalSubmissionsByOwnerId(user.getId());
     }

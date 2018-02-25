@@ -54,7 +54,7 @@ public class UserStudy implements Invitationable {
 
     @ManyToOne(optional = false, targetEntity = User.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    private User user;
+    private IUser user;
 
     @ManyToOne(optional = false, targetEntity = Study.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "study_id")
@@ -76,7 +76,7 @@ public class UserStudy implements Invitationable {
 
     @ManyToOne(optional = false, targetEntity = User.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
-    private User createdBy;
+    private IUser createdBy;
 
     @Column(name = "deleted_at")
     private Date deletedAt;
@@ -92,12 +92,12 @@ public class UserStudy implements Invitationable {
         }
     }
 
-    public User getUser() {
+    public IUser getUser() {
 
         return user;
     }
 
-    public void setUser(User user) {
+    public void setUser(IUser user) {
 
         this.user = user;
     }
@@ -154,7 +154,7 @@ public class UserStudy implements Invitationable {
     }
 
     @Override
-    public User getAuthor() {
+    public IUser getAuthor() {
 
         return getCreatedBy();
     }
@@ -186,12 +186,12 @@ public class UserStudy implements Invitationable {
         this.token = token;
     }
 
-    public User getCreatedBy() {
+    public IUser getCreatedBy() {
 
         return createdBy;
     }
 
-    public void setCreatedBy(User createdBy) {
+    public void setCreatedBy(IUser createdBy) {
 
         this.createdBy = createdBy;
     }

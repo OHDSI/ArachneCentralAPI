@@ -47,7 +47,8 @@ import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.AnalysisFile;
-import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.ResultFile;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
@@ -120,7 +121,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends Analysis, DS extends DataSource>
+public abstract class BaseSubmissionServiceImpl<
+        T extends Submission,
+        A extends Analysis,
+                DS extends IDataSource>
         implements BaseSubmissionService<T, A> {
 
     public static final String SUBMISSION_NOT_EXIST_EXCEPTION = "Submission with id='%s' does not exist";
@@ -188,7 +192,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     }
 
     @Override
-    public T approveSubmissionResult(Long submissionId, ApproveDTO approveDTO, User user) {
+    public T approveSubmissionResult(Long submissionId, ApproveDTO approveDTO, IUser user) {
 
         T submission = submissionRepository.findOne(submissionId);
         SubmissionStatus status = runApproveSubmissionProcess(submission,
@@ -205,11 +209,11 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     }
 
     @Override
-    public T createSubmission(User user, A analysis, Long datasourceId,
+    public T createSubmission(IUser user, A analysis, Long datasourceId,
                               SubmissionGroup submissionGroup)
             throws NotExistException, IOException {
 
-        DataSource dataSource = dataSourceService.getByIdUnsecured(datasourceId);
+        DS dataSource = dataSourceService.getByIdUnsecured(datasourceId);
         T submission = newSubmission();
         submission.setAuthor(user);
         Date created = new Date();
@@ -248,7 +252,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
 
     }
 
-    protected SubmissionStatus calculateSubmissionStatusAccordingToDatasourceOwnership(DataSource dataSource, User user) {
+    protected SubmissionStatus calculateSubmissionStatusAccordingToDatasourceOwnership(DS dataSource, IUser user) {
 
         return PENDING;
     }
@@ -256,10 +260,10 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     @Override
     public void notifyOwnersAboutNewSubmission(T submission) {
 
-        Set<User> dnOwners = DataNodeUtils.getDataNodeOwners(submission.getDataSource().getDataNode());
+        Set<IUser> dnOwners = DataNodeUtils.getDataNodeOwners(submission.getDataSource().getDataNode());
 
         try {
-            for (User owner : dnOwners) {
+            for (IUser owner : dnOwners) {
                 mailSender.send(new InvitationApprovalSubmissionArachneMailMessage(
                         WebSecurityConfig.getDefaultPortalURI(), owner, submission)
                 );
@@ -274,9 +278,9 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     @Override
     public void notifyOwnersAboutSubmissionUpdateViaSocket(T submission) {
 
-        Set<User> dnOwners = DataNodeUtils.getDataNodeOwners(submission.getDataSource().getDataNode());
+        Set<IUser> dnOwners = DataNodeUtils.getDataNodeOwners(submission.getDataSource().getDataNode());
 
-        for (User owner : dnOwners) {
+        for (IUser owner : dnOwners) {
             wsTemplate.convertAndSendToUser(
                     owner.getUsername(),
                     "/topic/invitations",
@@ -292,7 +296,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     }
 
     @Override
-    public T moveSubmissionToNewStatus(T submission, SubmissionStatus status, User user, String comment) {
+    public T moveSubmissionToNewStatus(T submission, SubmissionStatus status, IUser user, String comment) {
 
         List<SubmissionStatusHistoryElement> statusHistory = submission.getStatusHistory();
         statusHistory.add(new SubmissionStatusHistoryElement(new Date(), status, user, submission, comment));
@@ -365,7 +369,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     }
 
     @Override
-    public SubmissionGroup createSubmissionGroup(User user, Analysis analysis) throws IOException, NoExecutableFileException {
+    public SubmissionGroup createSubmissionGroup(IUser user, Analysis analysis) throws IOException, NoExecutableFileException {
 
         checkBeforeCreateSubmissionGroup(analysis);
 
@@ -517,7 +521,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     public ResultFile uploadResultsByDataOwner(Long submissionId, String name, MultipartFile file) throws NotExistException, IOException {
 
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        User user = userService.getByUsername(userDetails.getUsername());
+        IUser user = userService.getByUsername(userDetails.getUsername());
 
         T submission = submissionRepository.findByIdAndStatusIn(submissionId,
                 Collections.singletonList(IN_PROGRESS.name()));
@@ -578,7 +582,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     }
 
     @Override
-    public T approveSubmission(Long submissionId, Boolean isApproved, String comment, User user)
+    public T approveSubmission(Long submissionId, Boolean isApproved, String comment, IUser user)
             throws IOException, NotExistException {
 
         T submission = getSubmissionByIdAndStatus(submissionId, PENDING);
@@ -681,7 +685,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     }
 
     @Override
-    public List<ArachneFileMeta> getResultFiles(User user, Long submissionId, ResultFileSearch resultFileSearch) throws PermissionDeniedException {
+    public List<ArachneFileMeta> getResultFiles(IUser user, Long submissionId, ResultFileSearch resultFileSearch) throws PermissionDeniedException {
 
         Submission submission = submissionRepository.findById(submissionId, EntityGraphUtils.fromAttributePaths("dataSource", "dataSource.dataNode"));
         checkSubmissionPermission(user, submission);
@@ -696,7 +700,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
     }
 
     @Override
-    public ArachneFileMeta getResultFileAndCheckPermission(User user, Submission submission, Long analysisId,
+    public ArachneFileMeta getResultFileAndCheckPermission(IUser user, Submission submission, Long analysisId,
                                                            String fileUuid) throws PermissionDeniedException {
 
         ArachneFileMeta byFileUuid = contentStorageService.getFileByIdentifier(fileUuid);
@@ -704,7 +708,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
         return byFileUuid;
     }
 
-    private void checkSubmissionPermission(User user, Submission submission) throws PermissionDeniedException {
+    private void checkSubmissionPermission(IUser user, Submission submission) throws PermissionDeniedException {
 
         if (!(EXECUTED_PUBLISHED.equals(submission.getStatus()) || FAILED_PUBLISHED.equals(submission.getStatus()))) {
             if (user == null || !isDataNodeOwner(submission.getDataSource().getDataNode(), user)) {
@@ -725,7 +729,7 @@ public abstract class BaseSubmissionServiceImpl<T extends Submission, A extends 
 
     @Override
     public void getSubmissionResultAllFiles(
-            User user,
+            IUser user,
             Long analysisId,
             Long submissionId,
             String archiveName,

@@ -22,7 +22,7 @@
 
 package com.odysseusinc.arachne.portal.repository;
 
-import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.Optional;
 
 @NoRepositoryBean
-public interface BaseDataSourceRepository<T extends DataSource> extends CrudRepository<T, Long> {
+public interface BaseDataSourceRepository<T extends IDataSource> extends CrudRepository<T, Long> {
 
     T findOne(Long id);
 

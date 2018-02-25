@@ -30,6 +30,7 @@ import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.DataSourceStatus;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.ResultFile;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
@@ -69,7 +70,7 @@ public class AnalysisHelper implements AnalysisPaths {
     private Long maximumSize;
 
     public static List<Submission> createSubmission(BaseSubmissionService submissionService,
-                                                    List<Long> datasourceIds, User user,
+                                                    List<Long> datasourceIds, IUser user,
                                                     Analysis analysis)
             throws IOException, NotExistException, NoExecutableFileException, ValidationException {
 

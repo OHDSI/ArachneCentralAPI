@@ -49,9 +49,9 @@ public class DataNodeUser {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "datanodes_users_pk_sequence")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = User.class)
     @JoinColumn(name = "user_id")
-    private User user;
+    private IUser user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "datanode_id")
@@ -100,12 +100,12 @@ public class DataNodeUser {
         this.id = id;
     }
 
-    public User getUser() {
+    public IUser getUser() {
 
         return user;
     }
 
-    public void setUser(User user) {
+    public void setUser(IUser user) {
 
         this.user = user;
     }

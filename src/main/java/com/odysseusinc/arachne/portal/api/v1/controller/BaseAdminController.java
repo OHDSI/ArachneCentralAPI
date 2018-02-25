@@ -31,11 +31,11 @@ import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
 import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.DataNode;
-import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.Submission;
-import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.PaperSearch;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.model.search.UserSearch;
@@ -73,13 +73,13 @@ import java.util.stream.StreamSupport;
 @Secured("ROLE_ADMIN")
 public abstract class BaseAdminController<
         S extends Study,
-        DS extends DataSource,
+        DS extends IDataSource,
         SS extends StudySearch,
         SU extends AbstractUserStudyListItem,
         A extends Analysis,
         P extends Paper,
         PS extends PaperSearch,
-        SB extends Submission> extends BaseController<DataNode> {
+        SB extends Submission> extends BaseController<DataNode, IUser> {
 
     private final BaseDataSourceService<DS> dataSourceService;
     protected final ProfessionalTypeService professionalTypeService;
@@ -109,7 +109,7 @@ public abstract class BaseAdminController<
             NoSuchFieldException {
 
         JsonResult<Boolean> result;
-        User user = userService.getByIdAndInitializeCollections(id);
+        IUser user = userService.getByIdAndInitializeCollections(id);
         user.setEnabled(isEnabled);
         userService.update(user);
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
@@ -143,7 +143,7 @@ public abstract class BaseAdminController<
                     pageable.getSort().getOrderFor("name").getDirection(),
                     "firstname", "middlename", "lastname");
         }
-        Page<User> users = userService.getAll(search, userSearch);
+        Page<IUser> users = userService.getAll(search, userSearch);
         return users
                 .map(user -> conversionService.convert(user, CommonUserDTO.class));
     }
@@ -158,7 +158,7 @@ public abstract class BaseAdminController<
     ) throws PermissionDeniedException {
 
         JsonResult<List<AdminUserDTO>> result;
-        List<User> users = userService.getAllAdmins(sortBy, sortAsc);
+        List<IUser> users = userService.getAllAdmins(sortBy, sortAsc);
         List<AdminUserDTO> dtos = users.stream()
                 .map(user -> conversionService.convert(user, AdminUserDTO.class))
                 .collect(Collectors.toList());
@@ -182,9 +182,9 @@ public abstract class BaseAdminController<
     ) {
 
         JsonResult<List<AdminUserDTO>> result;
-        List<User> users = userService.suggestNotAdmin(query, limit == null ? 10 : limit);
+        List<IUser> users = userService.suggestNotAdmin(query, limit == null ? 10 : limit);
         List<AdminUserDTO> userDTOs = new LinkedList<>();
-        for (User user : users) {
+        for (IUser user : users) {
             userDTOs.add(conversionService.convert(user, AdminUserDTO.class));
         }
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
