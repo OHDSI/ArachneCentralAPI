@@ -53,8 +53,8 @@ import org.hibernate.annotations.DiscriminatorFormula;
 @Entity
 @Table(name = "studies")
 @DiscriminatorFormula("'STUDY_ENTITY'")
-@SolrFieldAnno(name = BaseSolrService.TITLE, isPostfixNeeded = false, extractors = StudySolrExtractors.TitleExtractor.class)
-@SolrFieldAnno(name = "participants", isPostfixNeeded = false, extractors = StudySolrExtractors.ParticipantsExtractor.class, filter = true)
+@SolrFieldAnno(name = BaseSolrService.TITLE, postfix = false, extractor = StudySolrExtractors.TitleExtractor.class)
+@SolrFieldAnno(name = "participants", postfix = false, extractor = StudySolrExtractors.ParticipantsExtractor.class, filter = true)
 public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyStatus> {
     public Study() {
 
@@ -132,8 +132,8 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
     @Column
     @SolrFieldAnno(
             name = BaseSolrService.IS_PUBLIC,
-            isPostfixNeeded = false,
-            extractors = StudySolrExtractors.PrivacyExtractor.class)
+            postfix = false,
+            extractor = StudySolrExtractors.PrivacyExtractor.class)
     protected Boolean privacy = Boolean.TRUE;
 
     @ManyToOne(fetch = FetchType.LAZY)

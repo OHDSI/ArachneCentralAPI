@@ -73,7 +73,6 @@ public class GlobalSearchResultToGlobalSearchResultDTOConverter
             GlobalSearchDTO dto = new GlobalSearchDTO();
 
             final String title = getValue(v, BaseSolrService.TITLE);
-            dto.setTitle(title);
             dto.setId(getValue(v, BaseSolrService.ID));
             dto.setLabel(getLabel(getValue(v, BaseSolrService.TYPE)));
 

@@ -24,7 +24,6 @@ package com.odysseusinc.arachne.portal.model;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.portal.api.v1.dto.converters.AnalysisSolrExtractors;
-import com.odysseusinc.arachne.portal.api.v1.dto.converters.StudySolrExtractors;
 import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
@@ -54,7 +53,7 @@ import org.hibernate.annotations.DiscriminatorFormula;
 @Entity
 @Table(name = "analyses")
 @DiscriminatorFormula("'ANALYSIS_ENTITY'")
-@SolrFieldAnno(name = "participants", isPostfixNeeded = false, extractors = AnalysisSolrExtractors.ParticipantsExtractor.class, filter = true)
+@SolrFieldAnno(name = "participants", postfix = false, extractor = AnalysisSolrExtractors.ParticipantsExtractor.class, filter = true)
 public class Analysis implements HasArachnePermissions, Breadcrumb {
 
     public Analysis() {
@@ -74,7 +73,7 @@ public class Analysis implements HasArachnePermissions, Breadcrumb {
     private Long id;
 
     @Column
-    @SolrFieldAnno(name = BaseSolrService.TITLE, isPostfixNeeded = false, query = true)
+    @SolrFieldAnno(name = BaseSolrService.TITLE, postfix = false, query = true)
     private String title;
 
     @Column(length = 1000)

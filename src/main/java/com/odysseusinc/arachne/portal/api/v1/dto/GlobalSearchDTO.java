@@ -25,7 +25,6 @@ import java.util.List;
 public class GlobalSearchDTO {
 
     private String id;
-    private String title;
     private String label;
     private List<BreadcrumbDTO> breadcrumbs;
 
@@ -37,16 +36,6 @@ public class GlobalSearchDTO {
     public void setId(String id) {
 
         this.id = id;
-    }
-
-    public String getTitle() {
-
-        return title;
-    }
-
-    public void setTitle(String title) {
-
-        this.title = title;
     }
 
     public String getLabel() {

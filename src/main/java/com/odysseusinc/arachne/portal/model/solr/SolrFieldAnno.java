@@ -44,7 +44,7 @@ public @interface SolrFieldAnno {
 
     boolean query() default false;
     boolean filter() default false;
-    boolean isPostfixNeeded() default true;
+    boolean postfix() default true;
 
-    Class<? extends Function<Object, Object>>[] extractors() default {};
+    Class<? extends Function<Object, Object>>[] extractor() default {};
 }

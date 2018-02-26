@@ -52,7 +52,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "users")
-@SolrFieldAnno(name = BaseSolrService.TITLE, isPostfixNeeded = false, extractors = UserSolrExtractors.TitleExtractor.class)
+@SolrFieldAnno(name = BaseSolrService.TITLE, postfix = false, extractor = UserSolrExtractors.TitleExtractor.class)
 public class User implements Serializable, Breadcrumb {
 
     @ManyToMany(targetEntity = Role.class, fetch = FetchType.LAZY)

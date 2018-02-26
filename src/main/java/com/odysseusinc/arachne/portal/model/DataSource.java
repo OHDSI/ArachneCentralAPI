@@ -69,7 +69,7 @@ import java.util.Set;
 @SQLDelete(sql = "UPDATE data_sources "
         + "SET deleted = current_timestamp, health_status = 'NOT_CONNECTED', health_status_description = 'Deleted'"
         + " WHERE id = ?")
-@SolrFieldAnno(name = BaseSolrService.TITLE, isPostfixNeeded = false, extractors = DataSourceSolrExtractors.DataSourceTitleExtractor.class)
+@SolrFieldAnno(name = BaseSolrService.TITLE, postfix = false, extractor = DataSourceSolrExtractors.DataSourceTitleExtractor.class)
 public class DataSource implements Serializable, HasArachnePermissions, Breadcrumb {
     @Id
     @SequenceGenerator(name = "data_sources_pk_sequence", sequenceName = "data_sources_id_seq", allocationSize = 1)

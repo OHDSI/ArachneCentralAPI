@@ -92,8 +92,8 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
         final T solrField = newSolrField(solrFieldAnno.name());
         solrField.setSearchable(solrFieldAnno.query());
         solrField.setFaceted(solrFieldAnno.filter());
-        solrField.setPostfixNeeded(solrFieldAnno.isPostfixNeeded());
-        final Class<? extends Function<Object, Object>>[] extractors = solrFieldAnno.extractors();
+        solrField.setPostfixNeeded(solrFieldAnno.postfix());
+        final Class<? extends Function<Object, Object>>[] extractors = solrFieldAnno.extractor();
         if (extractors.length > 0) {
             solrField.setExtractor(BeanUtils.instantiate(extractors[0]));
         }
