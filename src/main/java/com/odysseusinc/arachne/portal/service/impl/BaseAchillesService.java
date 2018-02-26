@@ -24,7 +24,6 @@ package com.odysseusinc.arachne.portal.service.impl;
 
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
-import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.achilles.AchillesFile;
@@ -37,7 +36,6 @@ import com.odysseusinc.arachne.portal.repository.CharacterizationRepository;
 import com.odysseusinc.arachne.portal.service.AchillesImportService;
 import com.odysseusinc.arachne.portal.service.AchillesService;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
-import com.odysseusinc.arachne.portal.service.StudyService;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -47,7 +45,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -69,8 +66,9 @@ public abstract class BaseAchillesService<DS extends IDataSource, S extends Stud
     }
 
     @Override
-    @PreAuthorize("hasPermission(#dataSource, " +
-            "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACHILLES_PERMISSION)")
+    // todo ARACHNE-1886
+    /* @PreAuthorize("hasPermission(#dataSource, " +
+            "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACHILLES_PERMISSION)")*/
     public void createCharacterization(DS dataSource, MultipartFile data) throws IOException {
 
         final File tempFile = Files.createTempFile("achilles", ".zip").toFile();
@@ -79,16 +77,12 @@ public abstract class BaseAchillesService<DS extends IDataSource, S extends Stud
     }
 
     @Override
-    @PreAuthorize("hasPermission(#dataSource, " +
-            "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACHILLES_PERMISSION)")
     public List<Characterization> getCharacterizations(DS dataSource) {
 
         return characterizationRepository.findByDataSource(dataSource);
     }
 
     @Override
-    @PreAuthorize("hasPermission(#dataSource, " +
-            "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACHILLES_PERMISSION)")
     public Optional<Characterization> getCharacterization(DS dataSource, Long characterizationId) {
 
         return characterizationRepository.findByIdAndDataSource(characterizationId, dataSource);
@@ -96,8 +90,6 @@ public abstract class BaseAchillesService<DS extends IDataSource, S extends Stud
 
     @Override
     @Transactional(readOnly = true)
-    @PreAuthorize("hasPermission(#dataSource, " +
-            "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACHILLES_PERMISSION)")
     public Optional<Characterization> getLatestCharacterization(DS dataSource) {
 
         return characterizationRepository.findTopByDataSourceOrderByDateDesc(dataSource);
