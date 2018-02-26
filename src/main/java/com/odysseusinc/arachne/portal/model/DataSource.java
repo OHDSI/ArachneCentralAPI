@@ -27,6 +27,8 @@ import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonModelType;
 import com.odysseusinc.arachne.portal.api.v1.dto.converters.DataSourceSolrExtractors;
 import com.odysseusinc.arachne.portal.model.security.Tenant;
+import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
+import com.odysseusinc.arachne.portal.model.solr.SolrEntity;
 import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
@@ -70,7 +72,7 @@ import java.util.Set;
         + "SET deleted = current_timestamp, health_status = 'NOT_CONNECTED', health_status_description = 'Deleted'"
         + " WHERE id = ?")
 @SolrFieldAnno(name = BaseSolrService.TITLE, postfix = false, extractor = DataSourceSolrExtractors.DataSourceTitleExtractor.class)
-public class DataSource implements Serializable, HasArachnePermissions, Breadcrumb {
+public class DataSource implements Serializable, HasArachnePermissions, Breadcrumb, SolrEntity {
     @Id
     @SequenceGenerator(name = "data_sources_pk_sequence", sequenceName = "data_sources_id_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "data_sources_pk_sequence")
@@ -119,6 +121,12 @@ public class DataSource implements Serializable, HasArachnePermissions, Breadcru
             inverseJoinColumns = @JoinColumn(name = "tenant_id", referencedColumnName = "id"))
     @SolrFieldAnno(filter = true)
     private Set<Tenant> tenants = new HashSet<>();
+
+    @Override
+    public SolrCollection getCollection() {
+
+        return SolrCollection.DATA_SOURCE;
+    }
 
     @Override
     public boolean equals(final Object obj) {

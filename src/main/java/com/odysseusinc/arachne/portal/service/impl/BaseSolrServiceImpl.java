@@ -26,6 +26,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.odysseusinc.arachne.portal.api.v1.dto.BreadcrumbDTO;
 import com.odysseusinc.arachne.portal.config.tenancy.TenantContext;
+import com.odysseusinc.arachne.portal.exception.NotExistException;
+import com.odysseusinc.arachne.portal.model.Identifiable;
+import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
+import com.odysseusinc.arachne.portal.model.solr.SolrEntity;
 import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
 import com.odysseusinc.arachne.portal.model.solr.SolrValue;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
@@ -192,9 +196,9 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
 
     @Override
     public void putDocument(
-            String collection,
-            Long id,
-            Map<T, Object> values
+            final String collection,
+            final Long id,
+            final Map<T, Object> values
     ) throws IOException, SolrServerException {
 
         SolrInputDocument document = new SolrInputDocument();
@@ -308,5 +312,30 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
 
         solrClient.deleteByQuery(collection, query);
         solrClient.commit(collection);
+    }
+
+    @Override
+    public void indexBySolr(final SolrEntity entity)
+            throws IllegalAccessException, IOException, SolrServerException, NotExistException, NoSuchFieldException {
+
+        final Map<T, Object> values = getValuesByEntity(entity);
+
+        putDocument(
+                entity.getCollection().getName(),
+                entity.getId(),
+                values
+        );
+    }
+
+    @Override
+    public void delete(final SolrEntity entity) throws IOException, SolrServerException {
+
+        deleteByQuery(entity.getCollection().getName(), "id:" + entity.getSolrId());
+    }
+
+    @Override
+    public void deleteAll(final SolrCollection collection) throws IOException, SolrServerException {
+
+        deleteByQuery(collection.getName(), "*:*");
     }
 }

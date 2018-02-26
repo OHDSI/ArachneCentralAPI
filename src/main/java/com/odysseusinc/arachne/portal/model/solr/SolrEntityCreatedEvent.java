@@ -1,5 +1,4 @@
 /*
- *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,28 +14,25 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: June 13, 2017
- *
+ * Authors: Anton Gackovka
+ * Created: February 26, 2018
  */
 
-package com.odysseusinc.arachne.portal.service.impl.breadcrumb;
+package com.odysseusinc.arachne.portal.model.solr;
 
-import com.odysseusinc.arachne.portal.model.Identifiable;
+import org.springframework.context.ApplicationEvent;
 
-public interface Breadcrumb extends Identifiable {
+public class SolrEntityCreatedEvent extends ApplicationEvent {
 
-    BreadcrumbType getCrumbType();
+    private final SolrEntity solrEntity;
 
-    default Long getCrumbId() {
-
-        return this.getId();
+    public SolrEntityCreatedEvent(Object source, SolrEntity solrEntity) {
+        super(source);
+        this.solrEntity = solrEntity;
     }
 
-    default String getCrumbTitle() {
+    public SolrEntity getSolrEntity() {
 
-        return null;
+        return solrEntity;
     }
-
-    Breadcrumb getCrumbParent();
 }

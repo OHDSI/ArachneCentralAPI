@@ -20,16 +20,13 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
-import static com.odysseusinc.arachne.portal.service.BaseSolrService.ANALYSES_COLLECTION;
-import static com.odysseusinc.arachne.portal.service.BaseSolrService.DATA_SOURCE_COLLECTION;
-import static com.odysseusinc.arachne.portal.service.BaseSolrService.STUDIES_COLLECTION;
-import static com.odysseusinc.arachne.portal.service.BaseSolrService.USER_COLLECTION;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.odysseusinc.arachne.portal.api.v1.dto.BreadcrumbDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.GlobalSearchDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.GlobalSearchResultDTO;
+import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
+import com.odysseusinc.arachne.portal.model.solr.SolrEntity;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
 import java.io.IOException;
@@ -103,17 +100,6 @@ public class GlobalSearchResultToGlobalSearchResultDTOConverter
 
     private String getLabel(final String type) {
 
-        switch(type) {
-            case USER_COLLECTION:
-                return "Users";
-            case STUDIES_COLLECTION:
-                return "Studies";
-            case DATA_SOURCE_COLLECTION:
-                return "Data Sources";
-            case ANALYSES_COLLECTION:
-                return "Analyses";
-            default:
-                throw new IllegalArgumentException("There is no Solr domain type for " + type);
-        }
+        return SolrCollection.getByCollectionName(type).getTitle();
     }
 }

@@ -24,6 +24,9 @@ package com.odysseusinc.arachne.portal.service;
 
 import static com.odysseusinc.arachne.portal.service.impl.solr.SolrField.META_PREFIX;
 
+import com.odysseusinc.arachne.portal.exception.NotExistException;
+import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
+import com.odysseusinc.arachne.portal.model.solr.SolrEntity;
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -36,10 +39,6 @@ import java.util.Map;
 
 public interface BaseSolrService<T extends SolrField> {
 
-    String DATA_SOURCE_COLLECTION = "data-sources";
-    String USER_COLLECTION = "users";
-    String ANALYSES_COLLECTION = "analyses";
-    String STUDIES_COLLECTION = "studies";
     String MULTI_METADATA_PREFIX = "multi_" + META_PREFIX;
     String ID = "entity_id";
     String TYPE = "entity_type";
@@ -71,4 +70,11 @@ public interface BaseSolrService<T extends SolrField> {
     ) throws IOException, SolrServerException, NoSuchFieldException;
 
     void deleteByQuery(String collection, String query) throws IOException, SolrServerException;
+
+    void indexBySolr(SolrEntity object)
+            throws IllegalAccessException, IOException, SolrServerException, NotExistException, NoSuchFieldException;
+
+    void delete(SolrEntity entity) throws IOException, SolrServerException;
+
+    void deleteAll(SolrCollection collection) throws IOException, SolrServerException;
 }

@@ -24,6 +24,8 @@ package com.odysseusinc.arachne.portal.model;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.converters.StudySolrExtractors;
 import com.odysseusinc.arachne.portal.model.security.Tenant;
+import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
+import com.odysseusinc.arachne.portal.model.solr.SolrEntity;
 import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
 import com.odysseusinc.arachne.portal.model.statemachine.HasState;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
@@ -55,7 +57,7 @@ import org.hibernate.annotations.DiscriminatorFormula;
 @DiscriminatorFormula("'STUDY_ENTITY'")
 @SolrFieldAnno(name = BaseSolrService.TITLE, postfix = false, extractor = StudySolrExtractors.TitleExtractor.class)
 @SolrFieldAnno(name = "participants", postfix = false, extractor = StudySolrExtractors.ParticipantsExtractor.class, filter = true)
-public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyStatus> {
+public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyStatus>, SolrEntity {
     public Study() {
 
     }
@@ -139,6 +141,12 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
     @ManyToOne(fetch = FetchType.LAZY)
     @SolrFieldAnno(filter = true)
     private Tenant tenant;
+
+    @Override
+    public SolrCollection getCollection() {
+
+        return SolrCollection.STUDIES;
+    }
 
     public BreadcrumbType getCrumbType() {
 

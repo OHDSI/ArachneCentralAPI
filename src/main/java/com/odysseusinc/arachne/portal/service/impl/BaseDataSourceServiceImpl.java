@@ -24,12 +24,12 @@ package com.odysseusinc.arachne.portal.service.impl;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonModelType;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchDataCatalogDTO;
-import com.odysseusinc.arachne.portal.config.tenancy.TenantContext;
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.User;
+import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
 import com.odysseusinc.arachne.portal.repository.BaseDataSourceRepository;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
@@ -115,7 +115,7 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
     protected QueryResponse solrSearch(SolrQuery solrQuery) throws IOException, SolrServerException, NoSuchFieldException {
 
         return solrService.search(
-                SolrServiceImpl.DATA_SOURCE_COLLECTION,
+                SolrCollection.DATA_SOURCE.getName(),
                 solrQuery,
                 DataSource.class.getDeclaredField("tenants")
         );
@@ -289,7 +289,7 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
     @Override
     public void indexAllBySolr() throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
-        solrService.deleteByQuery(SolrServiceImpl.DATA_SOURCE_COLLECTION, "*:*");
+        solrService.deleteAll(SolrCollection.STUDIES);
         final List<DS> dataSourceList = getAllNotDeletedAndIsNotVirtualFromAllTenants();
         for (final DS dataSource : dataSourceList) {
             indexBySolr(dataSource);
@@ -315,13 +315,7 @@ public abstract class BaseDataSourceServiceImpl<DS extends DataSource, SF extend
     protected void indexBySolr(DS dataSource)
             throws IOException, SolrServerException, NoSuchFieldException, IllegalAccessException {
 
-        Map<SF, Object> values = solrService.getValuesByEntity(dataSource);
-
-        solrService.putDocument(
-                SolrServiceImpl.DATA_SOURCE_COLLECTION,
-                dataSource.getId(),
-                values
-        );
+        solrService.indexBySolr(dataSource);
     }
 
     @Override

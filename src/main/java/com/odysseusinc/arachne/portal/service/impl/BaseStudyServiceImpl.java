@@ -61,6 +61,7 @@ import com.odysseusinc.arachne.portal.model.UserStudyExtended;
 import com.odysseusinc.arachne.portal.model.UserStudyGrouped;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.model.search.StudySpecification;
+import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
 import com.odysseusinc.arachne.portal.model.statemachine.study.StudyStateMachine;
 import com.odysseusinc.arachne.portal.repository.BaseStudyRepository;
 import com.odysseusinc.arachne.portal.repository.BaseUserStudyLinkRepository;
@@ -983,22 +984,10 @@ public abstract class BaseStudyServiceImpl<
 
     @Override
     public void indexAllBySolr() throws IOException, NotExistException, SolrServerException, NoSuchFieldException, IllegalAccessException {
-        solrService.deleteByQuery(SolrServiceImpl.STUDIES_COLLECTION, "*:*");
+        solrService.deleteAll(SolrCollection.STUDIES);
         final List<T> studies = studyRepository.findAll();
         for (final T study : studies) {
-            indexBySolr(study);
+            solrService.indexBySolr(study);
         }
-    }
-
-    protected void indexBySolr(T study)
-            throws IOException, SolrServerException, NoSuchFieldException, IllegalAccessException {
-
-        final Map<SF, Object> values = solrService.getValuesByEntity(study);
-
-        solrService.putDocument(
-                SolrServiceImpl.STUDIES_COLLECTION,
-                study.getId(),
-                values
-        );
     }
 }

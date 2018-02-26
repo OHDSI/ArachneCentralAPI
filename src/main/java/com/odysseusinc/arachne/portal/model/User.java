@@ -25,6 +25,8 @@ package com.odysseusinc.arachne.portal.model;
 import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.converters.UserSolrExtractors;
 import com.odysseusinc.arachne.portal.model.security.Tenant;
+import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
+import com.odysseusinc.arachne.portal.model.solr.SolrEntity;
 import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
@@ -53,7 +55,7 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "users")
 @SolrFieldAnno(name = BaseSolrService.TITLE, postfix = false, extractor = UserSolrExtractors.TitleExtractor.class)
-public class User implements Serializable, Breadcrumb {
+public class User implements Serializable, Breadcrumb, SolrEntity {
 
     @ManyToMany(targetEntity = Role.class, fetch = FetchType.LAZY)
     @JoinTable(name = "users_roles",
@@ -184,6 +186,12 @@ public class User implements Serializable, Breadcrumb {
     @OneToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "active_tenant_id")
     private Tenant activeTenant;
+
+    @Override
+    public SolrCollection getCollection() {
+
+        return SolrCollection.USERS;
+    }
 
     @Override
     public BreadcrumbType getCrumbType() {

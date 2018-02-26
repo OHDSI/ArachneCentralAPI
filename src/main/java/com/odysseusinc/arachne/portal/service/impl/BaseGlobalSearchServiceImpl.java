@@ -23,23 +23,20 @@ package com.odysseusinc.arachne.portal.service.impl;
 import static com.odysseusinc.arachne.portal.service.BaseSolrService.*;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.GlobalSearchResultDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.SearchExpertListDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchGlobalDTO;
+import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
+import com.odysseusinc.arachne.portal.model.solr.SolrEntityCreatedEvent;
 import com.odysseusinc.arachne.portal.service.BaseGlobalSearchService;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
 import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
 import java.io.IOException;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.convert.ConversionService;
 
 public abstract class BaseGlobalSearchServiceImpl<SF extends SolrField> implements BaseGlobalSearchService<SF> {
@@ -59,13 +56,13 @@ public abstract class BaseGlobalSearchServiceImpl<SF extends SolrField> implemen
     //TODO refactor, move out converting code
     public GlobalSearchResultDTO search(final Long userId, final SearchGlobalDTO searchDTO) throws SolrServerException, NoSuchFieldException, IOException {
 
-        searchDTO.setCollections(STUDIES_COLLECTION, USER_COLLECTION, DATA_SOURCE_COLLECTION, ANALYSES_COLLECTION);
+        searchDTO.setCollections(SolrCollection.names());
         searchDTO.setResultFields(ID, TITLE, TYPE, BREADCRUMBS);
 
         searchDTO.setQuery(buildSearchString(searchDTO.getQuery(), userId));
 
         final SolrQuery query = conversionService.convert(searchDTO, SolrQuery.class);
-        final QueryResponse response = solrService.search(STUDIES_COLLECTION, query);
+        final QueryResponse response = solrService.search(SolrCollection.STUDIES.getName(), query);
 
         final SearchResult<SolrDocument> searchResult = new SearchResult<>(query, response, response.getResults());
 
@@ -81,8 +78,9 @@ public abstract class BaseGlobalSearchServiceImpl<SF extends SolrField> implemen
         return String.format("(is_public:true OR (is_public:false AND participants:%d)) AND query:*%s*", userId, query);
     }
 
-    public List<Object> search(final String str, final String domain) {
+    @EventListener
+    public void update(final SolrEntityCreatedEvent event) throws IOException, NoSuchFieldException, SolrServerException, IllegalAccessException {
 
-        return new ArrayList<>();
+        solrService.indexBySolr(event.getSolrEntity());
     }
 }

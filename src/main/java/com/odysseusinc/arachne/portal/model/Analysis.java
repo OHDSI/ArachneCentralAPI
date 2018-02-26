@@ -24,6 +24,8 @@ package com.odysseusinc.arachne.portal.model;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.portal.api.v1.dto.converters.AnalysisSolrExtractors;
+import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
+import com.odysseusinc.arachne.portal.model.solr.SolrEntity;
 import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
@@ -54,7 +56,7 @@ import org.hibernate.annotations.DiscriminatorFormula;
 @Table(name = "analyses")
 @DiscriminatorFormula("'ANALYSIS_ENTITY'")
 @SolrFieldAnno(name = "participants", postfix = false, extractor = AnalysisSolrExtractors.ParticipantsExtractor.class, filter = true)
-public class Analysis implements HasArachnePermissions, Breadcrumb {
+public class Analysis implements HasArachnePermissions, Breadcrumb, SolrEntity  {
 
     public Analysis() {
 
@@ -116,6 +118,12 @@ public class Analysis implements HasArachnePermissions, Breadcrumb {
     @Column
     @Enumerated(EnumType.STRING)
     private CommonAnalysisType type;
+
+    @Override
+    public SolrCollection getCollection() {
+
+        return SolrCollection.ANALYSES;
+    }
 
     public BreadcrumbType getCrumbType() {
 
