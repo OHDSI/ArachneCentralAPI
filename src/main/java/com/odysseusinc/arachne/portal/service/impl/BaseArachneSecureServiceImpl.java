@@ -27,7 +27,6 @@ import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataNodeRole;
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
-import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
@@ -190,9 +189,6 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends I
 
         if (tenantRepository.findFirstByDataSourcesIdAndUsersId(dataSource.getId(), user.getId()).isPresent()) {
             participantRoles.add(ParticipantRole.DATA_SET_USER);
-        }
-        if (checkDataNodeAdmin(user, dataSource.getDataNode())) {
-            participantRoles.add(ParticipantRole.DATANODE_ADMIN);
         }
         return participantRoles;
     }

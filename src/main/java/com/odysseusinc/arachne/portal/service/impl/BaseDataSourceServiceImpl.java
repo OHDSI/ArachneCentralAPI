@@ -37,13 +37,14 @@ import com.odysseusinc.arachne.portal.service.TenantService;
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
 import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
-import com.odysseusinc.arachne.portal.util.UUIDGenerator;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -107,7 +108,7 @@ public abstract class BaseDataSourceServiceImpl<
 
         dataSource.setPublished(false);
         dataSource.setCreated(new Date());
-        dataSource.setUuid(UUIDGenerator.generateUUID());
+        dataSource.setUuid(UUID.randomUUID().toString());
         dataSource.setTenants(tenantService.getDefault());
     }
 
@@ -326,6 +327,19 @@ public abstract class BaseDataSourceServiceImpl<
         final String[] split = query.trim().split(" ");
         String suggestRequest = "%(" + String.join("|", split) + ")%";
         return dataSourceRepository.getUserDataSources(suggestRequest, userId, pageRequest);
+    }
+
+    @Override
+    public boolean fieldsDefinedAtNodeAreChanged(DS updating, DS commonDataSourceDTO){
+
+        return !Objects.equals(updating.getName(), commonDataSourceDTO.getName());
+    }
+
+    @Override
+    public DS updateFieldsDefinedAtNode(DS updating, DS updated){
+
+        updating.setName(updated.getName());
+        return updating;
     }
 
 

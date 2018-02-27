@@ -47,7 +47,6 @@ import java.io.IOException;
 import java.security.Principal;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -118,21 +117,19 @@ public abstract class BaseDataSourceController<
         return result;
     }
 
-    @RequestMapping(value = "/api/v1/data-sources/{id}/model-type", method = RequestMethod.PUT)
-    public JsonResult<DTO> updateModelType(
+    @RequestMapping(value = "/api/v1/data-sources/{id}/from-node", method = RequestMethod.PUT)
+    public JsonResult<DTO> updateFieldsDefinedAtNode(
             @PathVariable("id") Long dataSourceId,
             @RequestBody DTO commonDataSourceDTO
     ) throws IllegalAccessException, IOException, NoSuchFieldException, SolrServerException, ValidationException {
 
         DS updating = dataSourceService.getByIdUnsecured(dataSourceId);
         JsonResult<DTO> result = new JsonResult<>(NO_ERROR);
-        if (!Objects.equals(updating.getModelType(), commonDataSourceDTO.getModelType()) ||
-                !Objects.equals(updating.getCdmVersion(), commonDataSourceDTO.getCdmVersion()) ||
-                !Objects.equals(updating.getName(), commonDataSourceDTO.getName())
-                ) {
-            updating.setModelType(commonDataSourceDTO.getModelType());
-            updating.setCdmVersion(commonDataSourceDTO.getCdmVersion());
-            updating.setName(commonDataSourceDTO.getName());
+
+        DS inputDS = convertDTOToDataSource(commonDataSourceDTO);
+        if (dataSourceService.fieldsDefinedAtNodeAreChanged(updating, inputDS)) {
+
+            updating = dataSourceService.updateFieldsDefinedAtNode(updating, inputDS);
             updating = dataSourceService.update(updating);
             result.setResult(convertDataSourceToDTO(updating));
         }
