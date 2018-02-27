@@ -796,7 +796,7 @@ public abstract class BaseStudyServiceImpl<
         updateDataNodeOwners(dataOwners, dataNode);
 
         dataSource.setName(name);
-        final DS update = dataSourceService.update(dataSource, true);
+        final DS update = dataSourceService.update(dataSource);
         return dataSource;
     }
 

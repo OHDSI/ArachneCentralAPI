@@ -111,7 +111,7 @@ public abstract class BaseDataSourceController<
             dataSource.setId(dataSourceId);
             dataSource.setDataNode(exist.getDataNode());
             dataSource.setPublished(true);
-            dataSource = dataSourceService.update(dataSource, false);
+            dataSource = dataSourceService.update(dataSource);
             result = new JsonResult<>(NO_ERROR);
             result.setResult(convertDataSourceToDTO(dataSource));
         }
@@ -133,7 +133,7 @@ public abstract class BaseDataSourceController<
             updating.setModelType(commonDataSourceDTO.getModelType());
             updating.setCdmVersion(commonDataSourceDTO.getCdmVersion());
             updating.setName(commonDataSourceDTO.getName());
-            updating = dataSourceService.update(updating, true);
+            updating = dataSourceService.update(updating);
             result.setResult(convertDataSourceToDTO(updating));
         }
         return result;

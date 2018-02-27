@@ -56,15 +56,6 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ReflectionUtils;
 
@@ -162,22 +153,20 @@ public abstract class BaseDataSourceServiceImpl<
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_DATASOURCE)")
     @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
     @Override
-    public DS update(DS dataSource, boolean onlyBaseFields)
+    public DS update(DS dataSource)
             throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
         DS forUpdate = dataSourceRepository.findByIdAndDeletedIsNull(dataSource.getId())
                 .orElseThrow(() -> new NotExistException(DataSource.class));
         forUpdate = baseUpdate(forUpdate, dataSource);
 
-        if (!onlyBaseFields) {
-            beforeUpdate(forUpdate, dataSource);
-        }
+        beforeUpdate(forUpdate, dataSource);
         DS savedDataSource = dataSourceRepository.save(forUpdate);
         afterUpdate(savedDataSource);
         return savedDataSource;
     }
 
-    private DS baseUpdate(DS exist, DS dataSource) throws IOException, NoSuchFieldException, SolrServerException, IllegalAccessException {
+    private DS baseUpdate(DS exist, DS dataSource) {
 
         if (dataSource.getName() != null) {
             exist.setName(dataSource.getName());
