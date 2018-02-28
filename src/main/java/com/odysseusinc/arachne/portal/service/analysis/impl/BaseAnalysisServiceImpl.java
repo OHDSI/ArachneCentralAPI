@@ -77,7 +77,6 @@ import com.odysseusinc.arachne.portal.service.ToPdfConverter;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.service.impl.AnalysisPreprocessorService;
 import com.odysseusinc.arachne.portal.service.impl.CRUDLServiceImpl;
-import com.odysseusinc.arachne.portal.service.impl.SolrServiceImpl;
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJob;
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobAnalysisFileResponseEvent;
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobEvent;
@@ -105,7 +104,6 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -250,6 +248,8 @@ public abstract class BaseAnalysisServiceImpl<
         final A saved = super.create(analysis);
         afterCreate(saved);
 
+        solrService.indexBySolr(analysis);
+        
         return saved;
     }
 
@@ -307,7 +307,9 @@ public abstract class BaseAnalysisServiceImpl<
             forUpdate.setType(analysisType);
         }
 
-        return super.update(forUpdate);
+        final A saved = super.update(forUpdate);
+        solrService.indexBySolr(saved);
+        return saved;
     }
 
     @Override

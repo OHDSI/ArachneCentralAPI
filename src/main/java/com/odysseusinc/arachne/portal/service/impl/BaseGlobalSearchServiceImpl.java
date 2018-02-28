@@ -79,7 +79,7 @@ public abstract class BaseGlobalSearchServiceImpl<SF extends SolrField> implemen
     }
 
     @EventListener
-    public void update(final SolrEntityCreatedEvent event) throws IOException, NoSuchFieldException, SolrServerException, IllegalAccessException {
+    public void update(final SolrEntityCreatedEvent event) {
 
         solrService.indexBySolr(event.getSolrEntity());
     }

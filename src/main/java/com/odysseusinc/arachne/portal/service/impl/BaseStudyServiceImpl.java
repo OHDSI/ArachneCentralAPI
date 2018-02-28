@@ -284,6 +284,7 @@ public abstract class BaseStudyServiceImpl<
             study.setPrivacy(true);
         }
         T savedStudy = studyRepository.save(study);
+        solrService.indexBySolr(study);
 
         // Set Lead of the Study
         addDefaultLead(savedStudy, owner);
@@ -384,7 +385,7 @@ public abstract class BaseStudyServiceImpl<
 
         forUpdate.setPrivacy(study.getPrivacy() != null ? study.getPrivacy() : forUpdate.getPrivacy());
         T updatedStudy = studyRepository.save(forUpdate);
-
+        solrService.indexBySolr(forUpdate); //mb too frequently
         return updatedStudy;
     }
 

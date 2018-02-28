@@ -71,8 +71,7 @@ public interface BaseSolrService<T extends SolrField> {
 
     void deleteByQuery(String collection, String query) throws IOException, SolrServerException;
 
-    void indexBySolr(SolrEntity object)
-            throws IllegalAccessException, IOException, SolrServerException, NotExistException, NoSuchFieldException;
+    void indexBySolr(SolrEntity object);
 
     void delete(SolrEntity entity) throws IOException, SolrServerException;
 

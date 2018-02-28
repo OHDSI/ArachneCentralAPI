@@ -26,10 +26,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.odysseusinc.arachne.portal.api.v1.dto.BreadcrumbDTO;
 import com.odysseusinc.arachne.portal.config.tenancy.TenantContext;
-import com.odysseusinc.arachne.portal.exception.NotExistException;
-import com.odysseusinc.arachne.portal.model.Identifiable;
 import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
 import com.odysseusinc.arachne.portal.model.solr.SolrEntity;
+import com.odysseusinc.arachne.portal.model.solr.SolrException;
 import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
 import com.odysseusinc.arachne.portal.model.solr.SolrValue;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
@@ -155,7 +154,7 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
     }
 
     @Override
-    public Map<T, Object> getValuesByEntity(final Object entity) throws IllegalAccessException, NoSuchFieldException {
+    public Map<T, Object> getValuesByEntity(final Object entity) throws IllegalAccessException {
 
         final Map<T, Object> values = new HashMap<>();
         final FieldList<T> fieldList = getFieldsOfClass(entity.getClass());
@@ -315,16 +314,18 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
     }
 
     @Override
-    public void indexBySolr(final SolrEntity entity)
-            throws IllegalAccessException, IOException, SolrServerException, NotExistException, NoSuchFieldException {
+    public void indexBySolr(final SolrEntity entity) {
+        try {
+            final Map<T, Object> values = getValuesByEntity(entity);
 
-        final Map<T, Object> values = getValuesByEntity(entity);
-
-        putDocument(
-                entity.getCollection().getName(),
-                entity.getId(),
-                values
-        );
+            putDocument(
+                    entity.getCollection().getName(),
+                    entity.getId(),
+                    values
+            );
+        } catch (final Exception e) {
+            throw new SolrException(e);
+        }
     }
 
     @Override
