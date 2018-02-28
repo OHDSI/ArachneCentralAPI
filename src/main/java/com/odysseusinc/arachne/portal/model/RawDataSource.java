@@ -26,10 +26,12 @@ import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
 import java.io.Serializable;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import org.hibernate.annotations.DiscriminatorFormula;
 import org.hibernate.annotations.SQLDelete;
 
 @Entity
 @Table(name = "data_sources_data")
+@DiscriminatorFormula("'DATA_SOURCE_ENTITY'")
 @SQLDelete(sql = "UPDATE data_sources_data "
         + "SET deleted = current_timestamp, health_status = 'NOT_CONNECTED', health_status_description = 'Deleted'"
         + " WHERE id = ?")

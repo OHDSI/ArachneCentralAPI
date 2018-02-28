@@ -247,7 +247,7 @@ public abstract class BaseDataSourceServiceImpl<
         if (id == null) {
             throw new NotExistException("id is null", getType());
         }
-        DS dataSource = dataSourceRepository.findOneUnsecured(id);
+        DS dataSource = rawDataSourceRepository.findOne(id);
         if (dataSource == null) {
             throw new NotExistException(getType());
         }
@@ -301,7 +301,7 @@ public abstract class BaseDataSourceServiceImpl<
     public void delete(Long id) {
 
         log.info("Deleting datasource with id={}", id);
-        dataSourceRepository.softDelete(id);
+        rawDataSourceRepository.delete(id);
     }
 
     @PreAuthorize("hasPermission(#id, 'DataSource', "
@@ -405,7 +405,7 @@ public abstract class BaseDataSourceServiceImpl<
 
     public List<DS> findByIdsAndNotDeleted(List<Long> dataSourceIds) {
 
-        return dataSourceRepository.findByIdInAndDeletedIsNull(dataSourceIds);
+        return rawDataSourceRepository.findByIdInAndDeletedIsNull(dataSourceIds);
     }
 
     public abstract List<DS> getAllByUserId(Long userId);

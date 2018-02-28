@@ -9,6 +9,13 @@ ALTER TABLE data_sources_data ALTER model_type DROP NOT NULL;
 ALTER TABLE datanodes ALTER name DROP NOT NULL;
 ALTER TABLE datanodes ALTER description DROP NOT NULL;
 
+ALTER TABLE datanodes
+ADD COLUMN published BOOLEAN DEFAULT FALSE NOT NULL;
+UPDATE datanodes set published = TRUE WHERE name <> '' AND description <> '';
+
+ALTER TABLE datanodes ADD CONSTRAINT datanodes_not_blank_fields_if_published
+CHECK (published = FALSE OR (name <> '' AND description <> ''));
+
 ALTER TABLE data_sources_data ADD CONSTRAINT data_sources_data_not_blank_fields_if_published
 CHECK (published = FALSE OR (organization <> '' AND model_type <> ''));
 

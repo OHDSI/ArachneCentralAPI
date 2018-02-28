@@ -123,16 +123,11 @@ public abstract class BaseDataSourceController<
             @RequestBody DTO commonDataSourceDTO
     ) throws IllegalAccessException, IOException, NoSuchFieldException, SolrServerException, ValidationException {
 
-        DS updating = dataSourceService.getByIdUnsecured(dataSourceId);
         JsonResult<DTO> result = new JsonResult<>(NO_ERROR);
-
-        DS inputDS = convertDTOToDataSource(commonDataSourceDTO);
-        if (dataSourceService.fieldsDefinedAtNodeAreChanged(updating, inputDS)) {
-
-            updating = dataSourceService.updateFieldsDefinedAtNode(updating, inputDS);
-            updating = dataSourceService.update(updating);
-            result.setResult(convertDataSourceToDTO(updating));
-        }
+        DS updating = convertDTOToDataSource(commonDataSourceDTO);
+        updating.setId(dataSourceId);
+        updating = dataSourceService.update(updating);
+        result.setResult(convertDataSourceToDTO(updating));
         return result;
     }
 

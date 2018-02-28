@@ -93,7 +93,7 @@ public abstract class BaseDataNodeController<
     ) throws PermissionDeniedException, AlreadyExistException {
 
         final IUser user = getUser(principal);
-        final DN dataNode = buildEmptyDataNode();
+        final DN dataNode = buildEmptyDN();
         final DN registeredDataNode = baseDataNodeService.create(dataNode);
         baseDataNodeService.linkUserToDataNodeUnsafe(registeredDataNode, user, Collections.singleton(DataNodeRole.ADMIN));
 
@@ -106,7 +106,16 @@ public abstract class BaseDataNodeController<
 
     protected abstract Class<DN> getDataNodeDNClass();
 
-    protected abstract DN buildEmptyDataNode();
+    protected abstract DN buildEmptyDN();
+
+    protected DataNode buildEmptyDataNode() {
+
+        DataNode dataNode = new DataNode();
+        dataNode.setVirtual(false);
+        dataNode.setName(null);
+        dataNode.setPublished(false);
+        return dataNode;
+    }
 
     @ApiOperation("Update data node info")
     @RequestMapping(value = "/api/v1/data-nodes/{dataNodeId}", method = RequestMethod.PUT)

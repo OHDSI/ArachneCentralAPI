@@ -97,6 +97,9 @@ public class DataNode implements HasArachnePermissions {
     @Transient
     private Set<ArachnePermission> permissions;
 
+    @Column
+    private Boolean published;
+
     public Long getId() {
 
         return id;
@@ -230,6 +233,14 @@ public class DataNode implements HasArachnePermissions {
     public void setAtlasVersion(String atlasVersion) {
 
         this.atlasVersion = atlasVersion;
+    }
+
+    public Boolean getPublished() {
+        return published;
+    }
+
+    public void setPublished(Boolean published) {
+        this.published = published;
     }
 
     @Override
