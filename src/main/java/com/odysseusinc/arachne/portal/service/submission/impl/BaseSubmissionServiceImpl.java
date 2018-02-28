@@ -55,8 +55,10 @@ import com.odysseusinc.arachne.portal.model.SubmissionFile;
 import com.odysseusinc.arachne.portal.model.SubmissionGroup;
 import com.odysseusinc.arachne.portal.model.SubmissionStatus;
 import com.odysseusinc.arachne.portal.model.SubmissionStatusHistoryElement;
-import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.ResultFileSearch;
+import com.odysseusinc.arachne.portal.model.search.SubmissionGroupSearch;
+import com.odysseusinc.arachne.portal.model.search.SubmissionGroupSpecification;
+import com.odysseusinc.arachne.portal.model.search.SubmissionSpecification;
 import com.odysseusinc.arachne.portal.repository.ResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionGroupRepository;
@@ -65,12 +67,9 @@ import com.odysseusinc.arachne.portal.repository.SubmissionResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionStatusHistoryRepository;
 import com.odysseusinc.arachne.portal.repository.submission.BaseSubmissionRepository;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
+import com.odysseusinc.arachne.portal.service.UserService;
 import com.odysseusinc.arachne.portal.service.impl.submission.SubmissionAction;
 import com.odysseusinc.arachne.portal.service.impl.submission.SubmissionActionType;
-import com.odysseusinc.arachne.storage.service.ContentStorageService;
-import com.odysseusinc.arachne.portal.service.UserService;
-import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
-import com.odysseusinc.arachne.storage.model.QuerySpec;
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import com.odysseusinc.arachne.portal.service.mail.InvitationApprovalSubmissionArachneMailMessage;
 import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
@@ -81,6 +80,9 @@ import com.odysseusinc.arachne.portal.util.LegacyAnalysisHelper;
 import com.odysseusinc.arachne.portal.util.SubmissionHelper;
 import com.odysseusinc.arachne.portal.util.UUIDGenerator;
 import com.odysseusinc.arachne.portal.util.ZipUtil;
+import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
+import com.odysseusinc.arachne.storage.model.QuerySpec;
+import com.odysseusinc.arachne.storage.service.ContentStorageService;
 import com.odysseusinc.arachne.storage.util.FileSaveRequest;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -98,6 +100,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -112,7 +115,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -124,7 +128,7 @@ import org.springframework.web.multipart.MultipartFile;
 public abstract class BaseSubmissionServiceImpl<
         T extends Submission,
         A extends Analysis,
-                DS extends IDataSource>
+        DS extends IDataSource>
         implements BaseSubmissionService<T, A> {
 
     public static final String SUBMISSION_NOT_EXIST_EXCEPTION = "Submission with id='%s' does not exist";
@@ -424,12 +428,27 @@ public abstract class BaseSubmissionServiceImpl<
     }
 
     @Override
-    @PreAuthorize("hasPermission(#analysisId,  'Analysis', "
+    @PreAuthorize("hasPermission(#submissoinGroupSearch.analysisId,  'Analysis', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
-   @PostAuthorize("@ArachnePermissionEvaluator.addPermissionsToSubmissions(principal, returnObject )")
-    public Page<SubmissionGroup> getSubmissionGroups(Long analysisId, Pageable pageRequest) {
+    @PostAuthorize("@ArachnePermissionEvaluator.addPermissionsToSubmissions(principal, returnObject )")
+    public Page<SubmissionGroup> getSubmissionGroups(SubmissionGroupSearch submissoinGroupSearch) {
 
-        return submissionGroupRepository.findAllByAnalysisId(analysisId, pageRequest);
+        final SubmissionGroupSpecification submissionGroupSpecification = new SubmissionGroupSpecification(submissoinGroupSearch);
+        final Integer page = submissoinGroupSearch.getPage();
+        final PageRequest pageRequest = new PageRequest(page == null ? 0 : page - 1, submissoinGroupSearch.getPageSize(), new Sort(Sort.Direction.DESC, "created"));
+        final Page<SubmissionGroup> submissionGroups = submissionGroupRepository.findAll(submissionGroupSpecification, pageRequest);
+        final List<SubmissionGroup> content = submissionGroups.getContent();
+        final Map<Long, SubmissionGroup> submissionGroupMap = content.stream().collect(Collectors.toMap(SubmissionGroup::getId, sg -> {
+            sg.setSubmissions(new ArrayList<>());
+            return sg;
+        }));
+        final SubmissionSpecification submissionSpecification = SubmissionSpecification.builder(submissionGroupMap.keySet())
+                .withStatuses(submissoinGroupSearch.getSubmissionStatuses())
+                .withDataSourceIds(submissoinGroupSearch.getDataSourceIds())
+                .build();
+        submissionRepository.findAll(submissionSpecification)
+                .forEach(s -> submissionGroupMap.get(s.getSubmissionGroup().getId()).getSubmissions().add(s));
+        return submissionGroups;
     }
 
     protected void checkBeforeCreateSubmissionGroup(Analysis analysis) throws NoExecutableFileException {

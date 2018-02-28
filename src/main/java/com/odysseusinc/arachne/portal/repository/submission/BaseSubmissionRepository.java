@@ -28,12 +28,13 @@ import com.odysseusinc.arachne.portal.model.Submission;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.query.Param;
 
 @NoRepositoryBean
-public interface BaseSubmissionRepository<T extends Submission> extends EntityGraphJpaRepository<T, Long> {
+public interface BaseSubmissionRepository<T extends Submission> extends EntityGraphJpaRepository <T, Long>, JpaSpecificationExecutor<Submission> {
     @Query(nativeQuery = true, value = "SELECT sub.* FROM submissions sub "
             + "JOIN (SELECT submission_id, status FROM submission_status_history "
             + "WHERE submission_id = :id ORDER BY date DESC LIMIT 1) h ON h.submission_id = sub.id "
