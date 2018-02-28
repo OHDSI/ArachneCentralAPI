@@ -33,25 +33,36 @@ public class TempHolder {
 
     private static final Logger LOG = LoggerFactory.getLogger(TempHolder.class);
     
-    private static final String TOMCAT = "tomcat";
-    
+    private static final String TOMCAT_PREFIX = "tomcat.";
+    private static final String INNER_FOLDER = "work/Tomcat/localhost/ROOT";
+    private static final String TEMP_FILE = "temp-empty-file.txt";
+
+    /**
+     * Protects tomcat temp ROOT folder from deleting in CentOS.
+     * 
+     * CentOS7 checks for old files in tmp directory once a day and
+     * if it faces file or directory that hasn't been changed
+     * for last 10days it will delete it.
+     */
     @Scheduled(cron = "${tmp.holder.cron}")
     public void hold() throws IOException {
         final File tmp = getTmpFolder();
         if (tmp.exists() && tmp.isDirectory()) {
             for (final File file : getTomcatFolders()) {
-                final File newCheckFile = new File(file, "check.txt");
-                newCheckFile.createNewFile();
-                newCheckFile.delete();
-                LOG.debug("Refreshed atime and mtime for tomcat folders.");
-                
+                final File folder = new File(file , INNER_FOLDER);
+                if (folder.getParentFile().exists() && folder.isDirectory()) {
+                    final File newCheckFile = new File(folder, TEMP_FILE);
+                    newCheckFile.createNewFile();
+                    newCheckFile.delete();
+                }
             }
+            LOG.debug("Refreshed ctime and mtime for tomcat folders.");
         }
     }
 
     private File[] getTomcatFolders() {
         
-        return getTmpFolder().listFiles((full, name) -> StringUtils.startsWith(name, TOMCAT));
+        return getTmpFolder().listFiles((full, name) -> StringUtils.startsWith(name, TOMCAT_PREFIX));
     }
 
     private File getTmpFolder() {
