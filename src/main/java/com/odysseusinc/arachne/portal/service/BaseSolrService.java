@@ -75,5 +75,7 @@ public interface BaseSolrService<T extends SolrField> {
 
     void delete(SolrEntity entity) throws IOException, SolrServerException;
 
+    void delete(SolrCollection collection, String id) throws IOException, SolrServerException;
+
     void deleteAll(SolrCollection collection) throws IOException, SolrServerException;
 }

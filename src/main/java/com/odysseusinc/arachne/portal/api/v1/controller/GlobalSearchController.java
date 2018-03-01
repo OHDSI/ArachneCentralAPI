@@ -27,25 +27,18 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.api.v1.dto.GlobalSearchResultDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchGlobalDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.StudyDTO;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
-import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
-import com.odysseusinc.arachne.portal.model.User;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.service.GlobalSearchService;
 import com.odysseusinc.arachne.portal.service.UserService;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
 import java.security.Principal;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -63,13 +56,13 @@ public class GlobalSearchController {
     @ApiOperation("Global search.")
     @RequestMapping(value = "/api/v1/search", method = GET)
     public JsonResult<GlobalSearchResultDTO> list(
-            Principal principal,
-            @ModelAttribute SearchGlobalDTO searchDto)
-            throws PermissionDeniedException, NotExistException, SolrServerException, NoSuchFieldException, IOException {
+            final Principal principal,
+            final @ModelAttribute SearchGlobalDTO searchDto)
+            throws NotExistException, SolrServerException, NoSuchFieldException, IOException {
 
         final JsonResult<GlobalSearchResultDTO> result;
 
-        final User user = userService.getByEmail(principal.getName());
+        final IUser user = userService.getByEmail(principal.getName());
 
         if (user == null) {
             result = new JsonResult<>(PERMISSION_DENIED);

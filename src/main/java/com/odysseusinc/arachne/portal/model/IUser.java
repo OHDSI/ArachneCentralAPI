@@ -2,11 +2,13 @@ package com.odysseusinc.arachne.portal.model;
 
 
 import com.odysseusinc.arachne.portal.model.security.Tenant;
+import com.odysseusinc.arachne.portal.model.solr.SolrEntity;
+import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
-public interface IUser {
+public interface IUser extends Breadcrumb, SolrEntity {
 
     int hashCode();
 

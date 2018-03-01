@@ -20,6 +20,7 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserStudyExtended;
@@ -36,7 +37,7 @@ public class StudySolrExtractors {
             return study.getParticipants().stream()
                     .filter(link -> link.getStatus().isPendingOrApproved())
                     .map(UserStudyExtended::getUser)
-                    .map(User::getId)
+                    .map(IUser::getId)
                     .map(String::valueOf)
                     .collect(Collectors.toList());
         }

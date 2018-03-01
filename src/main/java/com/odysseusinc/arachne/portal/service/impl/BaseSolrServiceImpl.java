@@ -331,7 +331,13 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
     @Override
     public void delete(final SolrEntity entity) throws IOException, SolrServerException {
 
-        deleteByQuery(entity.getCollection().getName(), "id:" + entity.getSolrId());
+        delete(entity.getCollection(), entity.getSolrId());
+    }
+    
+    @Override
+    public void delete(final SolrCollection collection, final String id) throws IOException, SolrServerException {
+        
+        deleteByQuery(collection.getName(), "id:" + id);
     }
 
     @Override
