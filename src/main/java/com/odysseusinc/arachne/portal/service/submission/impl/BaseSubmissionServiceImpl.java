@@ -124,7 +124,7 @@ import org.springframework.web.multipart.MultipartFile;
 public abstract class BaseSubmissionServiceImpl<
         T extends Submission,
         A extends Analysis,
-                DS extends IDataSource>
+        DS extends IDataSource>
         implements BaseSubmissionService<T, A> {
 
     public static final String SUBMISSION_NOT_EXIST_EXCEPTION = "Submission with id='%s' does not exist";

@@ -33,7 +33,7 @@ public class HibernateConfig {
                                                                        CurrentTenantIdentifierResolver currentTenantIdentifierResolverImpl) {
 
         Map<String, Object> properties = new HashMap<>();
-        properties.putAll(jpaProperties.getHibernateProperties(dataSource));
+//        properties.putAll(jpaProperties.getHibernateProperties());
         // NOTE:
         // dummy setting, just to force Hibernate to use custom connection provider through which we pass current tenant id to DB
         properties.put(Environment.MULTI_TENANT, MultiTenancyStrategy.SCHEMA);

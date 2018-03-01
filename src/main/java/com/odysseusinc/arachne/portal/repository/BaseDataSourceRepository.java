@@ -37,8 +37,6 @@ import java.util.Optional;
 @NoRepositoryBean
 public interface BaseDataSourceRepository<T extends IDataSource> extends CrudRepository<T, Long> {
 
-    T findOne(Long id);
-
     List<T> findByIdInAndDeletedIsNull(List<Long> ids);
 
     Optional<T> findByName(String name);
