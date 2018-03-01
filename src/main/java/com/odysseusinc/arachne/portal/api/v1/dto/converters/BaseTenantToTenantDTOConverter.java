@@ -33,6 +33,7 @@ public abstract class BaseTenantToTenantDTOConverter<DTO extends TenantBaseDTO> 
         DTO tenantDTO = createResultObject();
         tenantDTO.setId(source.getId());
         tenantDTO.setName(source.getName());
+        tenantDTO.setDefault(source.getDefault());
         return tenantDTO;
     }
 }
