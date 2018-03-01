@@ -186,7 +186,7 @@ public abstract class BaseStudyServiceImpl<
     protected final AddDataSourceStrategyFactory<DS> addDataSourceStrategyFactory;
     protected final StudyStateMachine studyStateMachine;
     private final Map<String, String[]> studySortPaths = new HashMap<>();
-    private final ApplicationEventPublisher eventPublisher;
+    protected final ApplicationEventPublisher eventPublisher;
     private final BaseSolrService<SF> solrService;
 
     public BaseStudyServiceImpl(final UserStudyExtendedRepository userStudyExtendedRepository,
