@@ -47,10 +47,10 @@ public class TempHolder {
     @Scheduled(cron = "${tmp.holder.cron}")
     public void hold() throws IOException {
         final File tmp = getTmpFolder();
-        if (tmp.exists() && tmp.isDirectory()) {
+        if (tmp.isDirectory()) {
             for (final File file : getTomcatFolders()) {
                 final File folder = new File(file , INNER_FOLDER);
-                if (folder.getParentFile().exists() && folder.isDirectory()) {
+                if (folder.isDirectory()) {
                     final File newCheckFile = new File(folder, TEMP_FILE);
                     newCheckFile.createNewFile();
                     newCheckFile.delete();
