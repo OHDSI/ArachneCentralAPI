@@ -43,7 +43,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -107,7 +106,6 @@ public abstract class BaseDataSourceServiceImpl<
 
         dataSource.setPublished(false);
         dataSource.setCreated(new Date());
-        dataSource.setUuid(UUID.randomUUID().toString());
         dataSource.setTenants(tenantService.getDefault());
     }
 
