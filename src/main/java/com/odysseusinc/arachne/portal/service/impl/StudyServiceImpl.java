@@ -29,13 +29,15 @@ import com.odysseusinc.arachne.portal.exception.NotUniqueException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
+import com.odysseusinc.arachne.portal.model.BaseDataSource;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
+import com.odysseusinc.arachne.portal.model.RawDataSource;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
 import com.odysseusinc.arachne.portal.model.StudyFile;
 import com.odysseusinc.arachne.portal.model.StudyViewItem;
-import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserStudy;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.model.statemachine.study.StudyStateMachine;
@@ -182,7 +184,7 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
     @PreAuthorize("hasPermission(#studyId, 'Study', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
     @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject.study )")
-    public StudyViewItem getStudy(User user, Long studyId) {
+    public StudyViewItem getStudy(IUser user, Long studyId) {
 
         return super.getStudy(user, studyId);
     }
@@ -191,7 +193,7 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
     @Override
     @PreAuthorize("hasPermission(#studyId, 'Study', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).INVITE_CONTRIBUTOR)")
-    public UserStudy addParticipant(User createdBy, Long studyId, Long participantId, ParticipantRole role) throws NotExistException, AlreadyExistException {
+    public UserStudy addParticipant(IUser createdBy, Long studyId, Long participantId, ParticipantRole role) throws NotExistException, AlreadyExistException {
 
         return super.addParticipant(createdBy, studyId, participantId, role);
     }
@@ -215,7 +217,7 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
     @Override
     @PreAuthorize("hasPermission(#studyId, 'Study', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).UPLOAD_FILES)")
-    public String saveFile(MultipartFile multipartFile, Long studyId, String label, User user) throws IOException {
+    public String saveFile(MultipartFile multipartFile, Long studyId, String label, IUser user) throws IOException {
 
         return super.saveFile(multipartFile, studyId, label, user);
     }
@@ -223,7 +225,7 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
     @Override
     @PreAuthorize("hasPermission(#studyId, 'Study', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).UPLOAD_FILES)")
-    public String saveFile(String link, Long studyId, String label, User user) throws IOException {
+    public String saveFile(String link, Long studyId, String label, IUser user) throws IOException {
 
         return super.saveFile(link, studyId, label, user);
     }
@@ -256,7 +258,7 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
     //ordering annotations is important to check current participants before method invoke
     @PreAuthorize("hasPermission(#studyId, 'Study', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).INVITE_DATANODE)")
-    public StudyDataSourceLink addDataSource(User createdBy, Long studyId, Long dataSourceId) throws NotExistException, AlreadyExistException {
+    public StudyDataSourceLink addDataSource(IUser createdBy, Long studyId, Long dataSourceId) throws NotExistException, AlreadyExistException {
 
         return super.addDataSource(createdBy, studyId, dataSourceId);
     }
@@ -265,7 +267,7 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
     @Transactional
     @PreAuthorize("hasPermission(#studyId, 'Study', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).INVITE_DATANODE)")
-    public DataSource addVirtualDataSource(User createdBy, Long studyId, String dataSourceName, List<String> dataOwnerIds)
+    public DataSource addVirtualDataSource(IUser createdBy, Long studyId, String dataSourceName, List<String> dataOwnerIds)
             throws NotExistException, AlreadyExistException, NoSuchFieldException, IOException, ValidationException, FieldException, IllegalAccessException, SolrServerException {
 
         return super.addVirtualDataSource(createdBy, studyId, dataSourceName, dataOwnerIds);

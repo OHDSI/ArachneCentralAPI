@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.repository;
 
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserPublication;
 import java.util.List;
@@ -29,5 +30,5 @@ import org.springframework.data.repository.CrudRepository;
 
 public interface UserPublicationRepository<UP extends UserPublication> extends CrudRepository<UP, Long> {
 
-    List<UP> findByUser(User user);
+    List<UP> findByUserId(Long userId);
 }

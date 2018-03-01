@@ -27,6 +27,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.UserProfileGeneralDTO;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.Study;
@@ -49,7 +50,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @SuppressWarnings("unused")
-public class UserController extends BaseUserController<User, Study, DataSource, StudySearch, StudyViewItem, DataNode, Paper, PaperSearch, Skill, Analysis, Submission> {
+public class UserController extends BaseUserController<IUser, Study, DataSource, StudySearch, StudyViewItem, DataNode, Paper, PaperSearch, Skill, Analysis, Submission> {
 
 
     public UserController(TokenUtils tokenUtils,

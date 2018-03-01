@@ -55,12 +55,11 @@ public class StudyDataSourceServiceImpl implements StudyDataSourceService {
 
     @Transactional
     @Override
-    public void softDeletingDataSource(DataSource dataSource) throws IOException, SolrServerException {
+    public void softDeletingDataSource(Long dataSourceId) throws IOException, SolrServerException {
 
-        final Long id = dataSource.getId();
-        final List<Study> studies = studyService.getStudiesUsesDataSource(id);
-        studies.forEach(study -> studyService.removeDataSourceUnsecured(study.getId(), id));
-        dataSourceService.delete(dataSource.getId());
-        solrService.delete(dataSource);
+        final List<Study> studies = studyService.getStudiesUsesDataSource(dataSourceId);
+        studies.forEach(study -> studyService.removeDataSourceUnsecured(study.getId(), dataSourceId));
+        dataSourceService.delete(dataSourceId);
+        solrService.delete(dataSourceId);
     }
 }

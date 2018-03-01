@@ -88,8 +88,8 @@ public class Analysis implements HasArachnePermissions, Breadcrumb, SolrEntity  
     @Column
     private Date updated;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    private User author;
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = User.class)
+    private IUser author;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Study study;
@@ -160,12 +160,12 @@ public class Analysis implements HasArachnePermissions, Breadcrumb, SolrEntity  
         this.title = title;
     }
 
-    public User getAuthor() {
+    public IUser getAuthor() {
 
         return author;
     }
 
-    public void setAuthor(User author) {
+    public void setAuthor(IUser author) {
 
         this.author = author;
     }

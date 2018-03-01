@@ -48,7 +48,7 @@ public class UserPublication implements SolrValue {
     private Long id;
 
     @ManyToOne(optional = false, targetEntity = User.class, fetch = FetchType.LAZY)
-    private User user;
+    private IUser user;
 
     @Column(length = 1024)
     private String description;
@@ -75,12 +75,12 @@ public class UserPublication implements SolrValue {
         this.id = id;
     }
 
-    public User getUser() {
+    public IUser getUser() {
 
         return user;
     }
 
-    public void setUser(User user) {
+    public void setUser(IUser user) {
 
         this.user = user;
     }

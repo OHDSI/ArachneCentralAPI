@@ -41,7 +41,6 @@ import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchExpertListDTO;
 import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
-import com.odysseusinc.arachne.portal.config.tenancy.TenantContext;
 import com.odysseusinc.arachne.portal.exception.ArachneSystemRuntimeException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.NotUniqueException;
@@ -51,8 +50,8 @@ import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.exception.WrongFileFormatException;
 import com.odysseusinc.arachne.portal.model.Country;
-import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.DataSourceStatus;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Invitationable;
 import com.odysseusinc.arachne.portal.model.ParticipantStatus;
 import com.odysseusinc.arachne.portal.model.ProfessionalType;
@@ -68,6 +67,7 @@ import com.odysseusinc.arachne.portal.model.search.UserSearch;
 import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
 import com.odysseusinc.arachne.portal.repository.AnalysisUnlockRequestRepository;
+import com.odysseusinc.arachne.portal.repository.BaseRawUserRepository;
 import com.odysseusinc.arachne.portal.repository.BaseUserRepository;
 import com.odysseusinc.arachne.portal.repository.CountryRepository;
 import com.odysseusinc.arachne.portal.repository.RoleRepository;
@@ -76,14 +76,15 @@ import com.odysseusinc.arachne.portal.repository.StudyDataSourceLinkRepository;
 import com.odysseusinc.arachne.portal.repository.UserSpecifications;
 import com.odysseusinc.arachne.portal.repository.UserStudyRepository;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordData;
+import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidationResult;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
 import com.odysseusinc.arachne.portal.service.BaseSkillService;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
+import com.odysseusinc.arachne.portal.service.BaseUserLinkService;
+import com.odysseusinc.arachne.portal.service.BaseUserPublicationService;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
 import com.odysseusinc.arachne.portal.service.TenantService;
-import com.odysseusinc.arachne.portal.service.UserLinkService;
-import com.odysseusinc.arachne.portal.service.UserPublicationService;
 import com.odysseusinc.arachne.portal.service.UserRegistrantService;
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
@@ -92,8 +93,6 @@ import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import com.odysseusinc.arachne.portal.service.mail.RegistrationMailMessage;
 import com.odysseusinc.arachne.portal.service.mail.RemindPasswordMailMessage;
 import edu.vt.middleware.password.Password;
-import edu.vt.middleware.password.PasswordValidator;
-import edu.vt.middleware.password.RuleResult;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
@@ -135,14 +134,19 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specifications;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 
-public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF extends SolrField> implements BaseUserService<U, S> {
+public abstract class BaseUserServiceImpl<
+        U extends IUser,
+        S extends Skill,
+        SF extends SolrField> implements BaseUserService<U, S> {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseUserServiceImpl.class);
     private static final String USERS_DIR = "users";
     private static final String AVATAR_FILE_NAME = "avatar.jpg";
@@ -156,16 +160,18 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     private final UserStudyRepository userStudyRepository;
     private final StudyDataSourceLinkRepository studyDataSourceLinkRepository;
     private final BaseSkillService<S> skillService;
-    private final UserLinkService userLinkService;
-    private final UserPublicationService userPublicationService;
+    private final BaseUserLinkService<UserLink> userLinkService;
+    private final BaseUserPublicationService<UserPublication> userPublicationService;
     private final RoleRepository roleRepository;
     private final BaseSolrService<SF> solrService;
     private final GenericConversionService conversionService;
     private final AnalysisUnlockRequestRepository analysisUnlockRequestRepository;
     private final ArachneMailSender arachneMailSender;
     private final UserRegistrantService userRegistrantService;
-    private final PasswordValidator passwordValidator;
+    private final ArachnePasswordValidator passwordValidator;
     private final TenantService tenantService;
+    private final BaseRawUserRepository<U> rawUserRepository;
+
     @Value("${files.store.path}")
     private String fileStorePath;
     @Value("${user.enabled.default}")
@@ -187,15 +193,16 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
                                BaseSolrService<SF> solrService,
                                ArachneMailSender arachneMailSender,
                                UserStudyRepository userStudyRepository,
-                               UserPublicationService userPublicationService,
+                               BaseUserPublicationService<UserPublication> userPublicationService,
                                UserRegistrantService userRegistrantService,
                                StudyDataSourceLinkRepository studyDataSourceLinkRepository,
                                GenericConversionService conversionService,
                                AnalysisUnlockRequestRepository analysisUnlockRequestRepository,
                                BaseSkillService<S> skillService,
                                RoleRepository roleRepository,
-                               UserLinkService userLinkService,
-                               TenantService tenantService) {
+                               BaseUserLinkService<UserLink> userLinkService,
+                               TenantService tenantService,
+                               BaseRawUserRepository<U> rawUserRepository) {
 
         this.stateProvinceRepository = stateProvinceRepository;
         this.messageSource = messageSource;
@@ -216,6 +223,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         this.roleRepository = roleRepository;
         this.userLinkService = userLinkService;
         this.tenantService = tenantService;
+        this.rawUserRepository = rawUserRepository;
     }
 
     @Override
@@ -246,7 +254,14 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     @Override
     public U findLoginCandidate(final String email) {
 
-        return userRepository.findLoginCandidate(this.userOrigin, email);
+        return rawUserRepository.findByOriginAndUsername(this.userOrigin, email);
+    }
+
+    @Override
+    @Secured({"ROLE_ADMIN"})
+    public U getByIdInAnyTenant(final Long id) {
+
+        return rawUserRepository.findByIdAndEnabledTrue(id);
     }
 
     @Override
@@ -287,6 +302,9 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         user.setPassword(passwordEncoder.encode(password));
 
         user.setTenants(tenantService.getDefault());
+        if (user.getTenants().size() > 0) {
+            user.setActiveTenant(user.getTenants().iterator().next());
+        }
 
         // The existing user check should come last:
         // it is muted in public registration form, so we need to show other errors ahead
@@ -326,7 +344,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         user.setRegistrationCode("");
         user.setUpdated(new Date());
         user.setEnabled(userEnableDefault);
-        U savedUser = userRepository.save(user);
+        U savedUser = rawUserRepository.save(user);
         indexBySolr(savedUser);
     }
 
@@ -335,7 +353,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
             throws UserNotFoundException, IOException, NotExistException,
             SolrServerException, NoSuchFieldException, IllegalAccessException {
 
-        U user = userRepository.findByRegistrationCode(activateCode);
+        U user = rawUserRepository.findByRegistrationCode(activateCode);
         if (user == null) {
             throw new UserNotFoundException("activationCode", "user not found by registration code " + activateCode);
         }
@@ -371,11 +389,17 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         return userRepository.findByIdIn(ids);
     }
 
-    @Override
-    public U update(final U user)
-            throws IllegalAccessException, SolrServerException, IOException, NotExistException, NoSuchFieldException {
+    private void afterUpdate(U savedUser) throws IOException, SolrServerException, NoSuchFieldException, IllegalAccessException {
 
-        U forUpdate = userRepository.findOne(user.getId());
+        if (savedUser.getEnabled()) {
+            indexBySolr(savedUser);
+        } else {
+            solrService.delete(savedUser);
+        }
+    }
+
+    private U baseUpdate(U forUpdate, U user) throws IOException, SolrServerException, NoSuchFieldException, IllegalAccessException {
+
         final Date date = new Date();
         forUpdate.setId(user.getId());
         if (user.getFirstname() != null) {
@@ -434,14 +458,36 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         if (user.getContactEmail() != null) {
             forUpdate.setContactEmail(user.getContactEmail());
         }
-        U savedUser = initUserCollections(userRepository.save(forUpdate));
-
-        if (savedUser.getEnabled()) {
-            indexBySolr(savedUser);
-        } else {
-            solrService.delete(user);
+        if (user.getTenants() != null) {
+            forUpdate.setTenants(user.getTenants());
         }
+
+        return forUpdate;
+    }
+
+    @Override
+    public U update(final U user)
+            throws IllegalAccessException, SolrServerException, IOException, NotExistException, NoSuchFieldException {
+
+        U forUpdate = userRepository.findOne(user.getId());
+        forUpdate = baseUpdate(forUpdate, user);
+        U savedUser = userRepository.save(forUpdate);
+        savedUser = initUserCollections(savedUser);
+        afterUpdate(savedUser);
         return savedUser;
+    }
+
+    @Override
+    @Secured({"ROLE_ADMIN"})
+    public U updateUnsafeInAnyTenant(U user)
+            throws IllegalAccessException, SolrServerException, IOException, NotExistException, NoSuchFieldException {
+
+        U forUpdate = getByIdInAnyTenant(user.getId());
+        forUpdate = baseUpdate(forUpdate, user);
+        U savedUser = rawUserRepository.saveAndFlush(forUpdate);
+        savedUser = initUserCollections(savedUser);
+        afterUpdate(savedUser);
+        return user;
     }
 
     @Override
@@ -457,7 +503,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     @Override
     public U getByUuidAndInitializeCollections(String uuid) {
 
-        return initUserCollections(getByUuid(uuid));
+        return (U) initUserCollections(getByUuid(uuid));
     }
 
     @Override
@@ -604,8 +650,8 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
 
         if (user != null) {
             user.setRoles(roleRepository.findByUser(user.getId()));
-            user.setLinks(userLinkService.findByUser(user));
-            user.setPublications(userPublicationService.findByUser(user));
+            user.setLinks(userLinkService.findByUserId(user.getId()));
+            user.setPublications(userPublicationService.findByUserId(user.getId()));
         }
         return user;
     }
@@ -636,7 +682,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         userPublicationService.delete(publicationId);
         U user = userRepository.findOne(userId);
         user.getPublications().size();
-        return initUserCollections(user);
+        return (U) initUserCollections(user);
     }
 
     @Override
@@ -829,7 +875,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         return solrService.search(
                 SolrCollection.USERS.getName(),
                 solrQuery,
-                User.class.getDeclaredField("tenants")
+                ReflectionUtils.findField(User.class, "tenants")
         );
     }
 
@@ -990,7 +1036,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         passwordData.setFirstName(firstName);
         passwordData.setLastName(lastName);
         passwordData.setMiddleName(middleName);
-        RuleResult result = passwordValidator.validate(passwordData);
+        final ArachnePasswordValidationResult result = passwordValidator.validate(passwordData);
         if (!result.isValid()) {
             throw new PasswordValidationException(passwordValidator.getMessages(result));
         }

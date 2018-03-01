@@ -60,8 +60,8 @@ public class Comment implements Serializable {
     private Comment parent;
     @ManyToOne(fetch = FetchType.LAZY)
     private CommentTopic topic;
-    @ManyToOne(fetch = FetchType.LAZY)
-    private User author;
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = User.class)
+    private IUser author;
 
     public Long getId() {
 
@@ -123,12 +123,12 @@ public class Comment implements Serializable {
         this.topic = topic;
     }
 
-    public User getAuthor() {
+    public IUser getAuthor() {
 
         return author;
     }
 
-    public void setAuthor(User author) {
+    public void setAuthor(IUser author) {
 
         this.author = author;
     }

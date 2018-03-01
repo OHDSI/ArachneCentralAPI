@@ -26,15 +26,15 @@ import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
 import com.odysseusinc.arachne.portal.api.v1.dto.DataNodeDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.DataSourceDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.PermissionsDTO;
-import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import org.springframework.stereotype.Component;
 
 @Component
 @SuppressWarnings("unused")
-public class DataSourceToDataSourceDTOConverter extends BaseDataSourceToCommonDataSourceDTOConverter<DataSource, DataSourceDTO> {
+public class DataSourceToDataSourceDTOConverter extends BaseDataSourceToCommonDataSourceDTOConverter<IDataSource, DataSourceDTO> {
 
     @Override
-    protected void proceedAdditionalFields(DataSourceDTO dataSourceDTO, DataSource dataSource) {
+    protected void proceedAdditionalFields(DataSourceDTO dataSourceDTO, IDataSource dataSource) {
 
         final CommonHealthStatus healthStatus = dataSource.getHealthStatus();
         dataSourceDTO.setHealthStatus(healthStatus);

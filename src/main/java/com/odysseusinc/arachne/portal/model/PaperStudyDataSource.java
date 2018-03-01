@@ -45,9 +45,9 @@ public class PaperStudyDataSource {
 
     @ManyToOne(optional = false, targetEntity = Paper.class, fetch = FetchType.LAZY)
     private Paper paper;
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, targetEntity = DataSource.class)
     @JoinColumn(name = "data_source_id")
-    private DataSource dataSource;
+    private IDataSource dataSource;
 
     public Long getId() {
 
@@ -69,12 +69,12 @@ public class PaperStudyDataSource {
         this.paper = paper;
     }
 
-    public DataSource getDataSource() {
+    public IDataSource getDataSource() {
 
         return dataSource;
     }
 
-    public void setDataSource(DataSource dataSource) {
+    public void setDataSource(IDataSource dataSource) {
 
         this.dataSource = dataSource;
     }

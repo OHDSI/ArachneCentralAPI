@@ -24,7 +24,9 @@ package com.odysseusinc.arachne.portal.service;
 
 import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
 import com.odysseusinc.arachne.portal.model.Analysis;
+import com.odysseusinc.arachne.portal.model.BaseDataSource;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.Submission;
@@ -33,7 +35,7 @@ import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import java.util.List;
 
 public interface BaseAdminService<S extends Study,
-        DS extends DataSource,
+        DS extends IDataSource,
         SS extends StudySearch,
         SU extends AbstractUserStudyListItem,
         A extends Analysis,

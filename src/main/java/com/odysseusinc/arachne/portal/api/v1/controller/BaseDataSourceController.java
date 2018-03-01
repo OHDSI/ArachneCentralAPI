@@ -35,8 +35,8 @@ import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
-import com.odysseusinc.arachne.portal.model.DataSource;
-import com.odysseusinc.arachne.portal.model.User;
+import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.StudyDataSourceService;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
@@ -61,7 +61,8 @@ import java.security.Principal;
 import java.util.Arrays;
 import java.util.List;
 
-public abstract class BaseDataSourceController<DS extends DataSource,
+public abstract class BaseDataSourceController<
+        DS extends IDataSource,
         DTO extends CommonBaseDataSourceDTO,
         DS_DTO extends IDataSourceDTO,
         R extends FacetedSearchResultDTO<?>> extends BaseController {
@@ -101,7 +102,7 @@ public abstract class BaseDataSourceController<DS extends DataSource,
         if (bindingResult.hasErrors()) {
             result = setValidationErrors(bindingResult);
         } else {
-            User user = getUser(principal);
+            IUser user = getUser(principal);
             final DS exist = dataSourceService.findById(dataSourceId);
             DS dataSource = convertDTOToDataSource(commonDataSourceDTO);
             dataSource.setId(dataSourceId);
@@ -123,7 +124,7 @@ public abstract class BaseDataSourceController<DS extends DataSource,
         if (studyId == null || query == null) {
             throw new javax.validation.ValidationException();
         }
-        final User user = getUser(principal);
+        final IUser user = getUser(principal);
         Sort sort = new Sort(Sort.Direction.ASC, "name");
         PageRequest pageRequest = new PageRequest(pageDTO.getPage() - 1, pageDTO.getPageSize(), sort);
 
@@ -142,7 +143,7 @@ public abstract class BaseDataSourceController<DS extends DataSource,
                               @ModelAttribute SearchDataCatalogDTO searchDTO
     ) throws IOException, SolrServerException, PermissionDeniedException, NoSuchFieldException {
 
-        final User user = getUser(principal);
+        final IUser user = getUser(principal);
         SolrQuery solrQuery = conversionService.convert(searchDTO, SolrQuery.class);
         SearchResult<DS> searchResult = dataSourceService.search(solrQuery, user);
         return new JsonResult<>(NO_ERROR, conversionService.convert(searchResult, getSearchResultClass()));
@@ -170,7 +171,7 @@ public abstract class BaseDataSourceController<DS extends DataSource,
     public void deleteDataSource(@PathVariable("id") Long id) throws IOException, SolrServerException {
 
         final DS dataSource = dataSourceService.findById(id);
-        studyDataSourceService.softDeletingDataSource(dataSource);
+        studyDataSourceService.softDeletingDataSource(dataSource.getId());
     }
 
     @RequestMapping(value = "/api/v1/data-sources/cdm-versions", method = RequestMethod.GET)

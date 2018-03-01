@@ -43,8 +43,8 @@ public class SubmissionFile extends ArachneFile {
     private Boolean executable;
     @ManyToOne(fetch = FetchType.LAZY)
     private SubmissionGroup submissionGroup;
-    @ManyToOne(fetch = FetchType.LAZY)
-    private User author;
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = User.class)
+    private IUser author;
     @Column(name = "version")
     private Integer version;
     @Column(name = "checksum")
@@ -82,12 +82,12 @@ public class SubmissionFile extends ArachneFile {
         this.executable = executable;
     }
 
-    public User getAuthor() {
+    public IUser getAuthor() {
 
         return author;
     }
 
-    public void setAuthor(User author) {
+    public void setAuthor(IUser author) {
 
         this.author = author;
     }

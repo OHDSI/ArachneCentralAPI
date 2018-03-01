@@ -32,9 +32,9 @@ import com.odysseusinc.arachne.portal.model.AnalysisFile;
 import com.odysseusinc.arachne.portal.model.AnalysisUnlockRequest;
 import com.odysseusinc.arachne.portal.model.DataReference;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyViewItem;
-import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.model.statemachine.study.StudyStateMachine;
 import com.odysseusinc.arachne.portal.repository.AnalysisFileRepository;
@@ -175,7 +175,7 @@ public class AnalysisServiceImpl extends BaseAnalysisServiceImpl<Analysis, Study
 
     @Override
     @Secured({"ROLE_ADMIN"})
-    public List<Analysis> list(User user, Long studyId) throws PermissionDeniedException, NotExistException {
+    public List<Analysis> list(IUser user, Long studyId) throws PermissionDeniedException, NotExistException {
 
         return super.list(user, studyId);
     }
@@ -191,7 +191,7 @@ public class AnalysisServiceImpl extends BaseAnalysisServiceImpl<Analysis, Study
     @Override
     @PreAuthorize("hasPermission(#analysis, "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).UPLOAD_ANALYSIS_FILES)")
-    public AnalysisFile saveFile(MultipartFile multipartFile, User user, Analysis analysis,
+    public AnalysisFile saveFile(MultipartFile multipartFile, IUser user, Analysis analysis,
                                  String label, Boolean isExecutable, DataReference dataReference)
             throws IOException {
 
@@ -201,7 +201,7 @@ public class AnalysisServiceImpl extends BaseAnalysisServiceImpl<Analysis, Study
     @Override
     @PreAuthorize("hasPermission(#analysis, "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).UPLOAD_ANALYSIS_FILES)")
-    public AnalysisFile saveFile(String link, User user, Analysis analysis, String label,
+    public AnalysisFile saveFile(String link, IUser user, Analysis analysis, String label,
                                  Boolean isExecutable) throws IOException {
 
         return super.saveFile(link, user, analysis, label, isExecutable);
