@@ -35,6 +35,7 @@ import org.hibernate.annotations.SQLDelete;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorFormula("'DATA_SOURCE_ENTITY'")
 @Table(name = "data_sources_data")
+@DiscriminatorFormula("'DATA_SOURCE_ENTITY'")
 @SQLDelete(sql = "UPDATE data_sources_data "
         + "SET deleted = current_timestamp, health_status = 'NOT_CONNECTED', health_status_description = 'Deleted'"
         + " WHERE id = ?")

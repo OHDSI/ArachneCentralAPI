@@ -22,22 +22,21 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
-import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeRegisterDTO;
+import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeCreationResponseDTO;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CommonDataNodeRegisterDTOToDataNodeConverter
-        extends BaseConversionServiceAwareConverter<CommonDataNodeRegisterDTO, DataNode> {
+public class DataNodeToCommonDataNodeCreationResponseDTOConverter
+        extends BaseConversionServiceAwareConverter<DataNode, CommonDataNodeCreationResponseDTO> {
 
     @Override
-    public DataNode convert(CommonDataNodeRegisterDTO source) {
+    public CommonDataNodeCreationResponseDTO convert(DataNode source) {
 
-        DataNode dataNode = new DataNode();
-        dataNode.setName(source.getName());
-        dataNode.setDescription(source.getDescription());
-        dataNode.setVirtual(false);
-        dataNode.setPublished(true);
-        return dataNode;
+        CommonDataNodeCreationResponseDTO dto = new CommonDataNodeCreationResponseDTO();
+        dto.setDataNodeUuid(source.getSid());
+        dto.setToken(source.getToken());
+        dto.setCentralId(source.getId());
+        return dto;
     }
 }

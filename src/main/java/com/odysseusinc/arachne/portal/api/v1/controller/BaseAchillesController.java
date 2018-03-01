@@ -45,6 +45,8 @@ import com.odysseusinc.arachne.portal.repository.DataNodeRepository;
 import com.odysseusinc.arachne.portal.service.AchillesService;
 import com.odysseusinc.arachne.portal.util.ConverterUtils;
 import io.swagger.annotations.ApiOperation;
+import java.io.IOException;
+import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,9 +60,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.util.List;
 
 public abstract class BaseAchillesController<DS extends IDataSource> {
     private static final String ACHILLES_RESULT_LOADED_LOG
@@ -187,7 +186,7 @@ public abstract class BaseAchillesController<DS extends IDataSource> {
 
         DS dataSource = dataSourceRepository.findOne(datasourceId);
         if (dataSource == null) {
-            String message = String.format("Datasource with uuid: '%s' not found", datasourceId);
+            String message = String.format("Datasource with id: '%s' not found", datasourceId);
             throw new NotExistException(message, dataSourceClass);
         }
         return dataSource;

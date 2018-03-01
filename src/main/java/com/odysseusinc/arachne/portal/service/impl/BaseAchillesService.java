@@ -24,7 +24,6 @@ package com.odysseusinc.arachne.portal.service.impl;
 
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
-import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.achilles.AchillesFile;
@@ -37,7 +36,6 @@ import com.odysseusinc.arachne.portal.repository.CharacterizationRepository;
 import com.odysseusinc.arachne.portal.service.AchillesImportService;
 import com.odysseusinc.arachne.portal.service.AchillesService;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
-import com.odysseusinc.arachne.portal.service.StudyService;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -68,6 +66,9 @@ public abstract class BaseAchillesService<DS extends IDataSource, S extends Stud
     }
 
     @Override
+    // todo ARACHNE-1886
+    /* @PreAuthorize("hasPermission(#dataSource, " +
+            "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACHILLES_PERMISSION)")*/
     public void createCharacterization(DS dataSource, MultipartFile data) throws IOException {
 
         final File tempFile = Files.createTempFile("achilles", ".zip").toFile();
