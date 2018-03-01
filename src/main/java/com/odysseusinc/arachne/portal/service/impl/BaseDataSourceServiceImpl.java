@@ -43,7 +43,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -328,20 +327,6 @@ public abstract class BaseDataSourceServiceImpl<
         String suggestRequest = "%(" + String.join("|", split) + ")%";
         return dataSourceRepository.getUserDataSources(suggestRequest, userId, pageRequest);
     }
-
-    @Override
-    public boolean fieldsDefinedAtNodeAreChanged(DS updating, DS commonDataSourceDTO){
-
-        return !Objects.equals(updating.getName(), commonDataSourceDTO.getName());
-    }
-
-    @Override
-    public DS updateFieldsDefinedAtNode(DS updating, DS updated){
-
-        updating.setName(updated.getName());
-        return updating;
-    }
-
 
     public FieldList<SF> getSolrFields() {
 

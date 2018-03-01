@@ -98,8 +98,4 @@ public interface BaseDataSourceService<DS extends IDataSource> {
     void unpublish(Long id) throws IOException, SolrServerException;
 
     Page<DS> getUserDataSources(final String query, final Long userId, PageRequest pageRequest);
-
-    boolean fieldsDefinedAtNodeAreChanged(DS updating, DS commonDataSourceDTO);
-
-    DS updateFieldsDefinedAtNode(DS updating, DS updated);
 }
