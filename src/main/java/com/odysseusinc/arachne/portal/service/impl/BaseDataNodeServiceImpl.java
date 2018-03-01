@@ -39,12 +39,6 @@ import com.odysseusinc.arachne.portal.repository.DataNodeRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeStatusRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeUserRepository;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
@@ -52,6 +46,11 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 
 public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements BaseDataNodeService<DN> {
 
@@ -84,7 +83,7 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
 
     @Override
     // Does not require permissions because Datanode users can be added after register Datanode only
-    public DN register(DN dataNode) {
+    public DN create(DN dataNode) {
 
         checkNotNull(dataNode, "given datanode is null");
 
@@ -118,6 +117,7 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
         existsDataNode.setName(dataNode.getName());
         existsDataNode.setDescription(dataNode.getDescription());
         existsDataNode.setAtlasVersion(dataNode.getAtlasVersion());
+        existsDataNode.setPublished(true);
         return dataNodeRepository.save(existsDataNode);
     }
 
@@ -167,6 +167,14 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
     @PreAuthorize("#dataNode == authentication.principal")
     public void linkUserToDataNode(DN dataNode, IUser user, Set<DataNodeRole> roles)
             throws NotExistException, AlreadyExistException {
+
+        linkUserToDataNodeUnsafe(dataNode, user, roles);
+    }
+
+    @Transactional
+    @Override
+    public void linkUserToDataNodeUnsafe(DN dataNode, IUser user, Set<DataNodeRole> roles)
+            throws NotExistException {
 
         LOGGER.info(LINKING_USER_LOG, user.getId(), dataNode.getId());
         final DataNodeUser dataNodeUser = new DataNodeUser();

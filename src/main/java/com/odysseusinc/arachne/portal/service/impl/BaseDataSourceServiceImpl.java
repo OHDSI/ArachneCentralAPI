@@ -26,7 +26,6 @@ import com.odysseusinc.arachne.commons.api.v1.dto.CommonModelType;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchDataCatalogDTO;
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
-import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
@@ -38,6 +37,13 @@ import com.odysseusinc.arachne.portal.service.TenantService;
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
 import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -50,14 +56,7 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ReflectionUtils;
 
 @Transactional(rollbackFor = Exception.class)
@@ -91,34 +90,23 @@ public abstract class BaseDataSourceServiceImpl<
     @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
     public DS createOrRestoreDataSource(DS dataSource)
             throws FieldException,
-            NotExistException,
-            ValidationException,
-            IOException,
-            SolrServerException, NoSuchFieldException, IllegalAccessException {
+            NotExistException {
 
         final Boolean virtual = dataSource.getDataNode().getVirtual();
         beforeCreate(dataSource, virtual);
 
-        if (!dataSource.getModelType().equals(CommonModelType.CDM)) {
+        if (!CommonModelType.CDM.equals(dataSource.getModelType())) {
             dataSource.setCdmVersion(null);
         }
         DS savedDataSource = dataSourceRepository.save(dataSource);
-        afterCreate(savedDataSource, virtual);
         return savedDataSource;
     }
 
     protected void beforeCreate(DS dataSource, boolean virtual) {
 
+        dataSource.setPublished(false);
         dataSource.setCreated(new Date());
         dataSource.setTenants(tenantService.getDefault());
-    }
-
-    protected void afterCreate(DS dataSource, boolean virtual)
-            throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
-
-        if (!virtual) {
-            indexBySolr(dataSource);
-        }
     }
 
     protected QueryResponse solrSearch(SolrQuery solrQuery) throws IOException, SolrServerException, NoSuchFieldException {
@@ -144,7 +132,7 @@ public abstract class BaseDataSourceServiceImpl<
                 .collect(Collectors.toList());
 
         // We need to repeat sorting, because repository doesn't prevent order of passed ids
-        dataSourceList = dataSourceRepository.findByIdInAndDeletedIsNull(docIdList);
+        dataSourceList = dataSourceRepository.findByIdInAndDeletedIsNullAndPublishedTrue(docIdList);
         dataSourceList.sort(Comparator.comparing(item -> docIdList.indexOf(item.getId())));
 
         return new SearchResult<>(solrQuery, solrResponse, dataSourceList);
@@ -160,7 +148,25 @@ public abstract class BaseDataSourceServiceImpl<
         return result;
     }
 
-    private DS baseUpdate(DS exist, DS dataSource) throws IOException, NoSuchFieldException, SolrServerException, IllegalAccessException {
+    @Transactional
+    @PreAuthorize("hasPermission(#dataSource, "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_DATASOURCE)")
+    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
+    @Override
+    public DS update(DS dataSource)
+            throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
+
+        DS forUpdate = dataSourceRepository.findByIdAndDeletedIsNull(dataSource.getId())
+                .orElseThrow(() -> new NotExistException(DataSource.class));
+        forUpdate = baseUpdate(forUpdate, dataSource);
+
+        beforeUpdate(forUpdate, dataSource);
+        DS savedDataSource = dataSourceRepository.save(forUpdate);
+        afterUpdate(savedDataSource);
+        return savedDataSource;
+    }
+
+    private DS baseUpdate(DS exist, DS dataSource) {
 
         if (dataSource.getName() != null) {
             exist.setName(dataSource.getName());
@@ -171,35 +177,22 @@ public abstract class BaseDataSourceServiceImpl<
         }
 
         if (dataSource.getCdmVersion() != null) {
-            exist.setCdmVersion(dataSource.getModelType().equals(CommonModelType.CDM) ? dataSource.getCdmVersion() : null);
+            exist.setCdmVersion(CommonModelType.CDM.equals(dataSource.getModelType()) ? dataSource.getCdmVersion() : null);
         }
 
         if (dataSource.getOrganization() != null) {
             exist.setOrganization(dataSource.getOrganization());
         }
 
-        if (dataSource.getTenants() != null) {
+        if (dataSource.getPublished() != null) {
+            exist.setPublished(dataSource.getPublished());
+        }
+
+        if (!CollectionUtils.isEmpty(dataSource.getTenants())) {
             exist.setTenants(dataSource.getTenants());
         }
 
         return exist;
-    }
-
-    @Transactional
-    @PreAuthorize("hasPermission(#dataSource, "
-            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).CREATE_DATASOURCE)")
-    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
-    @Override
-    public DS update(DS dataSource)
-            throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
-
-        DS forUpdate = dataSourceRepository.findByIdAndDeletedIsNull(dataSource.getId())
-                .orElseThrow(() -> new NotExistException(DataSource.class));
-        forUpdate = baseUpdate(forUpdate, dataSource);
-        beforeUpdate(forUpdate, dataSource);
-        DS savedDataSource = dataSourceRepository.save(forUpdate);
-        afterUpdate(savedDataSource);
-        return savedDataSource;
     }
 
     @Secured({"ROLE_ADMIN"})
@@ -222,7 +215,8 @@ public abstract class BaseDataSourceServiceImpl<
     protected void afterUpdate(DS dataSource)
             throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
-        if (!dataSource.getDataNode().getVirtual()) {
+        if (!dataSource.getDataNode().getVirtual() && dataSource.getPublished() != null
+                && dataSource.getPublished()) {
             indexBySolr(dataSource);
         }
     }
@@ -250,7 +244,11 @@ public abstract class BaseDataSourceServiceImpl<
         if (id == null) {
             throw new NotExistException("id is null", getType());
         }
-        return dataSourceRepository.findById(id).orElseThrow(() -> new NotExistException(getType()));
+        DS dataSource = rawDataSourceRepository.findOne(id);
+        if (dataSource == null) {
+            throw new NotExistException(getType());
+        }
+        return dataSource;
     }
 
     protected abstract Class<?> getType();
@@ -258,12 +256,12 @@ public abstract class BaseDataSourceServiceImpl<
     @Override
     public List<DS> getAllNotDeletedIsNotVirtualUnsecured() {
 
-        return dataSourceRepository.getByDataNodeVirtualAndDeletedIsNull(false);
+        return dataSourceRepository.getByDataNodeVirtualAndDeletedIsNullAndPublishedTrue(false);
     }
 
     private List<DS> getAllNotDeletedAndIsNotVirtualFromAllTenants() {
 
-        return dataSourceRepository.getAllNotDeletedAndIsNotVirtualFromAllTenants();
+        return dataSourceRepository.getAllNotDeletedAndIsNotVirtualAndPublishedTrueFromAllTenants();
     }
 
     @Override
@@ -297,12 +295,35 @@ public abstract class BaseDataSourceServiceImpl<
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).DELETE_DATASOURCE)")
     @Transactional
     @Override
-    public void delete(Long id) throws IOException, SolrServerException {
+    public void delete(Long id) {
 
         log.info("Deleting datasource with id={}", id);
-        if (dataSourceRepository.deleteByIdAndDeletedIsNull(id) == 0) {
-            throw new NotExistException(getType());
+        rawDataSourceRepository.delete(id);
+    }
+
+    @PreAuthorize("hasPermission(#id, 'DataSource', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_DATASOURCE)")
+    @Transactional
+    @Override
+    public void unpublish(Long id) throws IOException, SolrServerException {
+
+        log.info("Unpublishing datasource with id={}", id);
+        DS dataSource = getByIdUnsecured(id);
+
+        if (dataSource.getPublished() != null && dataSource.getPublished()) {
+            dataSource.setPublished(false);
+            dataSourceRepository.save(dataSource);
+
+            solrService.deleteByQuery(SolrServiceImpl.DATA_SOURCE_COLLECTION, "id:" + id);
         }
+    }
+
+    @Override
+    public Page<DS> getUserDataSources(final String query, final Long userId, PageRequest pageRequest) {
+
+        final String[] split = query.trim().split(" ");
+        String suggestRequest = "%(" + String.join("|", split) + ")%";
+        return dataSourceRepository.getUserDataSources(suggestRequest, userId, pageRequest);
     }
 
     public FieldList<SF> getSolrFields() {
@@ -363,6 +384,11 @@ public abstract class BaseDataSourceServiceImpl<
     public DS findById(Long dataSourceId) {
 
         return dataSourceRepository.findByIdAndDeletedIsNull(dataSourceId).orElseThrow(() -> new NotExistException(getType()));
+    }
+
+    public List<DS> findByIdsAndNotDeleted(List<Long> dataSourceIds) {
+
+        return rawDataSourceRepository.findByIdInAndDeletedIsNull(dataSourceIds);
     }
 
     public abstract List<DS> getAllByUserId(Long userId);

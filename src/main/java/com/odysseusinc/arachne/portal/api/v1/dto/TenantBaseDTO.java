@@ -26,6 +26,7 @@ public class TenantBaseDTO {
 
     private Long id;
     private String name;
+    private Boolean isDefault;
 
     public Long getId() {
 
@@ -45,5 +46,15 @@ public class TenantBaseDTO {
     public void setName(String name) {
 
         this.name = name;
+    }
+
+    public Boolean getDefault() {
+
+        return isDefault;
+    }
+
+    public void setDefault(Boolean aDefault) {
+
+        isDefault = aDefault;
     }
 }

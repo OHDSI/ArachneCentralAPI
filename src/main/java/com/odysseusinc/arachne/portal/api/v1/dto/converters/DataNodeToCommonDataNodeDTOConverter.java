@@ -22,23 +22,23 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
-import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeRegisterResponseDTO;
+import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeDTO;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import org.springframework.stereotype.Component;
 
 @Component
-public class DataNodeToCommonDataNodeRegisterResponseDTOConverter
-        extends BaseConversionServiceAwareConverter<DataNode, CommonDataNodeRegisterResponseDTO> {
+public class DataNodeToCommonDataNodeDTOConverter
+        extends BaseConversionServiceAwareConverter<DataNode, CommonDataNodeDTO> {
 
     @Override
-    public CommonDataNodeRegisterResponseDTO convert(DataNode source) {
+    public CommonDataNodeDTO convert(DataNode source) {
 
-        CommonDataNodeRegisterResponseDTO dataNodeRegisterResponseDTO = new CommonDataNodeRegisterResponseDTO();
-        dataNodeRegisterResponseDTO.setDataNodeUuid(source.getSid());
-        dataNodeRegisterResponseDTO.setName(source.getName());
-        dataNodeRegisterResponseDTO.setDescription(source.getDescription());
-        dataNodeRegisterResponseDTO.setToken(source.getToken());
-        dataNodeRegisterResponseDTO.setCentralId(source.getId());
-        return dataNodeRegisterResponseDTO;
+        CommonDataNodeDTO dto = new CommonDataNodeDTO();
+        dto.setDataNodeUuid(source.getSid());
+        dto.setName(source.getName());
+        dto.setDescription(source.getDescription());
+        dto.setToken(source.getToken());
+        dto.setCentralId(source.getId());
+        return dto;
     }
 }
