@@ -243,11 +243,11 @@ public abstract class BaseAnalysisController<T extends Analysis,
     @RequestMapping(value = "/api/v1/analysis-management/analyses/{analysisId}/submission-groups", method = GET)
     public Page<SubmissionGroupDTO> getSubmissionGroups(
             @PathVariable("analysisId") Long id,
-            @ModelAttribute SubmissionGroupSearch submissoinGroupSearch
+            @ModelAttribute SubmissionGroupSearch submissionGroupSearch
     ) {
 
-        submissoinGroupSearch.setAnalysisId(id);
-        return submissionService.getSubmissionGroups(submissoinGroupSearch).map(sg -> {
+        submissionGroupSearch.setAnalysisId(id);
+        return submissionService.getSubmissionGroups(submissionGroupSearch).map(sg -> {
             SubmissionGroupDTO sgDTO = conversionService.convert(sg, SubmissionGroupDTO.class);
             sgDTO.getSubmissions().forEach(sd -> {
                 Submission s = ((Submission) sd.getConversionSource());

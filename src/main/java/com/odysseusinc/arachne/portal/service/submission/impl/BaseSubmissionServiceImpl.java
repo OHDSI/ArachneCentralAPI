@@ -122,6 +122,7 @@ import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -442,12 +443,16 @@ public abstract class BaseSubmissionServiceImpl<
             sg.setSubmissions(new ArrayList<>());
             return sg;
         }));
-        final SubmissionSpecification submissionSpecification = SubmissionSpecification.builder(submissionGroupMap.keySet())
-                .withStatuses(submissoinGroupSearch.getSubmissionStatuses())
-                .withDataSourceIds(submissoinGroupSearch.getDataSourceIds())
-                .build();
-        submissionRepository.findAll(submissionSpecification)
-                .forEach(s -> submissionGroupMap.get(s.getSubmissionGroup().getId()).getSubmissions().add(s));
+
+        final Set<Long> submissionGroupIds = submissionGroupMap.keySet();
+        if (!CollectionUtils.isEmpty(submissionGroupIds)) {
+            final SubmissionSpecification submissionSpecification = SubmissionSpecification.builder(submissionGroupIds)
+                    .withStatuses(submissoinGroupSearch.getSubmissionStatuses())
+                    .withDataSourceIds(submissoinGroupSearch.getDataSourceIds())
+                    .build();
+            submissionRepository.findAll(submissionSpecification)
+                    .forEach(s -> submissionGroupMap.get(s.getSubmissionGroup().getId()).getSubmissions().add(s));
+        }
         return submissionGroups;
     }
 

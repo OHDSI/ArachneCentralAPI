@@ -89,6 +89,7 @@ public class SubmissionGroupSpecification implements Specification<SubmissionGro
                     )
             );
         }
+        query.distinct(true);
         return cb.and(predicates.toArray(new Predicate[predicates.size()]));
     }
 }

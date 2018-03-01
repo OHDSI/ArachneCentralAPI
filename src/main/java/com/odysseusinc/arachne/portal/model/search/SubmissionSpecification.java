@@ -51,7 +51,7 @@ public class SubmissionSpecification implements Specification<Submission> {
     public SubmissionSpecification(Set<Long> submissionGroupIds) {
 
         if (Collections.isEmpty(submissionGroupIds)) {
-            throw new IllegalArgumentException("Contsructor parameters must not be empty");
+            throw new IllegalArgumentException("Constructor parameters must not be empty");
         }
         this.submissionGroupIds = submissionGroupIds;
     }
