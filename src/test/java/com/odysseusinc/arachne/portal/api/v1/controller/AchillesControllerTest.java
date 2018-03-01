@@ -152,13 +152,13 @@ public class AchillesControllerTest extends BaseControllerTest {
     public void getFile() throws Exception {
 
         Bootstrap bootstrap = new Bootstrap();
-        AchillesFile observationFile = achillesFileRepository.findOne(11L);
+        AchillesFile observationFile = achillesFileRepository.findById(11L).orElse(null);
         assertThat(observationFile, is(notNullValue()));
         observationFile.setData(bootstrap.observationJson());
-        AchillesFile dashboardFile = achillesFileRepository.findOne(4L);
+        AchillesFile dashboardFile = achillesFileRepository.findById(4L).orElse(null);
         assertThat(dashboardFile, is(notNullValue()));
         dashboardFile.setData(bootstrap.dashboardJson());
-        achillesFileRepository.save(Arrays.asList(observationFile, dashboardFile));
+        achillesFileRepository.saveAll(Arrays.asList(observationFile, dashboardFile));
 
         mvc.perform(get(String.format(API_FILES, PUBLIC_DS, "dashboard.json"))
                 .accept(MediaType.APPLICATION_JSON_UTF8))

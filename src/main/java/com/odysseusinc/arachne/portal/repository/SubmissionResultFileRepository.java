@@ -33,7 +33,5 @@ import org.springframework.data.repository.query.Param;
 
 public interface SubmissionResultFileRepository extends CrudRepository<ResultFile, Long> {
 
-    ResultFile findById(Long id);
-
     ResultFile findByPath(String path);
 }

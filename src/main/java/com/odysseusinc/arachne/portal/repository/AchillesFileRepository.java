@@ -24,12 +24,13 @@ package com.odysseusinc.arachne.portal.repository;
 
 import com.odysseusinc.arachne.portal.model.achilles.AchillesFile;
 import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import springfox.documentation.annotations.Cacheable;
 
-public interface AchillesFileRepository extends CrudRepository<AchillesFile, Long> {
+public interface AchillesFileRepository extends JpaRepository<AchillesFile, Long> {
 
     @Cacheable("achillesFile")
     @Query(nativeQuery = true, value = "SELECT * FROM achilles_files "

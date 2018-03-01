@@ -24,12 +24,9 @@ package com.odysseusinc.arachne.portal.repository;
 
 import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.ResultFile;
-import java.util.List;
 import org.springframework.data.repository.CrudRepository;
 
 public interface ResultFileRepository extends CrudRepository<ResultFile, Long> {
-
-    ResultFile findById(Long fileId);
 
     ResultFile findByPath(String path);
 

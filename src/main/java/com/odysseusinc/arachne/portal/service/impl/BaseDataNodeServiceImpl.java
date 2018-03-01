@@ -156,12 +156,7 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
     public DN getById(Long id) throws NotExistException {
 
         if (Objects.nonNull(id)) {
-            final DN dataNode = dataNodeRepository.findOne(id);
-            if (dataNode == null) {
-                final String message = String.format(IS_NOT_FOUND_EXCEPTION, id);
-                throw new NotExistException(message, DataNode.class);
-            }
-            return dataNode;
+            return dataNodeRepository.findById(id).orElseThrow(() -> new NotExistException(String.format(IS_NOT_FOUND_EXCEPTION, id), DataNode.class));
         } else {
             throw new IllegalArgumentException("unable to find datanode by null id ");
         }

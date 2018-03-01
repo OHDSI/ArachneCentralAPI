@@ -46,6 +46,7 @@ public class DataSourceConfig extends HikariConfig {
 
         setDriverClassName(driverClassName);
         setJdbcUrl(jdbcUrl);
+        this.setPassword("ohdsi");
         return new HikariDataSource(this);
     }
 

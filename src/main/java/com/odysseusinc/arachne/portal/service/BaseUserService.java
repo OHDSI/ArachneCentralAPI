@@ -45,6 +45,7 @@ import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
+import java.util.Optional;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -90,7 +91,7 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
 
     U getByIdAndInitializeCollections(Long id);
 
-    U getById(Long id);
+    Optional<U> getById(Long id);
 
     List<U> getAllByIDs(List<Long> ids);
 
@@ -205,7 +206,7 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
 
     List<? extends Invitationable> getUnlockAnalysisRequests(U user);
 
-    U findOne(Long participantId);
+    U findById(Long participantId);
 
     List<U> findUsersByUuidsIn(List<String> dataOwnerIds);
 

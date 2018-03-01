@@ -160,7 +160,7 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
 
     private P getPaperByIdOrThrow(Long id) {
 
-        return Optional.ofNullable(paperRepository.findOne(id))
+        return paperRepository.findById(id)
                 .orElseThrow(() -> new NotExistException(Paper.class));
     }
 
@@ -217,9 +217,7 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
                     }
                 }
         );
-        if (paperRepository.deleteById(id) == 0) {
-            throw new NotExistException(Paper.class);
-        }
+        paperRepository.deleteById(id);
     }
 
     @PreAuthorize("hasPermission(#paperId, 'Paper', "
@@ -309,13 +307,13 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
             case PAPER: {
                 paperFile = paperPaperFileRepository.findByPaperIdAndUuid(paperId, fileUuid)
                         .orElseThrow(() -> new NotExistException(AbstractPaperFile.class));
-                paperPaperFileRepository.delete(paperFile.getId());
+                paperPaperFileRepository.deleteById(paperFile.getId());
                 break;
             }
             case PROTOCOL: {
                 paperFile = paperProtocolFileRepository.findByPaperIdAndUuid(paperId, fileUuid)
                         .orElseThrow(() -> new NotExistException(AbstractPaperFile.class));
-                paperProtocolFileRepository.delete(paperFile.getId());
+                paperProtocolFileRepository.deleteById(paperFile.getId());
                 break;
             }
             default: {
@@ -435,15 +433,15 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
         for (P paper : papers) {
 
             List<PaperPaperFile> paperPaperFiles = paper.getPapers();
-            paperPaperFileRepository.delete(paperPaperFiles);
+            paperPaperFileRepository.deleteAll(paperPaperFiles);
             fileService.delete(paperPaperFiles);
 
             List<PaperProtocolFile> protocolFiles = paper.getProtocols();
-            paperProtocolFileRepository.delete(protocolFiles);
+            paperProtocolFileRepository.deleteAll(protocolFiles);
             fileService.delete(protocolFiles);
         }
 
-        paperRepository.delete(papers);
+        paperRepository.deleteAll(papers);
     }
 
     @EventListener
@@ -465,12 +463,12 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
     private void update(AntivirusJobResponseEventBase event, JpaRepository repository) {
 
         final AntivirusJobResponse antivirusJobResponse = event.getAntivirusJobResponse();
-        final AntivirusFile file = (AntivirusFile) repository.findOne(antivirusJobResponse.getFileId());
-        if (file != null) {
+        repository.findById(antivirusJobResponse.getFileId()).ifPresent(v -> {
+            final AntivirusFile file = (AntivirusFile) v;
             file.setAntivirusStatus(antivirusJobResponse.getStatus());
             file.setAntivirusDescription(antivirusJobResponse.getDescription());
             repository.save(file);
-        }
+        });
     }
 
     private boolean validatePublishStateTransition(PublishState state, P exists) {

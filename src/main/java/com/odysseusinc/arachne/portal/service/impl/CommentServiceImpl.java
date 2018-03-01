@@ -111,7 +111,7 @@ public class CommentServiceImpl implements CommentService {
         final CommentTopic topic = commentTopicRepository.getOne(topicId);
         comment.setTopic(topic);
         if (parentId != null) {
-            final Comment parent = commentRepository.findOne(parentId);
+            final Comment parent = commentRepository.findById(parentId).get();
             comment.setParent(parent);
         }
         return commentRepository.save(comment);

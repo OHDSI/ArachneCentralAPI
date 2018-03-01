@@ -61,8 +61,6 @@ public interface StudyDataSourceLinkRepository extends EntityGraphJpaRepository<
 
     List<StudyDataSourceLink> findByStudyId(Long studyId);
 
-    StudyDataSourceLink findById(Long id);
-
     @Query(value = "SELECT * FROM studies_data_sources WHERE id = :id",
             nativeQuery = true)
     StudyDataSourceLink findByIdIncludingDeleted(@Param("id") Long id);

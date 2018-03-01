@@ -11,8 +11,6 @@ server:
   compression:
     enabled: true
     mime-types: application/json,application/xml,text/html,text/xml,text/plain,application/javascript,text/css
-logging:
-  level: info
 spring:
   jpa:
     database: POSTGRESQL
@@ -28,7 +26,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5434/arachne_portal
     username: ohdsi
-    password: ENC(0Lpfvg9UPAyaaZpSIqwaDg==)
+    password: ENC(TSuCLhaU0fJvvFX/DLRQyU+VYAmGp1Sd2lJ+Sgxe0DI\=)
     driver-class-name: org.postgresql.Driver
     max-active: 400
     connection-test-query: select 1

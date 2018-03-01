@@ -29,7 +29,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 import com.odysseusinc.arachne.portal.model.DataNode;
-import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.achilles.AchillesFile;
 import com.odysseusinc.arachne.portal.model.achilles.Characterization;
@@ -188,7 +187,7 @@ public class AchillesImportServiceImpl implements AchillesImportService {
 
         final List<AchillesFile> achillesFiles = batch.get();
         if (!CollectionUtils.isEmpty(achillesFiles)) {
-            achillesFileRepository.save(achillesFiles);
+            achillesFileRepository.saveAll(achillesFiles);
             batch.set(new ArrayList<>());
         }
         entityManager.flush();

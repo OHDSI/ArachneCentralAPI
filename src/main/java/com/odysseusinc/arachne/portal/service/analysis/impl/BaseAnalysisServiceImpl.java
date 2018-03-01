@@ -277,10 +277,7 @@ public abstract class BaseAnalysisServiceImpl<
     public A update(A analysis)
             throws NotUniqueException, NotExistException, ValidationException {
 
-        A forUpdate = analysisRepository.findOne(analysis.getId());
-        if (forUpdate == null) {
-            throw new NotExistException("update: analysis with id=" + analysis.getId() + " not exist", Analysis.class);
-        }
+        A forUpdate = analysisRepository.findById(analysis.getId()).orElseThrow(() -> new NotExistException("update: analysis with id=" + analysis.getId() + " not exist", Analysis.class));
         if (analysis.getTitle() != null && !analysis.getTitle().equals(forUpdate.getTitle())) {
             List<A> analyses = analysisRepository.findByTitleAndStudyId(analysis.getTitle(), forUpdate.getStudy().getId());
             if (!analyses.isEmpty()) {
@@ -316,7 +313,7 @@ public abstract class BaseAnalysisServiceImpl<
                         "submissions.submissionGroup",
                         "submissions.submissionInsight",
                         "submissions.dataSource")
-        );
+        ).orElse(null);
     }
 
 
@@ -335,7 +332,7 @@ public abstract class BaseAnalysisServiceImpl<
     @Override
     public Boolean moveAnalysis(Long id, Integer index) {
 
-        A analysis = analysisRepository.findOne(id);
+        A analysis = analysisRepository.findById(id).orElse(null);
         Study study = analysis.getStudy();
         List<A> list = list(study);
         list.remove(analysis);
@@ -521,8 +518,7 @@ public abstract class BaseAnalysisServiceImpl<
     @Override
     public void lockAnalysisFiles(Long analysisId, Boolean locked) throws NotExistException {
 
-        final Optional<A> analysisOptional = Optional.of(analysisRepository.findOne(analysisId));
-        final A analysis = analysisOptional.orElseThrow(() -> {
+        final A analysis = analysisRepository.findById(analysisId).orElseThrow(() -> {
             String message = String.format(ANALYSIS_NOT_FOUND_EXCEPTION, analysisId);
             return new NotExistException(message, Analysis.class);
         });
@@ -618,7 +614,7 @@ public abstract class BaseAnalysisServiceImpl<
     public void updateFile(String uuid, MultipartFile file, Long analysisId, Boolean isExecutable)
             throws IOException {
 
-        A analysis = analysisRepository.findOne(analysisId);
+        A analysis = analysisRepository.findById(analysisId).orElse(null);
         throwAccessDeniedExceptionIfLocked(analysis);
         Study study = analysis.getStudy();
         try {
@@ -811,7 +807,7 @@ public abstract class BaseAnalysisServiceImpl<
     @Override
     public void getAnalysisAllFiles(Long analysisId, String archiveName, OutputStream os) throws IOException {
 
-        Analysis analysis = analysisRepository.findOne(analysisId);
+        Analysis analysis = analysisRepository.findById(analysisId).orElse(null);
         Path storeFilesPath = analysisHelper.getAnalysisFolder(analysis);
         try (ZipOutputStream zos = new ZipOutputStream(os)) {
             for (AnalysisFile analysisFile : analysis.getFiles()) {
@@ -850,13 +846,13 @@ public abstract class BaseAnalysisServiceImpl<
         for (A analysis : analyses) {
 
             List<AnalysisFile> files = analysis.getFiles();
-            analysisFileRepository.delete(files);
+            analysisFileRepository.deleteAll(files);
             for (AnalysisFile file : files) {
                 deleteAnalysisFile(analysis, file);
             }
         }
 
-        analysisRepository.delete(analyses);
+        analysisRepository.deleteAll(analyses);
     }
 
     @Override
@@ -883,11 +879,10 @@ public abstract class BaseAnalysisServiceImpl<
     public void processAntivirusResponse(AntivirusJobAnalysisFileResponseEvent event) {
 
         final AntivirusJobResponse antivirusJobResponse = event.getAntivirusJobResponse();
-        final AnalysisFile analysisFile = analysisFileRepository.findOne(antivirusJobResponse.getFileId());
-        if (analysisFile != null) {
+        analysisFileRepository.findById(antivirusJobResponse.getFileId()).ifPresent(analysisFile -> {
             analysisFile.setAntivirusStatus(antivirusJobResponse.getStatus());
             analysisFile.setAntivirusDescription(antivirusJobResponse.getDescription());
             analysisFileRepository.save(analysisFile);
-        }
+        });
     }
 }

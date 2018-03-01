@@ -108,8 +108,6 @@ public interface BaseUserRepository<U extends IUser> extends EntityGraphJpaRepos
             + " LIMIT :limit")
     List<U> suggestNotAdmin(@Param("suggestRequest") String suggestRequest, @Param("limit") Integer limit);
 
-    U findById(Long id);
-
     List<U> findAllByEnabledIsTrue();
 
     @Query(nativeQuery = true, value = "SELECT * FROM users_data u WHERE enabled = TRUE")

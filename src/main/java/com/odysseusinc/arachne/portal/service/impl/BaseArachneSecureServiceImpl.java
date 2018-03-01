@@ -61,6 +61,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.swing.text.html.Option;
 import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -117,7 +118,7 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends I
             boolean requiredFieldsAreSet = ObjectUtils.allNotNull(study.getId(), study.getTenant(), study.getPrivacy());
 
             if (!requiredFieldsAreSet) {
-                study = studyRepository.findOne(study.getId());
+                study = studyRepository.findById(study.getId()).get();
             }
 
             if (Objects.equals(study.getTenant().getId(), user.getActiveTenantId())) {
@@ -140,8 +141,7 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends I
             if (analysis.getStudy() != null) {
                 result = getRolesByStudy(user, analysis.getStudy());
             } else {
-                Analysis byId = analysisRepository.findById(analysis.getId());
-                result = byId != null ? getRolesByStudy(user, byId.getStudy()) : result;
+                result = analysisRepository.findById(analysis.getId()).map(v -> getRolesByStudy(user, v.getStudy())).orElse(result);
             }
         }
         return result;
@@ -161,9 +161,7 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends I
                     result.removeIf(ParticipantRole.DATA_SET_OWNER::equals);
                 }
             } else if (analysis != null) {
-
-                Submission byId = submissionRepository.findOne(analysis.getId());
-                result = byId != null ? getRolesByStudy(user, analysis.getStudy()) : result;
+                result = analysisRepository.findById(analysis.getId()).map(v -> getRolesByStudy(user, v.getStudy())).orElse(result);
             }
         }
         return result;

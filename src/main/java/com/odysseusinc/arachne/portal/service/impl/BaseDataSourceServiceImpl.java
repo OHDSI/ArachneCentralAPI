@@ -250,11 +250,7 @@ public abstract class BaseDataSourceServiceImpl<
         if (id == null) {
             throw new NotExistException("id is null", getType());
         }
-        DS dataSource = dataSourceRepository.findOne(id);
-        if (dataSource == null) {
-            throw new NotExistException(getType());
-        }
-        return dataSource;
+        return dataSourceRepository.findById(id).orElseThrow(() -> new NotExistException(getType()));
     }
 
     protected abstract Class<?> getType();

@@ -659,7 +659,7 @@ public abstract class BaseUserController<
 
     private void checkIfUserExists(U user) {
 
-        if (user == null || user.getId() == null || userService.findOne(user.getId()) == null) {
+        if (user == null || user.getId() == null || userService.findById(user.getId()) == null) {
 
             throw new UserNotFoundException("userId", "user not found");
         }

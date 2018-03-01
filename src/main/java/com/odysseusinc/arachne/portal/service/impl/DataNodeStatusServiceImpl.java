@@ -55,14 +55,14 @@ public class DataNodeStatusServiceImpl implements DataNodeStatusService {
     public Optional<DataNodeStatus> getById(Long id) {
 
         checkNotNull(id, "getByIdAndInitializeCollections: dataNodeStatus with id=null not exist");
-        return Optional.ofNullable(dataNodeStatusRepository.findOne(id));
+        return dataNodeStatusRepository.findById(id);
     }
 
     @Override
     public void delete(Long id) {
 
         checkNotNull(id, "deleteComment: cannot deleteComment DataNodeStatus with id=null");
-        dataNodeStatusRepository.delete(id);
+        dataNodeStatusRepository.deleteById(id);
     }
 
     @Override

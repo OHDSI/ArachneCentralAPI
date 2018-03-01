@@ -270,10 +270,7 @@ public abstract class BaseUserServiceImpl<
         if (id == null) {
             throw new ValidationException("remove user: id must be not null");
         }
-        U user = userRepository.findOne(id);
-        if (user == null) {
-            throw new UserNotFoundException("removeUser", "remove user: user not found");
-        }
+        final U user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("removeUser", "remove user: user not found"));
         solrService.deleteByQuery(SolrServiceImpl.USER_COLLECTION, "id:" + user.getId());
         userRepository.delete(user);
     }
@@ -372,13 +369,13 @@ public abstract class BaseUserServiceImpl<
     @Override
     public U getByIdAndInitializeCollections(Long id) {
 
-        return initUserCollections(getById(id));
+        return initUserCollections(getById(id).get());
     }
 
     @Override
-    public U getById(Long id) {
+    public Optional<U> getById(final Long id) {
 
-        return userRepository.findOne(id);
+        return userRepository.findById(id);
     }
 
 
@@ -437,16 +434,12 @@ public abstract class BaseUserServiceImpl<
             forUpdate.setZipCode(user.getZipCode());
         }
         if (user.getCountry() != null) {
-            Country country = countryRepository.findOne(user.getCountry().getId());
-            if (country != null) {
-                forUpdate.setCountry(country);
-            }
+            final Optional<Country> country = countryRepository.findById(user.getCountry().getId());
+            country.ifPresent(forUpdate::setCountry);
         }
         if (user.getStateProvince() != null) {
-            StateProvince stateProvince = stateProvinceRepository.findOne(user.getStateProvince().getId());
-            if (stateProvince != null) {
-                forUpdate.setStateProvince(stateProvince);
-            }
+            final Optional<StateProvince> stateProvince = stateProvinceRepository.findById(user.getStateProvince().getId());
+            stateProvince.ifPresent(forUpdate::setStateProvince);
         }
         if (user.getAffiliation() != null) {
             forUpdate.setAffiliation(user.getAffiliation());
@@ -468,7 +461,7 @@ public abstract class BaseUserServiceImpl<
     public U update(final U user)
             throws IllegalAccessException, SolrServerException, IOException, NotExistException, NoSuchFieldException {
 
-        U forUpdate = userRepository.findOne(user.getId());
+        U forUpdate = userRepository.findById(user.getId()).get();
         forUpdate = baseUpdate(forUpdate, user);
         U savedUser = userRepository.save(forUpdate);
         savedUser = initUserCollections(savedUser);
@@ -493,7 +486,7 @@ public abstract class BaseUserServiceImpl<
     public U getByUuid(String uuid) {
 
         if (uuid != null && !uuid.isEmpty()) {
-            return userRepository.findById(UserIdUtils.uuidToId(uuid));
+            return userRepository.findById(UserIdUtils.uuidToId(uuid)).get();
         } else {
             throw new IllegalArgumentException("Given uuid is blank");
         }
@@ -584,7 +577,7 @@ public abstract class BaseUserServiceImpl<
             throws UserNotFoundException, IllegalAccessException, NotExistException,
             NoSuchFieldException, SolrServerException, IOException {
 
-        U forUpdate = userRepository.findOne(user.getId());
+        U forUpdate = userRepository.findById(user.getId()).get();
         Date date = new Date();
         forUpdate.setId(user.getId());
         forUpdate.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -599,7 +592,7 @@ public abstract class BaseUserServiceImpl<
     public void updatePassword(U user, String oldPassword, String newPassword)
             throws ValidationException, PasswordValidationException {
 
-        U exists = userRepository.findOne(user.getId());
+        U exists = userRepository.findById(user.getId()).get();
 
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
             throw new ValidationException(PASSWORD_NOT_MATCH_EXC);
@@ -613,7 +606,7 @@ public abstract class BaseUserServiceImpl<
     public U addSkillToUser(Long userId, Long skillId)
             throws NotExistException, IllegalAccessException, SolrServerException, IOException, NoSuchFieldException {
 
-        U forUpdate = userRepository.findOne(userId);
+        U forUpdate = userRepository.findById(userId).get();
         S skill = skillService.getById(skillId);
         forUpdate.getSkills().add(skill);
         U savedUser = initUserCollections(userRepository.save(forUpdate));
@@ -626,7 +619,7 @@ public abstract class BaseUserServiceImpl<
     public U removeSkillFromUser(Long userId, Long skillId)
             throws NotExistException, IllegalAccessException, SolrServerException, IOException, NoSuchFieldException {
 
-        U forUpdate = userRepository.findOne(userId);
+        U forUpdate = userRepository.findById(userId).get();
         Skill skill = skillService.getById(skillId);
         forUpdate.getSkills().remove(skill);
         U savedUser = initUserCollections(userRepository.save(forUpdate));
@@ -639,13 +632,13 @@ public abstract class BaseUserServiceImpl<
     public U addLinkToUser(Long userId, UserLink link)
             throws NotExistException, NotUniqueException, PermissionDeniedException {
 
-        U forUpdate = userRepository.findOne(userId);
+        U forUpdate = userRepository.findById(userId).get();
         link.setUser(forUpdate);
         userLinkService.create(link);
         return initUserCollections(forUpdate);
     }
 
-    private U initUserCollections(U user) {
+    private U initUserCollections(final U user) {
 
         if (user != null) {
             user.setRoles(roleRepository.findByUser(user.getId()));
@@ -659,7 +652,7 @@ public abstract class BaseUserServiceImpl<
     public U removeLinkFromUser(Long userId, Long linkId) throws NotExistException {
 
         userLinkService.delete(linkId);
-        U user = userRepository.findOne(userId);
+        U user = userRepository.findById(userId).get();
         user.getLinks().size();
         return initUserCollections(user);
     }
@@ -668,7 +661,7 @@ public abstract class BaseUserServiceImpl<
     public U addPublicationToUser(Long userId, UserPublication publication)
             throws NotExistException, NotUniqueException, PermissionDeniedException {
 
-        U forUpdate = userRepository.findOne(userId);
+        U forUpdate = userRepository.findById(userId).get();
         publication.setUser(forUpdate);
         UserPublication userPublication = userPublicationService.create(publication);
         forUpdate.getPublications().add(userPublication);
@@ -679,7 +672,7 @@ public abstract class BaseUserServiceImpl<
     public U removePublicationFromUser(Long userId, Long publicationId) throws NotExistException {
 
         userPublicationService.delete(publicationId);
-        U user = userRepository.findOne(userId);
+        U user = userRepository.findById(userId).get();
         user.getPublications().size();
         return (U) initUserCollections(user);
     }
@@ -976,7 +969,7 @@ public abstract class BaseUserServiceImpl<
     @Override
     public void addUserToAdmins(Long id) {
 
-        U user = userRepository.findOne(id);
+        U user = userRepository.findById(id).get();
         List<Role> roles = roleRepository.findByName(ROLE_ADMIN);
         if (roles != null && !roles.isEmpty()) {
             user.getRoles().add(roles.get(0));
@@ -989,7 +982,7 @@ public abstract class BaseUserServiceImpl<
     @Override
     public void removeUserFromAdmins(Long id) {
 
-        U user = userRepository.findOne(id);
+        U user = userRepository.findById(id).get();
         List<Role> roles = roleRepository.findByName(ROLE_ADMIN);
         if (roles != null && !roles.isEmpty()) {
             user.getRoles().remove(roles.get(0));
@@ -1012,9 +1005,9 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    public U findOne(Long participantId) {
+    public U findById(Long participantId) {
 
-        return userRepository.findOne(participantId);
+        return userRepository.findById(participantId).get();
     }
 
     @Override

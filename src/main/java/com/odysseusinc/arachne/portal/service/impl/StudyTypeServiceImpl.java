@@ -61,7 +61,7 @@ public class StudyTypeServiceImpl extends CRUDLServiceImpl<StudyType> implements
     @Override
     public StudyType update(StudyType studyType) throws NotUniqueException, NotExistException {
 
-        if (!studyTypeRepository.exists(studyType.getId())) {
+        if (!studyTypeRepository.existsById(studyType.getId())) {
             throw new NotExistException("update: studyType with id=" + studyType.getId() + " not exist",
                     StudyType.class);
         }

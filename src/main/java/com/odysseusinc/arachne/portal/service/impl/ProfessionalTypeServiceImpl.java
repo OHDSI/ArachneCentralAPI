@@ -66,7 +66,7 @@ public class ProfessionalTypeServiceImpl extends CRUDLServiceImpl<ProfessionalTy
     @Override
     public ProfessionalType update(ProfessionalType professionalType) throws NotExistException, NotUniqueException {
 
-        if (!professionalTypeRepository.exists(professionalType.getId())) {
+        if (!professionalTypeRepository.existsById(professionalType.getId())) {
             throw new NotExistException("update: professionalType with id=" + professionalType.getId() + " not exist",
                     ProfessionalType.class);
         }
