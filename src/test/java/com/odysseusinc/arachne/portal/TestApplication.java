@@ -155,7 +155,6 @@ public class TestApplication {
                     .antMatchers("/api/v1/analysis-management/submissions*//**//*files**").permitAll()
                     .antMatchers("/api/v1/analysis-management/submissions/result/upload**").permitAll()
                     .antMatchers("/api/v1/user-management/users/invitations/mail**").permitAll()
-                    .antMatchers("/api/v1/achilles/datanode/datasource*//**").hasRole(Roles.ROLE_DATA_NODE)
                     .antMatchers("/api**").authenticated()
                     .antMatchers("/api*//**").authenticated()
                     .anyRequest().permitAll();
