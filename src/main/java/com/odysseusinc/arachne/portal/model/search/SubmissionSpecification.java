@@ -22,8 +22,10 @@
 
 package com.odysseusinc.arachne.portal.model.search;
 
+import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionGroup_;
+import com.odysseusinc.arachne.portal.model.SubmissionInsight;
 import com.odysseusinc.arachne.portal.model.SubmissionStatus;
 import com.odysseusinc.arachne.portal.model.SubmissionStatusHistoryElement;
 import com.odysseusinc.arachne.portal.model.SubmissionStatusHistoryElement_;
@@ -31,20 +33,24 @@ import com.odysseusinc.arachne.portal.model.Submission_;
 import io.jsonwebtoken.lang.Collections;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Fetch;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
 import org.springframework.data.jpa.domain.Specification;
 
-public class SubmissionSpecification implements Specification<Submission> {
+public class SubmissionSpecification<T extends Submission> implements Specification<T> {
 
     private final Set<Long> submissionGroupIds;
     private Set<SubmissionStatus> statuses;
     private Set<Long> dataSourceIds;
+    private Boolean hasInsight;
 
     private final List<Predicate> predicates = new ArrayList<>();
 
@@ -56,45 +62,53 @@ public class SubmissionSpecification implements Specification<Submission> {
         this.submissionGroupIds = submissionGroupIds;
     }
 
-    public static SubmissionSpecification.SubmissionSearchBuilder builder(Set<Long> submissionGroupIds) {
+    public static <T extends Submission> SubmissionSearchBuilder<T> builder(Set<Long> submissionGroupIds) {
 
-        return new SubmissionSpecification.SubmissionSearchBuilder(submissionGroupIds);
+        return new SubmissionSearchBuilder<>(submissionGroupIds);
     }
 
-    public static class SubmissionSearchBuilder {
+    public static class SubmissionSearchBuilder<T extends Submission> {
 
         private final Set<Long> submissionGroupIds;
         private Set<SubmissionStatus> statuses;
         private Set<Long> dataSourceIds;
+        private Boolean hasInsight;
 
         public SubmissionSearchBuilder(Set<Long> submissionGroupIds) {
 
             this.submissionGroupIds = submissionGroupIds;
         }
 
-        public SubmissionSpecification.SubmissionSearchBuilder withStatuses(Set<SubmissionStatus> statuses) {
+        public SubmissionSearchBuilder<T> withStatuses(Set<SubmissionStatus> statuses) {
 
             this.statuses = statuses;
             return this;
         }
 
-        public SubmissionSpecification.SubmissionSearchBuilder withDataSourceIds(Set<Long> dataSourceIds) {
+        public SubmissionSearchBuilder<T> withDataSourceIds(Set<Long> dataSourceIds) {
 
             this.dataSourceIds = dataSourceIds;
             return this;
         }
 
-        public SubmissionSpecification build() {
+        public SubmissionSearchBuilder<T> hasInsight(Boolean hasInsight) {
 
-            final SubmissionSpecification submissionSearch = new SubmissionSpecification(submissionGroupIds);
+            this.hasInsight = hasInsight;
+            return this;
+        }
+
+        public SubmissionSpecification<T> build() {
+
+            final SubmissionSpecification<T> submissionSearch = new SubmissionSpecification<>(submissionGroupIds);
             submissionSearch.statuses = statuses;
             submissionSearch.dataSourceIds = dataSourceIds;
+            submissionSearch.hasInsight = hasInsight;
             return submissionSearch;
         }
     }
 
     @Override
-    public Predicate toPredicate(Root<Submission> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+    public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 
         final Path<Long> submissionGroupId = root.get(Submission_.submissionGroup).get(SubmissionGroup_.id);
         addInPredicate(cb, submissionGroupId, submissionGroupIds);
@@ -121,6 +135,16 @@ public class SubmissionSpecification implements Specification<Submission> {
             );
             predicates.add(cb.exists(where));
         }
+
+        if (Objects.nonNull(hasInsight)) {
+            final Path<SubmissionInsight> insightPath = root.get(Submission_.submissionInsight);
+            predicates.add(hasInsight ? cb.isNotNull(insightPath) : cb.isNull(insightPath));
+        }
+
+        root.fetch(Submission_.submissionInsight, JoinType.LEFT);
+        final Fetch<T, DataSource> fetch = root.fetch(Submission_.dataSource);
+        fetch.fetch("dataNode");
+
         return cb.and(predicates.toArray(new Predicate[predicates.size()]));
     }
 

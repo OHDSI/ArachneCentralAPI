@@ -25,7 +25,7 @@ package com.odysseusinc.arachne.portal.model;
 import javax.persistence.metamodel.SingularAttribute;
 import javax.persistence.metamodel.StaticMetamodel;
 
-@StaticMetamodel(DataSource.class)
-public class DataSource_ {
-    public static volatile SingularAttribute<DataSource, Long> id;
+@StaticMetamodel(IDataSource.class)
+public class IDataSource_ {
+    public static volatile SingularAttribute<IDataSource, Long> id;
 }

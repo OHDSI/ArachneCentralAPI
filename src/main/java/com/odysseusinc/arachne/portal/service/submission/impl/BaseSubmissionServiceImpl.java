@@ -446,9 +446,10 @@ public abstract class BaseSubmissionServiceImpl<
 
         final Set<Long> submissionGroupIds = submissionGroupMap.keySet();
         if (!CollectionUtils.isEmpty(submissionGroupIds)) {
-            final SubmissionSpecification submissionSpecification = SubmissionSpecification.builder(submissionGroupIds)
+            final SubmissionSpecification<T> submissionSpecification = SubmissionSpecification.<T>builder(submissionGroupIds)
                     .withStatuses(submissoinGroupSearch.getSubmissionStatuses())
                     .withDataSourceIds(submissoinGroupSearch.getDataSourceIds())
+                    .hasInsight(submissoinGroupSearch.getHasInsight())
                     .build();
             submissionRepository.findAll(submissionSpecification)
                     .forEach(s -> submissionGroupMap.get(s.getSubmissionGroup().getId()).getSubmissions().add(s));

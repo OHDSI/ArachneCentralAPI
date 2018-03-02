@@ -34,7 +34,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.query.Param;
 
 @NoRepositoryBean
-public interface BaseSubmissionRepository<T extends Submission> extends EntityGraphJpaRepository <T, Long>, JpaSpecificationExecutor<Submission> {
+public interface BaseSubmissionRepository<T extends Submission> extends EntityGraphJpaRepository <T, Long>, JpaSpecificationExecutor<T> {
     @Query(nativeQuery = true, value = "SELECT sub.* FROM submissions sub "
             + "JOIN (SELECT submission_id, status FROM submission_status_history "
             + "WHERE submission_id = :id ORDER BY date DESC LIMIT 1) h ON h.submission_id = sub.id "
