@@ -1,5 +1,6 @@
 package com.odysseusinc.arachne.portal.config.tenancy;
 
+import com.odysseusinc.arachne.portal.config.interceptors.QueryInterceptor;
 import java.util.HashMap;
 import java.util.Map;
 import javax.sql.DataSource;
@@ -30,7 +31,8 @@ public class HibernateConfig {
     @Bean
     public LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource,
                                                                        MultiTenantConnectionProvider multiTenantConnectionProviderImpl,
-                                                                       CurrentTenantIdentifierResolver currentTenantIdentifierResolverImpl) {
+                                                                       CurrentTenantIdentifierResolver currentTenantIdentifierResolverImpl,
+                                                                       QueryInterceptor queryInterceptor) {
 
         Map<String, Object> properties = new HashMap<>();
         properties.putAll(jpaProperties.getHibernateProperties(dataSource));
@@ -39,6 +41,7 @@ public class HibernateConfig {
         properties.put(Environment.MULTI_TENANT, MultiTenancyStrategy.SCHEMA);
         properties.put(Environment.MULTI_TENANT_CONNECTION_PROVIDER, multiTenantConnectionProviderImpl);
         properties.put(Environment.MULTI_TENANT_IDENTIFIER_RESOLVER, currentTenantIdentifierResolverImpl);
+        properties.put("hibernate.ejb.interceptor", queryInterceptor);
         LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
         em.setDataSource(dataSource);
         em.setPackagesToScan("com.odysseusinc.arachne.*");

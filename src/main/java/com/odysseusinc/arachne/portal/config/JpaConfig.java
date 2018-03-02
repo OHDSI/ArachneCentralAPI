@@ -44,11 +44,6 @@ public class JpaConfig extends HibernateJpaAutoConfiguration {
         super(dataSource, jpaProperties, jtaTransactionManager, transactionManagerCustomizers);
     }
 
-    @Override
-    protected void customizeVendorProperties(Map<String, Object> vendorProperties) {
-        vendorProperties.put("hibernate.ejb.interceptor", queryInterceptor());
-    }
-
     @Bean
     public QueryInterceptor queryInterceptor() {
         return new QueryInterceptor();
