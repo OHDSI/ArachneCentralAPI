@@ -22,6 +22,9 @@ public class HibernateConfig {
     @Autowired
     private JpaProperties jpaProperties;
 
+    @Autowired(required = false)
+    private QueryInterceptor queryInterceptor;
+    
     @Bean
     public JpaVendorAdapter jpaVendorAdapter() {
 
@@ -31,8 +34,7 @@ public class HibernateConfig {
     @Bean
     public LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource,
                                                                        MultiTenantConnectionProvider multiTenantConnectionProviderImpl,
-                                                                       CurrentTenantIdentifierResolver currentTenantIdentifierResolverImpl,
-                                                                       QueryInterceptor queryInterceptor) {
+                                                                       CurrentTenantIdentifierResolver currentTenantIdentifierResolverImpl) {
 
         Map<String, Object> properties = new HashMap<>();
         properties.putAll(jpaProperties.getHibernateProperties(dataSource));
