@@ -100,7 +100,15 @@ public abstract class BaseDataSourceController<
             NoSuchFieldException,
             IllegalAccessException {
 
-        JsonResult<DTO> result;
+        return updateDataSource(principal, dataSourceId, commonDataSourceDTO, bindingResult);
+    }
+
+    private JsonResult<DTO> updateDataSource(Principal principal, Long dataSourceId,
+                                             DTO commonDataSourceDTO, BindingResult bindingResult)
+            throws PermissionDeniedException, IllegalAccessException, IOException, NoSuchFieldException,
+            SolrServerException, ValidationException {
+
+        JsonResult result;
         if (bindingResult.hasErrors()) {
             result = setValidationErrors(bindingResult);
         } else {
@@ -166,9 +174,9 @@ public abstract class BaseDataSourceController<
     }
 
     @RequestMapping(value = "/api/v1/data-sources/my", method = RequestMethod.GET)
-    public JsonResult<Page<DS_DTO>> getUserDataSources(Principal principal,
-                                                       @RequestParam("query") @NotNull String query,
-                                                       @ModelAttribute PageDTO pageDTO
+    public Page<DS_DTO> getUserDataSources(Principal principal,
+                                           @RequestParam("query") @NotNull String query,
+                                           @ModelAttribute PageDTO pageDTO
     ) throws PermissionDeniedException {
 
         final IUser user = getUser(principal);
@@ -176,8 +184,7 @@ public abstract class BaseDataSourceController<
 
         Page<DS> dataSources = dataSourceService.getUserDataSources(query, user.getId(), pageRequest);
         List<DS_DTO> dataSourceDTOs = converterUtils.convertList(dataSources.getContent(), getDataSourceDTOClass());
-        CustomPageImpl<DS_DTO> resultPage = new CustomPageImpl<>(dataSourceDTOs, pageRequest, dataSources.getTotalElements());
-        return new JsonResult<>(NO_ERROR, resultPage);
+        return new CustomPageImpl<>(dataSourceDTOs, pageRequest, dataSources.getTotalElements());
     }
 
     private PageRequest getPageRequest(PageDTO pageDTO) throws PermissionDeniedException {
@@ -226,11 +233,28 @@ public abstract class BaseDataSourceController<
     }
 
     @ApiOperation("Unpublish data source")
-    @RequestMapping(value = "/api/v1/data-sources/{id}/unpublish", method = RequestMethod.PUT)
-    public JsonResult unpublishDataSource(@PathVariable("id") Long dataSourceId) throws IOException, SolrServerException {
+    @RequestMapping(value = "/api/v1/data-sources/{id}/registration", method = RequestMethod.DELETE)
+    public void unpublishDataSource(@PathVariable("id") Long dataSourceId) throws IOException, SolrServerException {
 
         dataSourceService.unpublish(dataSourceId);
-        return new JsonResult(JsonResult.ErrorCode.NO_ERROR);
+    }
+
+    @ApiOperation("Publish data source")
+    @RequestMapping(value = "/api/v1/data-sources/{id}/registration", method = RequestMethod.POST)
+    public JsonResult<DTO> publishDataSource(Principal principal,
+                                 @PathVariable("id") Long dataSourceId,
+                                 @RequestBody @Valid DTO commonDataSourceDTO,
+                                 BindingResult bindingResult
+    ) throws NotExistException,
+            PermissionDeniedException,
+            FieldException,
+            ValidationException,
+            IOException,
+            SolrServerException,
+            NoSuchFieldException,
+            IllegalAccessException {
+
+        return updateDataSource(principal, dataSourceId, commonDataSourceDTO, bindingResult);
     }
 
     @RequestMapping(value = "/api/v1/data-sources/cdm-versions", method = RequestMethod.GET)
