@@ -12,6 +12,17 @@ server:
     enabled: true
     mime-types: application/json,application/xml,text/html,text/xml,text/plain,application/javascript,text/css
 spring:
+  flyway:
+    datasource:
+      driverClassName: org.postgresql.Driver
+      url: ${spring.datasource.url}
+      username: ${spring.datasource.username}
+      password: ${spring.datasource.password}
+    baseline-on-migrate: true
+    placeholderReplacement: false
+    out-of-order: true
+    validateOnMigrate: false
+    #locations: db/migration,classpath:com.odysseusinc.arachne.portal.db.migration
   jpa:
     database: POSTGRESQL
     properties:
@@ -64,17 +75,6 @@ spring:
 build:
   number: @build.number@
   id: @build.id@
-flyway:
-  datasource:
-    driverClassName: org.postgresql.Driver
-    url: ${spring.datasource.url}
-    username: ${spring.datasource.username}
-    password: ${spring.datasource.password}
-  baseline-on-migrate: true
-  placeholderReplacement: false
-  out-of-order: true
-  validateOnMigrate: false
-  #locations: db/migration,classpath:com.odysseusinc.arachne.portal.db.migration
 arachne:
   token:
     secret: sssshhhh!

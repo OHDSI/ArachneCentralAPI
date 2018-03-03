@@ -8,6 +8,7 @@ import org.hibernate.cfg.Environment;
 import org.hibernate.context.spi.CurrentTenantIdentifierResolver;
 import org.hibernate.engine.jdbc.connections.spi.MultiTenantConnectionProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernateSettings;
 import org.springframework.boot.autoconfigure.orm.jpa.JpaProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,7 +34,7 @@ public class HibernateConfig {
                                                                        CurrentTenantIdentifierResolver currentTenantIdentifierResolverImpl) {
 
         Map<String, Object> properties = new HashMap<>();
-//        properties.putAll(jpaProperties.getHibernateProperties());
+        properties.putAll(jpaProperties.getHibernateProperties(new HibernateSettings()));
         // NOTE:
         // dummy setting, just to force Hibernate to use custom connection provider through which we pass current tenant id to DB
         properties.put(Environment.MULTI_TENANT, MultiTenancyStrategy.SCHEMA);
