@@ -23,17 +23,15 @@
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.TenantBaseDTO;
-import com.odysseusinc.arachne.portal.model.security.Tenant;
+import com.odysseusinc.arachne.portal.api.v1.dto.TenantPersonalDTO;
+import org.springframework.stereotype.Component;
 
-public abstract class BaseTenantToTenantDTOConverter<DTO extends TenantBaseDTO> extends BaseConversionServiceAwareConverter<Tenant, DTO> {
+@Component
+public class TenantToBaseTenantDTOConverter extends BaseTenantToTenantDTOConverter<TenantBaseDTO> {
 
     @Override
-    public DTO convert(Tenant source) {
+    protected TenantBaseDTO createResultObject() {
 
-        DTO tenantDTO = createResultObject();
-        tenantDTO.setId(source.getId());
-        tenantDTO.setName(source.getName());
-        tenantDTO.setDefault(source.getDefault());
-        return tenantDTO;
+        return new TenantBaseDTO();
     }
 }

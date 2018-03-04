@@ -1,5 +1,4 @@
 /*
- *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +14,31 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: September 17, 2017
- *
+ * Authors: Anton Gackovka
+ * Created: March 2, 2018
  */
 
-package com.odysseusinc.arachne.portal.repository;
+package com.odysseusinc.arachne.portal.config.interceptors;
 
-import com.odysseusinc.arachne.portal.model.IDataSource;
-import java.util.List;
-import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.repository.NoRepositoryBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-@NoRepositoryBean
-public interface BaseRawDataSourceRepository<T extends IDataSource> extends JpaRepository<T, Long> {
+@Configuration
+@ConditionalOnProperty("portal.useQueryInterceptor")
+public class InterceptorsConfig {
 
-    Optional<T> findByIdAndDeletedIsNull(Long id);
+    @Bean
+    public QueryInterceptor queryInterceptor() {
 
-    List<T> findByIdInAndDeletedIsNull(List<Long> ids);
+        return new QueryInterceptor();
+    }
+
+    @Bean
+    public RequestInterceptor requestInterceptor(QueryInterceptor queryInterceptor) {
+
+        return new RequestInterceptor(queryInterceptor);
+    }
+
+
 }

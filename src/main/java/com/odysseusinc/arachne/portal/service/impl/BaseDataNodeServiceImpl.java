@@ -117,6 +117,7 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
         existsDataNode.setName(dataNode.getName());
         existsDataNode.setDescription(dataNode.getDescription());
         existsDataNode.setAtlasVersion(dataNode.getAtlasVersion());
+        existsDataNode.setPublished(true);
         return dataNodeRepository.save(existsDataNode);
     }
 

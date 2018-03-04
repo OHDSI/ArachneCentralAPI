@@ -37,6 +37,7 @@ import com.odysseusinc.arachne.commons.api.v1.dto.CommonLinkUserToDataNodeDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserRegistrationDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
+import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.ApproveDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ChangePasswordDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.CountryDTO;
@@ -305,7 +306,7 @@ public abstract class BaseUserController<
             @PathVariable("id") String id,
             HttpServletResponse response) throws IOException {
 
-        U user = userService.getByUuidAndInitializeCollections(id);
+        U user = userService.getByIdInAnyTenant(UserIdUtils.uuidToId(id));
         userService.putAvatarToResponse(response, user);
     }
 

@@ -9,8 +9,28 @@ ALTER TABLE data_sources_data ALTER model_type DROP NOT NULL;
 ALTER TABLE datanodes ALTER name DROP NOT NULL;
 ALTER TABLE datanodes ALTER description DROP NOT NULL;
 
+ALTER TABLE datanodes
+ADD COLUMN published BOOLEAN DEFAULT FALSE NOT NULL;
+UPDATE datanodes set published = TRUE WHERE name <> '' AND description <> '';
+
+ALTER TABLE datanodes ADD CONSTRAINT datanodes_not_blank_fields_if_published
+CHECK (published = FALSE OR (name <> '' AND description <> ''));
+
 ALTER TABLE data_sources_data ADD CONSTRAINT data_sources_data_not_blank_fields_if_published
 CHECK (published = FALSE OR (organization <> '' AND model_type <> ''));
+
+create or replace function checkParentDataNode(ds_id BIGINT)
+  returns BOOLEAN AS $$
+begin
+return
+(select dn.published
+from data_sources_data ds JOIN datanodes dn on ds.data_node_id = dn.id
+where ds.id = ds_id);
+end;
+$$ LANGUAGE plpgsql;
+
+ALTER TABLE data_sources_data ADD CONSTRAINT publish_datasource_only_for_published_datanode
+CHECK (published = FALSE OR checkParentDataNode(id));
 
 --just recreating the views
 

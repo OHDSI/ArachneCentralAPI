@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.NoRepositoryBean;
@@ -48,22 +47,7 @@ public interface BaseDataSourceRepository<T extends IDataSource> extends CrudRep
 
     T findOne(Long id);
 
-    @Query(value = "SELECT *"
-            + " FROM data_sources_data AS ds "
-            + " WHERE ds.id=:id ",
-            nativeQuery = true)
-    T findOneUnsecured(@Param("id") Long id);
-
     List<T> findByIdInAndDeletedIsNullAndPublishedTrue(List<Long> ids);
-
-    @Query(
-            nativeQuery = true,
-            value = "SELECT * " +
-                    "FROM data_sources_data ds " +
-                    "JOIN datanodes dn ON dn.id = ds.data_node_id " +
-                    "WHERE dn.is_virtual = FALSE " +
-                    "AND ds.deleted IS NULL AND ds.id in :ids")
-    List<T> findByIdInAndDeletedIsNull(@Param("ids") List<Long> ids);
 
     Optional<T> findByName(String name);
 
@@ -123,14 +107,6 @@ public interface BaseDataSourceRepository<T extends IDataSource> extends CrudRep
     int deleteByIdAndDeletedIsNull(Long id);
 
     List<T> findByIdIn(List<Long> ids);
-
-    @Transactional
-    @Modifying
-    @Query(nativeQuery = true,
-            value ="UPDATE data_sources_data "
-                    + "SET deleted = current_timestamp, health_status = 'NOT_CONNECTED', health_status_description = 'Deleted' "
-                    + "WHERE id = :id")
-    void softDelete(@Param("id") Long id);
 
     @Query(nativeQuery = true, value = USERS_DATASOURCES_QUERY +"\n"
             + " \n--#pageable\n",

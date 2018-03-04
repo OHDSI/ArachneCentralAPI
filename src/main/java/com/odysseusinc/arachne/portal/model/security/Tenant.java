@@ -20,6 +20,8 @@ import javax.persistence.PrePersist;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Transient;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 
 @Entity
 @Table(name = "tenants")
@@ -33,18 +35,21 @@ public class Tenant implements SolrValue {
     @Column
     private String name;
 
+    @LazyCollection(LazyCollectionOption.EXTRA)
     @ManyToMany(targetEntity = RawUser.class, fetch = FetchType.LAZY)
     @JoinTable(name = "tenant_dependent_users_view",
             joinColumns = @JoinColumn(name = "tenant_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"))
     private Set<RawUser> users;
 
+    @LazyCollection(LazyCollectionOption.EXTRA)
     @ManyToMany(targetEntity = RawDataSource.class, fetch = FetchType.LAZY)
     @JoinTable(name = "tenants_data_sources",
             joinColumns = @JoinColumn(name = "tenant_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "data_source_id", referencedColumnName = "id"))
     private Set<RawDataSource> dataSources;
 
+    @LazyCollection(LazyCollectionOption.EXTRA)
     @OneToMany(targetEntity = Study.class, mappedBy = "tenant")
     private Set<Study> studies;
 

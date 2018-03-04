@@ -27,25 +27,14 @@ import static com.odysseusinc.arachne.portal.service.AnalysisPaths.CONTENT_DIR;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonCDMVersionDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
-import com.odysseusinc.arachne.portal.model.BaseDataSource;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataNodeRole;
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
-import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.security.DataNodeAuthenticationToken;
 import com.odysseusinc.arachne.portal.security.Roles;
-import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -58,6 +47,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 public abstract class BaseStudyHelper<DN extends DataNode, DS extends IDataSource> {
 
@@ -76,6 +73,7 @@ public abstract class BaseStudyHelper<DN extends DataNode, DS extends IDataSourc
         dataNode.setName(VIRTUAL_DATANODE_NAME);
         final String description = String.format(VIRTUAL_DATANODE_DESC, studyTitle, dataSourceName);
         dataNode.setDescription(description);
+        dataNode.setPublished(true);
         dataNode.setHealthStatus(CommonHealthStatus.GREEN);
         dataNode.setHealthStatusDescription(VIRTUAL_DATANODE_HEALTH_STATUS_DESC);
         return dataNode;

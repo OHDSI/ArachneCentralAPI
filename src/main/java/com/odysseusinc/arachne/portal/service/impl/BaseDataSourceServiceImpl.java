@@ -37,7 +37,6 @@ import com.odysseusinc.arachne.portal.service.TenantService;
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
 import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
-import com.odysseusinc.arachne.portal.util.UUIDGenerator;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
@@ -107,7 +106,6 @@ public abstract class BaseDataSourceServiceImpl<
 
         dataSource.setPublished(false);
         dataSource.setCreated(new Date());
-        dataSource.setUuid(UUIDGenerator.generateUUID());
         dataSource.setTenants(tenantService.getDefault());
     }
 
@@ -246,7 +244,7 @@ public abstract class BaseDataSourceServiceImpl<
         if (id == null) {
             throw new NotExistException("id is null", getType());
         }
-        DS dataSource = dataSourceRepository.findOneUnsecured(id);
+        DS dataSource = rawDataSourceRepository.findOne(id);
         if (dataSource == null) {
             throw new NotExistException(getType());
         }
@@ -300,7 +298,7 @@ public abstract class BaseDataSourceServiceImpl<
     public void delete(Long id) {
 
         log.info("Deleting datasource with id={}", id);
-        dataSourceRepository.softDelete(id);
+        rawDataSourceRepository.delete(id);
     }
 
     @PreAuthorize("hasPermission(#id, 'DataSource', "
@@ -327,7 +325,6 @@ public abstract class BaseDataSourceServiceImpl<
         String suggestRequest = "%(" + String.join("|", split) + ")%";
         return dataSourceRepository.getUserDataSources(suggestRequest, userId, pageRequest);
     }
-
 
     public FieldList<SF> getSolrFields() {
 
@@ -391,7 +388,7 @@ public abstract class BaseDataSourceServiceImpl<
 
     public List<DS> findByIdsAndNotDeleted(List<Long> dataSourceIds) {
 
-        return dataSourceRepository.findByIdInAndDeletedIsNull(dataSourceIds);
+        return rawDataSourceRepository.findByIdInAndDeletedIsNull(dataSourceIds);
     }
 
     public abstract List<DS> getAllByUserId(Long userId);

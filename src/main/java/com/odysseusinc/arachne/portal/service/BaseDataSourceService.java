@@ -98,5 +98,4 @@ public interface BaseDataSourceService<DS extends IDataSource> {
     void unpublish(Long id) throws IOException, SolrServerException;
 
     Page<DS> getUserDataSources(final String query, final Long userId, PageRequest pageRequest);
-
 }
