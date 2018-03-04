@@ -26,7 +26,6 @@ import static com.odysseusinc.arachne.portal.security.ArachnePermission.ACCESS_A
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.ACCESS_DATASOURCE;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.ACCESS_PAPER;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.ACCESS_STUDY;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.ACHILLES_PERMISSION;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.APPROVE_SUBMISSION;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.CREATE_ANALYSIS;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.CREATE_DATASOURCE;
@@ -47,6 +46,7 @@ import static com.odysseusinc.arachne.portal.security.ArachnePermission.LIMITED_
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.LOCK_ANALYSIS_FILE;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.SENDING_UNLOCK_ANALYSIS_REQUEST;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.UNLINK_DATASOURCE;
+import static com.odysseusinc.arachne.portal.security.ArachnePermission.UPLOAD_ACHILLES_REPORTS;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.UPLOAD_ANALYSIS_FILES;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.UPLOAD_FILES;
 
@@ -110,7 +110,7 @@ public enum ParticipantRole {
             EDIT_ACHILLES_REPORT_PERMISSION,
             CREATE_DATASOURCE,
             ACCESS_DATASOURCE,
-            ACHILLES_PERMISSION
+            UPLOAD_ACHILLES_REPORTS
     }),
     STUDY_PENDING_CONTRIBUTOR("Pending contributor", new ArachnePermission[]{
             ACCESS_STUDY,

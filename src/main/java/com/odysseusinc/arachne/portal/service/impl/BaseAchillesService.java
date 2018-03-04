@@ -69,7 +69,7 @@ public abstract class BaseAchillesService<DS extends IDataSource, S extends Stud
 
     @Override
     @PreAuthorize("#ds.dataNode == authentication.principal or " +
-            "hasPermission(#ds, T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACHILLES_PERMISSION)")
+            "hasPermission(#ds, T(com.odysseusinc.arachne.portal.security.ArachnePermission).UPLOAD_ACHILLES_REPORTS)")
     public void createCharacterization(@P("ds") DS dataSource, MultipartFile data) throws IOException {
 
         final File tempFile = Files.createTempFile("achilles", ".zip").toFile();
