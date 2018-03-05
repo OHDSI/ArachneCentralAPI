@@ -40,6 +40,18 @@ public class AnalysisSolrExtractors {
         }
     }
 
+    public static class TenantsExtractor implements Function<Object, Object> {
+
+        @Override
+        public Object apply(final Object o) {
+            final Analysis analysis = tryConvert(o, "Tenants list");
+
+            final Study study = analysis.getStudy();
+
+            return new StudySolrExtractors.TenantsExtractor().apply(study);
+        }
+    }
+    
     private static Analysis tryConvert(final Object o, final String s) {
 
         if (!(o instanceof Analysis)) {
