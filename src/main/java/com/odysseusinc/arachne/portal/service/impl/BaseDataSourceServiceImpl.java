@@ -32,6 +32,7 @@ import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Skill;
+import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
 import com.odysseusinc.arachne.portal.repository.BaseDataSourceRepository;
 import com.odysseusinc.arachne.portal.repository.BaseRawDataSourceRepository;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
@@ -142,12 +143,12 @@ public abstract class BaseDataSourceServiceImpl<
         }
     }
 
-    protected QueryResponse solrSearch(SolrQuery solrQuery) throws IOException, SolrServerException, NoSuchFieldException {
+    protected QueryResponse solrSearch(final SolrQuery solrQuery) throws IOException, SolrServerException, NoSuchFieldException {
 
         return solrService.search(
-                SolrServiceImpl.DATA_SOURCE_COLLECTION,
+                SolrCollection.DATA_SOURCE.getName(),
                 solrQuery,
-                ReflectionUtils.findField(DataSource.class, "tenants")
+                Boolean.TRUE
         );
     }
 
@@ -161,7 +162,7 @@ public abstract class BaseDataSourceServiceImpl<
 
         List<Long> docIdList = solrResponse.getResults()
                 .stream()
-                .map(solrDoc -> Long.parseLong(solrDoc.get("id").toString()))
+                .map(solrDoc -> Long.parseLong(solrDoc.get(BaseSolrServiceImpl.ID).toString()))
                 .collect(Collectors.toList());
 
         // We need to repeat sorting, because repository doesn't prevent order of passed ids
@@ -347,7 +348,7 @@ public abstract class BaseDataSourceServiceImpl<
             dataSource.setPublished(false);
             dataSourceRepository.save(dataSource);
 
-            solrService.deleteByQuery(SolrServiceImpl.DATA_SOURCE_COLLECTION, "id:" + id);
+            solrService.delete(SolrCollection.DATA_SOURCE, String.valueOf(id));
         }
     }
 
@@ -373,11 +374,12 @@ public abstract class BaseDataSourceServiceImpl<
         return Collections.emptyList();
     }
 
+    @Override
     public void indexAllBySolr() throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
-        solrService.deleteByQuery(SolrServiceImpl.DATA_SOURCE_COLLECTION, "*:*");
-        List<DS> dataSourceList = getAllNotDeletedAndIsNotVirtualFromAllTenants();
-        for (DS dataSource : dataSourceList) {
+        solrService.deleteAll(SolrCollection.STUDIES);
+        final List<DS> dataSourceList = getAllNotDeletedAndIsNotVirtualFromAllTenants();
+        for (final DS dataSource : dataSourceList) {
             indexBySolr(dataSource);
         }
     }
@@ -401,13 +403,7 @@ public abstract class BaseDataSourceServiceImpl<
     public void indexBySolr(DS dataSource)
             throws IOException, SolrServerException, NoSuchFieldException, IllegalAccessException {
 
-        Map<SF, Object> values = solrService.getValuesByEntity(dataSource);
-
-        solrService.putDocument(
-                SolrServiceImpl.DATA_SOURCE_COLLECTION,
-                dataSource.getId(),
-                values
-        );
+        solrService.indexBySolr(dataSource);
     }
 
     @Override

@@ -22,10 +22,16 @@
 
 package com.odysseusinc.arachne.portal.model;
 
+
+import com.odysseusinc.arachne.portal.api.v1.dto.converters.StudySolrExtractors;
 import com.odysseusinc.arachne.portal.model.security.Tenant;
+import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
+import com.odysseusinc.arachne.portal.model.solr.SolrEntity;
+import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
 import com.odysseusinc.arachne.portal.model.statemachine.HasState;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
+import com.odysseusinc.arachne.portal.service.BaseSolrService;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.BreadcrumbType;
 import java.util.ArrayList;
@@ -50,7 +56,10 @@ import org.hibernate.annotations.DiscriminatorFormula;
 @Entity
 @Table(name = "studies")
 @DiscriminatorFormula("'STUDY_ENTITY'")
-public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyStatus> {
+@SolrFieldAnno(name = BaseSolrService.TITLE, postfix = false, extractor = StudySolrExtractors.TitleExtractor.class)
+@SolrFieldAnno(name = BaseSolrService.PARTICIPANTS, postfix = false, extractor = StudySolrExtractors.ParticipantsExtractor.class, filter = true)
+public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyStatus>, SolrEntity {
+    
     public Study() {
 
     }
@@ -79,9 +88,11 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
     private Long id;
 
     @Column(length = 1024)
+    @SolrFieldAnno(query = true)
     private String title;
 
     @Column(length = 10000)
+    @SolrFieldAnno(query = true)
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -123,10 +134,21 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
     private Date endDate;
 
     @Column
+    @SolrFieldAnno(
+            name = BaseSolrService.IS_PUBLIC,
+            postfix = false,
+            extractor = StudySolrExtractors.PrivacyExtractor.class)
     protected Boolean privacy = Boolean.TRUE;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @SolrFieldAnno(filter = true, name = BaseSolrService.TENANTS, postfix = false, sort = false, extractor = StudySolrExtractors.TenantsExtractor.class)
     private Tenant tenant;
+
+    @Override
+    public SolrCollection getCollection() {
+
+        return SolrCollection.STUDIES;
+    }
 
     public BreadcrumbType getCrumbType() {
 

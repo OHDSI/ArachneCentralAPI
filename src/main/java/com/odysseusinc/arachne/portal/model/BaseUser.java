@@ -23,8 +23,13 @@
 package com.odysseusinc.arachne.portal.model;
 
 import com.odysseusinc.arachne.commons.utils.UserIdUtils;
+import com.odysseusinc.arachne.portal.api.v1.dto.converters.UserSolrExtractors;
 import com.odysseusinc.arachne.portal.model.security.Tenant;
+import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
 import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
+import com.odysseusinc.arachne.portal.service.BaseSolrService;
+import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
+import com.odysseusinc.arachne.portal.service.impl.breadcrumb.BreadcrumbType;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashSet;
@@ -47,6 +52,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.SequenceGenerator;
 
 @MappedSuperclass
+@SolrFieldAnno(name = BaseSolrService.TITLE, postfix = false, extractor = UserSolrExtractors.TitleExtractor.class)
 public class BaseUser implements IUser, Serializable {
 
     @ManyToMany(targetEntity = Role.class, fetch = FetchType.LAZY)
@@ -172,12 +178,42 @@ public class BaseUser implements IUser, Serializable {
     @JoinTable(name = "tenant_dependent_users_view",
             joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "tenant_id", referencedColumnName = "id"))
-    @SolrFieldAnno(filter = true)
+    @SolrFieldAnno(filter = true, postfix = false, sort = false, extractor = UserSolrExtractors.TenantsExtractor.class)
     protected Set<Tenant> tenants;
 
     @OneToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "active_tenant_id")
     protected Tenant activeTenant;
+
+    @Override
+    public SolrCollection getCollection() {
+
+        return SolrCollection.USERS;
+    }
+
+    @Override
+    public BreadcrumbType getCrumbType() {
+
+        return BreadcrumbType.USER;
+    }
+
+    @Override
+    public Long getCrumbId() {
+
+        return getId();
+    }
+
+    @Override
+    public String getCrumbTitle() {
+
+        return getFirstname() + " " + getMiddlename() + " " + getLastname();
+    }
+
+    @Override
+    public Breadcrumb getCrumbParent() {
+
+        return null;
+    }
 
     @Override
     public int hashCode() {

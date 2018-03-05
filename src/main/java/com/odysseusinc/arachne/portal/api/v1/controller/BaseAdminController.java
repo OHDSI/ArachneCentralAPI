@@ -25,6 +25,7 @@ package com.odysseusinc.arachne.portal.api.v1.controller;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.api.v1.dto.AdminUserDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.ArachneConsts;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
@@ -41,7 +42,9 @@ import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.model.search.UserSearch;
 import com.odysseusinc.arachne.portal.service.BaseAdminService;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
+import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
+import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import io.swagger.annotations.ApiOperation;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,15 +87,22 @@ public abstract class BaseAdminController<
     private final BaseDataSourceService<DS> dataSourceService;
     protected final ProfessionalTypeService professionalTypeService;
     private final BaseAdminService<S, DS, SS, SU, A, P, PS, SB> adminService;
+    private final BaseStudyService<S, DS, SS, SU> studyService;
+    private final BaseAnalysisService<A> analysisService;
+
 
     @Autowired
-    public BaseAdminController(BaseDataSourceService<DS> dataSourceService,
-                               ProfessionalTypeService professionalTypeService,
-                               BaseAdminService<S, DS, SS, SU, A, P, PS, SB> adminService) {
+    public BaseAdminController(final BaseDataSourceService<DS> dataSourceService,
+                               final ProfessionalTypeService professionalTypeService,
+                               final BaseAdminService<S, DS, SS, SU, A, P, PS, SB> adminService,
+                               final BaseStudyService<S, DS, SS, SU> studyService,
+                               final BaseAnalysisService<A> analysisService) {
 
         this.dataSourceService = dataSourceService;
         this.professionalTypeService = professionalTypeService;
         this.adminService = adminService;
+        this.studyService = studyService;
+        this.analysisService = analysisService;
     }
 
     @ApiOperation(value = "Enable user.", hidden = true)
@@ -200,19 +210,27 @@ public abstract class BaseAdminController<
     }
 
 
-    @RequestMapping(value = "/api/v1/admin/data-sources/reindex-solr", method = RequestMethod.POST)
-    public JsonResult reindexDataSourcesBySolr()
+    @RequestMapping(value = "/api/v1/admin/{domain}/reindex-solr", method = RequestMethod.POST)
+    public JsonResult reindexSolr(@PathVariable("domain") final String domain)
             throws IllegalAccessException, NotExistException, NoSuchFieldException, SolrServerException, IOException {
 
-        dataSourceService.indexAllBySolr();
-        return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
-    }
+        switch(domain) {
+            case ArachneConsts.Domains.DATA_SOURCES:
+                dataSourceService.indexAllBySolr();
+                break;
+            case ArachneConsts.Domains.USERS:
+                userService.indexAllBySolr();
+                break;
+            case ArachneConsts.Domains.STUDIES:
+                studyService.indexAllBySolr();
+                break;
+            case ArachneConsts.Domains.ANALYISES:
+                analysisService.indexAllBySolr();
+                break;
+            default:
+                throw new UnsupportedOperationException("Reindex isn't allowed for domain: " + domain);
+        }
 
-    @RequestMapping(value = "/api/v1/admin/users/reindex-solr", method = RequestMethod.POST)
-    public JsonResult reindexUsersBySolr()
-            throws IllegalAccessException, NotExistException, NoSuchFieldException, SolrServerException, IOException {
-
-        userService.indexAllBySolr();
         return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
     }
 }
