@@ -31,6 +31,7 @@ import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
+import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
 import com.odysseusinc.arachne.portal.repository.BaseDataSourceRepository;
 import com.odysseusinc.arachne.portal.repository.BaseRawDataSourceRepository;
@@ -347,7 +348,7 @@ public abstract class BaseDataSourceServiceImpl<
             dataSource.setPublished(false);
             dataSourceRepository.save(dataSource);
 
-            solrService.deleteByQuery(SolrServiceImpl.DATA_SOURCE_COLLECTION, "id:" + id);
+            solrService.delete(SolrCollection.DATA_SOURCE, String.valueOf(id));
         }
     }
 
