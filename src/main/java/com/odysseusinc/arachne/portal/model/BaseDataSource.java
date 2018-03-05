@@ -73,7 +73,6 @@ public abstract class BaseDataSource implements IDataSource, Serializable, HasAr
     @Transient
     protected Set<ArachnePermission> permissions;
     @SolrFieldAnno(query = true, filter = true)
-    @NotNull
     @Column
     @Enumerated(EnumType.STRING)
     protected CommonModelType modelType;
