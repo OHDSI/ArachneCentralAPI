@@ -41,12 +41,12 @@ import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserStudyExtended;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
 import com.odysseusinc.arachne.portal.repository.AnalysisRepository;
+import com.odysseusinc.arachne.portal.repository.BaseTenantRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeUserRepository;
 import com.odysseusinc.arachne.portal.repository.ResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.StudyRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionInsightSubmissionFileRepository;
-import com.odysseusinc.arachne.portal.repository.TenantRepository;
 import com.odysseusinc.arachne.portal.repository.UserStudyExtendedRepository;
 import com.odysseusinc.arachne.portal.repository.UserStudyGroupedRepository;
 import com.odysseusinc.arachne.portal.repository.submission.SubmissionRepository;
@@ -79,7 +79,7 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends I
     protected final UserStudyExtendedRepository userStudyExtendedRepository;
     protected final SubmissionInsightSubmissionFileRepository submissionInsightSubmissionFileRepository;
     protected final ResultFileRepository resultFileRepository;
-    protected final TenantRepository tenantRepository;
+    protected final BaseTenantRepository tenantRepository;
     protected final StudyRepository studyRepository;
 
     @Autowired
@@ -91,7 +91,7 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends I
                                         UserStudyExtendedRepository userStudyExtendedRepository,
                                         SubmissionInsightSubmissionFileRepository submissionInsightSubmissionFileRepository,
                                         ResultFileRepository resultFileRepository,
-                                        TenantRepository tenantRepository,
+                                        BaseTenantRepository tenantRepository,
                                         StudyRepository studyRepository) {
 
         this.userStudyGroupedRepository = userStudyGroupedRepository;

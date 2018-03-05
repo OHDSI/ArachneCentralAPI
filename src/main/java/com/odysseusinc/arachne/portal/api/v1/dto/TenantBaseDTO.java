@@ -28,6 +28,17 @@ public class TenantBaseDTO {
     private String name;
     private Boolean isDefault;
 
+    public TenantBaseDTO() {
+
+    }
+
+    public TenantBaseDTO(Long id, String name, Boolean isDefault) {
+
+        this.id = id;
+        this.name = name;
+        this.isDefault = isDefault;
+    }
+
     public Long getId() {
 
         return id;

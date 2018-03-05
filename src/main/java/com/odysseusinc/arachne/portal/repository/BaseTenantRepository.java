@@ -15,8 +15,8 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: October 19, 2016
+ * Authors: Pavel Grafkin
+ * Created: March 05, 2018
  *
  */
 
@@ -28,10 +28,13 @@ import java.util.Optional;
 import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.query.Param;
 
-public interface TenantRepository<T extends Tenant> extends BaseTenantRepository<T> {
+@NoRepositoryBean
+public interface BaseTenantRepository<T extends Tenant> extends JpaRepository<T, Long> {
 
     Page<T> findAll(Pageable pageable);
 
