@@ -33,8 +33,8 @@ import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.api.v1.dto.AchillesReportDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.CharacterizationDTO;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
+import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.DataNode;
-import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.achilles.AchillesFile;
 import com.odysseusinc.arachne.portal.model.achilles.AchillesReport;
@@ -98,10 +98,13 @@ public abstract class BaseAchillesController<DS extends IDataSource> {
     public void receiveStats(
             @PathVariable("id") Long datasourceId,
             @RequestParam(value = "file") MultipartFile data)
-            throws NotExistException, IOException {
+            throws NotExistException, IOException, ValidationException {
 
         DS dataSource = checkDataSource(datasourceId);
         final DataNode dataNode = dataSource.getDataNode();
+        if (dataNode.getVirtual()){
+            throw new ValidationException("virtual datasource is not allowed for manual uploading");
+        }
         LOGGER.info(ACHILLES_RESULT_LOADED_LOG,
                 dataSource.getId(), dataSource.getName(), dataNode.getId(), dataNode.getName());
         achillesService.createCharacterization(dataSource, data);
@@ -159,7 +162,7 @@ public abstract class BaseAchillesController<DS extends IDataSource> {
                                         @PathVariable(value = "filepath", required = false) String path,
                                         @PathVariable("filename") String filename) throws NotExistException, IOException {
 
-        final String filepath = StringUtils.isBlank(path) ? filename : path + "/" + filename;
+        final String filepath = StringUtils.isBlank(path) ? filename : path + File.separator + filename;
         DS dataSource = checkDataSource(datasourceId);
         if (characterizationId == null) {
             characterizationId = achillesService.getLatestCharacterizationId(dataSource);
