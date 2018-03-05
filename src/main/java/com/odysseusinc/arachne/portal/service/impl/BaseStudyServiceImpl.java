@@ -735,7 +735,7 @@ public abstract class BaseStudyServiceImpl<
         List<User> dataNodeOwners = validateVirtualDataSourceOwners(study, dataOwnerIds);
 
         final DataNode dataNode = studyHelper.getVirtualDataNode(study.getTitle(), dataSourceName);
-        final DataNode registeredDataNode = baseDataNodeService.register(dataNode);
+        final DataNode registeredDataNode = baseDataNodeService.create(dataNode);
 
         final Set<DataNodeUser> dataNodeUsers = updateDataNodeOwners(dataNodeOwners, registeredDataNode);
         registeredDataNode.setDataNodeUsers(dataNodeUsers);

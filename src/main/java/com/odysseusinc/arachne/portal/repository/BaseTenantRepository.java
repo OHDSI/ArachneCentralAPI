@@ -15,29 +15,38 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: April 26, 2017
+ * Authors: Pavel Grafkin
+ * Created: March 05, 2018
  *
  */
 
 package com.odysseusinc.arachne.portal.repository;
 
-import com.odysseusinc.arachne.portal.model.SubmissionGroup;
+import com.odysseusinc.arachne.portal.model.security.Tenant;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.query.Param;
 
-public interface SubmissionGroupRepository extends JpaRepository<SubmissionGroup, Long>, JpaSpecificationExecutor<SubmissionGroup> {
+@NoRepositoryBean
+public interface BaseTenantRepository<T extends Tenant> extends JpaRepository<T, Long> {
+
+    Page<T> findAll(Pageable pageable);
+
+    Optional<T> findFirstByDataSourcesIdAndUsersId(@Param("dataSourceId") Long dataSourceId, @Param("userId") Long userId);
 
     @Query(
-            value = "SELECT sg FROM SubmissionGroup sg " +
-                    "INNER JOIN FETCH sg.submissions s " +
-                    "LEFT JOIN FETCH s.submissionInsight " +
-                    "WHERE sg.analysis.id = :analysisId",
-            countQuery = "SELECT COUNT(sg) FROM SubmissionGroup sg WHERE sg.analysis.id = :analysisId"
+            "SELECT t1 " +
+                    "FROM Tenant t1 INNER JOIN t1.users u1, Tenant t2 INNER JOIN t2.users u2 " +
+                    "WHERE u1.id = :firstUserId AND u2.id = :secondUserId AND t1.id = t2.id"
     )
-    Page<SubmissionGroup> findAllByAnalysisId(@Param("analysisId") Long analysisId, Pageable pageable);
+    List<T> findCommonForUsers(@Param("firstUserId") Long firstUserId, @Param("secondUserId") Long secondUserId);
+
+    Set<T> findAllByIsDefaultTrue();
+
 }

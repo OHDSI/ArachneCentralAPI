@@ -1,5 +1,4 @@
 /*
- *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +14,15 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: October 19, 2016
- *
+ * Authors: Anton Gackovka
+ * Created: February 28, 2018
  */
 
-package com.odysseusinc.arachne.portal.repository;
+package com.odysseusinc.arachne.portal.scheduler;
 
-import com.odysseusinc.arachne.portal.model.security.Tenant;
-import org.springframework.stereotype.Repository;
+import com.odysseusinc.arachne.commons.utils.TempHolder;
+import org.springframework.stereotype.Component;
 
-@Repository
-public interface TenantRepository extends BaseTenantRepository<Tenant> {
+@Component
+public class PortalTempHolder extends TempHolder {
 }

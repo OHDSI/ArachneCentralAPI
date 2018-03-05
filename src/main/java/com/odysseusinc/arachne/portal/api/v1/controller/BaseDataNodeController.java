@@ -22,15 +22,18 @@
 
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
+import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeCreationResponseDTO;
+import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeRegisterDTO;
-import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeRegisterResponseDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataSourceDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
+import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.DataNode;
+import com.odysseusinc.arachne.portal.model.DataNodeRole;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
@@ -39,6 +42,10 @@ import com.odysseusinc.arachne.portal.service.BaseUserService;
 import com.odysseusinc.arachne.portal.service.StudyDataSourceService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import io.swagger.annotations.ApiOperation;
+import java.io.IOException;
+import java.security.Principal;
+import java.util.Collections;
+import javax.validation.Valid;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,10 +55,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-
-import javax.validation.Valid;
-import java.io.IOException;
-import java.security.Principal;
 
 @SuppressWarnings("unused")
 public abstract class BaseDataNodeController<
@@ -83,48 +86,61 @@ public abstract class BaseDataNodeController<
         this.studyDataSourceService = studyDataSourceService;
     }
 
-    @ApiOperation("Register new data node.")
+    @ApiOperation("Create new data node.")
     @RequestMapping(value = "/api/v1/data-nodes", method = RequestMethod.POST)
-    public JsonResult<CommonDataNodeRegisterResponseDTO> registerDataNode(
-            @RequestBody @Valid CommonDataNodeRegisterDTO commonDataNodeRegisterDTO,
+    public JsonResult<CommonDataNodeCreationResponseDTO> createDataNode(
             Principal principal
-    ) throws PermissionDeniedException {
+    ) throws PermissionDeniedException, AlreadyExistException {
 
         final IUser user = getUser(principal);
-        final DN dataNode = convertRegisterDtoToDataNode(commonDataNodeRegisterDTO);
-        final DN registeredDataNode = baseDataNodeService.register(dataNode);
-        final CommonDataNodeRegisterResponseDTO dataNodeRegisterResponseDTO
-                = conversionService.convert(registeredDataNode, CommonDataNodeRegisterResponseDTO.class);
-        final JsonResult<CommonDataNodeRegisterResponseDTO> result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
+        final DN dataNode = buildEmptyDN();
+        final DN registeredDataNode = baseDataNodeService.create(dataNode);
+        baseDataNodeService.linkUserToDataNodeUnsafe(registeredDataNode, user, Collections.singleton(DataNodeRole.ADMIN));
+
+        final CommonDataNodeCreationResponseDTO dataNodeRegisterResponseDTO
+                = conversionService.convert(registeredDataNode, CommonDataNodeCreationResponseDTO.class);
+        final JsonResult<CommonDataNodeCreationResponseDTO> result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
         result.setResult(dataNodeRegisterResponseDTO);
         return result;
     }
 
-    protected abstract DN convertRegisterDtoToDataNode(CommonDataNodeRegisterDTO commonDataNodeRegisterDTO);
+    protected abstract Class<DN> getDataNodeDNClass();
+
+    protected abstract DN buildEmptyDN();
+
+    protected DataNode buildEmptyDataNode() {
+
+        DataNode dataNode = new DataNode();
+        dataNode.setVirtual(false);
+        dataNode.setName(null);
+        dataNode.setPublished(false);
+        return dataNode;
+    }
 
     @ApiOperation("Update data node info")
     @RequestMapping(value = "/api/v1/data-nodes/{dataNodeId}", method = RequestMethod.PUT)
-    public JsonResult<CommonDataNodeRegisterResponseDTO> updateDataNode(
+    public JsonResult<CommonDataNodeDTO> updateDataNode(
             @PathVariable("dataNodeId") Long dataNodeId,
             @RequestBody @Valid CommonDataNodeRegisterDTO commonDataNodeRegisterDTO,
             Principal principal
     ) throws PermissionDeniedException, NotExistException {
 
         final IUser user = getUser(principal);
-        final DN dataNode = convertRegisterDtoToDataNode(commonDataNodeRegisterDTO);
+        final DN dataNode = conversionService.convert(commonDataNodeRegisterDTO, getDataNodeDNClass());
         dataNode.setId(dataNodeId);
+
         final DN updatedDataNode = baseDataNodeService.update(dataNode);
-        final CommonDataNodeRegisterResponseDTO dataNodeRegisterResponseDTO
-                = conversionService.convert(updatedDataNode, CommonDataNodeRegisterResponseDTO.class);
-        final JsonResult<CommonDataNodeRegisterResponseDTO> result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
+        final CommonDataNodeDTO dataNodeRegisterResponseDTO
+                = conversionService.convert(updatedDataNode, CommonDataNodeDTO.class);
+        final JsonResult<CommonDataNodeDTO> result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
         result.setResult(dataNodeRegisterResponseDTO);
         return result;
     }
 
-    @ApiOperation("Register new data source of datanode.")
+    @ApiOperation("Create new data source of datanode.")
     @RequestMapping(value = "/api/v1/data-nodes/{dataNodeId}/data-sources", method = RequestMethod.POST)
-    public JsonResult registerDataSource(@PathVariable("dataNodeId") Long id,
-                                         @RequestBody @Valid C_DS_DTO commonDataSourceDTO
+    public JsonResult createDataSource(@PathVariable("dataNodeId") Long id,
+                                       @RequestBody C_DS_DTO commonDataSourceDTO
     ) throws FieldException,
             NotExistException,
             ValidationException,
@@ -146,25 +162,25 @@ public abstract class BaseDataNodeController<
     }
 
     @RequestMapping(value = "/api/v1/data-nodes/{dataNodeId}", method = RequestMethod.GET)
-    public JsonResult<CommonDataNodeRegisterResponseDTO> getDataNode(@PathVariable("dataNodeId") Long dataNodeId) {
+    public JsonResult<CommonDataNodeDTO> getDataNode(@PathVariable("dataNodeId") Long dataNodeId) {
 
         DataNode dataNode = baseDataNodeService.getById(dataNodeId);
         return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, getDataNode(dataNode));
     }
 
     @RequestMapping(value = "/api/v1/data-nodes/byuuid/{dataNodeUuid}", method = RequestMethod.GET)
-    public JsonResult<CommonDataNodeRegisterResponseDTO> getDataNode(@PathVariable("dataNodeUuid") String dataNodeUuid) {
+    public JsonResult<CommonDataNodeDTO> getDataNode(@PathVariable("dataNodeUuid") String dataNodeUuid) {
 
         DataNode dataNode = baseDataNodeService.getBySid(dataNodeUuid);
         return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, getDataNode(dataNode));
     }
 
-    protected CommonDataNodeRegisterResponseDTO getDataNode(DataNode dataNode) {
+    protected CommonDataNodeDTO getDataNode(DataNode dataNode) {
 
         if (dataNode == null) {
             throw new NotExistException(DataNode.class);
         }
-        return conversionService.convert(dataNode, CommonDataNodeRegisterResponseDTO.class);
+        return conversionService.convert(dataNode, CommonDataNodeDTO.class);
     }
 
     protected abstract DS convertCommonDataSourceDtoToDataSource(C_DS_DTO commonDataSourceDTO);

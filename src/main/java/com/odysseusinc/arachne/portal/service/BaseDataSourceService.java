@@ -30,13 +30,12 @@ import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
+import java.io.IOException;
+import java.util.List;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-
-import java.io.IOException;
-import java.util.List;
 
 public interface BaseDataSourceService<DS extends IDataSource> {
 
@@ -55,9 +54,7 @@ public interface BaseDataSourceService<DS extends IDataSource> {
 
     SearchResult<DS> search(SolrQuery solrQuery, IUser user) throws NoSuchFieldException, IOException, SolrServerException;
 
-    DS update(
-            DS dataSource
-    ) throws
+    DS update(DS dataSource) throws
                     NotExistException,
                     ValidationException,
                     IOException,
@@ -89,6 +86,7 @@ public interface BaseDataSourceService<DS extends IDataSource> {
             throws IOException, SolrServerException, NoSuchFieldException, IllegalAccessException;
 
     DS findById(Long dataSourceId);
+    List<DS> findByIdsAndNotDeleted(List<Long> dataSourceIds);
 
     Page<DS> suggestDataSource(String query, Long studyId, Long userId,
                                        PageRequest pageRequest);
@@ -96,4 +94,8 @@ public interface BaseDataSourceService<DS extends IDataSource> {
     void indexAllBySolr() throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException;
 
     void delete(Long id) throws IOException, SolrServerException;
+
+    void unpublish(Long id) throws IOException, SolrServerException;
+
+    Page<DS> getUserDataSources(final String query, final Long userId, PageRequest pageRequest);
 }

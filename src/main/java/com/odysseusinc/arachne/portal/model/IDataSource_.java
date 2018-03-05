@@ -15,16 +15,17 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: October 19, 2016
+ * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Konstantin Yaroshovets
+ * Created: February 26, 2018
  *
  */
 
-package com.odysseusinc.arachne.portal.repository;
+package com.odysseusinc.arachne.portal.model;
 
-import com.odysseusinc.arachne.portal.model.security.Tenant;
-import org.springframework.stereotype.Repository;
+import javax.persistence.metamodel.SingularAttribute;
+import javax.persistence.metamodel.StaticMetamodel;
 
-@Repository
-public interface TenantRepository extends BaseTenantRepository<Tenant> {
+@StaticMetamodel(IDataSource.class)
+public class IDataSource_ {
+    public static volatile SingularAttribute<IDataSource, Long> id;
 }
