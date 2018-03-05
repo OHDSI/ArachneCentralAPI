@@ -45,6 +45,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.method.P;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -66,10 +68,9 @@ public abstract class BaseAchillesService<DS extends IDataSource, S extends Stud
     }
 
     @Override
-    // todo ARACHNE-1886
-    /* @PreAuthorize("hasPermission(#dataSource, " +
-            "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACHILLES_PERMISSION)")*/
-    public void createCharacterization(DS dataSource, MultipartFile data) throws IOException {
+    @PreAuthorize("#ds.dataNode == authentication.principal or " +
+            "hasPermission(#ds, T(com.odysseusinc.arachne.portal.security.ArachnePermission).UPLOAD_ACHILLES_REPORTS)")
+    public void createCharacterization(@P("ds") DS dataSource, MultipartFile data) throws IOException {
 
         final File tempFile = Files.createTempFile("achilles", ".zip").toFile();
         data.transferTo(tempFile);

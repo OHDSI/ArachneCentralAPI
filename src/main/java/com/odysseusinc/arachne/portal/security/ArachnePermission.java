@@ -58,7 +58,7 @@ public enum ArachnePermission {
     ACCESS_PAPER(Paper.class),
     LIMITED_EDIT_PAPER(Paper.class),
     ACCESS_USER(User.class),
-    ACHILLES_PERMISSION(DataSource.class),
+    UPLOAD_ACHILLES_REPORTS(DataSource.class),
     ACCESS_ACHILLES_REPORT_PERMISSION(DataSource.class),
     EDIT_ACHILLES_REPORT_PERMISSION(DataSource.class)
     ;
