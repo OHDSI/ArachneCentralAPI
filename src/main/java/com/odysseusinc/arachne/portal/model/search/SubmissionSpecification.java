@@ -137,7 +137,7 @@ public class SubmissionSpecification<T extends Submission> implements Specificat
         }
 
         if (Objects.nonNull(hasInsight)) {
-            final Path<SubmissionInsight> insightPath = root.get(Submission_.submissionInsight);
+            final Path<SubmissionInsight> insightPath = root.join(Submission_.submissionInsight, JoinType.LEFT);
             predicates.add(hasInsight ? cb.isNotNull(insightPath) : cb.isNull(insightPath));
         }
 

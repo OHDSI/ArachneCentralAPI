@@ -37,6 +37,7 @@ import java.util.Objects;
 import java.util.Set;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.ListJoin;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
@@ -62,7 +63,7 @@ public class SubmissionGroupSpecification implements Specification<SubmissionGro
 
         final Boolean hasInsight = criteria.getHasInsight();
         if (Objects.nonNull(hasInsight)) {
-            final Path<SubmissionInsight> insightPath = root.join(SubmissionGroup_.submissions).get(Submission_.submissionInsight);
+            final Path<SubmissionInsight> insightPath = root.join(SubmissionGroup_.submissions).join(Submission_.submissionInsight, JoinType.LEFT);
             predicates.add(hasInsight ? cb.isNotNull(insightPath) : cb.isNull(insightPath));
         }
 
