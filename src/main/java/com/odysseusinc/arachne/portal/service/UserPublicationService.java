@@ -25,5 +25,5 @@ package com.odysseusinc.arachne.portal.service;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserPublication;
 
-public interface UserPublicationService extends BaseUserPublicationService<User, UserPublication> {
+public interface UserPublicationService extends BaseUserPublicationService<UserPublication> {
 }

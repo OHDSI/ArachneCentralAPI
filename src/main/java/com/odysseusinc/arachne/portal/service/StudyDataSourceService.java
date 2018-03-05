@@ -28,5 +28,5 @@ import org.apache.solr.client.solrj.SolrServerException;
 
 public interface StudyDataSourceService {
 
-    void softDeletingDataSource(DataSource dataSource) throws IOException, SolrServerException;
+    void softDeletingDataSource(Long dataSourceId) throws IOException, SolrServerException;
 }

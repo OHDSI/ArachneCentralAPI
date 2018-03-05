@@ -30,6 +30,7 @@ import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionInsight;
+import com.odysseusinc.arachne.portal.model.User;
 
 public enum ArachnePermission {
     EDIT_STUDY(Study.class),
@@ -49,12 +50,17 @@ public enum ArachnePermission {
     EDIT_DATANODE(DataNode.class),
     ACCESS_DATASOURCE(DataSource.class),
     CREATE_DATASOURCE(DataNode.class),
+    EDIT_DATASOURCE(DataSource.class),
     DELETE_DATASOURCE(DataSource.class),
     SENDING_UNLOCK_ANALYSIS_REQUEST(Analysis.class),
     EDIT_PAPER(Paper.class),
     EDIT_INSIGHT(SubmissionInsight.class),
     ACCESS_PAPER(Paper.class),
-    LIMITED_EDIT_PAPER(Paper.class)
+    LIMITED_EDIT_PAPER(Paper.class),
+    ACCESS_USER(User.class),
+    ACHILLES_PERMISSION(DataSource.class),
+    ACCESS_ACHILLES_REPORT_PERMISSION(DataSource.class),
+    EDIT_ACHILLES_REPORT_PERMISSION(DataSource.class)
     ;
 
     private Class<?>[] applicableClass;

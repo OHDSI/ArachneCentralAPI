@@ -4,7 +4,7 @@
             id="1"
             name="type"
     />
-    <studies
+    <studies_data
             id="1"
             title="Title"
             start_date="2017-05-21 00:00:00.000000"
@@ -13,8 +13,9 @@
             created="2017-05-21 00:00:00.000000"
             status_id="2"
             type_id="1"
+            tenant_id="1"
     />
-    <studies
+    <studies_data
             id="2"
             title="Title 2"
             start_date="2017-05-21 00:00:00.000000"
@@ -23,8 +24,9 @@
             created="2017-05-21 00:00:00.000000"
             status_id="2"
             type_id="1"
+            tenant_id="1"
     />
-    <studies
+    <studies_data
             id="3"
             title="Title 3"
             start_date="2017-05-21 00:00:00.000000"
@@ -33,6 +35,7 @@
             created="2017-05-21 00:00:00.000000"
             status_id="2"
             type_id="1"
+            tenant_id="1"
     />
     <studies_users
             id="1"

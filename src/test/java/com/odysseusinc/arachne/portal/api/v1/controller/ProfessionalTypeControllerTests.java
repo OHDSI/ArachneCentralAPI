@@ -70,7 +70,7 @@ public class ProfessionalTypeControllerTests extends BaseControllerTest {
 
     @Test
     @DatabaseSetup(value = "/data/professionaltype/empty-professional-type.xml")
-    @ExpectedDatabase(table = "users", value = "/data/users-without-external-dependency.xml", assertionMode = NON_STRICT)
+    @ExpectedDatabase(table = "users_data", value = "/data/users-without-external-dependency.xml", assertionMode = NON_STRICT)
     public void testCreateProfessionalType() throws Exception {
 
         CommonProfessionalTypeDTO professionalTypeDTO = new CommonProfessionalTypeDTO();

@@ -24,14 +24,18 @@ package com.odysseusinc.arachne.portal.service.impl;
 
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.Study;
+import com.odysseusinc.arachne.portal.model.StudyViewItem;
 import com.odysseusinc.arachne.portal.model.achilles.AchillesFile;
 import com.odysseusinc.arachne.portal.model.achilles.AchillesReport;
 import com.odysseusinc.arachne.portal.model.achilles.Characterization;
+import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.repository.AchillesFileRepository;
 import com.odysseusinc.arachne.portal.repository.AchillesReportRepository;
 import com.odysseusinc.arachne.portal.repository.CharacterizationRepository;
 import com.odysseusinc.arachne.portal.service.AchillesImportService;
 import com.odysseusinc.arachne.portal.service.AchillesService;
+import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.StudyService;
 import java.io.IOException;
 import java.util.List;
@@ -45,18 +49,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @Transactional
-public class AchillesServiceImpl extends BaseAchillesService<DataSource> implements AchillesService<DataSource> {
+public class AchillesServiceImpl extends BaseAchillesService<DataSource, Study, StudySearch, StudyViewItem> implements AchillesService<DataSource> {
 
-    @Autowired
-    public AchillesServiceImpl(CharacterizationRepository characterizationRepository,
-                               AchillesFileRepository achillesFileRepository,
-                               AchillesReportRepository achillesReportRepository,
-                               StudyService studyService,
-                               AchillesImportService achillesHelperService
-    ) {
+    public AchillesServiceImpl(CharacterizationRepository characterizationRepository, AchillesFileRepository achillesFileRepository, AchillesReportRepository achillesReportRepository, StudyService studyService, AchillesImportService achillesHelperService) {
 
-        super(achillesFileRepository, characterizationRepository, studyService, achillesReportRepository, achillesHelperService);
-
+        super(characterizationRepository, achillesFileRepository, achillesReportRepository, studyService, achillesHelperService);
     }
 
     @Override

@@ -37,23 +37,26 @@ import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.UserNotActivatedException;
 import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
 import com.odysseusinc.arachne.portal.model.DataNode;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.PasswordReset;
-import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
 import com.odysseusinc.arachne.portal.security.TokenUtils;
+import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordData;
+import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidationResult;
+import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
 import com.odysseusinc.arachne.portal.service.LoginAttemptService;
 import com.odysseusinc.arachne.portal.service.PasswordResetService;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
 import edu.vt.middleware.password.Password;
-import edu.vt.middleware.password.PasswordData;
-import edu.vt.middleware.password.PasswordValidator;
-import edu.vt.middleware.password.RuleResult;
 import io.swagger.annotations.ApiOperation;
+import java.io.IOException;
+import java.security.Principal;
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -67,12 +70,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-import java.io.IOException;
-import java.security.Principal;
-
-public abstract class BaseAuthenticationController extends BaseController<DataNode> {
+public abstract class BaseAuthenticationController extends BaseController<DataNode, IUser> {
 
     private static final Logger log = LoggerFactory.getLogger(BaseAuthenticationController.class);
 
@@ -86,7 +84,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
     protected BaseUserService userService;
     private UserDetailsService userDetailsService;
     private PasswordResetService passwordResetService;
-    private PasswordValidator passwordValidator;
+    private ArachnePasswordValidator passwordValidator;
     protected ProfessionalTypeService professionalTypeService;
     protected LoginAttemptService loginAttemptService;
 
@@ -95,7 +93,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
                                         BaseUserService userService,
                                         UserDetailsService userDetailsService,
                                         PasswordResetService passwordResetService,
-                                        @Qualifier("passwordValidator") PasswordValidator passwordValidator,
+                                        @Qualifier("passwordValidator") ArachnePasswordValidator passwordValidator,
                                         ProfessionalTypeService professionalTypeService,
                                         LoginAttemptService loginAttemptService) {
 
@@ -174,7 +172,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
         );
     }
 
-    protected User getUser(String userName) {
+    protected IUser getUser(String userName) {
 
         return userService.getByUsername(userName);
     }
@@ -228,7 +226,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
     public void remindPassword(@RequestBody @Valid RemindPasswordDTO remindPasswordDTO) throws InterruptedException {
 
         String email = remindPasswordDTO.getEmail();
-        User user = userService.getByUnverifiedEmail(email);
+        IUser user = userService.getByUnverifiedEmail(email);
         // If user was not found,
         // do not throw exception to prevent "Unauthenticated Email Address Enumeration" security issue
         if (user != null) {
@@ -261,13 +259,13 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
             String email = resetPasswordDTO.getEmail();
             String token = resetPasswordDTO.getToken();
             String newPassword = resetPasswordDTO.getPassword();
-            PasswordData passwordData = new PasswordData(new Password(newPassword));
-            RuleResult validationResult = passwordValidator.validate(passwordData);
+            final ArachnePasswordData passwordData = new ArachnePasswordData(new Password(newPassword));
+            final ArachnePasswordValidationResult validationResult = passwordValidator.validate(passwordData);
             if (!validationResult.isValid()) {
                 throw new PasswordValidationException(passwordValidator.getMessages(validationResult));
             }
             if (passwordResetService.canReset(email, token)) {
-                User user = userService.getByUnverifiedEmail(email);
+                IUser user = userService.getByUnverifiedEmail(email);
                 user.setPassword(newPassword);
                 userService.resetPassword(user);
                 result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
@@ -284,7 +282,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
     public JsonResult<UserInfoDTO> info(Principal principal) {
 
         final JsonResult<UserInfoDTO> result;
-        User user = userService.getByEmail(principal.getName());
+        IUser user = userService.getByEmail(principal.getName());
         final UserInfoDTO userInfo = conversionService.convert(user, UserInfoDTO.class);
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
         result.setResult(userInfo);

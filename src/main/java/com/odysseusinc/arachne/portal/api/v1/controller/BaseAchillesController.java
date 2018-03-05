@@ -35,7 +35,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.CharacterizationDTO;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.DataNode;
-import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.achilles.AchillesFile;
 import com.odysseusinc.arachne.portal.model.achilles.AchillesReport;
 import com.odysseusinc.arachne.portal.model.achilles.Characterization;
@@ -45,7 +45,6 @@ import com.odysseusinc.arachne.portal.repository.DataNodeRepository;
 import com.odysseusinc.arachne.portal.service.AchillesService;
 import com.odysseusinc.arachne.portal.util.ConverterUtils;
 import io.swagger.annotations.ApiOperation;
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
@@ -62,7 +61,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
-public abstract class BaseAchillesController<DS extends DataSource> {
+public abstract class BaseAchillesController<DS extends IDataSource> {
     private static final String ACHILLES_RESULT_LOADED_LOG
             = "Loaded Achilles result for Data Source with id='{}', name='{}', Data Node with id='{}' name='{}'";
     protected static Logger LOGGER = LoggerFactory.getLogger(BaseAchillesController.class);
@@ -190,7 +189,7 @@ public abstract class BaseAchillesController<DS extends DataSource> {
 
         DS dataSource = dataSourceRepository.findOne(datasourceId);
         if (dataSource == null) {
-            String message = String.format("Datasource with uuid: '%s' not found", datasourceId);
+            String message = String.format("Datasource with id: '%s' not found", datasourceId);
             throw new NotExistException(message, dataSourceClass);
         }
         return dataSource;

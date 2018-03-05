@@ -29,6 +29,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.DataOwnerParticipantDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.OptionDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ParticipantDTO;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.ParticipantLink;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import com.odysseusinc.arachne.portal.model.User;
@@ -48,7 +49,7 @@ public class ParticipantLinkToParticipantDTOConverter
         ParticipantDTO participantDTO = new ParticipantDTO();
 
         ParticipantRole role = participantLink.getRole();
-        final User user = participantLink.getUser();
+        final IUser user = participantLink.getUser();
         participantDTO.setId(user.getUuid());
         participantDTO.setFullName(user.getFullName());
         participantDTO.setRole(new OptionDTO(role.name(), role.toString()));

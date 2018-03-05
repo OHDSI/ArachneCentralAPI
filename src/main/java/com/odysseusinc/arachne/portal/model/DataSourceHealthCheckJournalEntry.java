@@ -50,8 +50,8 @@ public class DataSourceHealthCheckJournalEntry {
     private Date created;
 
     @NotNull
-    @ManyToOne(fetch = FetchType.LAZY)
-    private DataSource dataSource;
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = DataSource.class)
+    private IDataSource dataSource;
 
     @NotNull
     private Long delay;
@@ -60,7 +60,7 @@ public class DataSourceHealthCheckJournalEntry {
 
     }
 
-    public DataSourceHealthCheckJournalEntry(Date created, DataSource dataSource, Long delay) {
+    public DataSourceHealthCheckJournalEntry(Date created, IDataSource dataSource, Long delay) {
 
         this.created = created;
         this.dataSource = dataSource;
@@ -87,14 +87,14 @@ public class DataSourceHealthCheckJournalEntry {
         this.created = created;
     }
 
-    public DataSource getDataSource() {
+    public IDataSource getDataSource() {
 
         return dataSource;
     }
 
-    public void setDataSource(DataSource dataNode) {
+    public void setDataSource(IDataSource dataSource) {
 
-        this.dataSource = dataNode;
+        this.dataSource = dataSource;
     }
 
     public Long getDelay() {

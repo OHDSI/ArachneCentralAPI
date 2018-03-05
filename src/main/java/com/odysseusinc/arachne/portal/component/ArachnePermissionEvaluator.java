@@ -21,11 +21,21 @@
 
 package com.odysseusinc.arachne.portal.component;
 
+import static com.odysseusinc.arachne.portal.component.PermissionDsl.domainObject;
+import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.analysisAuthorIs;
+import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.analysisFileAuthorIs;
+import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.hasRole;
+import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.instanceOf;
+import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.userIsLeadInvestigator;
+import static com.odysseusinc.arachne.portal.security.ArachnePermission.DELETE_ANALYSIS_FILES;
+import static com.odysseusinc.arachne.portal.security.ArachnePermission.DELETE_DATASOURCE;
+
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.AnalysisFile;
 import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import com.odysseusinc.arachne.portal.model.PublishState;
@@ -33,21 +43,13 @@ import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionGroup;
 import com.odysseusinc.arachne.portal.model.SubmissionInsight;
+import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserStudyGrouped;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
-import com.odysseusinc.arachne.portal.repository.AnalysisRepository;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
 import com.odysseusinc.arachne.portal.service.BaseArachneSecureService;
 import com.odysseusinc.arachne.portal.service.domain.DomainObjectLoaderFactory;
-import org.apache.commons.lang3.ObjectUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.security.access.PermissionEvaluator;
-import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
-
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
@@ -58,20 +60,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-
-import static com.odysseusinc.arachne.portal.component.PermissionDsl.domainObject;
-import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.analysisAuthorIs;
-import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.analysisFileAuthorIs;
-import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.hasRole;
-import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.instanceOf;
-import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.userIsLeadInvestigator;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.ACCESS_STUDY;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.DELETE_ANALYSIS_FILES;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.DELETE_DATASOURCE;
+import org.apache.commons.lang3.ObjectUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.security.access.PermissionEvaluator;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 
 @Component("ArachnePermissionEvaluator")
-public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> implements PermissionEvaluator {
+public class ArachnePermissionEvaluator<T extends Paper, D extends IDataSource> implements PermissionEvaluator {
 
     protected final BaseArachneSecureService<T, D> secureService;
     protected final DomainObjectLoaderFactory domainObjectLoaderFactory;
@@ -98,6 +97,7 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
         domainClassMap.put(DataSource.class.getSimpleName(), DataSource.class);
         domainClassMap.put(Paper.class.getSimpleName(), Paper.class);
         domainClassMap.put(CommentTopic.class.getSimpleName(), CommentTopic.class);
+        domainClassMap.put(User.class.getSimpleName(), User.class);
     }
 
     protected boolean checkPermission(Authentication authentication, Object domainObject, Object permissions) {
@@ -150,8 +150,6 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
     protected PermissionDsl studyRules(Object domainObject, ArachneUser user) {
 
         return domainObject(domainObject)
-                .when(instanceOf(Study.class).and(study -> !study.getPrivacy()))
-                .then(study -> Collections.singleton(ACCESS_STUDY)).apply()
                 .when(instanceOf(Study.class))
                 .then(study -> getArachnePermissions(secureService.getRolesByStudy(user, study))).apply();
     }
@@ -159,8 +157,6 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
     protected PermissionDsl analysisRules(Object domainObject, ArachneUser user) {
 
         return domainObject(domainObject)
-                .when(instanceOf(Analysis.class).and(analysis -> !(analysis.getStudy()).getPrivacy()))
-                .then(analysis -> Collections.singleton(ACCESS_STUDY)).apply()
                 .when(instanceOf(Analysis.class))
                 .then(analysis -> getArachnePermissions(secureService.getRolesByAnalysis(user, analysis)))
                 .filter((analysis, permission) -> !(ArachnePermission.DELETE_ANALYSIS.equals(permission)
@@ -191,7 +187,7 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
 
     protected PermissionDsl dataSourceRules(Object domainObject, ArachneUser user) {
 
-        return domainObject(domainObject).when(instanceOf(DataSource.class))
+        return domainObject(domainObject).when(instanceOf(IDataSource.class))
                 .then(dataSource -> getArachnePermissions(secureService.getRolesByDataSource(user, (D) dataSource))).apply()
                 .when(instanceOf(DataSource.class).and(hasRole(user, "ROLE_ADMIN")))
                 .then(dataSource -> Collections.singleton(DELETE_DATASOURCE)).apply();
@@ -232,6 +228,13 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
                 .then(topic -> getArachnePermissions(secureService.getRolesByCommentTopic(user, (CommentTopic) topic))).apply();
     }
 
+    protected PermissionDsl userRules(Object domainObject, ArachneUser user) {
+
+        return domainObject(domainObject).when(instanceOf(User.class))
+                .then(targetUser -> secureService.getPermissionsForUser(user, targetUser))
+                .apply();
+    }
+
     protected PermissionDsl additionalRules(Object domainObject, ArachneUser user) {
 
         return domainObject(domainObject);
@@ -251,6 +254,7 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
                 .with(insightRules(domainObject, user))
                 .with(topicRules(domainObject, user))
                 .with(additionalRules(domainObject, user))
+                .with(userRules(domainObject, user))
                 .getPermissions();
     }
 
@@ -273,11 +277,18 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
             final Analysis analysis = (Analysis) hasPermissionsObj;
             final List<SubmissionGroup> submissionGroups = analysis.getSubmissionGroups();
             if (!CollectionUtils.isEmpty(submissionGroups)) {
-                    submissionGroups.forEach(submissionGroup -> submissionGroup.getSubmissions().forEach(submission -> {
-                            final Set<ArachnePermission> submissionPermissions = getAllPermissions(submission, user);
-                            submission.setPermissions(submissionPermissions);
-                        }));
-                }
+                submissionGroups.forEach(submissionGroup -> submissionGroup.getSubmissions().forEach(submission -> {
+                    final Set<ArachnePermission> submissionPermissions = getAllPermissions(submission, user);
+                    submission.setPermissions(submissionPermissions);
+                }));
+            }
+            final List<AnalysisFile> files = analysis.getFiles();
+            if (!CollectionUtils.isEmpty(files)) {
+                files.forEach(file -> {
+                    final Set<ArachnePermission> filePermissions = getAllPermissions(file, user);
+                    file.setPermissions(filePermissions);
+                });
+            }
         }
         return true;
     }

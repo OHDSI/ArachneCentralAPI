@@ -37,22 +37,21 @@ import com.odysseusinc.arachne.commons.api.v1.dto.CommonLinkUserToDataNodeDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserRegistrationDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
+import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.ApproveDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ChangePasswordDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.CountryDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.ExpertListSearchResultDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.InvitationActionDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.InvitationActionWithTokenDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.InvitationDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.InvitationType;
 import com.odysseusinc.arachne.portal.api.v1.dto.RemindPasswordDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.SearchExpertListDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.StateProvinceDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.SuggestionTarget;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserLinkDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserProfileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserProfileGeneralDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserPublicationDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.UserSettingsDTO;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.NotUniqueException;
@@ -68,7 +67,8 @@ import com.odysseusinc.arachne.portal.model.Country;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataNodeRole;
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
-import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Invitationable;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.Skill;
@@ -76,7 +76,6 @@ import com.odysseusinc.arachne.portal.model.StateProvince;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
 import com.odysseusinc.arachne.portal.model.Submission;
-import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserLink;
 import com.odysseusinc.arachne.portal.model.UserOrigin;
 import com.odysseusinc.arachne.portal.model.UserPublication;
@@ -84,7 +83,6 @@ import com.odysseusinc.arachne.portal.model.UserStudy;
 import com.odysseusinc.arachne.portal.model.search.PaperSearch;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.security.TokenUtils;
-import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordInfo;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
 import com.odysseusinc.arachne.portal.service.AnalysisUnlockRequestService;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
@@ -92,7 +90,6 @@ import com.odysseusinc.arachne.portal.service.BasePaperService;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
-import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
 import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
@@ -113,15 +110,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.convert.support.GenericConversionService;
-import org.springframework.util.CollectionUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -130,9 +124,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 public abstract class BaseUserController<
-        U extends User,
+        U extends IUser,
         S extends Study,
-        DS extends DataSource,
+        DS extends IDataSource,
         SS extends StudySearch,
         SU extends AbstractUserStudyListItem,
         DN extends DataNode,
@@ -140,7 +134,7 @@ public abstract class BaseUserController<
         PS extends PaperSearch,
         SK extends Skill,
         A extends Analysis,
-        SB extends Submission> {
+        SB extends Submission> extends BaseController<DN, U> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseUserController.class);
     private static final String AVATAR_CONTENT_TYPE = "image/*";
@@ -189,7 +183,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Register new user via form.")
-    @RequestMapping(value = "/api/v1/auth/registration", method = RequestMethod.POST)
+    @RequestMapping(value = "/api/v1/auth/registration", method = POST)
     public void register(@RequestBody @Valid CommonUserRegistrationDTO dto)
             throws NotExistException, PermissionDeniedException, PasswordValidationException, InterruptedException {
 
@@ -209,7 +203,7 @@ public abstract class BaseUserController<
     protected abstract U convertRegistrationDTO(CommonUserRegistrationDTO dto);
 
     @ApiOperation("Resend registration email for not enabled user")
-    @RequestMapping(value = "/api/v1/auth/resend-activation-email", method = RequestMethod.POST)
+    @RequestMapping(value = "/api/v1/auth/resend-activation-email", method = POST)
     public JsonResult<Map<String, Object>> resendActivationEmail(@RequestBody @Valid RemindPasswordDTO request, BindingResult binding)
             throws UserNotFoundException {
 
@@ -231,7 +225,7 @@ public abstract class BaseUserController<
             throws UserNotFoundException {
 
         JsonResult<CommonArachneUserStatusDTO> result;
-        User user = userService.getByUuid(uuid);
+        IUser user = userService.getByUuid(uuid);
         if (user == null) {
             throw new UserNotFoundException("userUuid", "user not found");
         } else {
@@ -243,7 +237,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Register user via activation code.")
-    @RequestMapping("/api/v1/user-management/activation/{activationCode}")
+    @RequestMapping(value = "/api/v1/user-management/activation/{activationCode}", method = GET)
     public void activate(
             Principal principal,
             HttpServletRequest request,
@@ -276,7 +270,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Upload user avatar")
-    @RequestMapping(value = "/api/v1/user-management/users/avatar", method = RequestMethod.POST)
+    @RequestMapping(value = "/api/v1/user-management/users/avatar", method = POST)
     public JsonResult<Boolean> saveUserAvatar(
             Principal principal,
             @RequestParam(name = "file") MultipartFile[] file)
@@ -312,12 +306,12 @@ public abstract class BaseUserController<
             @PathVariable("id") String id,
             HttpServletResponse response) throws IOException {
 
-        U user = userService.getByUuidAndInitializeCollections(id);
+        U user = userService.getByIdInAnyTenant(UserIdUtils.uuidToId(id));
         userService.putAvatarToResponse(response, user);
     }
 
     @ApiOperation("Save user profile")
-    @RequestMapping(value = "/api/v1/user-management/users/profile", method = RequestMethod.POST)
+    @RequestMapping(value = "/api/v1/user-management/users/profile", method = POST)
     public JsonResult<UserProfileDTO> saveProfile(
             Principal principal,
             @RequestBody @Valid UserProfileGeneralDTO dto,
@@ -330,7 +324,7 @@ public abstract class BaseUserController<
             NoSuchFieldException {
 
         JsonResult<UserProfileDTO> result;
-        User owner = userService.getByEmail(principal.getName());
+        IUser owner = userService.getByEmail(principal.getName());
         if (binding.hasErrors()) {
             result = new JsonResult<>(VALIDATION_ERROR);
             for (FieldError fieldError : binding.getFieldErrors()) {
@@ -349,7 +343,7 @@ public abstract class BaseUserController<
     protected abstract U convertUserProfileGeneralDTO(UserProfileGeneralDTO dto);
 
     @ApiOperation("Change user password")
-    @RequestMapping(value = "/api/v1/user-management/users/changepassword", method = RequestMethod.POST)
+    @RequestMapping(value = "/api/v1/user-management/users/changepassword", method = POST)
     public JsonResult changePassword(@RequestBody @Valid ChangePasswordDTO changePasswordDTO,
                                      Principal principal
     ) throws ValidationException, PasswordValidationException {
@@ -366,116 +360,8 @@ public abstract class BaseUserController<
         return result;
     }
 
-    @ApiOperation("View user profile.")
-    @RequestMapping(value = "/api/v1/user-management/users/{userId}/profile", method = GET)
-    public JsonResult<UserProfileDTO> viewProfile(
-            Principal principal,
-            @PathVariable("userId") String userId) {
-
-        User logginedUser = userService.getByEmail(principal.getName());
-        JsonResult<UserProfileDTO> result;
-        User user = userService.getByUuidAndInitializeCollections(userId);
-        UserProfileDTO userProfileDTO = conversionService.convert(user, UserProfileDTO.class);
-        userProfileDTO.setIsEditable(logginedUser.getUuid().equals(userId));
-        result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
-        result.setResult(userProfileDTO);
-        return result;
-    }
-
-    @ApiOperation("Suggest user according to query")
-    @RequestMapping(value = "/api/v1/user-management/users/suggest")
-    public List<CommonUserDTO> suggest(@RequestParam(value = "target") SuggestionTarget target,
-                                       @RequestParam(value = "id", required = false) Long id,
-                                       @RequestParam(value = "excludeEmails", required = false) List<String> excludeEmails,
-                                       @RequestParam(value = "query") String query,
-                                       @RequestParam(value = "limit", defaultValue = "10") Integer limit) {
-
-        List<U> users;
-        switch (target) {
-            case STUDY: {
-                if (id == null) {
-                    throw new javax.validation.ValidationException("Id must be specified when SuggestionTarget=STUDY");
-                }
-                users = userService.suggestUserToStudy(query, id, limit);
-                break;
-            }
-            case PAPER: {
-                if (id == null) {
-                    throw new javax.validation.ValidationException("Id must be specified when SuggestionTarget=PAPER");
-                }
-                users = userService.suggestUserToPaper(query, id, limit);
-                break;
-            }
-            case DATANODE: {
-                if (CollectionUtils.isEmpty(excludeEmails)) {
-                    throw new javax.validation.ValidationException("Emails for excluding must be specified when SuggestionTarget=DATANODE");
-                }
-                users = userService.suggestUser(query, excludeEmails, limit);
-                break;
-            }
-            default: {
-                throw new IllegalArgumentException("Target must be specified");
-            }
-        }
-        return users.stream()
-                .map(user -> conversionService.convert(user, CommonUserDTO.class))
-                .collect(Collectors.toList());
-    }
-
-    @Deprecated
-    @ApiOperation("Suggests user according to query.")
-    @RequestMapping(value = "/api/v1/user-management/users/search-user", method = GET)
-    public JsonResult<List<CommonUserDTO>> suggestUsers(
-            @RequestParam(value = "studyId", required = false) Long studyId,
-            @RequestParam(value = "paperId", required = false) Long paperId,
-            @RequestParam("query") String query,
-            @RequestParam(value = "size", defaultValue = "10") Integer size
-    ) {
-
-        final SuggestionTarget target;
-        final Long id;
-        if (studyId != null) {
-            target = SuggestionTarget.STUDY;
-            id = studyId;
-        } else if (paperId != null) {
-            target = SuggestionTarget.PAPER;
-            id = paperId;
-        } else {
-            throw new javax.validation.ValidationException();
-        }
-        final List<CommonUserDTO> suggest = suggest(target, id, null, query, size);
-        return new JsonResult<>(NO_ERROR, suggest);
-    }
-
-    @Deprecated
-    @ApiOperation("Suggests user according to query.")
-    @RequestMapping(value = "/api/v1/user-management/users/suggests-user", method = GET)
-    public JsonResult<List<CommonUserDTO>> get(
-            @RequestParam("query") String query,
-            @RequestParam("email") List<String> emails,
-            @RequestParam("limit") Integer limit
-    ) {
-
-        final List<CommonUserDTO> suggest = suggest(SuggestionTarget.DATANODE, null, emails, query, limit);
-        return new JsonResult<>(NO_ERROR, suggest);
-    }
-
-    @ApiOperation("Get user by id")
-    @RequestMapping(value = "/api/v1/user-management/users/{id}", method = GET)
-    public JsonResult<CommonUserDTO> get(
-            @PathVariable("id") Long id
-    ) {
-
-        JsonResult<CommonUserDTO> result;
-        U user = userService.getByIdAndInitializeCollections(id);
-        CommonUserDTO userDTO = conversionService.convert(user, CommonUserDTO.class);
-        result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
-        result.setResult(userDTO);
-        return result;
-    }
-
     @ApiOperation("Add skill to user profile.")
-    @RequestMapping(value = "/api/v1/user-management/users/skills/{skillId}", method = RequestMethod.POST)
+    @RequestMapping(value = "/api/v1/user-management/users/skills/{skillId}", method = POST)
     public JsonResult<UserProfileDTO> addSkill(
             Principal principal,
             @PathVariable("skillId") Long skillId
@@ -507,7 +393,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Add link to user profile.")
-    @RequestMapping(value = "/api/v1/user-management/users/links", method = RequestMethod.POST)
+    @RequestMapping(value = "/api/v1/user-management/users/links", method = POST)
     public JsonResult<UserProfileDTO> addLink(
             Principal principal,
             @Valid @RequestBody UserLinkDTO userLinkDTO,
@@ -548,7 +434,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Add user's publication.")
-    @RequestMapping(value = "/api/v1/user-management/users/publications", method = RequestMethod.POST)
+    @RequestMapping(value = "/api/v1/user-management/users/publications", method = POST)
     public JsonResult<UserProfileDTO> addPublication(
             Principal principal,
             @Valid @RequestBody UserPublicationDTO userPublicationDTO,
@@ -714,7 +600,7 @@ public abstract class BaseUserController<
     protected abstract U createNewUser();
 
     @ApiOperation("Accept invitations.")
-    @RequestMapping(value = "/api/v1/user-management/users/invitations", method = RequestMethod.POST)
+    @RequestMapping(value = "/api/v1/user-management/users/invitations", method = POST)
     public JsonResult<UserProfileDTO> invitationAcceptViaInvitation(
             Principal principal,
             @Valid @RequestBody InvitationActionDTO invitationActionDTO
@@ -772,26 +658,6 @@ public abstract class BaseUserController<
         }
     }
 
-    @ApiOperation("Get expert list")
-    @RequestMapping(value = "/api/v1/user-management/users", method = GET)
-    public JsonResult<ExpertListSearchResultDTO> list(
-            @ModelAttribute SearchExpertListDTO searchDTO
-    ) throws IOException, SolrServerException {
-
-        JsonResult result = new JsonResult<ExpertListSearchResultDTO>(NO_ERROR);
-
-        SolrQuery solrQuery = conversionService.convert(searchDTO, SolrQuery.class);
-        SearchResult searchResult = userService.search(solrQuery);
-
-        result.setResult(
-                this.conversionService.convert(
-                        searchResult,
-                        ExpertListSearchResultDTO.class
-                )
-        );
-        return result;
-    }
-
     @ApiOperation("Suggests country.")
     @RequestMapping(value = "/api/v1/user-management/countries/search", method = GET)
     public JsonResult<List<CountryDTO>> suggestCountries(
@@ -831,10 +697,10 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Link U to DataNode")
-    @RequestMapping(value = "/api/v1/user-management/datanodes/{datanodeSid}/users", method = RequestMethod.POST)
+    @RequestMapping(value = "/api/v1/user-management/datanodes/{datanodeSid}/users", method = POST)
     public JsonResult linkUserToDataNode(@PathVariable("datanodeSid") Long datanodeId,
                                          @RequestBody CommonLinkUserToDataNodeDTO linkUserToDataNode
-    ) throws NotExistException, AlreadyExistException, IOException, NoSuchFieldException, SolrServerException, IllegalAccessException {
+    ) throws NotExistException, AlreadyExistException {
 
         final DN datanode = Optional.ofNullable(baseDataNodeService.getById(datanodeId)).orElseThrow(() ->
                 new NotExistException(String.format(DATA_NODE_NOT_FOUND_EXCEPTION, datanodeId),
@@ -929,5 +795,18 @@ public abstract class BaseUserController<
         user.setEmailConfirmed(confirm);
         userService.update(user);
         return conversionService.convert(user, CommonUserDTO.class);
+    }
+
+    @ApiOperation("Set user's preferences")
+    @RequestMapping(value = "/api/v1/user-management/users/settings", method = RequestMethod.PUT)
+    public void updateUser(
+            Principal principal,
+            @RequestBody UserSettingsDTO dto
+    ) throws PermissionDeniedException {
+
+        U user = getUser(principal);
+        if (dto.getActiveTenantId() != null) {
+            userService.setActiveTenant(user, dto.getActiveTenantId());
+        }
     }
 }

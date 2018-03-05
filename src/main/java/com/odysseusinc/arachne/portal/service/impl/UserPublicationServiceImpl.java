@@ -22,7 +22,6 @@
 
 package com.odysseusinc.arachne.portal.service.impl;
 
-import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserPublication;
 import com.odysseusinc.arachne.portal.service.UserPublicationService;
 import org.springframework.stereotype.Service;
@@ -30,7 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(rollbackFor = Exception.class)
-public class UserPublicationServiceImpl extends BaseUserPublicationServiceImpl<User, UserPublication> implements UserPublicationService {
+public class UserPublicationServiceImpl extends BaseUserPublicationServiceImpl<UserPublication> implements UserPublicationService {
 
     @Override
     public Class<UserPublication> getType() {
