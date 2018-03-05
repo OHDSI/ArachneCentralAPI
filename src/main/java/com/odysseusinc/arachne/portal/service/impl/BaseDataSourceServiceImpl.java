@@ -24,15 +24,19 @@ package com.odysseusinc.arachne.portal.service.impl;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonModelType;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchDataCatalogDTO;
+import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
+import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
+import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.repository.BaseDataSourceRepository;
 import com.odysseusinc.arachne.portal.repository.BaseRawDataSourceRepository;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
+import com.odysseusinc.arachne.portal.service.BaseUserService;
 import com.odysseusinc.arachne.portal.service.TenantService;
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
@@ -43,7 +47,10 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
+import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
+import com.odysseusinc.arachne.portal.service.mail.NewDataSourceMailMessage;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -70,18 +77,24 @@ public abstract class BaseDataSourceServiceImpl<
     protected GenericConversionService conversionService;
     protected TenantService tenantService;
     protected BaseRawDataSourceRepository<DS> rawDataSourceRepository;
+    protected final BaseUserService<IUser, Skill> userService;
+    protected final ArachneMailSender arachneMailSender;
 
     public BaseDataSourceServiceImpl(BaseSolrService<SF> solrService,
                                      BaseDataSourceRepository<DS> dataSourceRepository,
                                      GenericConversionService conversionService,
                                      TenantService tenantService,
-                                     BaseRawDataSourceRepository<DS> rawDataSourceRepository) {
+                                     BaseRawDataSourceRepository<DS> rawDataSourceRepository,
+                                     BaseUserService<IUser, Skill> userService,
+                                     ArachneMailSender arachneMailSender) {
 
         this.solrService = solrService;
         this.dataSourceRepository = dataSourceRepository;
         this.conversionService = conversionService;
         this.tenantService = tenantService;
         this.rawDataSourceRepository = rawDataSourceRepository;
+        this.userService = userService;
+        this.arachneMailSender = arachneMailSender;
     }
 
     @Override
@@ -99,6 +112,11 @@ public abstract class BaseDataSourceServiceImpl<
             dataSource.setCdmVersion(null);
         }
         DS savedDataSource = dataSourceRepository.save(dataSource);
+        try {
+            afterCreate(savedDataSource, virtual);
+        } catch (PermissionDeniedException e) {
+            log.error("AfterCreated handler error", e);
+        }
         return savedDataSource;
     }
 
@@ -107,6 +125,21 @@ public abstract class BaseDataSourceServiceImpl<
         dataSource.setPublished(false);
         dataSource.setCreated(new Date());
         dataSource.setTenants(tenantService.getDefault());
+    }
+
+    protected void afterCreate(DS dataSource, boolean virtual) throws PermissionDeniedException {
+
+        List<IUser> admins = userService.getAllAdmins("name", true);
+        notifyNewDataSourceRegistered(admins, dataSource);
+    }
+
+    protected void notifyNewDataSourceRegistered(List<IUser> admins, DS dataSource) throws PermissionDeniedException {
+
+        if (Objects.nonNull(admins)) {
+            admins.forEach(u -> arachneMailSender.send(
+                    new NewDataSourceMailMessage<>(WebSecurityConfig.getDefaultPortalURI(), u, dataSource)
+            ));
+        }
     }
 
     protected QueryResponse solrSearch(SolrQuery solrQuery) throws IOException, SolrServerException, NoSuchFieldException {
