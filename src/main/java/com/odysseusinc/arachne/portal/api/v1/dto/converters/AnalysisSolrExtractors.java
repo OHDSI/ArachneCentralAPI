@@ -51,6 +51,18 @@ public class AnalysisSolrExtractors {
             return new StudySolrExtractors.TenantsExtractor().apply(study);
         }
     }
+
+    public static class StudyIdExtractor implements Function<Object, Object> {
+
+        @Override
+        public Object apply(final Object o) {
+            final Analysis analysis = tryConvert(o, "Tenants list");
+
+            final Study study = analysis.getStudy();
+
+            return study.getId();
+        }
+    }
     
     private static Analysis tryConvert(final Object o, final String s) {
 
