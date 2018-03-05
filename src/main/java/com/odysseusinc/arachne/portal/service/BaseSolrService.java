@@ -40,11 +40,14 @@ import java.util.Map;
 public interface BaseSolrService<T extends SolrField> {
 
     String MULTI_METADATA_PREFIX = "multi_" + META_PREFIX;
+    String BREADCRUMBS = "breadcrumbs";
+    
     String ID = "entity_id";
     String TYPE = "entity_type";
     String TITLE = "entity_title";
-    String BREADCRUMBS = "breadcrumbs";
     String IS_PUBLIC = "is_public";
+    String PARTICIPANTS = "participants";
+    String TENANTS = "tenants";
 
     T getSolrField(Field field);
 
@@ -61,7 +64,7 @@ public interface BaseSolrService<T extends SolrField> {
     QueryResponse search(
             String collection,
             SolrQuery solrQuery,
-            Field tenantDiscriminatorField
+            Boolean isTenantsFilteringNeeded
     ) throws IOException, SolrServerException, NoSuchFieldException;
 
     QueryResponse search(

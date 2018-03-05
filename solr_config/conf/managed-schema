@@ -122,6 +122,7 @@
     <field name="is_public" type="boolean" indexed="true" stored="true" required="true" default="true" />
     <field name="participants" type="strings" indexed="true" stored="true" required="false" />
     <field name="breadcrumbs" type="string" stored="true" required="false" />
+    <field name="tenants" type="strings" indexed="true" stored="true" required="false" />
 
     <!-- This can be enabled, in case the client does not know what fields may be searched. It isn't enabled by default
          because it's very expensive to index everything twice. -->

@@ -44,6 +44,13 @@ public class SolrField {
     private Boolean isSearchable = Boolean.TRUE;
     private Boolean isFaceted = Boolean.FALSE;
     private Boolean isPostfixNeeded = Boolean.TRUE;
+    /**
+     * Currently 'false' is used only for multivalued values, 
+     * because they use additional field in index for sorting.
+     * 
+     * And not always is it needed to index them.
+     */
+    private Boolean isSortNeeded = Boolean.TRUE;
 
     public SolrField() {
         this.dataType = String.class;
@@ -177,5 +184,15 @@ public class SolrField {
     public void setExtractor(final Function<Object, Object> extractor) {
 
         this.extractor = extractor;
+    }
+
+    public Boolean isSortNeeded() {
+
+        return isSortNeeded;
+    }
+
+    public void setSortNeeded(Boolean sortNeeded) {
+
+        isSortNeeded = sortNeeded;
     }
 }

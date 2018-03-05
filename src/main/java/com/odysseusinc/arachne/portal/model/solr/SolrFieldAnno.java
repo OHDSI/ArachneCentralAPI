@@ -45,6 +45,7 @@ public @interface SolrFieldAnno {
     boolean query() default false;
     boolean filter() default false;
     boolean postfix() default true;
+    boolean sort() default true;
 
     Class<? extends Function<Object, Object>>[] extractor() default {};
 }

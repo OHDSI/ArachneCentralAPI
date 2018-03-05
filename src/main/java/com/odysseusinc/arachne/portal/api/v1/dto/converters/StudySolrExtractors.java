@@ -24,6 +24,11 @@ import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserStudyExtended;
+import com.odysseusinc.arachne.portal.model.security.Tenant;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -39,7 +44,7 @@ public class StudySolrExtractors {
                     .map(UserStudyExtended::getUser)
                     .map(IUser::getId)
                     .map(String::valueOf)
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toSet());
         }
     }
 
@@ -60,6 +65,16 @@ public class StudySolrExtractors {
 
             final Study study = tryConvert(o, "Title");
             return study.getTitle();
+        }
+    }
+
+    public static class TenantsExtractor implements Function<Object, Object> {
+
+        @Override
+        public List<String> apply(final Object o) {
+
+            final Study study = tryConvert(o, "Tenants");
+            return Collections.singletonList(String.valueOf(study.getTenant().getId()));
         }
     }
 

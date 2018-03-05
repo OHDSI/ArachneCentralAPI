@@ -122,12 +122,12 @@ public abstract class BaseDataSourceServiceImpl<
         }
     }
 
-    protected QueryResponse solrSearch(SolrQuery solrQuery) throws IOException, SolrServerException, NoSuchFieldException {
+    protected QueryResponse solrSearch(final SolrQuery solrQuery) throws IOException, SolrServerException, NoSuchFieldException {
 
         return solrService.search(
                 SolrCollection.DATA_SOURCE.getName(),
                 solrQuery,
-                ReflectionUtils.findField(DataSource.class, "tenants")
+                Boolean.TRUE
         );
     }
 

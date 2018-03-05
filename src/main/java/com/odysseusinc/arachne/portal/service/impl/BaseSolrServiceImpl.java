@@ -96,6 +96,7 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
         solrField.setSearchable(solrFieldAnno.query());
         solrField.setFaceted(solrFieldAnno.filter());
         solrField.setPostfixNeeded(solrFieldAnno.postfix());
+        solrField.setSortNeeded(solrFieldAnno.sort());
         final Class<? extends Function<Object, Object>>[] extractors = solrFieldAnno.extractor();
         if (extractors.length > 0) {
             solrField.setExtractor(BeanUtils.instantiate(extractors[0]));
@@ -159,16 +160,19 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
         final Map<T, Object> values = new HashMap<>();
         final FieldList<T> fieldList = getFieldsOfClass(entity.getClass());
         for (final T solrField : fieldList) {
-            Object fieldValue = null;
+            final Object fieldValue;
             final Field field = solrField.getField();
-            if (field != null) {
+            final Function<Object, Object> extractor = solrField.getExtractor();
+            
+            if (extractor != null) {
+                fieldValue = extractor.apply(entity);
+            } else if (field != null) {
                 field.setAccessible(true);
                 fieldValue = field.get(entity);
+            } else {
+                throw new NullPointerException("FieldValue cannot be null");
             }
-            final Function<Object, Object> fieldConverter = solrField.getExtractor();
-            if (fieldConverter != null) {
-                fieldValue = fieldConverter.apply(entity);
-            }
+            
             values.put(solrField, fieldValue);
         }
 
@@ -203,7 +207,7 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
         SolrInputDocument document = new SolrInputDocument();
 
         for (Map.Entry<T, Object> field : values.entrySet()) {
-            SolrField solrField = field.getKey();
+            T solrField = field.getKey();
             Object rawValue = field.getValue();
             // Note: value for filtering and value for full-text search can differ.
             // E.g. main value may be an id of object,
@@ -248,7 +252,7 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
 
             document.addField(solrField.getSolrName(), value);
 
-            if (solrField.isMultiValuesType()) {
+            if (solrField.isSortNeeded() && solrField.isMultiValuesType()) {
                 String valueForSort = null;
                 if (!StringUtils.isEmpty((String) queryValue)) {
                     List<String> list = Arrays.asList(StringUtils.split(((String) queryValue)));
@@ -257,6 +261,8 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
                 }
                 document.addField(solrField.getMultiValuesTypeFieldName(), valueForSort);
             }
+            
+            
         }
 
         // these two fields will be concatenated into solr document id
@@ -278,9 +284,9 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
         }
     }
 
-    private SolrQuery addTenantFilter(SolrQuery solrQuery, Field tenantDiscriminatorField) throws NoSuchFieldException {
+    private SolrQuery addTenantFilter(final SolrQuery solrQuery) {
 
-        String tenancyFilter = getSolrField(tenantDiscriminatorField).getSolrName() + ":" + TenantContext.getCurrentTenant().toString();
+        final String tenancyFilter = BaseSolrService.TENANTS + ":" + TenantContext.getCurrentTenant().toString();
         return solrQuery.addFilterQuery(tenancyFilter);
     }
 
@@ -288,11 +294,11 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
     public QueryResponse search(
             String collection,
             SolrQuery solrQuery,
-            Field tenantDiscriminatorField
-    ) throws IOException, SolrServerException, NoSuchFieldException {
+            Boolean isTenantsFilteringNeeded
+    ) throws IOException, SolrServerException {
 
-        if (tenantDiscriminatorField != null) {
-            solrQuery = addTenantFilter(solrQuery, tenantDiscriminatorField);
+        if (isTenantsFilteringNeeded) {
+            solrQuery = addTenantFilter(solrQuery);
         }
         return solrClient.query(collection, solrQuery);
     }
@@ -301,7 +307,7 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
     public QueryResponse search(
             String collection,
             SolrQuery solrQuery
-    ) throws IOException, SolrServerException, NoSuchFieldException {
+    ) throws IOException, SolrServerException {
 
         return search(collection, solrQuery, null);
     }

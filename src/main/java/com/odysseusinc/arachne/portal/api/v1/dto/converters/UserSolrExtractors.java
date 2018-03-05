@@ -21,6 +21,8 @@
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
 import com.odysseusinc.arachne.portal.model.User;
+import com.odysseusinc.arachne.portal.model.security.Tenant;
+import java.util.Set;
 import java.util.function.Function;
 
 public class UserSolrExtractors {
@@ -29,12 +31,26 @@ public class UserSolrExtractors {
         @Override
         public String apply(Object o) {
 
-            if (!(o instanceof User)) {
-                throw new IllegalArgumentException("User title can be extracted only from User");
-            }
-
-            final User user = (User)o;
+            final User user = tryConvert(o, "Title");
             return user.getFirstname() + " " + user.getMiddlename() + " " + user.getLastname();
         }
+    }
+    
+    public static class TenantsExtractor implements Function<Object, Object> {
+
+        @Override
+        public Set<Tenant> apply(Object o) {
+
+            final User user = tryConvert(o, "Tenants");
+            return user.getTenants();
+        }
+    }
+
+    private static User tryConvert(final Object o, final String s) {
+
+        if (!(o instanceof User)) {
+            throw new IllegalArgumentException(s + " can be extracted only from User object.");
+        }
+        return (User) o;
     }
 }

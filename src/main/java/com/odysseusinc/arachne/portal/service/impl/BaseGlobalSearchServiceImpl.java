@@ -59,10 +59,11 @@ public abstract class BaseGlobalSearchServiceImpl<SF extends SolrField> implemen
         searchDTO.setCollections(SolrCollection.names());
         searchDTO.setResultFields(ID, TITLE, TYPE, BREADCRUMBS);
 
-        searchDTO.setQuery(buildSearchString(searchDTO.getQuery(), userId));
-
         final SolrQuery query = conversionService.convert(searchDTO, SolrQuery.class);
-        final QueryResponse response = solrService.search(SolrCollection.STUDIES.getName(), query);
+        query.setQuery(buildSearchString(searchDTO.getQuery(), userId));
+        
+        // We use STUDIES here as "default" collection also because something should be mentioned in url
+        final QueryResponse response = solrService.search(SolrCollection.STUDIES.getName(), query, Boolean.TRUE);
 
         final SearchResult<SolrDocument> searchResult = new SearchResult<>(query, response, response.getResults());
 

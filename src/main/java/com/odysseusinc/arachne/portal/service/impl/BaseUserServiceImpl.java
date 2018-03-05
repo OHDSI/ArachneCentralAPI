@@ -875,7 +875,7 @@ public abstract class BaseUserServiceImpl<
         return solrService.search(
                 SolrCollection.USERS.getName(),
                 solrQuery,
-                ReflectionUtils.findField(User.class, "tenants")
+                Boolean.TRUE
         );
     }
 

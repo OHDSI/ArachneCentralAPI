@@ -57,7 +57,7 @@ import javax.validation.constraints.Pattern;
 import org.hibernate.validator.constraints.NotBlank;
 
 @MappedSuperclass
-@SolrFieldAnno(name = BaseSolrService.TITLE, postfix = false, extractor = DataSourceSolrExtractors.DataSourceTitleExtractor.class)
+@SolrFieldAnno(name = BaseSolrService.TITLE, postfix = false, extractor = DataSourceSolrExtractors.TitleExtractor.class)
 public abstract class BaseDataSource implements IDataSource, Serializable, HasArachnePermissions {
     @Id
     @SequenceGenerator(name = "data_sources_pk_sequence", sequenceName = "data_sources_id_seq", allocationSize = 1)
@@ -105,7 +105,7 @@ public abstract class BaseDataSource implements IDataSource, Serializable, HasAr
     @JoinTable(name = "tenants_data_sources",
             joinColumns = @JoinColumn(name = "data_source_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "tenant_id", referencedColumnName = "id"))
-    @SolrFieldAnno(filter = true)
+    @SolrFieldAnno(filter = true, postfix = false, sort = false, extractor = DataSourceSolrExtractors.TenantsExtractor.class)
     protected Set<Tenant> tenants = new HashSet<>();
 
     @Override

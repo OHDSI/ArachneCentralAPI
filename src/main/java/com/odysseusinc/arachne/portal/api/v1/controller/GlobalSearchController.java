@@ -28,6 +28,7 @@ import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.api.v1.dto.GlobalSearchResultDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchGlobalDTO;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
+import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.service.GlobalSearchService;
 import com.odysseusinc.arachne.portal.service.UserService;
@@ -55,24 +56,18 @@ public class GlobalSearchController {
 
     @ApiOperation("Global search.")
     @RequestMapping(value = "/api/v1/search", method = GET)
-    public JsonResult<GlobalSearchResultDTO> list(
+    public GlobalSearchResultDTO list(
             final Principal principal,
             final @ModelAttribute SearchGlobalDTO searchDto)
-            throws NotExistException, SolrServerException, NoSuchFieldException, IOException {
-
-        final JsonResult<GlobalSearchResultDTO> result;
+            throws NotExistException, SolrServerException, NoSuchFieldException, IOException, PermissionDeniedException {
 
         final IUser user = userService.getByEmail(principal.getName());
 
         if (user == null) {
-            result = new JsonResult<>(PERMISSION_DENIED);
-            return result;
+            throw new PermissionDeniedException();            
         }
 
-        final GlobalSearchResultDTO globalSearchResult = searchService.search(user.getId(), searchDto);
-
-        result = new JsonResult<>(NO_ERROR, globalSearchResult);
-        return result;
+        return searchService.search(user.getId(), searchDto);
     }
 
 }

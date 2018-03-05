@@ -211,7 +211,7 @@ public abstract class BaseAdminController<
 
 
     @RequestMapping(value = "/api/v1/admin/{domain}/reindex-solr", method = RequestMethod.POST)
-    public JsonResult reindexDataSourcesBySolr(@PathVariable("domain") final String domain)
+    public JsonResult reindexSolr(@PathVariable("domain") final String domain)
             throws IllegalAccessException, NotExistException, NoSuchFieldException, SolrServerException, IOException {
 
         switch(domain) {

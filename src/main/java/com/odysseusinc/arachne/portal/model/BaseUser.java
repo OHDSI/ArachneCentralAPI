@@ -178,7 +178,7 @@ public class BaseUser implements IUser, Serializable {
     @JoinTable(name = "tenant_dependent_users_view",
             joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "tenant_id", referencedColumnName = "id"))
-    @SolrFieldAnno(filter = true)
+    @SolrFieldAnno(filter = true, postfix = false, sort = false, extractor = UserSolrExtractors.TenantsExtractor.class)
     protected Set<Tenant> tenants;
 
     @OneToOne(optional = false, fetch = FetchType.LAZY)
