@@ -24,7 +24,6 @@ package com.odysseusinc.arachne.portal.api.v1.dto.converters.submission;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightDTO;
-import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionInsight;
@@ -45,7 +44,7 @@ public abstract class BaseSubmissionToSubmissionDTOConverter<T extends Submissio
         dto.setIsExecConfirmed(execConfirmed);
         final Boolean resultConfirmed = status.isResultConfirmed();
         dto.setIsResultConfirmed(resultConfirmed);
-        dto.setAction(source.getStatus().toString());
+        dto.setAction(status.toString());
         IDataSource dataSource = source.getDataSource();
         Long loggedUserId = ((ArachneUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         final boolean isOwner = DataNodeUtils.isDataNodeOwner(dataSource.getDataNode(), loggedUserId);
