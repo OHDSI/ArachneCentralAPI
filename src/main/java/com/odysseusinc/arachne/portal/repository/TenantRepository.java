@@ -23,6 +23,8 @@
 package com.odysseusinc.arachne.portal.repository;
 
 import com.odysseusinc.arachne.portal.model.security.Tenant;
+import org.springframework.stereotype.Repository;
 
-public interface TenantRepository<T extends Tenant> extends BaseTenantRepository<T> {
+@Repository
+public interface TenantRepository extends BaseTenantRepository<Tenant> {
 }

@@ -2,19 +2,19 @@ package com.odysseusinc.arachne.portal.service.impl;
 
 import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.repository.BaseTenantRepository;
-import com.odysseusinc.arachne.portal.service.TenantService;
+import com.odysseusinc.arachne.portal.service.BaseTenantService;
 import java.util.Set;
 
-public abstract class BaseTenantServiceImpl implements TenantService {
+public abstract class BaseTenantServiceImpl<T extends Tenant> implements BaseTenantService<T> {
 
-    protected BaseTenantRepository<Tenant> tenantRepository;
+    protected BaseTenantRepository<T> tenantRepository;
 
-    public BaseTenantServiceImpl(BaseTenantRepository<Tenant> tenantRepository) {
+    public BaseTenantServiceImpl(BaseTenantRepository<T> tenantRepository) {
 
         this.tenantRepository = tenantRepository;
     }
 
-    public Set<Tenant> getDefault() {
+    public Set<T> getDefault() {
 
         return tenantRepository.findAllByIsDefaultTrue();
     }
