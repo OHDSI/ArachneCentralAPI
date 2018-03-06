@@ -91,7 +91,6 @@ import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import com.odysseusinc.arachne.portal.service.mail.RegistrationMailMessage;
 import com.odysseusinc.arachne.portal.service.mail.RemindPasswordMailMessage;
-import edu.vt.middleware.password.Password;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
