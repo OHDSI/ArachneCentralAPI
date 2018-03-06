@@ -62,6 +62,12 @@ public class SubmissionGroupSpecification implements Specification<SubmissionGro
         predicates.add(cb.equal(analysisIdPath, criteria.getAnalysisId()));
 
         final Boolean hasInsight = criteria.getHasInsight();
+        final Boolean showHidden = criteria.getShowHidden();
+
+        if (Objects.isNull(showHidden) || !showHidden) {
+            final Path<Boolean> hiddenPath = root.join(SubmissionGroup_.submissions).get(Submission_.hidden);
+            predicates.add(cb.isFalse(hiddenPath));
+        }
         if (Objects.nonNull(hasInsight)) {
             final Path<SubmissionInsight> insightPath = root.join(SubmissionGroup_.submissions).join(Submission_.submissionInsight, JoinType.LEFT);
             predicates.add(hasInsight ? cb.isNotNull(insightPath) : cb.isNull(insightPath));

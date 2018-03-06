@@ -16,22 +16,25 @@
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
  * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Konstantin Yaroshovets
- * Created: February 26, 2018
+ * Created: March 06, 2017
  *
  */
 
-package com.odysseusinc.arachne.portal.model;
+package com.odysseusinc.arachne.portal.api.v1.dto;
 
-import javax.persistence.metamodel.ListAttribute;
-import javax.persistence.metamodel.SingularAttribute;
-import javax.persistence.metamodel.StaticMetamodel;
+import javax.validation.constraints.NotNull;
 
-@StaticMetamodel(Submission.class)
-public class Submission_ {
-    public static volatile SingularAttribute<Submission, Long> id;
-    public static volatile SingularAttribute<Submission, SubmissionInsight> submissionInsight;
-    public static volatile SingularAttribute<Submission, DataSource> dataSource;
-    public static volatile SingularAttribute<Submission, SubmissionGroup> submissionGroup;
-    public static volatile ListAttribute<Submission, SubmissionStatusHistoryElement> statusHistory;
-    public static volatile SingularAttribute<Submission, Boolean> hidden;
+public class SubmissionHideDTO {
+    @NotNull
+    private Boolean hidden;
+
+    public Boolean getHidden() {
+
+        return hidden;
+    }
+
+    public void setHidden(Boolean hidden) {
+
+        this.hidden = hidden;
+    }
 }

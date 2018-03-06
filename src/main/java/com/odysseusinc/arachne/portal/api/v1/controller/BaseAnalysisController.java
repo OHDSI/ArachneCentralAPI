@@ -49,6 +49,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.FileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.OptionDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ShortBaseAnalysisDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionGroupDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionHideDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightUpdateDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdateNotificationDTO;
@@ -71,7 +72,6 @@ import com.odysseusinc.arachne.portal.model.DataReference;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionInsight;
-import com.odysseusinc.arachne.portal.model.SubmissionStatus;
 import com.odysseusinc.arachne.portal.model.search.SubmissionGroupSearch;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
@@ -95,7 +95,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -512,6 +511,14 @@ public abstract class BaseAnalysisController<T extends Analysis,
         final JsonResult<SubmissionInsightDTO> result = new JsonResult<>(NO_ERROR);
         result.setResult(insightDTO);
         return result;
+    }
+
+    @ApiOperation("Hide/show submission")
+    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/hide", method = POST)
+    public void hideSubmission(
+            @PathVariable("submissionId") Long id, @RequestBody @Valid SubmissionHideDTO hideDTO) {
+
+        submissionService.hideSubmission(id, hideDTO.getHidden());
     }
 
     @ApiOperation("Create submission insight")

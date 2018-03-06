@@ -69,6 +69,7 @@ public abstract class BaseSubmissionToBaseSubmissionDTOConverter<T extends Submi
         final JsonObject resultInfo = source.getResultInfo();
         final Map map = new Gson().fromJson(resultInfo, Map.class);
         dto.setResultInfo(map);
+        dto.setHidden(source.getHidden());
         return dto;
     }
 

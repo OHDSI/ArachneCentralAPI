@@ -56,7 +56,8 @@ public enum ArachnePermission {
     EDIT_INSIGHT(SubmissionInsight.class),
     ACCESS_PAPER(Paper.class),
     LIMITED_EDIT_PAPER(Paper.class),
-    ACCESS_USER(User.class)
+    ACCESS_USER(User.class),
+    HIDE_SUBMISSION(Submission.class)
     ;
 
     private Class<?>[] applicableClass;

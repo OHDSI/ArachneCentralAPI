@@ -111,6 +111,9 @@ public class Submission implements HasArachnePermissions, Breadcrumb, Invitation
     @Type(type = "com.odysseusinc.arachne.portal.repository.hibernate.JsonbType")
     private JsonObject resultInfo;
 
+    @Column
+    private Boolean hidden;
+
     @Override
     public boolean equals(Object obj) {
 
@@ -282,6 +285,16 @@ public class Submission implements HasArachnePermissions, Breadcrumb, Invitation
     public void setSubmissionGroup(SubmissionGroup submissionGroup) {
 
         this.submissionGroup = submissionGroup;
+    }
+
+    public Boolean getHidden() {
+
+        return hidden;
+    }
+
+    public void setHidden(Boolean hidden) {
+
+        this.hidden = hidden;
     }
 
     //TODO should be moved to service

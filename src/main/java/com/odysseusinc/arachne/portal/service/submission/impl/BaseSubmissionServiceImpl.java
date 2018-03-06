@@ -638,6 +638,22 @@ public abstract class BaseSubmissionServiceImpl<
     }
 
     @Override
+    @PreAuthorize("hasPermission(#id,  'Submission', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).HIDE_SUBMISSION)")
+    @Transactional
+    public void hideSubmission(Long id, boolean hidden) {
+
+        final T submission = getSubmissionByIdUnsecured(id);
+        final SubmissionAction hideAction = getHideAction(submission);
+        if (!hideAction.getAvailable()) {
+            final String message = String.format("Status of Submission with id: '%s' does not allow hide this one", id);
+            throw new IllegalStateException(message);
+        }
+        submission.setHidden(hidden);
+        submissionRepository.save(submission);
+    }
+
+    @Override
     public void deleteSubmissions(List<T> submissions) {
 
         submissionRepository.delete(submissions);
@@ -828,6 +844,8 @@ public abstract class BaseSubmissionServiceImpl<
         // Publish submission
         SubmissionAction publishAction = getPublishAction(submission);
 
+        SubmissionAction hideAction = getHideAction(submission);
+
         return Arrays.asList(execApproveAction, manualResultUploadAction, publishAction);
     }
 
@@ -877,5 +895,15 @@ public abstract class BaseSubmissionServiceImpl<
                 submission.getStatus().equals(SubmissionStatus.IN_PROGRESS)
         );
         return manualResultUploadAction;
+    }
+
+    private SubmissionAction getHideAction(Submission submission) {
+
+        SubmissionAction hideAction = new SubmissionAction(SubmissionActionType.HIDE.name());
+        List<SubmissionStatus> availableForStatuses = Arrays.asList(
+                NOT_APPROVED, EXECUTED_REJECTED, FAILED_REJECTED, EXECUTED_PUBLISHED, FAILED_PUBLISHED
+        );
+        hideAction.setAvailable(availableForStatuses.contains(submission.getStatus()));
+        return hideAction;
     }
 }
