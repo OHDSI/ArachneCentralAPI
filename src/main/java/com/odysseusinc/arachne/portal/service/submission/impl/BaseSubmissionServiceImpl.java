@@ -846,7 +846,7 @@ public abstract class BaseSubmissionServiceImpl<
 
         SubmissionAction hideAction = getHideAction(submission);
 
-        return Arrays.asList(execApproveAction, manualResultUploadAction, publishAction);
+        return Arrays.asList(execApproveAction, manualResultUploadAction, publishAction, hideAction);
     }
 
     protected SubmissionAction getPublishAction(Submission submission) {

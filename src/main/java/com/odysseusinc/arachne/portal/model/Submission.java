@@ -112,7 +112,7 @@ public class Submission implements HasArachnePermissions, Breadcrumb, Invitation
     private JsonObject resultInfo;
 
     @Column
-    private Boolean hidden;
+    private Boolean hidden = false;
 
     @Override
     public boolean equals(Object obj) {
