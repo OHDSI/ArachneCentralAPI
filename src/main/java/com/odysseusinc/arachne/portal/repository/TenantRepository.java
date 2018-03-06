@@ -23,27 +23,8 @@
 package com.odysseusinc.arachne.portal.repository;
 
 import com.odysseusinc.arachne.portal.model.security.Tenant;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
-public interface TenantRepository<T extends Tenant> extends JpaRepository<T, Long> {
-
-    Page<T> findAll(Pageable pageable);
-
-    Optional<Tenant> findFirstByDataSourcesIdAndUsersId(@Param("dataSourceId") Long dataSourceId, @Param("userId") Long userId);
-
-    @Query(
-            "SELECT t1 " +
-                    "FROM Tenant t1 INNER JOIN t1.users u1, Tenant t2 INNER JOIN t2.users u2 " +
-                    "WHERE u1.id = :firstUserId AND u2.id = :secondUserId AND t1.id = t2.id"
-    )
-    List<Tenant> findCommonForUsers(@Param("firstUserId") Long firstUserId, @Param("secondUserId") Long secondUserId);
-
-    Set<Tenant> findAllByIsDefaultTrue();
+@Repository
+public interface TenantRepository extends BaseTenantRepository<Tenant> {
 }

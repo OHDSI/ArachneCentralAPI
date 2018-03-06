@@ -33,6 +33,8 @@ import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.service.AdminService;
 import com.odysseusinc.arachne.portal.service.DataSourceService;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
+import com.odysseusinc.arachne.portal.service.StudyService;
+import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.annotation.Secured;
@@ -43,10 +45,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminController extends BaseAdminController<Study, DataSource, StudySearch, StudyViewItem, Analysis, Paper, PaperSearch, Submission> {
 
     @Autowired
-    public AdminController(DataSourceService dataSourceService,
-                           ProfessionalTypeService professionalTypeService,
-                           AdminService adminService) {
+    public AdminController(final DataSourceService dataSourceService,
+                           final ProfessionalTypeService professionalTypeService,
+                           final AdminService adminService,
+                           final StudyService studyService,
+                           final AnalysisService analysisService) {
 
-        super(dataSourceService, professionalTypeService, adminService);
+        super(dataSourceService, professionalTypeService, adminService, studyService, analysisService);
     }
 }

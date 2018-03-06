@@ -22,17 +22,15 @@
 
 package com.odysseusinc.arachne.portal.service.impl;
 
-import com.odysseusinc.arachne.portal.model.BaseDataSource;
 import com.odysseusinc.arachne.portal.model.DataSource;
-import com.odysseusinc.arachne.portal.model.RawDataSource;
 import com.odysseusinc.arachne.portal.repository.BaseDataSourceRepository;
 import com.odysseusinc.arachne.portal.repository.BaseRawDataSourceRepository;
-import com.odysseusinc.arachne.portal.repository.DataSourceRepository;
-import com.odysseusinc.arachne.portal.repository.RawDataSourceRepository;
 import com.odysseusinc.arachne.portal.service.DataSourceService;
 import com.odysseusinc.arachne.portal.service.SolrService;
 import com.odysseusinc.arachne.portal.service.TenantService;
+import com.odysseusinc.arachne.portal.service.UserService;
 import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
+import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,9 +42,15 @@ import java.util.List;
 @Transactional(rollbackFor = Exception.class)
 public class DataSourceServiceImpl extends BaseDataSourceServiceImpl<DataSource, SolrField> implements DataSourceService {
 
-    public DataSourceServiceImpl(SolrService solrService, BaseDataSourceRepository dataSourceRepository, GenericConversionService conversionService, TenantService tenantService, BaseRawDataSourceRepository rawDataSourceRepository) {
+    public DataSourceServiceImpl(SolrService solrService,
+                                 BaseDataSourceRepository dataSourceRepository,
+                                 GenericConversionService conversionService,
+                                 TenantService tenantService,
+                                 BaseRawDataSourceRepository rawDataSourceRepository,
+                                 UserService userService,
+                                 ArachneMailSender arachneMailSender) {
 
-        super(solrService, dataSourceRepository, conversionService, tenantService, rawDataSourceRepository);
+        super(solrService, dataSourceRepository, conversionService, tenantService, rawDataSourceRepository, userService, arachneMailSender);
     }
 
     @Override

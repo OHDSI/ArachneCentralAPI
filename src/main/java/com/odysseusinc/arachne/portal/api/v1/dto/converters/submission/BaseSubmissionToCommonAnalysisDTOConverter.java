@@ -32,7 +32,6 @@ import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
-import com.odysseusinc.arachne.portal.model.User;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -62,7 +61,7 @@ public abstract class BaseSubmissionToCommonAnalysisDTOConverter<T extends Submi
             dto.setOwner(userDTO);
         }
         dto.setUpdateSubmissionStatusPassword(source.getUpdatePassword());
-        dto.setDataSourceSid(source.getDataSource().getUuid());
+        dto.setCentralDataSourceId(source.getDataSource().getId());
         for (SubmissionFile submissionFile : source.getSubmissionGroup().getFiles()) {
             if (submissionFile.getExecutable() && StringUtils.isEmpty(dto.getExecutableFileName())) {
                 dto.setExecutableFileName(submissionFile.getRealName());

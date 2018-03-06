@@ -65,6 +65,7 @@ import com.odysseusinc.arachne.portal.model.UserRegistrant;
 import com.odysseusinc.arachne.portal.model.UserStudy;
 import com.odysseusinc.arachne.portal.model.search.UserSearch;
 import com.odysseusinc.arachne.portal.model.security.Tenant;
+import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
 import com.odysseusinc.arachne.portal.repository.AnalysisUnlockRequestRepository;
 import com.odysseusinc.arachne.portal.repository.BaseRawUserRepository;
 import com.odysseusinc.arachne.portal.repository.BaseUserRepository;
@@ -274,7 +275,7 @@ public abstract class BaseUserServiceImpl<
         if (user == null) {
             throw new UserNotFoundException("removeUser", "remove user: user not found");
         }
-        solrService.deleteByQuery(SolrServiceImpl.USER_COLLECTION, "id:" + user.getId());
+        solrService.delete(user);
         userRepository.delete(user);
     }
 
@@ -393,7 +394,7 @@ public abstract class BaseUserServiceImpl<
         if (savedUser.getEnabled()) {
             indexBySolr(savedUser);
         } else {
-            solrService.deleteByQuery(SolrServiceImpl.USER_COLLECTION, "id:" + savedUser.getId());
+            solrService.delete(savedUser);
         }
     }
 
@@ -837,6 +838,7 @@ public abstract class BaseUserServiceImpl<
         arachneMailSender.send(mail);
     }
 
+    @Override
     public FieldList getSolrFields() {
 
         FieldList fieldList = new FieldList();
@@ -850,20 +852,18 @@ public abstract class BaseUserServiceImpl<
         return Collections.emptyList();
     }
 
+    @Override
     public void indexBySolr(U user)
             throws IllegalAccessException, IOException, SolrServerException, NotExistException, NoSuchFieldException {
 
-        solrService.putDocument(
-                SolrServiceImpl.USER_COLLECTION,
-                user.getId(),
-                solrService.getValuesByEntity(user)
-        );
+        solrService.indexBySolr(user);
     }
 
+    @Override
     public void indexAllBySolr()
             throws IOException, NotExistException, SolrServerException, NoSuchFieldException, IllegalAccessException {
 
-        solrService.deleteByQuery(SolrServiceImpl.USER_COLLECTION, "*:*");
+        solrService.deleteAll(SolrCollection.USERS);
         List<U> userList = getAllEnabledFromAllTenants();
         for (U user : userList) {
             indexBySolr(user);
@@ -873,9 +873,9 @@ public abstract class BaseUserServiceImpl<
     protected QueryResponse solrSearch(SolrQuery solrQuery) throws NoSuchFieldException, IOException, SolrServerException {
 
         return solrService.search(
-                SolrServiceImpl.USER_COLLECTION,
+                SolrCollection.USERS.getName(),
                 solrQuery,
-                ReflectionUtils.findField(User.class, "tenants")
+                Boolean.TRUE
         );
     }
 
@@ -888,7 +888,7 @@ public abstract class BaseUserServiceImpl<
         List<Long> docIdList = solrResponse
                 .getResults()
                 .stream()
-                .map(solrDoc -> Long.parseLong(solrDoc.get("id").toString()))
+                .map(solrDoc -> Long.parseLong(solrDoc.get(BaseSolrServiceImpl.ID).toString()))
                 .collect(Collectors.toList());
 
         userList = userRepository.findByIdIn(docIdList);

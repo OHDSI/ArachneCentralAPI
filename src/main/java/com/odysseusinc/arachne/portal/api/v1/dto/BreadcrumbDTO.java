@@ -30,6 +30,8 @@ public class BreadcrumbDTO {
     private Long id;
     private String title;
 
+    public BreadcrumbDTO(){}
+
     public BreadcrumbDTO(BreadcrumbType entityType, Long id, String title) {
 
         this.entityType = entityType;

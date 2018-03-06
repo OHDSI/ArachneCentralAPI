@@ -26,9 +26,11 @@ import com.odysseusinc.arachne.commons.api.v1.dto.CommonCDMVersionDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonModelType;
 import com.odysseusinc.arachne.portal.model.security.Tenant;
+import com.odysseusinc.arachne.portal.model.solr.SolrEntity;
 import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
+import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashSet;
@@ -51,7 +53,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import org.hibernate.validator.constraints.NotBlank;
 
-public interface IDataSource {
+public interface IDataSource extends Breadcrumb, SolrEntity {
 
     boolean equals(final Object obj);
 
@@ -108,4 +110,8 @@ public interface IDataSource {
     Set<Tenant> getTenants();
 
     void setTenants(Set<Tenant> tenants);
+
+    Boolean getPublished();
+
+    void setPublished(Boolean published);
 }

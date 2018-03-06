@@ -35,17 +35,11 @@ import com.odysseusinc.arachne.portal.repository.AchillesReportRepository;
 import com.odysseusinc.arachne.portal.repository.CharacterizationRepository;
 import com.odysseusinc.arachne.portal.service.AchillesImportService;
 import com.odysseusinc.arachne.portal.service.AchillesService;
-import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.StudyService;
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.method.P;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @Transactional
@@ -54,13 +48,6 @@ public class AchillesServiceImpl extends BaseAchillesService<DataSource, Study, 
     public AchillesServiceImpl(CharacterizationRepository characterizationRepository, AchillesFileRepository achillesFileRepository, AchillesReportRepository achillesReportRepository, StudyService studyService, AchillesImportService achillesHelperService) {
 
         super(characterizationRepository, achillesFileRepository, achillesReportRepository, studyService, achillesHelperService);
-    }
-
-    @Override
-    @PreAuthorize("#ds.dataNode == authentication.principal")
-    public void createCharacterization(@P("ds") DataSource dataSource, MultipartFile data) throws IOException {
-
-        super.createCharacterization(dataSource, data);
     }
 
     @Override

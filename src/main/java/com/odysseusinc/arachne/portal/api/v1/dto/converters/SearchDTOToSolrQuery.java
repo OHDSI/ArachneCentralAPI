@@ -23,6 +23,7 @@
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchDTO;
+import com.odysseusinc.arachne.portal.service.impl.BaseSolrServiceImpl;
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -61,9 +62,9 @@ public abstract class SearchDTOToSolrQuery {
         }
     }
 
-    protected void setOutputFields(SolrQuery result) {
+    protected void setOutputFields(final SolrQuery result, final String[] fields) {
 
-        result.setFields("id");
+        result.setFields(fields);
     }
 
     protected void setPagination(SearchDTO source, SolrQuery result) {
@@ -114,17 +115,26 @@ public abstract class SearchDTOToSolrQuery {
         result.add("json.facet", jsonFacet.toString().replace("\"", ""));
     }
 
+
+    protected void setCollections(SearchDTO source, SolrQuery result) {
+
+        if (source.getCollections() != null) {
+            result.setParam("collection", String.join(",", source.getCollections()));
+        }
+    }
+
     public SolrQuery convert(SearchDTO source) {
 
-        SolrQuery result = new SolrQuery();
-        FieldList solrFields = getSolrFields();
+        final SolrQuery result = new SolrQuery();
+        final FieldList solrFields = getSolrFields();
 
         setSorting(source, result, solrFields);
         setPagination(source, result);
-        setOutputFields(result);
+        setOutputFields(result, source.getResultFields());
         setQuery(source, result);
         setFilters(source, result, solrFields);
         setFacets(source, result, solrFields);
+        setCollections(source, result);
 
         return result;
     }

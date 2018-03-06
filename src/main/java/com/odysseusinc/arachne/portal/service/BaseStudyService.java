@@ -135,4 +135,11 @@ public interface BaseStudyService<
     List<StudyFile> getFilesByStudyId(Long id, EntityGraph author);
 
     void processAntivirusResponse(AntivirusJobStudyFileResponseEvent event);
+
+    void indexAllBySolr()
+            throws IOException,
+            NotExistException,
+            SolrServerException,
+            NoSuchFieldException,
+            IllegalAccessException;
 }
