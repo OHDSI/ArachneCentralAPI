@@ -135,7 +135,7 @@ public interface BaseSubmissionService<T extends Submission, A extends Analysis>
 
     SubmissionStatusHistoryElement getSubmissionStatusHistoryElementById(Long id);
 
-    void hideSubmission(Long id, boolean hidden);
+    T updateSubmission(T submission);
 
     void deleteSubmissions(List<T> submission);
 

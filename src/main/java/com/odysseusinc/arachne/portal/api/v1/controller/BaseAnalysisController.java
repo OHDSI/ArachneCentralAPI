@@ -49,7 +49,6 @@ import com.odysseusinc.arachne.portal.api.v1.dto.FileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.OptionDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ShortBaseAnalysisDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionGroupDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionHideDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightUpdateDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdateNotificationDTO;
@@ -511,14 +510,6 @@ public abstract class BaseAnalysisController<T extends Analysis,
         final JsonResult<SubmissionInsightDTO> result = new JsonResult<>(NO_ERROR);
         result.setResult(insightDTO);
         return result;
-    }
-
-    @ApiOperation("Hide/show submission")
-    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/hide", method = POST)
-    public void hideSubmission(
-            @PathVariable("submissionId") Long id, @RequestBody @Valid SubmissionHideDTO hideDTO) {
-
-        submissionService.hideSubmission(id, hideDTO.getHidden());
     }
 
     @ApiOperation("Create submission insight")

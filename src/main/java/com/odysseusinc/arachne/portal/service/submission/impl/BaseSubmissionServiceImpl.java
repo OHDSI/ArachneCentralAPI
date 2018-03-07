@@ -450,6 +450,7 @@ public abstract class BaseSubmissionServiceImpl<
                     .withStatuses(submissoinGroupSearch.getSubmissionStatuses())
                     .withDataSourceIds(submissoinGroupSearch.getDataSourceIds())
                     .hasInsight(submissoinGroupSearch.getHasInsight())
+                    .showHidden(submissoinGroupSearch.getShowHidden())
                     .build();
             submissionRepository.findAll(submissionSpecification)
                     .forEach(s -> submissionGroupMap.get(s.getSubmissionGroup().getId()).getSubmissions().add(s));
@@ -638,19 +639,23 @@ public abstract class BaseSubmissionServiceImpl<
     }
 
     @Override
-    @PreAuthorize("hasPermission(#id,  'Submission', "
-            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).HIDE_SUBMISSION)")
-    @Transactional
-    public void hideSubmission(Long id, boolean hidden) {
+    @PreAuthorize("hasPermission(#submission, "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).UPDATE_SUBMISSION)")
+    public T updateSubmission(T submission) {
 
-        final T submission = getSubmissionByIdUnsecured(id);
-        final SubmissionAction hideAction = getHideAction(submission);
-        if (!hideAction.getAvailable()) {
-            final String message = String.format("Status of Submission with id: '%s' does not allow hide this one", id);
-            throw new IllegalStateException(message);
+        final Long id = submission.getId();
+        final T existingSubmission = getSubmissionByIdUnsecured(id);
+
+        final Boolean hidden = submission.getHidden();
+        if (hidden != null) {
+            final SubmissionAction hideAction = getHideAction(existingSubmission);
+            if (!hideAction.getAvailable()) {
+                final String message = String.format("Status of Submission with id: '%s' does not allow hide this one", id);
+                throw new IllegalStateException(message);
+            }
+            existingSubmission.setHidden(hidden);
         }
-        submission.setHidden(hidden);
-        submissionRepository.save(submission);
+        return submissionRepository.save(existingSubmission);
     }
 
     @Override
