@@ -55,7 +55,6 @@ import com.odysseusinc.arachne.portal.api.v1.dto.UserSettingsDTO;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.NotUniqueException;
-import com.odysseusinc.arachne.portal.exception.PasswordValidationException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
@@ -83,7 +82,6 @@ import com.odysseusinc.arachne.portal.model.UserStudy;
 import com.odysseusinc.arachne.portal.model.search.PaperSearch;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.security.TokenUtils;
-import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
 import com.odysseusinc.arachne.portal.service.AnalysisUnlockRequestService;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.BasePaperService;
@@ -150,7 +148,6 @@ public abstract class BaseUserController<
     protected final AnalysisUnlockRequestService analysisUnlockRequestService;
     protected final BasePaperService<P, PS> paperService;
     protected final BaseSubmissionService<SB, A> submissionService;
-    protected final ArachnePasswordValidator passwordValidator;
 
     public BaseUserController(TokenUtils tokenUtils,
                               BaseUserService<U, SK> userService,
@@ -160,8 +157,7 @@ public abstract class BaseUserController<
                               BaseAnalysisService<A> analysisService,
                               AnalysisUnlockRequestService analysisUnlockRequestService,
                               BasePaperService<P, PS> paperService,
-                              BaseSubmissionService<SB, A> submissionService,
-                              ArachnePasswordValidator passwordValidator) {
+                              BaseSubmissionService<SB, A> submissionService) {
 
         this.tokenUtils = tokenUtils;
         this.userService = userService;
@@ -172,20 +168,13 @@ public abstract class BaseUserController<
         this.analysisUnlockRequestService = analysisUnlockRequestService;
         this.paperService = paperService;
         this.submissionService = submissionService;
-        this.passwordValidator = passwordValidator;
     }
 
-    @ApiOperation("Password restrictions")
-    @RequestMapping(value = "/api/v1/auth/password-policies", method = GET)
-    public ArachnePasswordInfoDTO getPasswordPolicies() {
-
-        return conversionService.convert(passwordValidator.getPasswordInfo(), ArachnePasswordInfoDTO.class);
-    }
 
     @ApiOperation("Register new user via form.")
     @RequestMapping(value = "/api/v1/auth/registration", method = POST)
     public void register(@RequestBody @Valid CommonUserRegistrationDTO dto)
-            throws NotExistException, PermissionDeniedException, PasswordValidationException, InterruptedException {
+            throws NotExistException, PermissionDeniedException, InterruptedException {
 
         try {
             U user = convertRegistrationDTO(dto);
@@ -346,7 +335,7 @@ public abstract class BaseUserController<
     @RequestMapping(value = "/api/v1/user-management/users/changepassword", method = POST)
     public JsonResult changePassword(@RequestBody @Valid ChangePasswordDTO changePasswordDTO,
                                      Principal principal
-    ) throws ValidationException, PasswordValidationException {
+    ) throws ValidationException {
 
         JsonResult result;
         U loggedUser = userService.getByEmail(principal.getName());
@@ -766,7 +755,7 @@ public abstract class BaseUserController<
 
     @ApiOperation("Create new user")
     @RequestMapping(value = "/api/v1/admin/users", method = POST)
-    public CommonUserDTO create(@RequestBody @Valid CommonUserRegistrationDTO dto) throws PasswordValidationException {
+    public CommonUserDTO create(@RequestBody @Valid CommonUserRegistrationDTO dto) {
 
         CommonUserDTO result;
         U user = convertRegistrationDTO(dto);

@@ -29,8 +29,6 @@ import com.odysseusinc.arachne.portal.security.DataNodeAuthenticationProvider;
 import com.odysseusinc.arachne.portal.security.EntryPointUnauthorizedHandler;
 import com.odysseusinc.arachne.portal.security.HostNameIsNotInServiceException;
 import com.odysseusinc.arachne.portal.security.Roles;
-import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
-import com.odysseusinc.arachne.portal.security.passwordvalidator.PasswordValidatorBuilder;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import java.io.IOException;
 import java.net.URI;
@@ -158,30 +156,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     public PasswordEncoder passwordEncoder() {
 
         return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public ArachnePasswordValidator passwordValidator() throws IOException {
-
-        return PasswordValidatorBuilder.create()
-                .withComplexRules()
-                .withUppercaseCharacter(1)
-                .withLowercaseCharacter(1)
-                .withDigitCharacter(1)
-                .withNonAlphanumericCharacter(1)
-                .withNumberOfCharacteristics(3)
-                .done()
-                .withLength(10, 128)
-                .withWhitespace()
-                .withQuerty()
-                .withUsername(true, true)
-                .withUsersNames()
-                .withBlacklist(passwordBlacklist)
-                .withRepeatChars(3)
-                .withAlphabeticalChars(2)
-                .withIllegalChars(new char[]{'‘', '\"', '&', ' '})
-                .withMessages(new ClassPathResource("password_messages.properties"))
-                .build();
     }
 
     @Bean

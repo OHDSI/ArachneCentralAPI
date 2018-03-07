@@ -32,7 +32,6 @@ import com.odysseusinc.arachne.portal.api.v1.dto.RemindPasswordDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ResetPasswordDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserInfoDTO;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
-import com.odysseusinc.arachne.portal.exception.PasswordValidationException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.UserNotActivatedException;
 import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
@@ -41,14 +40,10 @@ import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.PasswordReset;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
 import com.odysseusinc.arachne.portal.security.TokenUtils;
-import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordData;
-import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidationResult;
-import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
 import com.odysseusinc.arachne.portal.service.LoginAttemptService;
 import com.odysseusinc.arachne.portal.service.PasswordResetService;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
-import edu.vt.middleware.password.Password;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
 import java.security.Principal;
@@ -84,7 +79,6 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
     protected BaseUserService userService;
     private UserDetailsService userDetailsService;
     private PasswordResetService passwordResetService;
-    private ArachnePasswordValidator passwordValidator;
     protected ProfessionalTypeService professionalTypeService;
     protected LoginAttemptService loginAttemptService;
 
@@ -93,7 +87,6 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
                                         BaseUserService userService,
                                         UserDetailsService userDetailsService,
                                         PasswordResetService passwordResetService,
-                                        @Qualifier("passwordValidator") ArachnePasswordValidator passwordValidator,
                                         ProfessionalTypeService professionalTypeService,
                                         LoginAttemptService loginAttemptService) {
 
@@ -102,7 +95,6 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
         this.userService = userService;
         this.userDetailsService = userDetailsService;
         this.passwordResetService = passwordResetService;
-        this.passwordValidator = passwordValidator;
         this.professionalTypeService = professionalTypeService;
         this.loginAttemptService = loginAttemptService;
     }
@@ -236,45 +228,6 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
         } else {
             emulateEmailSent();
         }
-    }
-
-    @ApiOperation("Reset password for specified e-mail.")
-    @RequestMapping(value = "/api/v1/auth/reset-password", method = RequestMethod.POST)
-    public JsonResult resetPassword(
-            Principal principal,
-            HttpServletRequest request,
-            @RequestBody @Valid ResetPasswordDTO resetPasswordDTO,
-            BindingResult binding)
-            throws PasswordValidationException, UserNotFoundException, NotExistException,
-            NoSuchFieldException, IOException, SolrServerException, IllegalAccessException {
-
-        if (principal != null) {
-            String token = request.getHeader(tokenHeader);
-            tokenUtils.addInvalidateToken(token);
-        }
-        JsonResult result;
-        if (binding.hasErrors()) {
-            result = super.setValidationErrors(binding);
-        } else {
-            String email = resetPasswordDTO.getEmail();
-            String token = resetPasswordDTO.getToken();
-            String newPassword = resetPasswordDTO.getPassword();
-            final ArachnePasswordData passwordData = new ArachnePasswordData(new Password(newPassword));
-            final ArachnePasswordValidationResult validationResult = passwordValidator.validate(passwordData);
-            if (!validationResult.isValid()) {
-                throw new PasswordValidationException(passwordValidator.getMessages(validationResult));
-            }
-            if (passwordResetService.canReset(email, token)) {
-                IUser user = userService.getByUnverifiedEmail(email);
-                user.setPassword(newPassword);
-                userService.resetPassword(user);
-                result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
-            } else {
-                result = new JsonResult<>(JsonResult.ErrorCode.VALIDATION_ERROR);
-                result.setErrorMessage("Token expired. Please, request new reset password link.");
-            }
-        }
-        return result;
     }
 
     @ApiOperation("Get information about current user.")

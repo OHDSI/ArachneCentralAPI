@@ -36,7 +36,6 @@ import com.odysseusinc.arachne.portal.exception.IORuntimeException;
 import com.odysseusinc.arachne.portal.exception.NoExecutableFileException;
 import com.odysseusinc.arachne.portal.exception.NotEmptyException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
-import com.odysseusinc.arachne.portal.exception.PasswordValidationException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ServiceNotAvailableException;
 import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
@@ -155,17 +154,6 @@ public class ExceptionHandlingController extends BaseController {
         JsonResult result = new JsonResult<>(VALIDATION_ERROR);
         result.setErrorMessage("Incorrect data");
         result.getValidatorErrors().put(ex.getField(), ex.getMessage());
-        return new ResponseEntity<>(result, HttpStatus.OK);
-    }
-
-    @ExceptionHandler(PasswordValidationException.class)
-    public ResponseEntity<JsonResult> exceptionHandler(PasswordValidationException ex) {
-
-        LOGGER.error("User tried to register with weak password");
-        JsonResult result = new JsonResult<>(VALIDATION_ERROR);
-        result.setErrorMessage("You have provided a weak password");
-        final ArachnePasswordInfoDTO passwordInfoDTO = conversionService.convert(ex.getPasswordInfo(), ArachnePasswordInfoDTO.class);
-        result.getValidatorErrors().put("password", passwordInfoDTO);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 

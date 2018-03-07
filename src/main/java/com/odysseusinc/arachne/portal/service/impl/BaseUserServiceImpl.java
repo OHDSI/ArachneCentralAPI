@@ -44,7 +44,6 @@ import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
 import com.odysseusinc.arachne.portal.exception.ArachneSystemRuntimeException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.NotUniqueException;
-import com.odysseusinc.arachne.portal.exception.PasswordValidationException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
@@ -74,9 +73,6 @@ import com.odysseusinc.arachne.portal.repository.StateProvinceRepository;
 import com.odysseusinc.arachne.portal.repository.StudyDataSourceLinkRepository;
 import com.odysseusinc.arachne.portal.repository.UserSpecifications;
 import com.odysseusinc.arachne.portal.repository.UserStudyRepository;
-import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordData;
-import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidationResult;
-import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
 import com.odysseusinc.arachne.portal.service.BaseSkillService;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
 import com.odysseusinc.arachne.portal.service.BaseUserLinkService;
@@ -166,7 +162,6 @@ public abstract class BaseUserServiceImpl<
     private final AnalysisUnlockRequestRepository analysisUnlockRequestRepository;
     private final ArachneMailSender arachneMailSender;
     private final UserRegistrantService userRegistrantService;
-    private final ArachnePasswordValidator passwordValidator;
     private final TenantService tenantService;
     private final BaseRawUserRepository<U> rawUserRepository;
 
@@ -185,7 +180,6 @@ public abstract class BaseUserServiceImpl<
                                MessageSource messageSource,
                                ProfessionalTypeService professionalTypeService,
                                JavaMailSender javaMailSender,
-                               @Qualifier("passwordValidator") ArachnePasswordValidator passwordValidator,
                                BaseUserRepository<U> userRepository,
                                CountryRepository countryRepository,
                                BaseSolrService<SF> solrService,
@@ -206,7 +200,6 @@ public abstract class BaseUserServiceImpl<
         this.messageSource = messageSource;
         this.professionalTypeService = professionalTypeService;
         this.javaMailSender = javaMailSender;
-        this.passwordValidator = passwordValidator;
         this.userRepository = userRepository;
         this.countryRepository = countryRepository;
         this.solrService = solrService;
@@ -276,7 +269,7 @@ public abstract class BaseUserServiceImpl<
 
     @Override
     public U create(final @NotNull U user)
-            throws NotUniqueException, NotExistException, PasswordValidationException {
+            throws NotUniqueException, NotExistException  {
 
         user.setUsername(user.getEmail());
         if (Objects.isNull(user.getEnabled())) {
@@ -316,7 +309,7 @@ public abstract class BaseUserServiceImpl<
 
     @Override
     public U register(final @NotNull U user, String registrantToken, String callbackUrl)
-            throws NotUniqueException, NotExistException, PasswordValidationException {
+            throws NotUniqueException, NotExistException  {
 
         user.setEnabled(false);
         user.setEmailConfirmed(false);
@@ -589,7 +582,7 @@ public abstract class BaseUserServiceImpl<
 
     @Override
     public void updatePassword(U user, String oldPassword, String newPassword)
-            throws ValidationException, PasswordValidationException {
+            throws ValidationException  {
 
         U exists = userRepository.findById(user.getId()).get();
 
@@ -1021,17 +1014,8 @@ public abstract class BaseUserServiceImpl<
         return userRepository.listApprovedByDatasource(id);
     }
 
-    private void validatePassword(String username, String firstName, String lastName, String middleName, String password) throws PasswordValidationException {
+    private void validatePassword(String username, String firstName, String lastName, String middleName, String password)  {
 
-        ArachnePasswordData passwordData = new ArachnePasswordData(new Password(password));
-        passwordData.setUsername(username);
-        passwordData.setFirstName(firstName);
-        passwordData.setLastName(lastName);
-        passwordData.setMiddleName(middleName);
-        final ArachnePasswordValidationResult result = passwordValidator.validate(passwordData);
-        if (!result.isValid()) {
-            throw new PasswordValidationException(passwordValidator.getMessages(result));
-        }
     }
 
     private String prepareQuery(String query) {

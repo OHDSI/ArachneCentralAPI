@@ -29,13 +29,6 @@ import com.odysseusinc.arachne.portal.security.AuthenticationTokenFilter;
 import com.odysseusinc.arachne.portal.security.DataNodeAuthenticationProvider;
 import com.odysseusinc.arachne.portal.security.EntryPointUnauthorizedHandler;
 import com.odysseusinc.arachne.portal.security.Roles;
-import edu.vt.middleware.password.LengthRule;
-import edu.vt.middleware.password.MessageResolver;
-import edu.vt.middleware.password.PasswordValidator;
-import edu.vt.middleware.password.QwertySequenceRule;
-import edu.vt.middleware.password.RepeatCharacterRegexRule;
-import edu.vt.middleware.password.Rule;
-import edu.vt.middleware.password.WhitespaceRule;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -78,24 +71,6 @@ public class TestApplication {
 
     @TestConfiguration
     static class Config {
-        @Bean
-        public PasswordValidator passwordValidator() throws IOException {
-
-            LengthRule lengthRule = new LengthRule(8, 16);
-            WhitespaceRule whitespaceRule = new WhitespaceRule();
-            QwertySequenceRule qwertySeqRule = new QwertySequenceRule();
-            RepeatCharacterRegexRule repeatRule = new RepeatCharacterRegexRule(4);
-            List<Rule> ruleList = new ArrayList<>();
-            ruleList.add(lengthRule);
-            ruleList.add(whitespaceRule);
-            ruleList.add(qwertySeqRule);
-            ruleList.add(repeatRule);
-            Properties props = new Properties();
-
-            props.load(new ClassPathResource("password_messages.properties").getInputStream());
-            MessageResolver resolver = new MessageResolver(props);
-            return new PasswordValidator(resolver, ruleList);
-        }
     }
 
     @Configuration
