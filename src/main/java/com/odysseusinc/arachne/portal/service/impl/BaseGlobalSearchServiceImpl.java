@@ -31,6 +31,7 @@ import com.odysseusinc.arachne.portal.service.BaseSolrService;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
 import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
 import java.io.IOException;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -56,14 +57,15 @@ public abstract class BaseGlobalSearchServiceImpl<SF extends SolrField> implemen
     //TODO refactor, move out converting code
     public GlobalSearchResultDTO search(final Long userId, final SearchGlobalDTO searchDTO) throws SolrServerException, NoSuchFieldException, IOException {
 
-        searchDTO.setCollections(SolrCollection.names());
         searchDTO.setResultFields(ID, TITLE, TYPE, BREADCRUMBS);
 
+        final String[] collections = calculateCollections(searchDTO);
+        searchDTO.setCollections(collections);
+        
         final SolrQuery query = conversionService.convert(searchDTO, SolrQuery.class);
         query.setQuery(buildSearchString(searchDTO.getQuery(), userId));
         
-        // We use STUDIES here as "default" collection also because something should be mentioned in url
-        final QueryResponse response = solrService.search(SolrCollection.STUDIES.getName(), query, Boolean.TRUE);
+        final QueryResponse response = solrService.search(collections[0], query, Boolean.TRUE);
 
         final SearchResult<SolrDocument> searchResult = new SearchResult<>(query, response, response.getResults());
 
@@ -71,6 +73,15 @@ public abstract class BaseGlobalSearchServiceImpl<SF extends SolrField> implemen
                 searchResult,
                 GlobalSearchResultDTO.class
         );
+    }
+    
+    private String[] calculateCollections(final SearchGlobalDTO searchDTO) {
+
+        if (ArrayUtils.isEmpty(searchDTO.getCollections())) {
+            return SolrCollection.names();
+        } else {
+            return searchDTO.getCollections();
+        }
     }
 
     private String buildSearchString(final String query, final Long userId) {
