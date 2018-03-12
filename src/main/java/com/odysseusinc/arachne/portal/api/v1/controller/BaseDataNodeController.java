@@ -41,10 +41,12 @@ import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
 import com.odysseusinc.arachne.portal.service.StudyDataSourceService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
+import com.odysseusinc.arachne.portal.util.ConverterUtils;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Collections;
+import java.util.List;
 import javax.validation.Valid;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
@@ -69,6 +71,7 @@ public abstract class BaseDataNodeController<
     protected final GenericConversionService genericConversionService;
     protected final BaseUserService userService;
     protected final StudyDataSourceService studyDataSourceService;
+    protected final ConverterUtils converterUtils;
 
     @Autowired
     public BaseDataNodeController(BaseAnalysisService analysisService,
@@ -76,7 +79,8 @@ public abstract class BaseDataNodeController<
                                   BaseDataSourceService<DS> dataSourceService,
                                   GenericConversionService genericConversionService,
                                   BaseUserService userService,
-                                  StudyDataSourceService studyDataSourceService) {
+                                  StudyDataSourceService studyDataSourceService,
+                                  ConverterUtils converterUtils) {
 
         this.analysisService = analysisService;
         this.baseDataNodeService = dataNodeService;
@@ -84,6 +88,7 @@ public abstract class BaseDataNodeController<
         this.genericConversionService = genericConversionService;
         this.userService = userService;
         this.studyDataSourceService = studyDataSourceService;
+        this.converterUtils = converterUtils;
     }
 
     @ApiOperation("Create new data node.")
@@ -166,6 +171,13 @@ public abstract class BaseDataNodeController<
 
         DataNode dataNode = baseDataNodeService.getById(dataNodeId);
         return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, getDataNode(dataNode));
+    }
+
+    @RequestMapping(value = "/api/v1/data-nodes", method = RequestMethod.GET)
+    public List<CommonDataNodeDTO> getDataNodes() {
+
+        List<DN> dataNodes = baseDataNodeService.findAllIsNotVirtual();
+        return converterUtils.convertList(dataNodes, CommonDataNodeDTO.class);
     }
 
     @RequestMapping(value = "/api/v1/data-nodes/byuuid/{dataNodeUuid}", method = RequestMethod.GET)

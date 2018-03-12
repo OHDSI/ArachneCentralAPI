@@ -28,8 +28,10 @@ import com.odysseusinc.arachne.commons.api.v1.dto.CommonBaseDataSourceDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonCDMVersionDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataSourceDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
+import com.odysseusinc.arachne.execution_engine_common.api.v1.dto.DBMSType;
 import com.odysseusinc.arachne.portal.api.v1.dto.FacetedSearchResultDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.IDataSourceDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.OptionDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.PageDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchDataCatalogDTO;
 import com.odysseusinc.arachne.portal.exception.FieldException;
@@ -47,6 +49,7 @@ import java.io.IOException;
 import java.security.Principal;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -62,6 +65,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+
+//import com.odysseusinc.arachne.commons.api.v1.dto.OptionDTO;
 
 public abstract class BaseDataSourceController<
         DS extends IDataSource,
@@ -279,4 +284,13 @@ public abstract class BaseDataSourceController<
         DS dataSource = dataSourceService.findById(dataSourceId);
         return new JsonResult<>(NO_ERROR, conversionService.convert(dataSource, getDataSourceDTOClass()));
     }
+
+    @RequestMapping(value = "/api/v1/data-sources/dbms-types", method = RequestMethod.GET)
+    public List<OptionDTO> getDBMSTypes() {
+
+        return Arrays.stream(DBMSType.values())
+                .map(dbms -> conversionService.convert(dbms, OptionDTO.class))
+                .collect(Collectors.toList());
+    }
+
 }
