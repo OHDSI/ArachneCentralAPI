@@ -92,6 +92,7 @@ import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import com.odysseusinc.arachne.portal.service.mail.RegistrationMailMessage;
 import com.odysseusinc.arachne.portal.service.mail.RemindPasswordMailMessage;
+import com.odysseusinc.arachne.portal.util.EntityUtils;
 import edu.vt.middleware.password.Password;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -248,7 +249,7 @@ public abstract class BaseUserServiceImpl<
     @Override
     public U getByUnverifiedEmail(final String email) {
 
-        return userRepository.findByEmail(email, EntityGraphUtils.fromAttributePaths("roles", "professionalType"));
+        return userRepository.findByEmail(email, EntityUtils.fromAttributePaths("roles", "professionalType"));
     }
 
     @Override

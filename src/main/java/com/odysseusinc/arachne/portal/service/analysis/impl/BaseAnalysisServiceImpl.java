@@ -86,6 +86,7 @@ import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import com.odysseusinc.arachne.portal.service.mail.UnlockAnalysisRequestMailMessage;
 import com.odysseusinc.arachne.portal.util.AnalysisHelper;
+import com.odysseusinc.arachne.portal.util.EntityUtils;
 import com.odysseusinc.arachne.portal.util.FileUtils;
 import com.odysseusinc.arachne.portal.util.LegacyAnalysisHelper;
 import com.odysseusinc.arachne.portal.util.ZipUtil;
@@ -323,7 +324,7 @@ public abstract class BaseAnalysisServiceImpl<
 
         return analysisRepository.findById(
                 id,
-                EntityGraphUtils.fromAttributePaths(
+                EntityUtils.fromAttributePaths(
                         "submissions",
                         "submissions.author",
                         "submissions.submissionGroup",

@@ -76,6 +76,7 @@ import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
 import com.odysseusinc.arachne.portal.util.AnalysisHelper;
 import com.odysseusinc.arachne.portal.util.ContentStorageHelper;
 import com.odysseusinc.arachne.portal.util.DataNodeUtils;
+import com.odysseusinc.arachne.portal.util.EntityUtils;
 import com.odysseusinc.arachne.portal.util.LegacyAnalysisHelper;
 import com.odysseusinc.arachne.portal.util.SubmissionHelper;
 import com.odysseusinc.arachne.portal.util.UUIDGenerator;
@@ -712,7 +713,7 @@ public abstract class BaseSubmissionServiceImpl<
     @Override
     public List<ArachneFileMeta> getResultFiles(IUser user, Long submissionId, ResultFileSearch resultFileSearch) throws PermissionDeniedException {
 
-        Submission submission = submissionRepository.findById(submissionId, EntityGraphUtils.fromAttributePaths("dataSource", "dataSource.dataNode"));
+        Submission submission = submissionRepository.findById(submissionId, EntityUtils.fromAttributePaths("dataSource", "dataSource.dataNode"));
         checkSubmissionPermission(user, submission);
 
         String resultFilesPath = contentStorageHelper.getResultFilesDir(submission, resultFileSearch.getPath());
