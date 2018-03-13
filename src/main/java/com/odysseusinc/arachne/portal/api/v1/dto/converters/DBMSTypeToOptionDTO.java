@@ -22,7 +22,7 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
-import com.odysseusinc.arachne.execution_engine_common.api.v1.dto.DBMSType;
+import com.odysseusinc.arachne.commons.types.DBMSType;
 import com.odysseusinc.arachne.portal.api.v1.dto.OptionDTO;
 import org.springframework.stereotype.Component;
 

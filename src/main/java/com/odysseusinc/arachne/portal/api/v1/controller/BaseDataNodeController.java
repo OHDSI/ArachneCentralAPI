@@ -105,7 +105,7 @@ public abstract class BaseDataNodeController<
         return result;
     }
 
-    @ApiOperation("Create new data node.")
+    @ApiOperation("Create new manual data node.")
     @RequestMapping(value = "/api/v1/data-nodes/manual", method = RequestMethod.POST)
     public CommonDataNodeCreationResponseDTO createManualDataNode(
             @RequestBody @Valid CommonDataNodeRegisterDTO commonDataNodeRegisterDTO,
@@ -113,7 +113,6 @@ public abstract class BaseDataNodeController<
     ) throws PermissionDeniedException, AlreadyExistException {
 
         final DN dataNode = conversionService.convert(commonDataNodeRegisterDTO, getDataNodeDNClass());
-        dataNode.setPublished(false);
         return createDataNode(dataNode, principal);
     }
 
