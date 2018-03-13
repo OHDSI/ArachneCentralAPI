@@ -94,6 +94,7 @@ import com.odysseusinc.arachne.portal.service.mail.InvitationCollaboratorMailSen
 import com.odysseusinc.arachne.portal.service.study.AddDataSourceStrategy;
 import com.odysseusinc.arachne.portal.service.study.AddDataSourceStrategyFactory;
 import com.odysseusinc.arachne.portal.util.BaseStudyHelper;
+import com.odysseusinc.arachne.portal.util.EntityUtils;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -429,7 +430,7 @@ public abstract class BaseStudyServiceImpl<
                 .findFirstByUserIdAndStudyId(
                         user.getId(),
                         studyId,
-                        EntityGraphUtils.fromAttributePaths(
+                        EntityUtils.fromAttributePaths(
                                 "study",
                                 "study.paper",
                                 "study.status",
