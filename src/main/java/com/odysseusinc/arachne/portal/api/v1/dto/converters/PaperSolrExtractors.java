@@ -15,42 +15,44 @@
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
  * Authors: Anton Gackovka
- * Created: February 19, 2018
+ * Created: March 13, 2018
  */
 
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
-import com.odysseusinc.arachne.portal.model.User;
-import com.odysseusinc.arachne.portal.model.security.Tenant;
-import java.util.Set;
-import java.util.function.Function;
+import com.odysseusinc.arachne.portal.model.Paper;
+import com.odysseusinc.arachne.portal.model.Study;
 
-public class UserSolrExtractors {
+public class PaperSolrExtractors {
 
     public static class TitleExtractor implements SolrFieldExtractor {
-        @Override
-        public String apply(Object o) {
 
-            final User user = tryConvert(o, "Title");
-            return user.getFullName();
+        @Override
+        public String apply(final Object o) {
+
+            final Paper paper = tryConvert(o, "Title");
+            final Study study = paper.getStudy();
+            return new StudySolrExtractors.TitleExtractor().apply(study);
         }
     }
     
-    public static class TenantsExtractor implements SolrFieldExtractor {
+    public static class StudyIdExtractor implements SolrFieldExtractor {
 
         @Override
-        public Set<Tenant> apply(Object o) {
+        public Object apply(final Object o) {
+            final Paper paper = tryConvert(o, "Study id");
 
-            final User user = tryConvert(o, "Tenants");
-            return user.getTenants();
+            final Study study = paper.getStudy();
+
+            return study.getId();
         }
     }
-
-    private static User tryConvert(final Object o, final String s) {
-
-        if (!(o instanceof User)) {
-            throw new IllegalArgumentException(s + " can be extracted only from User object.");
+    
+    private static Paper tryConvert(final Object o, final String s) {
+        
+        if (!(o instanceof Paper)) {
+            throw new IllegalArgumentException(s + " can be extracted only from Paper object.");
         }
-        return (User) o;
+        return (Paper) o;
     }
 }

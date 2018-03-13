@@ -22,8 +22,13 @@
 
 package com.odysseusinc.arachne.portal.model;
 
+import com.odysseusinc.arachne.portal.api.v1.dto.converters.PaperSolrExtractors;
+import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
+import com.odysseusinc.arachne.portal.model.solr.SolrEntity;
+import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
+import com.odysseusinc.arachne.portal.service.BaseSolrService;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.BreadcrumbType;
 import java.util.ArrayList;
@@ -54,7 +59,8 @@ import org.springframework.util.CollectionUtils;
 @Entity
 @Table(name = "papers")
 @DiscriminatorFormula("'PAPER_ENTITY'")
-public class Paper implements HasArachnePermissions, Breadcrumb {
+@SolrFieldAnno(name = BaseSolrService.TITLE, postfix = false, extractor = PaperSolrExtractors.TitleExtractor.class)
+public class Paper implements HasArachnePermissions, Breadcrumb, SolrEntity {
 
     @Id
     @SequenceGenerator(name = "papers_pk_sequence", sequenceName = "papers_id_seq", allocationSize = 1)
@@ -63,6 +69,7 @@ public class Paper implements HasArachnePermissions, Breadcrumb {
 
     @OneToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "study_id")
+    @SolrFieldAnno(extractor = PaperSolrExtractors.StudyIdExtractor.class, sort = false, name = "study_id")
     private Study study;
 
     @OneToMany(mappedBy = "paper", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -91,6 +98,12 @@ public class Paper implements HasArachnePermissions, Breadcrumb {
     public Long getId() {
 
         return id;
+    }
+
+    @Override
+    public String getCrumbTitle() {
+
+        return getStudy().getTitle();
     }
 
     public void setId(Long id) {
@@ -171,8 +184,7 @@ public class Paper implements HasArachnePermissions, Breadcrumb {
     @Override
     public Breadcrumb getCrumbParent() {
 
-        //ToDo
-        return null;
+        return getStudy();
     }
 
     public List<User> getFollowers() {
@@ -183,5 +195,11 @@ public class Paper implements HasArachnePermissions, Breadcrumb {
     public void setFollowers(List<User> followers) {
 
         this.followers = followers;
+    }
+
+    @Override
+    public SolrCollection getCollection() {
+
+        return SolrCollection.PAPERS;
     }
 }

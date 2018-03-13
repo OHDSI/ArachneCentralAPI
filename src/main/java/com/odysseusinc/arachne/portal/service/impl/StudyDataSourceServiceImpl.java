@@ -59,6 +59,6 @@ public class StudyDataSourceServiceImpl implements StudyDataSourceService {
         final List<Study> studies = studyService.getStudiesUsesDataSource(dataSourceId);
         studies.forEach(study -> studyService.removeDataSourceUnsecured(study.getId(), dataSourceId));
         dataSourceService.delete(dataSourceId);
-        solrService.delete(SolrCollection.DATA_SOURCE, String.valueOf(dataSourceId));
+        solrService.delete(SolrCollection.DATA_SOURCES, String.valueOf(dataSourceId));
     }
 }

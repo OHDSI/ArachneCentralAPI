@@ -146,7 +146,7 @@ public abstract class BaseDataSourceServiceImpl<
     protected QueryResponse solrSearch(final SolrQuery solrQuery) throws IOException, SolrServerException, NoSuchFieldException {
 
         return solrService.search(
-                SolrCollection.DATA_SOURCE.getName(),
+                SolrCollection.DATA_SOURCES.getName(),
                 solrQuery,
                 Boolean.TRUE
         );
@@ -348,7 +348,7 @@ public abstract class BaseDataSourceServiceImpl<
             dataSource.setPublished(false);
             dataSourceRepository.save(dataSource);
 
-            solrService.delete(SolrCollection.DATA_SOURCE, String.valueOf(id));
+            solrService.delete(SolrCollection.DATA_SOURCES, String.valueOf(id));
         }
     }
 

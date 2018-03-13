@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.service;
 
+import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.AbstractPaperFile;
@@ -38,6 +39,7 @@ import java.net.MalformedURLException;
 import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -78,6 +80,8 @@ public interface BasePaperService<T extends Paper, PS extends PaperSearch> {
     List<T> findByStudyIds(List<Long> ids);
 
     void fullDelete(List<T> ids);
+
+    void indexAllBySolr() throws IOException, NotExistException, SolrServerException, NoSuchFieldException, IllegalAccessException;
 
     void processAntivirusResponse(AntivirusJobPaperPaperFileResponseEvent event);
 

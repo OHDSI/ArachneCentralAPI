@@ -93,7 +93,7 @@ public class Analysis implements HasArachnePermissions, Breadcrumb, SolrEntity  
     private IUser author;
 
     @ManyToOne(fetch = FetchType.LAZY)
-//    @SolrFieldAnno(extractor = AnalysisSolrExtractors.StudyIdExtractor.class, sort = false, name = "study_id")
+    @SolrFieldAnno(extractor = AnalysisSolrExtractors.StudyIdExtractor.class, sort = false, name = "study_id")
     private Study study;
 
     @Column(name = "ord")

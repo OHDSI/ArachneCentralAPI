@@ -27,7 +27,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class DataSourceSolrExtractors {
-    public static class TitleExtractor implements Function<Object, Object> {
+    public static class TitleExtractor implements SolrFieldExtractor {
         @Override
         public String apply(final Object o) {
 
@@ -36,12 +36,21 @@ public class DataSourceSolrExtractors {
         }
     }
 
-    public static class TenantsExtractor implements Function<Object, Object> {
+    public static class TenantsExtractor implements SolrFieldExtractor {
         @Override
         public List<Long> apply(final Object o) {
 
             final DataSource ds = tryConvert(o, "Tenants");
             return ds.getTenants().stream().map(Tenant::getId).collect(Collectors.toList());
+        }
+    }
+    
+    public static class DataNodeNameExtractor implements SolrFieldExtractor {
+        @Override
+        public String apply(final Object o) {
+
+            final DataSource ds = tryConvert(o, "DN name");
+            return ds.getDataNode().getName();
         }
     }
 

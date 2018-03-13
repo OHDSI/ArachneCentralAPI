@@ -28,7 +28,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class AnalysisSolrExtractors {
-    public static class ParticipantsExtractor implements Function<Object, Object> {
+    public static class ParticipantsExtractor implements SolrFieldExtractor {
 
         @Override
         public Object apply(final Object o) {
@@ -40,7 +40,7 @@ public class AnalysisSolrExtractors {
         }
     }
 
-    public static class TenantsExtractor implements Function<Object, Object> {
+    public static class TenantsExtractor implements SolrFieldExtractor {
 
         @Override
         public Object apply(final Object o) {
@@ -52,11 +52,11 @@ public class AnalysisSolrExtractors {
         }
     }
 
-    public static class StudyIdExtractor implements Function<Object, Object> {
+    public static class StudyIdExtractor implements SolrFieldExtractor {
 
         @Override
         public Object apply(final Object o) {
-            final Analysis analysis = tryConvert(o, "Tenants list");
+            final Analysis analysis = tryConvert(o, "Study id");
 
             final Study study = analysis.getStudy();
 
