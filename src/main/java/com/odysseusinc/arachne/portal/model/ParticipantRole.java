@@ -101,6 +101,9 @@ public enum ParticipantRole {
             EDIT_ANALYSIS,
             EDIT_INSIGHT
     }),
+    ANALYSIS_OWNER("Analysis owner", new ArachnePermission[]{
+            UPDATE_SUBMISSION
+    }),
     STUDY_READER("Study reader", new ArachnePermission[]{
             ACCESS_STUDY,
     }),
