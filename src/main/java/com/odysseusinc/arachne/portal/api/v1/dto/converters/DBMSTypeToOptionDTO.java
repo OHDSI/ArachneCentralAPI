@@ -33,8 +33,8 @@ public class DBMSTypeToOptionDTO extends BaseConversionServiceAwareConverter<DBM
     public OptionDTO convert(DBMSType type) {
 
         final OptionDTO optionDTO = new OptionDTO();
-        optionDTO.setId(type.getLabel());
-        optionDTO.setName(type.getValue());
+        optionDTO.setId(type.getValue());
+        optionDTO.setName(type.getLabel());
         return optionDTO;
     }
 }
