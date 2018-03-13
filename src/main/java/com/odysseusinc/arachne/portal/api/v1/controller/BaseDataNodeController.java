@@ -99,14 +99,31 @@ public abstract class BaseDataNodeController<
 
         final IUser user = getUser(principal);
         final DN dataNode = buildEmptyDN();
+        CommonDataNodeCreationResponseDTO responseDTO = createDataNode(dataNode, principal);
+        final JsonResult<CommonDataNodeCreationResponseDTO> result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
+        result.setResult(responseDTO);
+        return result;
+    }
+
+    @ApiOperation("Create new data node.")
+    @RequestMapping(value = "/api/v1/data-nodes/manual", method = RequestMethod.POST)
+    public CommonDataNodeCreationResponseDTO createManualDataNode(
+            @RequestBody @Valid CommonDataNodeRegisterDTO commonDataNodeRegisterDTO,
+            Principal principal
+    ) throws PermissionDeniedException, AlreadyExistException {
+
+        final DN dataNode = conversionService.convert(commonDataNodeRegisterDTO, getDataNodeDNClass());
+        dataNode.setPublished(false);
+        return createDataNode(dataNode, principal);
+    }
+
+    private CommonDataNodeCreationResponseDTO createDataNode(DN dataNode, Principal principal)
+            throws PermissionDeniedException, AlreadyExistException {
+
+        final IUser user = getUser(principal);
         final DN registeredDataNode = baseDataNodeService.create(dataNode);
         baseDataNodeService.linkUserToDataNodeUnsafe(registeredDataNode, user, Collections.singleton(DataNodeRole.ADMIN));
-
-        final CommonDataNodeCreationResponseDTO dataNodeRegisterResponseDTO
-                = conversionService.convert(registeredDataNode, CommonDataNodeCreationResponseDTO.class);
-        final JsonResult<CommonDataNodeCreationResponseDTO> result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
-        result.setResult(dataNodeRegisterResponseDTO);
-        return result;
+        return conversionService.convert(registeredDataNode, CommonDataNodeCreationResponseDTO.class);
     }
 
     protected abstract Class<DN> getDataNodeDNClass();
