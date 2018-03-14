@@ -122,7 +122,7 @@ public abstract class BaseSubmissionInsightServiceImpl implements SubmissionInsi
     }
 
     @Override
-    @PreAuthorize("hasPermission(#insight, "
+    @PreAuthorize("hasPermission(#submissionId, 'Submission', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_INSIGHT)")
     public SubmissionInsight updateSubmissionInsight(Long submissionId, SubmissionInsight insight)
             throws NotExistException {
