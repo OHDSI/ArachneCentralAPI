@@ -20,7 +20,7 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
-import java.util.function.Function;
-
-public interface SolrFieldExtractor extends Function<Object, Object> {
+public interface SolrFieldExtractor<T>{
+    
+    Object extract(final T domain);
 }

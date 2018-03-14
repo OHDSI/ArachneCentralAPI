@@ -33,12 +33,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class StudySolrExtractors {
-    public static class ParticipantsExtractor implements SolrFieldExtractor {
+    public static class ParticipantsExtractor implements SolrFieldExtractor<Study> {
 
         @Override
-        public Object apply(final Object o) {
+        public Object extract(final Study study) {
 
-            final Study study = tryConvert(o, "Participant list");
             return study.getParticipants().stream()
                     .filter(link -> link.getStatus().isPendingOrApproved())
                     .map(UserStudyExtended::getUser)
@@ -48,41 +47,30 @@ public class StudySolrExtractors {
         }
     }
 
-    public static class PrivacyExtractor implements SolrFieldExtractor {
+    public static class PrivacyExtractor implements SolrFieldExtractor<Study> {
 
         @Override
-        public String apply(final Object o) {
+        public String extract(final Study study) {
 
-            final Study study = tryConvert(o, "Privacy");
             return String.valueOf(!study.getPrivacy());
         }
     }
 
-    public static class TitleExtractor implements SolrFieldExtractor {
+    public static class TitleExtractor implements SolrFieldExtractor<Study> {
 
         @Override
-        public String apply(final Object o) {
+        public String extract(final Study study) {
 
-            final Study study = tryConvert(o, "Title");
             return study.getTitle();
         }
     }
 
-    public static class TenantsExtractor implements SolrFieldExtractor {
+    public static class TenantsExtractor implements SolrFieldExtractor<Study> {
 
         @Override
-        public List<String> apply(final Object o) {
+        public List<String> extract(final Study study) {
 
-            final Study study = tryConvert(o, "Tenants");
             return Collections.singletonList(String.valueOf(study.getTenant().getId()));
         }
-    }
-
-    private static Study tryConvert(final Object o, final String s) {
-
-        if (!(o instanceof Study)) {
-            throw new IllegalArgumentException(s + " can be extracted only from Study object.");
-        }
-        return (Study) o;
     }
 }

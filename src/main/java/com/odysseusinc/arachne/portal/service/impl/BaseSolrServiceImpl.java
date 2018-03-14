@@ -25,6 +25,7 @@ package com.odysseusinc.arachne.portal.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.odysseusinc.arachne.portal.api.v1.dto.BreadcrumbDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.converters.SolrFieldExtractor;
 import com.odysseusinc.arachne.portal.config.tenancy.TenantContext;
 import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
 import com.odysseusinc.arachne.portal.model.solr.SolrEntity;
@@ -97,7 +98,7 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
         solrField.setFaceted(solrFieldAnno.filter());
         solrField.setPostfixNeeded(solrFieldAnno.postfix());
         solrField.setSortNeeded(solrFieldAnno.sort());
-        final Class<? extends Function<Object, Object>>[] extractors = solrFieldAnno.extractor();
+        final Class<? extends SolrFieldExtractor<?>>[] extractors = solrFieldAnno.extractor();
         if (extractors.length > 0) {
             solrField.setExtractor(BeanUtils.instantiate(extractors[0]));
         }
@@ -162,10 +163,10 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
         for (final T solrField : fieldList) {
             final Object fieldValue;
             final Field field = solrField.getField();
-            final Function<Object, Object> extractor = solrField.getExtractor();
+            final SolrFieldExtractor extractor = solrField.getExtractor();
             
             if (extractor != null) {
-                fieldValue = extractor.apply(entity);
+                fieldValue = extractor.extract(entity);
             } else if (field != null) {
                 field.setAccessible(true);
                 fieldValue = field.get(entity);

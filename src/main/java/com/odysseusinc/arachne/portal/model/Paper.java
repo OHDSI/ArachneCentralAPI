@@ -59,7 +59,7 @@ import org.springframework.util.CollectionUtils;
 @Entity
 @Table(name = "papers")
 @DiscriminatorFormula("'PAPER_ENTITY'")
-@SolrFieldAnno(name = BaseSolrService.TITLE, postfix = false, extractor = PaperSolrExtractors.TitleExtractor.class)
+@SolrFieldAnno(name = BaseSolrService.TITLE, postfix = false, extractor = PaperSolrExtractors.TitleExtractor.class, query = true)
 public class Paper implements HasArachnePermissions, Breadcrumb, SolrEntity {
 
     @Id

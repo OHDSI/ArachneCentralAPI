@@ -28,47 +28,25 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class AnalysisSolrExtractors {
-    public static class ParticipantsExtractor implements SolrFieldExtractor {
+    public static class ParticipantsExtractor implements SolrFieldExtractor<Analysis> {
 
         @Override
-        public Object apply(final Object o) {
-            final Analysis analysis = tryConvert(o, "Participant list");
+        public Object extract(final Analysis analysis) {
 
             final Study study = analysis.getStudy();
 
-            return new StudySolrExtractors.ParticipantsExtractor().apply(study);
+            return new StudySolrExtractors.ParticipantsExtractor().extract(study);
         }
     }
 
-    public static class TenantsExtractor implements SolrFieldExtractor {
+    public static class StudyIdExtractor implements SolrFieldExtractor<Analysis> {
 
         @Override
-        public Object apply(final Object o) {
-            final Analysis analysis = tryConvert(o, "Tenants list");
-
-            final Study study = analysis.getStudy();
-
-            return new StudySolrExtractors.TenantsExtractor().apply(study);
-        }
-    }
-
-    public static class StudyIdExtractor implements SolrFieldExtractor {
-
-        @Override
-        public Object apply(final Object o) {
-            final Analysis analysis = tryConvert(o, "Study id");
+        public Object extract(final Analysis analysis) {
 
             final Study study = analysis.getStudy();
 
             return study.getId();
         }
-    }
-    
-    private static Analysis tryConvert(final Object o, final String s) {
-
-        if (!(o instanceof Analysis)) {
-            throw new IllegalArgumentException(s + " can be extracted only from Analysis object.");
-        }
-        return (Analysis) o;
     }
 }

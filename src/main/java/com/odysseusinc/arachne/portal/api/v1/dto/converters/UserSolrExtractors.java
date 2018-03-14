@@ -27,30 +27,21 @@ import java.util.function.Function;
 
 public class UserSolrExtractors {
 
-    public static class TitleExtractor implements SolrFieldExtractor {
+    public static class TitleExtractor implements SolrFieldExtractor<User> {
+        
         @Override
-        public String apply(Object o) {
+        public String extract(final User user) {
 
-            final User user = tryConvert(o, "Title");
             return user.getFullName();
         }
     }
     
-    public static class TenantsExtractor implements SolrFieldExtractor {
+    public static class TenantsExtractor implements SolrFieldExtractor<User> {
 
         @Override
-        public Set<Tenant> apply(Object o) {
+        public Set<Tenant> extract(final User user) {
 
-            final User user = tryConvert(o, "Tenants");
             return user.getTenants();
         }
-    }
-
-    private static User tryConvert(final Object o, final String s) {
-
-        if (!(o instanceof User)) {
-            throw new IllegalArgumentException(s + " can be extracted only from User object.");
-        }
-        return (User) o;
     }
 }

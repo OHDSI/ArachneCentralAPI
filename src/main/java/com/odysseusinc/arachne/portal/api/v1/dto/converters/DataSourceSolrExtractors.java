@@ -27,38 +27,27 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class DataSourceSolrExtractors {
-    public static class TitleExtractor implements SolrFieldExtractor {
+    public static class TitleExtractor implements SolrFieldExtractor<DataSource> {
         @Override
-        public String apply(final Object o) {
+        public String extract(final DataSource ds) {
 
-            final DataSource ds = tryConvert(o, "Title");
             return ds.getName();
         }
     }
 
-    public static class TenantsExtractor implements SolrFieldExtractor {
+    public static class TenantsExtractor implements SolrFieldExtractor<DataSource> {
         @Override
-        public List<Long> apply(final Object o) {
+        public List<Long> extract(final DataSource ds) {
 
-            final DataSource ds = tryConvert(o, "Tenants");
             return ds.getTenants().stream().map(Tenant::getId).collect(Collectors.toList());
         }
     }
     
-    public static class DataNodeNameExtractor implements SolrFieldExtractor {
+    public static class DataNodeNameExtractor implements SolrFieldExtractor<DataSource> {
         @Override
-        public String apply(final Object o) {
+        public String extract(final DataSource ds) {
 
-            final DataSource ds = tryConvert(o, "DN name");
             return ds.getDataNode().getName();
         }
-    }
-
-    private static DataSource tryConvert(final Object o, final String s) {
-
-        if (!(o instanceof DataSource)) {
-            throw new IllegalArgumentException(s + " can be extracted only from DataSource object.");
-        }
-        return (DataSource) o;
     }
 }

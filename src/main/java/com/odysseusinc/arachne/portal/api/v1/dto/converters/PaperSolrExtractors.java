@@ -25,34 +25,24 @@ import com.odysseusinc.arachne.portal.model.Study;
 
 public class PaperSolrExtractors {
 
-    public static class TitleExtractor implements SolrFieldExtractor {
+    public static class TitleExtractor implements SolrFieldExtractor<Paper> {
 
         @Override
-        public String apply(final Object o) {
+        public String extract(final Paper paper) {
 
-            final Paper paper = tryConvert(o, "Title");
             final Study study = paper.getStudy();
-            return new StudySolrExtractors.TitleExtractor().apply(study);
+            return new StudySolrExtractors.TitleExtractor().extract(study);
         }
     }
     
-    public static class StudyIdExtractor implements SolrFieldExtractor {
+    public static class StudyIdExtractor implements SolrFieldExtractor<Paper> {
 
         @Override
-        public Object apply(final Object o) {
-            final Paper paper = tryConvert(o, "Study id");
+        public Object extract(final Paper paper) {
 
             final Study study = paper.getStudy();
 
             return study.getId();
         }
-    }
-    
-    private static Paper tryConvert(final Object o, final String s) {
-        
-        if (!(o instanceof Paper)) {
-            throw new IllegalArgumentException(s + " can be extracted only from Paper object.");
-        }
-        return (Paper) o;
     }
 }
