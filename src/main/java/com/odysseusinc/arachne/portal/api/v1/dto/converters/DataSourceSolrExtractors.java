@@ -21,15 +21,16 @@
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.security.Tenant;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class DataSourceSolrExtractors {
-    public static class TitleExtractor implements SolrFieldExtractor<DataSource> {
+    public static class TitleExtractor implements SolrFieldExtractor<IDataSource> {
         @Override
-        public String extract(final DataSource ds) {
+        public String extract(final IDataSource ds) {
 
             return ds.getName();
         }

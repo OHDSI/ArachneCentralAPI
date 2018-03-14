@@ -27,19 +27,19 @@ import java.util.function.Function;
 
 public class UserSolrExtractors {
 
-    public static class TitleExtractor implements SolrFieldExtractor<User> {
+    public static class TitleExtractor implements SolrFieldExtractor<IUser> {
         
         @Override
-        public String extract(final User user) {
+        public String extract(final IUser user) {
 
             return user.getFullName();
         }
     }
     
-    public static class TenantsExtractor implements SolrFieldExtractor<User> {
+    public static class TenantsExtractor implements SolrFieldExtractor<IUser> {
 
         @Override
-        public Set<Tenant> extract(final User user) {
+        public Set<Tenant> extract(final IUser user) {
 
             return user.getTenants();
         }
