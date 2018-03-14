@@ -22,8 +22,7 @@ public interface SubmissionInsightService {
 
     void deleteSubmissionInsightSubmissionFileLinks(List<SubmissionInsightSubmissionFile> links);
 
-    SubmissionInsight updateSubmissionInsight(Long submissionId, SubmissionInsight insight)
-            throws NotExistException;
+    SubmissionInsight updateSubmissionInsight(SubmissionInsight exist, SubmissionInsight insight);
 
     Page<SubmissionInsight> getInsightsByStudyId(Long studyId, Pageable pageable);
 

@@ -124,11 +124,11 @@ public abstract class BaseSubmissionInsightServiceImpl implements SubmissionInsi
     @Override
     @PreAuthorize("hasPermission(#insight, "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_INSIGHT)")
-    public SubmissionInsight updateSubmissionInsight(Long submissionId, SubmissionInsight insight)
+    public SubmissionInsight updateSubmissionInsight(SubmissionInsight exist, SubmissionInsight insight)
             throws NotExistException {
 
+        final Long submissionId = exist.getId();
         LOGGER.info(UPDATING_INSIGHT_LOG, submissionId);
-        final SubmissionInsight exist = submissionInsightRepository.findOneBySubmissionId(submissionId);
         throwNotExistExceptionIfNull(exist, submissionId);
         if (insight.getName() != null) {
             exist.setName(insight.getName());

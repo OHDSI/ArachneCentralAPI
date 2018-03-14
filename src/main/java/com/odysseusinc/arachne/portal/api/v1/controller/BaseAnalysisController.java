@@ -536,7 +536,9 @@ public abstract class BaseAnalysisController<T extends Analysis,
     ) throws NotExistException {
 
         final SubmissionInsight insight = conversionService.convert(insightDTO, SubmissionInsight.class);
-        final SubmissionInsight updatedInsight = submissionInsightService.updateSubmissionInsight(submissionId, insight);
+        final SubmissionInsight exist = submissionInsightService.getSubmissionInsight(submissionId);
+        insight.setSubmission(exist.getSubmission());
+        final SubmissionInsight updatedInsight = submissionInsightService.updateSubmissionInsight(exist, insight);
         final SubmissionInsightDTO updatedInsightDTO = conversionService.convert(updatedInsight, SubmissionInsightDTO.class);
         final JsonResult<SubmissionInsightDTO> result = new JsonResult<>(NO_ERROR);
         result.setResult(updatedInsightDTO);
