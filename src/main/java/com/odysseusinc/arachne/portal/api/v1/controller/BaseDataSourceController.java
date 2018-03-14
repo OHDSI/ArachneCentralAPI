@@ -27,7 +27,9 @@ import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCo
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonBaseDataSourceDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonCDMVersionDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataSourceDTO;
+import com.odysseusinc.arachne.commons.api.v1.dto.OptionDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
+import com.odysseusinc.arachne.commons.types.DBMSType;
 import com.odysseusinc.arachne.portal.api.v1.dto.FacetedSearchResultDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.IDataSourceDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.PageDTO;
@@ -41,7 +43,7 @@ import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.StudyDataSourceService;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
-import com.odysseusinc.arachne.portal.util.ConverterUtils;
+import com.odysseusinc.arachne.portal.util.ArachneConverterUtils;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
 import java.security.Principal;
@@ -71,12 +73,12 @@ public abstract class BaseDataSourceController<
 
     protected final GenericConversionService conversionService;
     protected final BaseDataSourceService<DS> dataSourceService;
-    protected final ConverterUtils converterUtils;
+    protected final ArachneConverterUtils converterUtils;
     protected final StudyDataSourceService studyDataSourceService;
 
     public BaseDataSourceController(GenericConversionService conversionService,
                                     BaseDataSourceService<DS> dataSourceService,
-                                    ConverterUtils converterUtils,
+                                    ArachneConverterUtils converterUtils,
                                     StudyDataSourceService studyDataSourceService) {
 
         this.conversionService = conversionService;
@@ -279,4 +281,11 @@ public abstract class BaseDataSourceController<
         DS dataSource = dataSourceService.findById(dataSourceId);
         return new JsonResult<>(NO_ERROR, conversionService.convert(dataSource, getDataSourceDTOClass()));
     }
+
+    @RequestMapping(value = "/api/v1/data-sources/dbms-types", method = RequestMethod.GET)
+    public List<OptionDTO> getDBMSTypes() {
+
+        return converterUtils.convertList(Arrays.asList(DBMSType.values()), OptionDTO.class);
+    }
+
 }

@@ -31,6 +31,7 @@ import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
 import com.odysseusinc.arachne.portal.service.StudyDataSourceService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
+import com.odysseusinc.arachne.portal.util.ArachneConverterUtils;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -41,15 +42,18 @@ public class DataNodeController extends BaseDataNodeController<DataSource, Commo
                               BaseDataSourceService<DataSource> dataSourceService,
                               GenericConversionService genericConversionService,
                               BaseUserService userService,
-                              StudyDataSourceService studyDataSourceService) {
+                              StudyDataSourceService studyDataSourceService,
+                              ArachneConverterUtils converterUtils) {
 
         super(analysisService,
                 baseDataNodeService,
                 dataSourceService,
                 genericConversionService,
                 userService,
-                studyDataSourceService);
+                studyDataSourceService,
+                converterUtils);
     }
+
     @Override
     protected Class<DataNode> getDataNodeDNClass() {
 
