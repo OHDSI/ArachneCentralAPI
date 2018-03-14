@@ -43,7 +43,7 @@ import com.odysseusinc.arachne.portal.repository.AchillesReportRepository;
 import com.odysseusinc.arachne.portal.repository.BaseDataSourceRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeRepository;
 import com.odysseusinc.arachne.portal.service.AchillesService;
-import com.odysseusinc.arachne.portal.util.ConverterUtils;
+import com.odysseusinc.arachne.portal.util.ArachneConverterUtils;
 import io.swagger.annotations.ApiOperation;
 import java.io.File;
 import java.io.IOException;
@@ -72,13 +72,13 @@ public abstract class BaseAchillesController<DS extends IDataSource> {
     protected final ObjectMapper objectMapper;
     protected final DataNodeRepository dataNodeRepository;
     protected final AchillesReportRepository achillesReportRepository;
-    protected final ConverterUtils converterUtils;
+    protected final ArachneConverterUtils converterUtils;
 
     protected Class<DS> dataSourceClass;
 
     public BaseAchillesController(BaseDataSourceRepository<DS> dataSourceRepository,
                                   DataNodeRepository dataNodeRepository,
-                                  ConverterUtils converterUtils,
+                                  ArachneConverterUtils converterUtils,
                                   AchillesService<DS> achillesService,
                                   ObjectMapper objectMapper,
                                   AchillesReportRepository achillesReportRepository,

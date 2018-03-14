@@ -41,7 +41,7 @@ import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
 import com.odysseusinc.arachne.portal.service.StudyDataSourceService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
-import com.odysseusinc.arachne.portal.util.ConverterUtils;
+import com.odysseusinc.arachne.portal.util.ArachneConverterUtils;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
 import java.security.Principal;
@@ -71,7 +71,7 @@ public abstract class BaseDataNodeController<
     protected final GenericConversionService genericConversionService;
     protected final BaseUserService userService;
     protected final StudyDataSourceService studyDataSourceService;
-    protected final ConverterUtils converterUtils;
+    protected final ArachneConverterUtils converterUtils;
 
     @Autowired
     public BaseDataNodeController(BaseAnalysisService analysisService,
@@ -80,7 +80,7 @@ public abstract class BaseDataNodeController<
                                   GenericConversionService genericConversionService,
                                   BaseUserService userService,
                                   StudyDataSourceService studyDataSourceService,
-                                  ConverterUtils converterUtils) {
+                                  ArachneConverterUtils converterUtils) {
 
         this.analysisService = analysisService;
         this.baseDataNodeService = dataNodeService;
