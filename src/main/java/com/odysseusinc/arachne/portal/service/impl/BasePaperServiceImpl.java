@@ -457,8 +457,14 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
         solrService.deleteAll(SolrCollection.ANALYSES);
         final List<P> papers = paperRepository.findAll();
         for (final P paper : papers) {
-            solrService.indexBySolr(paper);
+            indexBySolr(paper);
         }
+    }
+    
+    @Override
+    public void indexBySolr(final P paper) {
+        
+        solrService.indexBySolr(paper);
     }
 
     @EventListener

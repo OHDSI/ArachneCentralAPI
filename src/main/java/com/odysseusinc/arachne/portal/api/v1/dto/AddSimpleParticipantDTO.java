@@ -26,14 +26,14 @@ import javax.validation.constraints.NotNull;
 
 public class AddSimpleParticipantDTO {
     @NotNull
-    protected Long userId;
+    protected String userId;
 
-    public Long getUserId() {
+    public String getUserId() {
 
         return userId;
     }
 
-    public void setUserId(Long userId) {
+    public void setUserId(final String userId) {
 
         this.userId = userId;
     }

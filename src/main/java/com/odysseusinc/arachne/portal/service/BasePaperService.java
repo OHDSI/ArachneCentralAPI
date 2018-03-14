@@ -83,6 +83,8 @@ public interface BasePaperService<T extends Paper, PS extends PaperSearch> {
 
     void indexAllBySolr() throws IOException, NotExistException, SolrServerException, NoSuchFieldException, IllegalAccessException;
 
+    void indexBySolr(T paper);
+
     void processAntivirusResponse(AntivirusJobPaperPaperFileResponseEvent event);
 
     void processAntivirusResponse(AntivirusJobPaperProtocolFileResponseEvent event);
