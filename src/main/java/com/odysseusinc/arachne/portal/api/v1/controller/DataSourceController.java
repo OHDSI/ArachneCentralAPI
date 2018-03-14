@@ -28,7 +28,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.DataSourceDTO;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.StudyDataSourceService;
-import com.odysseusinc.arachne.portal.util.ConverterUtils;
+import com.odysseusinc.arachne.portal.util.ArachneConverterUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +45,7 @@ public class DataSourceController
     @Autowired
     public DataSourceController(GenericConversionService conversionService,
                                 BaseDataSourceService<DataSource> dataSourceService,
-                                ConverterUtils converterUtils,
+                                ArachneConverterUtils converterUtils,
                                 StudyDataSourceService studyDataSourceService
     ) {
 

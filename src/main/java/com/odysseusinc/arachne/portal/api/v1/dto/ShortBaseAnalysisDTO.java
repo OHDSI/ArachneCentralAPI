@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto;
 
+import com.odysseusinc.arachne.commons.api.v1.dto.OptionDTO;
 import java.util.Date;
 
 public class ShortBaseAnalysisDTO extends DTO {
