@@ -40,6 +40,7 @@ import static com.odysseusinc.arachne.portal.security.ArachnePermission.EDIT_DAT
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.EDIT_INSIGHT;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.EDIT_PAPER;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.EDIT_STUDY;
+import static com.odysseusinc.arachne.portal.security.ArachnePermission.IMPORT_FROM_DATANODE;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.INVITE_CONTRIBUTOR;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.INVITE_DATANODE;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.LIMITED_EDIT_PAPER;
@@ -84,6 +85,10 @@ public enum ParticipantRole {
             ACCESS_PAPER,
             EDIT_ANALYSIS,
             EDIT_INSIGHT
+    }),
+    // Defines user's ability to import Cohorts / PLEs / PLPs / etc from Data node
+    DATA_NODE_IMPORTER("Data Node Importer", new ArachnePermission[] {
+            IMPORT_FROM_DATANODE,
     }),
     DATA_SET_OWNER("Data Set Owner", new ArachnePermission[]{
             CREATE_ANALYSIS,

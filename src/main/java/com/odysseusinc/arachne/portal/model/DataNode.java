@@ -91,14 +91,23 @@ public class DataNode implements HasArachnePermissions {
     @OneToMany(mappedBy = "dataNode", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<DataNodeUser> dataNodeUsers = new HashSet<>();
 
-    @Column(name = "atlas_version")
-    private String atlasVersion;
+    @OneToMany(mappedBy = "dataNode", fetch = FetchType.LAZY)
+    private Set<Atlas> atlasList;
 
     @Transient
     private Set<ArachnePermission> permissions;
 
     @Column
     private Boolean published;
+
+    public String getAtlasVersion() {
+
+        return this.getAtlasList().stream()
+                .map(Atlas::getVersion)
+                .sorted()
+                .findAny()
+                .orElse(null);
+    }
 
     public Long getId() {
 
@@ -225,14 +234,14 @@ public class DataNode implements HasArachnePermissions {
         }
     }
 
-    public String getAtlasVersion() {
+    public Set<Atlas> getAtlasList() {
 
-        return atlasVersion;
+        return atlasList;
     }
 
-    public void setAtlasVersion(String atlasVersion) {
+    public void setAtlasList(Set<Atlas> atlasList) {
 
-        this.atlasVersion = atlasVersion;
+        this.atlasList = atlasList;
     }
 
     public Boolean getPublished() {

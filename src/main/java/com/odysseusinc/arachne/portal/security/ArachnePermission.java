@@ -48,6 +48,7 @@ public enum ArachnePermission {
     CREATE_SUBMISSION(Analysis.class),
     APPROVE_SUBMISSION(Submission.class),
     EDIT_DATANODE(DataNode.class),
+    IMPORT_FROM_DATANODE(DataNode.class),
     ACCESS_DATASOURCE(DataSource.class),
     CREATE_DATASOURCE(DataNode.class),
     EDIT_DATASOURCE(DataSource.class),

@@ -23,16 +23,15 @@
 package com.odysseusinc.arachne.portal.service.messaging;
 
 import com.odysseusinc.arachne.portal.model.DataNode;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.odysseusinc.arachne.portal.service.AtlasService;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
 public class DataNodeMessageServiceImplImpl extends BaseDataNodeMessageServiceImpl<DataNode> implements DataNodeMessageService {
 
-    @Autowired
-    public DataNodeMessageServiceImplImpl(JmsTemplate jmsTemplate) {
+    public DataNodeMessageServiceImplImpl(JmsTemplate jmsTemplate, AtlasService atlasService) {
 
-        super(jmsTemplate);
+        super(jmsTemplate, atlasService);
     }
 }
