@@ -23,33 +23,30 @@ package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.security.Tenant;
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class DataSourceSolrExtractors {
-    public static class TitleExtractor implements Function<Object, Object> {
+    public static class TitleExtractor implements SolrFieldExtractor<IDataSource> {
         @Override
-        public String apply(final Object o) {
+        public String extract(final IDataSource ds) {
 
-            final IDataSource ds = tryConvert(o, "Title");
             return ds.getName();
         }
     }
 
-    public static class TenantsExtractor implements Function<Object, Object> {
+    public static class TenantsExtractor implements SolrFieldExtractor<IDataSource> {
         @Override
-        public List<Long> apply(final Object o) {
+        public List<Long> extract(final IDataSource ds) {
 
-            final IDataSource ds = tryConvert(o, "Tenants");
             return ds.getTenants().stream().map(Tenant::getId).collect(Collectors.toList());
         }
     }
+    
+    public static class DataNodeNameExtractor implements SolrFieldExtractor<IDataSource> {
+        @Override
+        public String extract(final IDataSource ds) {
 
-    private static IDataSource tryConvert(final Object o, final String s) {
-
-        if (!(o instanceof IDataSource)) {
-            throw new IllegalArgumentException(s + " can be extracted only from IDataSource object.");
+            return ds.getDataNode().getName();
         }
-        return (IDataSource) o;
     }
 }

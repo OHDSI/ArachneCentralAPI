@@ -18,21 +18,9 @@
  * Created: March 13, 2018
  */
 
-package com.odysseusinc.arachne.portal.api.v1.dto;
+package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
-public interface ArachneConsts {
-
-    interface Modules {
-        String STUDY_NOTEBOOK = "Study Notebook";
-        String EXPERT_FINDER = "Expert Finder";
-        String DATA_CATALOG = "Data Catalog";
-    }
-
-    interface Domains {
-        String STUDIES = "studies";
-        String DATA_SOURCES = "data-sources";
-        String ANALYISES = "analyses";
-        String USERS = "users";
-        String PAPERS = "papers";
-    }
+public interface SolrFieldExtractor<T>{
+    
+    Object extract(final T domain);
 }

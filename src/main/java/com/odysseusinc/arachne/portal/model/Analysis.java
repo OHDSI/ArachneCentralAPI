@@ -55,8 +55,6 @@ import org.hibernate.annotations.DiscriminatorFormula;
 @Entity
 @Table(name = "analyses")
 @DiscriminatorFormula("'ANALYSIS_ENTITY'")
-@SolrFieldAnno(name = BaseSolrService.PARTICIPANTS, postfix = false, extractor = AnalysisSolrExtractors.ParticipantsExtractor.class, filter = true)
-@SolrFieldAnno(name = BaseSolrService.TENANTS,      postfix = false, extractor = AnalysisSolrExtractors.TenantsExtractor.class,      filter = true)
 public class Analysis implements HasArachnePermissions, Breadcrumb, SolrEntity  {
 
     public Analysis() {
@@ -93,7 +91,7 @@ public class Analysis implements HasArachnePermissions, Breadcrumb, SolrEntity  
     private IUser author;
 
     @ManyToOne(fetch = FetchType.LAZY)
-//    @SolrFieldAnno(extractor = AnalysisSolrExtractors.StudyIdExtractor.class, sort = false, name = "study_id")
+    @SolrFieldAnno(extractor = AnalysisSolrExtractors.StudyIdExtractor.class, sort = false, name = "study_id")
     private Study study;
 
     @Column(name = "ord")

@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.model.solr;
 
+import com.odysseusinc.arachne.portal.api.v1.dto.converters.SolrFieldExtractor;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
@@ -47,5 +48,5 @@ public @interface SolrFieldAnno {
     boolean postfix() default true;
     boolean sort() default true;
 
-    Class<? extends Function<Object, Object>>[] extractor() default {};
+    Class<? extends SolrFieldExtractor<?>>[] extractor() default {};
 }

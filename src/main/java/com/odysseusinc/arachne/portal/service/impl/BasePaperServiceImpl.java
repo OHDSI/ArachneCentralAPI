@@ -41,6 +41,7 @@ import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.PaperSearch;
 import com.odysseusinc.arachne.portal.model.search.PaperSpecification;
+import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
 import com.odysseusinc.arachne.portal.model.statemachine.study.StudyState;
 import com.odysseusinc.arachne.portal.model.statemachine.study.StudyStateActions;
 import com.odysseusinc.arachne.portal.repository.PaperFavouritesRepository;
@@ -60,6 +61,7 @@ import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJob
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobResponse;
 import java.util.Arrays;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -115,6 +117,8 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
     private RestTemplate restTemplate;
     @Autowired
     private ApplicationEventPublisher eventPublisher;
+    @Autowired
+    private BaseSolrServiceImpl solrService;
 
 
     @Transactional(rollbackFor = Exception.class)
@@ -135,7 +139,8 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
     }
 
     protected void afterPaperSave(P newPaper) {
-
+        
+        solrService.indexBySolr(newPaper);
     }
 
     protected void beforePaperSave(P newPaper) {
@@ -193,6 +198,7 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
 
     protected void afterPaperUpdate(P fromDb, P updated) {
 
+        solrService.indexBySolr(fromDb);
     }
 
     protected void beforePaperUpdate(P exists, P updated) {
@@ -444,6 +450,21 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
         }
 
         paperRepository.delete(papers);
+    }
+    
+    @Override
+    public void indexAllBySolr() throws IOException, NotExistException, SolrServerException, NoSuchFieldException, IllegalAccessException {
+        solrService.deleteAll(SolrCollection.PAPERS);
+        final List<P> papers = paperRepository.findAll();
+        for (final P paper : papers) {
+            indexBySolr(paper);
+        }
+    }
+    
+    @Override
+    public void indexBySolr(final P paper) {
+        
+        solrService.indexBySolr(paper);
     }
 
     @EventListener

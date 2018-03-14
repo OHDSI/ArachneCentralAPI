@@ -23,9 +23,11 @@
 package com.odysseusinc.arachne.portal.service.impl;
 
 import com.odysseusinc.arachne.portal.exception.NotExistException;
+import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.repository.AnalysisRepository;
 import com.odysseusinc.arachne.portal.repository.BaseDataSourceRepository;
 import com.odysseusinc.arachne.portal.repository.DataSourceRepository;
+import com.odysseusinc.arachne.portal.repository.PaperRepository;
 import com.odysseusinc.arachne.portal.repository.StudyRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionGroupRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionInsightRepository;
@@ -50,6 +52,7 @@ public class BreadcrumbServiceImpl implements BreadcrumbService {
     private final SubmissionInsightRepository submissionInsightRepository;
     private final UserRepository userRepository;
     private final BaseDataSourceRepository dataSourceRepository;
+    private final PaperRepository<Paper> paperRepository;
 
     @Autowired
     public BreadcrumbServiceImpl(final StudyRepository studyService,
@@ -58,7 +61,8 @@ public class BreadcrumbServiceImpl implements BreadcrumbService {
                                  final SubmissionInsightRepository submissionInsightRepository,
                                  final SubmissionGroupRepository submissionGroupRepository,
                                  final UserRepository userRepository,
-                                 final BaseDataSourceRepository dataSourceRepository) {
+                                 final BaseDataSourceRepository dataSourceRepository,
+                                 final PaperRepository<Paper> paperRepository) {
 
         this.studyRepository = studyService;
         this.analysisRepository = analysisRepository;
@@ -67,6 +71,7 @@ public class BreadcrumbServiceImpl implements BreadcrumbService {
         this.submissionGroupRepository = submissionGroupRepository;
         this.userRepository = userRepository;
         this.dataSourceRepository = dataSourceRepository;
+        this.paperRepository = paperRepository;
     }
 
     // Entry point which ensures that we verify permissions
@@ -87,6 +92,8 @@ public class BreadcrumbServiceImpl implements BreadcrumbService {
                 return userRepository.getOne(id);
             case DATA_SOURCE:
                 return dataSourceRepository.findOne(id);
+            case PAPER:
+                return paperRepository.findOne(id);
         }
         return null;
     }

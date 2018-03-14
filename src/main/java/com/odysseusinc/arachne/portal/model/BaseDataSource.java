@@ -75,6 +75,7 @@ public abstract class BaseDataSource implements IDataSource, Serializable, HasAr
     @Column(name = "name", nullable = false, unique = true)
     protected String name;
     @NotNull
+    @SolrFieldAnno(name = "dataNode", query = true, extractor = DataSourceSolrExtractors.DataNodeNameExtractor.class)
     @ManyToOne(fetch = FetchType.LAZY)
     protected DataNode dataNode;
     @Transient
@@ -115,7 +116,7 @@ public abstract class BaseDataSource implements IDataSource, Serializable, HasAr
     @Override
     public SolrCollection getCollection() {
 
-        return SolrCollection.DATA_SOURCE;
+        return SolrCollection.DATA_SOURCES;
     }
 
     @Override

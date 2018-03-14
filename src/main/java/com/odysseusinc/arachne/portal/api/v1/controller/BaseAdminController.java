@@ -42,6 +42,7 @@ import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.model.search.UserSearch;
 import com.odysseusinc.arachne.portal.service.BaseAdminService;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
+import com.odysseusinc.arachne.portal.service.BasePaperService;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
@@ -89,6 +90,7 @@ public abstract class BaseAdminController<
     private final BaseAdminService<S, DS, SS, SU, A, P, PS, SB> adminService;
     private final BaseStudyService<S, DS, SS, SU> studyService;
     private final BaseAnalysisService<A> analysisService;
+    private final BasePaperService<P, PS> paperService;
 
 
     @Autowired
@@ -96,13 +98,15 @@ public abstract class BaseAdminController<
                                final ProfessionalTypeService professionalTypeService,
                                final BaseAdminService<S, DS, SS, SU, A, P, PS, SB> adminService,
                                final BaseStudyService<S, DS, SS, SU> studyService,
-                               final BaseAnalysisService<A> analysisService) {
+                               final BaseAnalysisService<A> analysisService, 
+                               final BasePaperService<P, PS> paperService) {
 
         this.dataSourceService = dataSourceService;
         this.professionalTypeService = professionalTypeService;
         this.adminService = adminService;
         this.studyService = studyService;
         this.analysisService = analysisService;
+        this.paperService = paperService;
     }
 
     @ApiOperation(value = "Enable user.", hidden = true)
@@ -226,6 +230,9 @@ public abstract class BaseAdminController<
                 break;
             case ArachneConsts.Domains.ANALYISES:
                 analysisService.indexAllBySolr();
+                break;
+            case ArachneConsts.Domains.PAPERS:
+                paperService.indexAllBySolr();
                 break;
             default:
                 throw new UnsupportedOperationException("Reindex isn't allowed for domain: " + domain);

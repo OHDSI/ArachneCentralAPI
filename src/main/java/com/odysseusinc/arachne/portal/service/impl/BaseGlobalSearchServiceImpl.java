@@ -24,6 +24,7 @@ import static com.odysseusinc.arachne.portal.service.BaseSolrService.*;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.GlobalSearchResultDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchGlobalDTO;
+import com.odysseusinc.arachne.portal.config.tenancy.TenantContext;
 import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
 import com.odysseusinc.arachne.portal.model.solr.SolrEntityCreatedEvent;
 import com.odysseusinc.arachne.portal.service.BaseGlobalSearchService;
@@ -31,6 +32,9 @@ import com.odysseusinc.arachne.portal.service.BaseSolrService;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
 import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
 import java.io.IOException;
+import java.util.Arrays;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -56,14 +60,15 @@ public abstract class BaseGlobalSearchServiceImpl<SF extends SolrField> implemen
     //TODO refactor, move out converting code
     public GlobalSearchResultDTO search(final Long userId, final SearchGlobalDTO searchDTO) throws SolrServerException, NoSuchFieldException, IOException {
 
-        searchDTO.setCollections(SolrCollection.names());
         searchDTO.setResultFields(ID, TITLE, TYPE, BREADCRUMBS);
 
+        final String[] collections = calculateCollections(searchDTO);
+        searchDTO.setCollections(collections);
+        final String tenantId = TenantContext.getCurrentTenant().toString();
         final SolrQuery query = conversionService.convert(searchDTO, SolrQuery.class);
-        query.setQuery(buildSearchString(searchDTO.getQuery(), userId));
+        query.setQuery(buildSearchString(searchDTO.getQuery(), userId, tenantId));
         
-        // We use STUDIES here as "default" collection also because something should be mentioned in url
-        final QueryResponse response = solrService.search(SolrCollection.STUDIES.getName(), query, Boolean.TRUE);
+        final QueryResponse response = solrService.search(collections[0], query);
 
         final SearchResult<SolrDocument> searchResult = new SearchResult<>(query, response, response.getResults());
 
@@ -72,11 +77,40 @@ public abstract class BaseGlobalSearchServiceImpl<SF extends SolrField> implemen
                 GlobalSearchResultDTO.class
         );
     }
+    
+    private String[] calculateCollections(final SearchGlobalDTO searchDTO) {
 
-    private String buildSearchString(final String query, final Long userId) {
+        if (ArrayUtils.isEmpty(searchDTO.getCollections())) {
+            return SolrCollection.names();
+        } else {
+            return searchDTO.getCollections();
+        }
+    }
+
+    private String buildSearchString(final String query, final Long userId, final String tenantId) {
+
 
         //TODO here can be used Lucene.queryBuilder, will be done later
-        return String.format("(is_public:true OR (is_public:false AND participants:%d)) AND query:*%s*", userId, query);
+//        return String.format("(is_public:true OR (is_public:false AND participants:%d)) AND query:*%s*", userId, query);
+        final String q = "(entity_type:studies AND (is_public:true OR (is_public:false AND participants:%userid)) AND tenants:%tenantid AND query:*%query*) OR " +
+                "(entity_type:papers AND (readers_ts:%userid OR _query_:\"{!join from=entity_id fromIndex=studies to=study_id_txt}(participants:%userid AND tenants:%tenantid)\") AND query:*%query*) OR " +
+                "(entity_type:data-sources AND tenants:%tenantid AND query:*%query*) OR " +
+                "(entity_type:analyses AND _query_:\"{!join from=entity_id fromIndex=studies to=study_id_txt}(participants:%userid AND tenants:%tenantid)\" AND query:*%query*)";
+        
+        final String modifiedString = StringUtils.replaceEach(
+                q, 
+                new String[]{
+                        "%userid",
+                        "%tenantid",
+                        "%query"
+                }, 
+                new String[]{
+                        String.valueOf(userId),
+                        tenantId,
+                        query
+                }
+        );
+        return modifiedString;
     }
 
     @EventListener
