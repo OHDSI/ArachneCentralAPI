@@ -55,7 +55,6 @@ import org.hibernate.annotations.DiscriminatorFormula;
 @Entity
 @Table(name = "analyses")
 @DiscriminatorFormula("'ANALYSIS_ENTITY'")
-@SolrFieldAnno(name = BaseSolrService.PARTICIPANTS, postfix = false, extractor = AnalysisSolrExtractors.ParticipantsExtractor.class, filter = true)
 public class Analysis implements HasArachnePermissions, Breadcrumb, SolrEntity  {
 
     public Analysis() {

@@ -310,7 +310,7 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
             SolrQuery solrQuery
     ) throws IOException, SolrServerException {
 
-        return search(collection, solrQuery, null);
+        return search(collection, solrQuery, false);
     }
 
     @Override

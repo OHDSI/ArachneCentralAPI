@@ -28,16 +28,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class AnalysisSolrExtractors {
-    public static class ParticipantsExtractor implements SolrFieldExtractor<Analysis> {
-
-        @Override
-        public Object extract(final Analysis analysis) {
-
-            final Study study = analysis.getStudy();
-
-            return new StudySolrExtractors.ParticipantsExtractor().extract(study);
-        }
-    }
 
     public static class StudyIdExtractor implements SolrFieldExtractor<Analysis> {
 
