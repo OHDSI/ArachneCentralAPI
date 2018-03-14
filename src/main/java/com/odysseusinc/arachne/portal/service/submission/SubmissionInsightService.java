@@ -22,7 +22,7 @@ public interface SubmissionInsightService {
 
     void deleteSubmissionInsightSubmissionFileLinks(List<SubmissionInsightSubmissionFile> links);
 
-    SubmissionInsight updateSubmissionInsight(SubmissionInsight exist, SubmissionInsight insight);
+    SubmissionInsight updateSubmissionInsight(Long submissionId, SubmissionInsight insight);
 
     Page<SubmissionInsight> getInsightsByStudyId(Long studyId, Pageable pageable);
 
