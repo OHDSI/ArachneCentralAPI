@@ -25,6 +25,7 @@ package com.odysseusinc.arachne.portal.model;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonCDMVersionDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonModelType;
+import com.odysseusinc.arachne.commons.types.DBMSType;
 import com.odysseusinc.arachne.portal.api.v1.dto.converters.DataSourceSolrExtractors;
 import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
@@ -106,6 +107,10 @@ public abstract class BaseDataSource implements IDataSource, Serializable, HasAr
             inverseJoinColumns = @JoinColumn(name = "tenant_id", referencedColumnName = "id"))
     @SolrFieldAnno(filter = true, postfix = false, sort = false, extractor = DataSourceSolrExtractors.TenantsExtractor.class)
     protected Set<Tenant> tenants = new HashSet<>();
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "dbms_type")
+    private DBMSType dbmsType;
 
     @Override
     public SolrCollection getCollection() {
@@ -292,5 +297,15 @@ public abstract class BaseDataSource implements IDataSource, Serializable, HasAr
 
     public void setPublished(Boolean published) {
         this.published = published;
+    }
+
+    public DBMSType getDbmsType() {
+
+        return dbmsType;
+    }
+
+    public void setDbmsType(DBMSType dbmsType) {
+
+        this.dbmsType = dbmsType;
     }
 }
