@@ -20,7 +20,7 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
-import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.security.Tenant;
 import java.util.List;
 import java.util.function.Function;
@@ -31,7 +31,7 @@ public class DataSourceSolrExtractors {
         @Override
         public String apply(final Object o) {
 
-            final DataSource ds = tryConvert(o, "Title");
+            final IDataSource ds = tryConvert(o, "Title");
             return ds.getName();
         }
     }
@@ -40,16 +40,16 @@ public class DataSourceSolrExtractors {
         @Override
         public List<Long> apply(final Object o) {
 
-            final DataSource ds = tryConvert(o, "Tenants");
+            final IDataSource ds = tryConvert(o, "Tenants");
             return ds.getTenants().stream().map(Tenant::getId).collect(Collectors.toList());
         }
     }
 
-    private static DataSource tryConvert(final Object o, final String s) {
+    private static IDataSource tryConvert(final Object o, final String s) {
 
-        if (!(o instanceof DataSource)) {
-            throw new IllegalArgumentException(s + " can be extracted only from DataSource object.");
+        if (!(o instanceof IDataSource)) {
+            throw new IllegalArgumentException(s + " can be extracted only from IDataSource object.");
         }
-        return (DataSource) o;
+        return (IDataSource) o;
     }
 }
