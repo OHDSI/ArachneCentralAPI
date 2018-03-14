@@ -377,7 +377,7 @@ public abstract class BaseDataSourceServiceImpl<
     @Override
     public void indexAllBySolr() throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
-        solrService.deleteAll(SolrCollection.STUDIES);
+        solrService.deleteAll(SolrCollection.DATA_SOURCES);
         final List<DS> dataSourceList = getAllNotDeletedAndIsNotVirtualFromAllTenants();
         for (final DS dataSource : dataSourceList) {
             indexBySolr(dataSource);

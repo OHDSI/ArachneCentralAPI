@@ -454,7 +454,7 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
     
     @Override
     public void indexAllBySolr() throws IOException, NotExistException, SolrServerException, NoSuchFieldException, IllegalAccessException {
-        solrService.deleteAll(SolrCollection.ANALYSES);
+        solrService.deleteAll(SolrCollection.PAPERS);
         final List<P> papers = paperRepository.findAll();
         for (final P paper : papers) {
             indexBySolr(paper);
