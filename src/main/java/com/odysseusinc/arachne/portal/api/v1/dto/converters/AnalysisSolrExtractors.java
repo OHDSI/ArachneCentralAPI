@@ -39,4 +39,13 @@ public class AnalysisSolrExtractors {
             return study.getId();
         }
     }
+
+    public static class TitleExtractor implements SolrFieldExtractor<Analysis> {
+
+        @Override
+        public Object extract(final Analysis analysis) {
+
+            return analysis.getTitle();
+        }
+    }
 }

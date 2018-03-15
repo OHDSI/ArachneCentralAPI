@@ -22,10 +22,7 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto;
 
-import com.odysseusinc.arachne.portal.service.impl.SolrServiceImpl;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import com.odysseusinc.arachne.portal.service.SolrService;
 import java.util.Map;
 
 public class SearchDTO extends PageDTO {
@@ -36,7 +33,7 @@ public class SearchDTO extends PageDTO {
     protected String query;
 
     protected String[] collections;
-    protected String[] resultFields = { SolrServiceImpl.ID };
+    protected String[] resultFields = { SolrService.ID, SolrService.SYSTEM_ID };
 
     private boolean fullFacetsQuery = false;
 
