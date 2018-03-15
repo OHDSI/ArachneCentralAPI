@@ -20,14 +20,16 @@
 
 package com.odysseusinc.arachne.portal.model.solr;
 
+import com.odysseusinc.arachne.portal.api.v1.dto.ArachneConsts;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.BreadcrumbType;
 import java.util.stream.Stream;
 
 public enum SolrCollection {
-    DATA_SOURCE("data-sources", "Data sources", BreadcrumbType.DATA_SOURCE),
-    USERS("users", "Users", BreadcrumbType.USER),
-    ANALYSES("analyses", "Analyses", BreadcrumbType.ANALYSIS),
-    STUDIES("studies", "Studies", BreadcrumbType.STUDY)
+    DATA_SOURCES(ArachneConsts.Domains.DATA_SOURCES, "Data sources", BreadcrumbType.DATA_SOURCE),
+    USERS(       ArachneConsts.Domains.USERS,        "Users",        BreadcrumbType.USER),
+    ANALYSES(    ArachneConsts.Domains.ANALYISES,    "Analyses",     BreadcrumbType.ANALYSIS),
+    STUDIES(     ArachneConsts.Domains.STUDIES,      "Studies",      BreadcrumbType.STUDY),
+    PAPERS(      ArachneConsts.Domains.PAPERS,       "Papers",       BreadcrumbType.PAPER)
     ;
 
     private final String name;

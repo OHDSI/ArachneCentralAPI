@@ -26,13 +26,13 @@ import com.odysseusinc.arachne.portal.api.v1.dto.StudyDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
 import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
 import com.odysseusinc.arachne.portal.model.Study;
-import com.odysseusinc.arachne.portal.util.ConverterUtils;
+import com.odysseusinc.arachne.portal.util.ArachneConverterUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class BaseUserStudyItemToStudyDTOConverter<S extends StudyDTO> extends BaseConversionServiceAwareConverter<AbstractUserStudyListItem, S> {
 
     @Autowired
-    private ConverterUtils converterUtils;
+    private ArachneConverterUtils converterUtils;
 
     @Override
     public S convert(AbstractUserStudyListItem source) {

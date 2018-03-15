@@ -46,6 +46,7 @@ public abstract class BaseDataSourceToCommonDataSourceDTOConverter<DS extends ID
 
         proceedAdditionalFields(commonDataSourceDTO, dataSource);
         commonDataSourceDTO.setPublished(dataSource.getPublished());
+        commonDataSourceDTO.setDbmsType(dataSource.getDbmsType());
         return commonDataSourceDTO;
 
     }

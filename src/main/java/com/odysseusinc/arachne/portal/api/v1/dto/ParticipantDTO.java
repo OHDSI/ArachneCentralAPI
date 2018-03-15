@@ -23,6 +23,7 @@
 package com.odysseusinc.arachne.portal.api.v1.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.odysseusinc.arachne.commons.api.v1.dto.OptionDTO;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 

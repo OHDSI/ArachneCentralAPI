@@ -24,6 +24,7 @@ package com.odysseusinc.arachne.portal.service.impl.solr;
 
 import static com.odysseusinc.arachne.portal.service.impl.BaseSolrServiceImpl.MULTI_METADATA_PREFIX;
 
+import com.odysseusinc.arachne.portal.api.v1.dto.converters.SolrFieldExtractor;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Objects;
@@ -39,7 +40,7 @@ public class SolrField {
     private Class dataType;
 
     private Field field;
-    private Function<Object, Object> extractor = null;
+    private SolrFieldExtractor extractor = null;
 
     private Boolean isSearchable = Boolean.TRUE;
     private Boolean isFaceted = Boolean.FALSE;
@@ -176,12 +177,12 @@ public class SolrField {
         this.field = field;
     }
 
-    public Function<Object, Object> getExtractor() {
+    public SolrFieldExtractor<?> getExtractor() {
 
         return extractor;
     }
 
-    public void setExtractor(final Function<Object, Object> extractor) {
+    public void setExtractor(final SolrFieldExtractor<?> extractor) {
 
         this.extractor = extractor;
     }

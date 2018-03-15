@@ -1,5 +1,4 @@
 /*
- *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,43 +14,13 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: May 17, 2017
- *
+ * Authors: Anton Gackovka
+ * Created: March 13, 2018
  */
 
-package com.odysseusinc.arachne.portal.api.v1.dto;
+package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
-public class OptionDTO extends DTO {
-
-    private String id;
-    private String name;
-
-    public OptionDTO() {}
-
-    public OptionDTO(String id, String name) {
-
-        this.id = id;
-        this.name = name;
-    }
-
-    public String getId() {
-
-        return id;
-    }
-
-    public void setId(String id) {
-
-        this.id = id;
-    }
-
-    public String getName() {
-
-        return name;
-    }
-
-    public void setName(String name) {
-
-        this.name = name;
-    }
+public interface SolrFieldExtractor<T>{
+    
+    Object extract(final T domain);
 }

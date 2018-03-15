@@ -18,21 +18,31 @@
  * Created: March 13, 2018
  */
 
-package com.odysseusinc.arachne.portal.api.v1.dto;
+package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
-public interface ArachneConsts {
+import com.odysseusinc.arachne.portal.model.Paper;
+import com.odysseusinc.arachne.portal.model.Study;
 
-    interface Modules {
-        String STUDY_NOTEBOOK = "Study Notebook";
-        String EXPERT_FINDER = "Expert Finder";
-        String DATA_CATALOG = "Data Catalog";
+public class PaperSolrExtractors {
+
+    public static class TitleExtractor implements SolrFieldExtractor<Paper> {
+
+        @Override
+        public String extract(final Paper paper) {
+
+            final Study study = paper.getStudy();
+            return new StudySolrExtractors.TitleExtractor().extract(study);
+        }
     }
+    
+    public static class StudyIdExtractor implements SolrFieldExtractor<Paper> {
 
-    interface Domains {
-        String STUDIES = "studies";
-        String DATA_SOURCES = "data-sources";
-        String ANALYISES = "analyses";
-        String USERS = "users";
-        String PAPERS = "papers";
+        @Override
+        public Object extract(final Paper paper) {
+
+            final Study study = paper.getStudy();
+
+            return study.getId();
+        }
     }
 }
