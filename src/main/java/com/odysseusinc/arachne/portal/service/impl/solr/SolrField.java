@@ -35,7 +35,10 @@ import org.apache.commons.lang3.StringUtils;
 public class SolrField {
 
     public static final String META_PREFIX = "metadata_";
-    private static final String TXT_POSTFIX = "_txt";
+    public static final String TXT_POSTFIX = "_txt";
+    public static final String TS_POSTFIX = "_ts";
+    public static final String INT_POSTFIX = "_i";
+    
     private String name;
     private Class dataType;
 
@@ -103,12 +106,12 @@ public class SolrField {
     }
 
     protected String getDynamicPostfix() {
-        String postfix;
+        final String postfix;
         // NOTE: sort on multiValued fields is not available
         if (dataType.equals(Integer.class)) {
-            postfix = "_i";
+            postfix = INT_POSTFIX;
         } else if (isMultiValuesType()) {
-            postfix = "_ts";
+            postfix = TS_POSTFIX;
         } else {
             postfix = TXT_POSTFIX;
         }

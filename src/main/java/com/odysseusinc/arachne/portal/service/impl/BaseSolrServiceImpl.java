@@ -82,7 +82,7 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
         if (field.isAnnotationPresent(SolrFieldAnno.class)) {
             final SolrFieldAnno solrFieldAnno = field.getAnnotation(SolrFieldAnno.class);
             solrField = extractSolrField(solrFieldAnno);
-            solrField.setDataType(field.getType());
+            solrField.setDataType(solrFieldAnno.clazz() == String.class ? field.getType() : solrFieldAnno.clazz());
             solrField.setField(field);
             if (StringUtils.isEmpty(solrField.getName())) {
                 solrField.setName(field.getName());
@@ -98,6 +98,7 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
         solrField.setFaceted(solrFieldAnno.filter());
         solrField.setPostfixNeeded(solrFieldAnno.postfix());
         solrField.setSortNeeded(solrFieldAnno.sort());
+        solrField.setDataType(solrFieldAnno.clazz());
         final Class<? extends SolrFieldExtractor<?>>[] extractors = solrFieldAnno.extractor();
         if (extractors.length > 0) {
             solrField.setExtractor(BeanUtils.instantiate(extractors[0]));
@@ -126,10 +127,15 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
 
     private List<T> gatherClassSolrAnnotations(final Class<?> entity) {
 
-        return AnnotationUtils.getRepeatableAnnotations(entity, SolrFieldAnno.class)
-                .stream()
-                .map(this::extractSolrField)
-                .collect(Collectors.toList());
+        final List<T> fields = new LinkedList<>();
+        AnnotationUtils.getRepeatableAnnotations(entity, SolrFieldAnno.class).forEach(
+                anno -> fields.add(extractSolrField(anno))
+        );
+        
+        if (entity.getSuperclass() != null) {
+            fields.addAll(gatherClassSolrAnnotations(entity.getSuperclass()));
+        }
+        return fields;
     }
 
     private List<Field> getDeclaredFields(Class<?> entity) {

@@ -26,13 +26,17 @@ import com.odysseusinc.arachne.portal.api.v1.dto.BreadcrumbDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.GlobalSearchDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.GlobalSearchResultDTO;
 import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
-import com.odysseusinc.arachne.portal.model.solr.SolrEntity;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
+import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.SolrDocument;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
@@ -66,6 +70,8 @@ public class GlobalSearchResultToGlobalSearchResultDTOConverter
     @Override
     protected List<GlobalSearchDTO> buildContent(final SearchResult source) {
 
+        final Map<String, Map<String, List<String>>> hlMap = source.getSolrResponse().getHighlighting();
+
         return source.getSolrResponse().getResults().stream().map(v -> {
             GlobalSearchDTO dto = new GlobalSearchDTO();
 
@@ -78,9 +84,33 @@ public class GlobalSearchResultToGlobalSearchResultDTOConverter
             breadcrumbs.get(breadcrumbs.size()-1).setTitle(title);
             dto.setBreadcrumbs(breadcrumbs);
 
+            String id = Optional.ofNullable(getValue(v, BaseSolrService.SYSTEM_ID)).orElseThrow(() -> new IllegalArgumentException("Solr document must contain field ID"));
+            
+            hlMap.get(id)
+                    .forEach((key, value) -> dto.addHighlight(
+                            getFieldNameWithoutPostfix(key),
+                            getFieldValue(value)
+                    ));
+
             return dto;
         }).collect(Collectors.toList());
     }
+
+    private String getFieldValue(final List<String> value) {
+            
+        if (value == null) {
+            return null;
+        }
+        
+        
+        return value.stream().findFirst().orElseThrow(() -> new IllegalArgumentException("Found value cannot be null"));
+    }
+
+    private String getFieldNameWithoutPostfix(final String key) {
+
+        return StringUtils.replace(StringUtils.remove(StringUtils.remove(key, SolrField.TXT_POSTFIX), SolrField.TS_POSTFIX), "_", " ");
+    }
+
 
     private List<BreadcrumbDTO> getBreadCrumbs(final SolrDocument document)  {
 
