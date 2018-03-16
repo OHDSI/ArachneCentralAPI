@@ -39,6 +39,7 @@ import com.odysseusinc.arachne.portal.repository.DataNodeRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeStatusRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeUserRepository;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
+import com.odysseusinc.arachne.portal.util.EntityUtils;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
@@ -215,7 +216,7 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
     @Override
     public Optional<DN> findByToken(String token) {
 
-        return dataNodeRepository.findByToken(token, EntityGraphUtils.fromAttributePaths("dataSources"));
+        return dataNodeRepository.findByToken(token, EntityUtils.fromAttributePaths("dataSources"));
     }
 
     private void saveOrUpdateDataNodeUser(DataNode dataNode, DataNodeUser dataNodeUser) {

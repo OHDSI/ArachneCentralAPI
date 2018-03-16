@@ -39,6 +39,7 @@ import com.odysseusinc.arachne.portal.model.StudyFile;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.StudyService;
 import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
+import com.odysseusinc.arachne.portal.util.EntityUtils;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,7 +79,7 @@ public abstract class BaseStudyToStudyDTOConverter<S extends Study, DTO extends 
 
         final List<StudyDataSourceLink> foundLinks = studyService.getLinksByStudyId(
                 source.getId(),
-                EntityGraphUtils.fromAttributePaths(
+                EntityUtils.fromAttributePaths(
                     "dataSource.dataNode.dataNodeUsers.user",
                     "dataSource.dataNode.dataNodeUsers.dataNodeRole"
                 )
@@ -97,7 +98,7 @@ public abstract class BaseStudyToStudyDTOConverter<S extends Study, DTO extends 
 
         List<StudyFile> files = studyService.getFilesByStudyId(
                 source.getId(),
-                EntityGraphUtils.fromAttributePaths("author")
+                EntityUtils.fromAttributePaths("author")
         );
         for (final StudyFile studyFile : files) {
             studyDTO.getFiles().add(conversionService.convert(studyFile, StudyFileDTO.class));
@@ -120,7 +121,7 @@ public abstract class BaseStudyToStudyDTOConverter<S extends Study, DTO extends 
 
         return analysisService.getByStudyId(
                 source.getId(),
-                EntityGraphUtils.fromAttributePaths("author")
+                EntityUtils.fromAttributePaths("author")
         );
     }
 }
