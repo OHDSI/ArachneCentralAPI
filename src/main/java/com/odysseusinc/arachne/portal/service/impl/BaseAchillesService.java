@@ -35,7 +35,6 @@ import com.odysseusinc.arachne.portal.repository.AchillesReportRepository;
 import com.odysseusinc.arachne.portal.repository.CharacterizationRepository;
 import com.odysseusinc.arachne.portal.service.AchillesImportService;
 import com.odysseusinc.arachne.portal.service.AchillesService;
-import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -55,15 +54,13 @@ public abstract class BaseAchillesService<DS extends IDataSource, S extends Stud
     protected final CharacterizationRepository characterizationRepository;
     protected final AchillesFileRepository achillesFileRepository;
     protected final AchillesReportRepository achillesReportRepository;
-    protected final BaseStudyService<S, DS, SS, SU> studyService;
     protected final AchillesImportService achillesHelperService;
 
-    public BaseAchillesService(CharacterizationRepository characterizationRepository, AchillesFileRepository achillesFileRepository, AchillesReportRepository achillesReportRepository, BaseStudyService<S, DS, SS, SU> studyService, AchillesImportService achillesHelperService) {
+    public BaseAchillesService(CharacterizationRepository characterizationRepository, AchillesFileRepository achillesFileRepository, AchillesReportRepository achillesReportRepository,AchillesImportService achillesHelperService) {
 
         this.characterizationRepository = characterizationRepository;
         this.achillesFileRepository = achillesFileRepository;
         this.achillesReportRepository = achillesReportRepository;
-        this.studyService = studyService;
         this.achillesHelperService = achillesHelperService;
     }
 
