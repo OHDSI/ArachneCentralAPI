@@ -31,6 +31,7 @@ import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import com.odysseusinc.arachne.portal.model.ParticipantStatus;
+import com.odysseusinc.arachne.portal.model.RawUser;
 import com.odysseusinc.arachne.portal.model.ResultFile;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.Submission;
@@ -213,10 +214,10 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends I
 
     public boolean checkDataNodeAdmin(ArachneUser user, DataNode dataNode) {
 
-        final User standardUser = new User();
+        final RawUser standardUser = new RawUser();
         standardUser.setId(user.getId());
 
-        Optional<DataNodeUser> optionalDataNode = dataNodeUserRepository.findByDataNodeAndUser(dataNode, standardUser);
+        Optional<DataNodeUser> optionalDataNode = dataNodeUserRepository.findByDataNodeAndUserId(dataNode, standardUser.getId());
         if (optionalDataNode.isPresent()) {
             final Set<DataNodeRole> dataNodeRoles = optionalDataNode.get().getDataNodeRole();
             return dataNodeRoles != null && !dataNodeRoles.isEmpty() && dataNodeRoles.contains(DataNodeRole.ADMIN);

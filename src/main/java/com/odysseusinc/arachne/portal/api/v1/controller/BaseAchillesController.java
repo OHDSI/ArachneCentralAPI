@@ -41,6 +41,7 @@ import com.odysseusinc.arachne.portal.model.achilles.AchillesReport;
 import com.odysseusinc.arachne.portal.model.achilles.Characterization;
 import com.odysseusinc.arachne.portal.repository.AchillesReportRepository;
 import com.odysseusinc.arachne.portal.repository.BaseDataSourceRepository;
+import com.odysseusinc.arachne.portal.repository.BaseRawDataSourceRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeRepository;
 import com.odysseusinc.arachne.portal.service.AchillesService;
 import com.odysseusinc.arachne.portal.util.ArachneConverterUtils;
@@ -68,6 +69,7 @@ public abstract class BaseAchillesController<DS extends IDataSource> {
     protected static Logger LOGGER = LoggerFactory.getLogger(BaseAchillesController.class);
     protected final AchillesService<DS> achillesService;
     protected final BaseDataSourceRepository<DS> dataSourceRepository;
+    protected final BaseRawDataSourceRepository<DS> rawDataSourceRepository;
     protected final GenericConversionService conversionService;
     protected final ObjectMapper objectMapper;
     protected final DataNodeRepository dataNodeRepository;
@@ -77,6 +79,7 @@ public abstract class BaseAchillesController<DS extends IDataSource> {
     protected Class<DS> dataSourceClass;
 
     public BaseAchillesController(BaseDataSourceRepository<DS> dataSourceRepository,
+                                  BaseRawDataSourceRepository rawDataSourceRepository,
                                   DataNodeRepository dataNodeRepository,
                                   ArachneConverterUtils converterUtils,
                                   AchillesService<DS> achillesService,
@@ -85,6 +88,7 @@ public abstract class BaseAchillesController<DS extends IDataSource> {
                                   GenericConversionService conversionService) {
 
         this.dataSourceRepository = dataSourceRepository;
+        this.rawDataSourceRepository = rawDataSourceRepository;
         this.dataNodeRepository = dataNodeRepository;
         this.converterUtils = converterUtils;
         this.achillesService = achillesService;
@@ -188,7 +192,7 @@ public abstract class BaseAchillesController<DS extends IDataSource> {
 
     protected DS checkDataSource(Long datasourceId) throws NotExistException {
 
-        DS dataSource = dataSourceRepository.findOne(datasourceId);
+        DS dataSource = rawDataSourceRepository.findOne(datasourceId);
         if (dataSource == null) {
             String message = String.format("Datasource with id: '%s' not found", datasourceId);
             throw new NotExistException(message, dataSourceClass);

@@ -86,6 +86,9 @@ public interface BaseDataSourceService<DS extends IDataSource> {
             throws IOException, SolrServerException, NoSuchFieldException, IllegalAccessException;
 
     DS findById(Long dataSourceId);
+
+    DS findByInMyTenants(Long dataSourceId);
+
     List<DS> findByIdsAndNotDeleted(List<Long> dataSourceIds);
 
     Page<DS> suggestDataSource(String query, Long studyId, Long userId,

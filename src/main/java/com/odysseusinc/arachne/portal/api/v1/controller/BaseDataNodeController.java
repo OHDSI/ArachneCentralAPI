@@ -219,7 +219,7 @@ public abstract class BaseDataNodeController<
                                            @PathVariable("dataSourceId") Long dataSourceId)
             throws PermissionDeniedException, IOException, SolrServerException {
 
-        final DS dataSource = dataSourceService.findById(dataSourceId);
+        final DS dataSource = dataSourceService.findByInMyTenants(dataSourceId);
         studyDataSourceService.softDeletingDataSource(dataSource.getId());
         return new JsonResult(JsonResult.ErrorCode.NO_ERROR);
     }

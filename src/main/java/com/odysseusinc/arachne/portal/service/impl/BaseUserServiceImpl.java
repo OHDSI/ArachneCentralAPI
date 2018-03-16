@@ -138,7 +138,6 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -380,13 +379,6 @@ public abstract class BaseUserServiceImpl<
     public U getById(Long id) {
 
         return userRepository.findOne(id);
-    }
-
-
-    @Override
-    public List<U> getAllByIDs(List<Long> ids) {
-
-        return userRepository.findByIdIn(ids);
     }
 
     private void afterUpdate(U savedUser) throws IOException, SolrServerException, NoSuchFieldException, IllegalAccessException {
@@ -775,7 +767,7 @@ public abstract class BaseUserServiceImpl<
     @Override
     public List<? extends Invitationable> getDataSourceInvitations(U user) {
 
-        return studyDataSourceLinkRepository.findByOwnerAndStatus(user, DataSourceStatus.PENDING);
+        return studyDataSourceLinkRepository.findByOwnerIdAndStatus(user.getId(), DataSourceStatus.PENDING);
     }
 
     @Override
@@ -786,8 +778,8 @@ public abstract class BaseUserServiceImpl<
                 studyId,
                 ParticipantStatus.PENDING
         );
-        List<? extends Invitationable> dataSourceInvitations = studyDataSourceLinkRepository.findByOwnerAndStudyIdAndStatus(
-                user,
+        List<? extends Invitationable> dataSourceInvitations = studyDataSourceLinkRepository.findByOwnerIdAndStudyIdAndStatus(
+                user.getId(),
                 studyId,
                 DataSourceStatus.PENDING
         );
@@ -1018,9 +1010,9 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    public List<U> findUsersByUuidsIn(List<String> ids) {
+    public List<IUser> findUsersByUuidsIn(List<String> ids) {
 
-        return userRepository.findByIdIn(UserIdUtils.uuidsToIds(ids));
+        return (List<IUser>) userRepository.findByIdIn(UserIdUtils.uuidsToIds(ids));
     }
 
     @Override

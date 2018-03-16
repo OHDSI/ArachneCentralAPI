@@ -732,7 +732,7 @@ public abstract class BaseStudyServiceImpl<
 
         Study study = studyRepository.findOne(studyId);
 
-        List<User> dataNodeOwners = validateVirtualDataSourceOwners(study, dataOwnerIds);
+        List<IUser> dataNodeOwners = validateVirtualDataSourceOwners(study, dataOwnerIds);
 
         final DataNode dataNode = studyHelper.getVirtualDataNode(study.getTitle(), dataSourceName);
         final DataNode registeredDataNode = baseDataNodeService.create(dataNode);
@@ -749,7 +749,7 @@ public abstract class BaseStudyServiceImpl<
         return registeredDataSource;
     }
 
-    private List<User> validateVirtualDataSourceOwners(Study study, List<String> dataOwnerIds) {
+    private List<IUser> validateVirtualDataSourceOwners(Study study, List<String> dataOwnerIds) {
 
         if (study == null) {
             throw new NotExistException("study not exist", Study.class);
@@ -759,14 +759,14 @@ public abstract class BaseStudyServiceImpl<
             throw new IllegalArgumentException(VIRTUAL_DATASOURCE_OWNERS_IS_EMPTY_EXC);
         }
 
-        final List<User> dataOwners = userService.findUsersByUuidsIn(dataOwnerIds);
+        final List<IUser> dataOwners = userService.findUsersByUuidsIn(dataOwnerIds);
 
         Set<Long> pendingUserIdsSet = study.getParticipants().stream()
                 .filter(link -> Objects.equals(link.getStatus(), ParticipantStatus.PENDING))
                 .map(link -> link.getUser().getId())
                 .collect(Collectors.toSet());
 
-        boolean containsPending = dataOwners.stream().map(User::getId).anyMatch(pendingUserIdsSet::contains);
+          boolean containsPending = dataOwners.stream().map(IUser::getId).anyMatch(pendingUserIdsSet::contains);
 
         if (containsPending) {
             throw new IllegalArgumentException(PENDING_USER_CANNOT_BE_DATASOURCE_OWNER);
@@ -796,7 +796,7 @@ public abstract class BaseStudyServiceImpl<
 
         Study study = studyRepository.findOne(studyId);
 
-        List<User> dataOwners = validateVirtualDataSourceOwners(study, dataOwnerIds);
+        List<IUser> dataOwners = validateVirtualDataSourceOwners(study, dataOwnerIds);
 
         final DS dataSource = getStudyDataSource(user, studyId, dataSourceId);
         final DataNode dataNode = dataSource.getDataNode();
@@ -837,7 +837,7 @@ public abstract class BaseStudyServiceImpl<
     public void processDataSourceInvitation(IUser user,
                                             Long id, Boolean accepted, String comment) {
 
-        StudyDataSourceLink studyDataSourceLink = studyDataSourceLinkRepository.findByIdAndOwner(id, user);
+        StudyDataSourceLink studyDataSourceLink = studyDataSourceLinkRepository.findByIdAndOwnerId(id, user.getId());
         if (studyDataSourceLink != null) {
             DataSourceStatus status = TRUE.equals(accepted) ? APPROVED : DECLINED;
             studyDataSourceLink.setStatus(status);
@@ -962,7 +962,7 @@ public abstract class BaseStudyServiceImpl<
         return studyDataSourceLinkRepository.save(studyDataSourceLink);
     }
 
-    private Set<DataNodeUser> updateDataNodeOwners(List<User> dataOwners, DataNode dataNode) {
+    private Set<DataNodeUser> updateDataNodeOwners(List<IUser> dataOwners, DataNode dataNode) {
 
         final Set<DataNodeUser> dataNodeUsers = studyHelper.usersToDataNodeAdmins(dataOwners, dataNode);
         final Authentication savedAuth = studyHelper.loginByNode(dataNode);

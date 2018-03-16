@@ -31,8 +31,8 @@ import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataNodeRole;
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
 import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Study;
-import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.security.DataNodeAuthenticationToken;
 import com.odysseusinc.arachne.portal.security.Roles;
 import java.io.File;
@@ -79,7 +79,7 @@ public abstract class BaseStudyHelper<DN extends DataNode, DS extends IDataSourc
         return dataNode;
     }
 
-    public Set<DataNodeUser> usersToDataNodeAdmins(List<User> users, final DN dataNode) {
+    public Set<DataNodeUser> usersToDataNodeAdmins(List<IUser> users, final DN dataNode) {
 
         final Set<DataNodeRole> dataNodeRoles = new HashSet<>();
         dataNodeRoles.add(DataNodeRole.ADMIN);

@@ -24,16 +24,13 @@ package com.odysseusinc.arachne.portal.repository;
 
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
-import com.odysseusinc.arachne.portal.model.IUser;
-import com.odysseusinc.arachne.portal.model.User;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
-
-import java.util.List;
 
 public interface DataNodeUserRepository extends JpaRepository<DataNodeUser, Long> {
 
     List<DataNodeUser> findByDataNode(DataNode dataNode);
 
-    Optional<DataNodeUser> findByDataNodeAndUser(DataNode dataNode, IUser user);
+    Optional<DataNodeUser> findByDataNodeAndUserId(DataNode dataNode, Long userId);
 }

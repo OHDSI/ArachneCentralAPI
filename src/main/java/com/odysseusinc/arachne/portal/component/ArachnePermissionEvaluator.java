@@ -39,6 +39,7 @@ import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import com.odysseusinc.arachne.portal.model.PublishState;
+import com.odysseusinc.arachne.portal.model.RawDataSource;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionGroup;
@@ -98,6 +99,7 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends IDataSource> 
         domainClassMap.put(Paper.class.getSimpleName(), Paper.class);
         domainClassMap.put(CommentTopic.class.getSimpleName(), CommentTopic.class);
         domainClassMap.put(User.class.getSimpleName(), User.class);
+        domainClassMap.put(RawDataSource.class.getSimpleName(), RawDataSource.class);
     }
 
     protected boolean checkPermission(Authentication authentication, Object domainObject, Object permissions) {
