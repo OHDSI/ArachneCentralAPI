@@ -25,6 +25,7 @@ package com.odysseusinc.arachne.portal.service.messaging;
 import static com.odysseusinc.arachne.commons.service.messaging.MessagingUtils.getRequestQueueName;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
+import com.odysseusinc.arachne.commons.api.v1.dto.CommonEntityDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonListEntityRequest;
 import com.odysseusinc.arachne.commons.service.messaging.ConsumerTemplate;
 import com.odysseusinc.arachne.commons.service.messaging.ProducerConsumerTemplate;
@@ -62,7 +63,7 @@ public abstract class BaseDataNodeMessageServiceImpl<DN extends DataNode> implem
     @Override
     @PreAuthorize("hasPermission(#dataNode, "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).IMPORT_FROM_DATANODE)")
-    public <T> List<T> getDataList(DN dataNode, CommonAnalysisType analysisType) throws JMSException {
+    public <T extends CommonEntityDTO> List<T> getDataList(DN dataNode, CommonAnalysisType analysisType) throws JMSException {
 
         Long waitForResponse = messagingTimeout;
         Long messageLifeTime = messagingTimeout;
@@ -86,7 +87,11 @@ public abstract class BaseDataNodeMessageServiceImpl<DN extends DataNode> implem
                 true
         );
 
-        return (List<T>) responseMessage.getObject();
+        List<T> entityList = (List<T>) responseMessage.getObject();
+        Map<Long, IAtlas> atlasMap = atlasList.stream().collect(Collectors.toMap(IAtlas::getId, a -> a));
+        entityList.forEach(e -> e.setName(atlasMap.get(e.getOriginId()).getName() + ": " + e.getName()));
+
+        return entityList;
     }
 
     @Override
