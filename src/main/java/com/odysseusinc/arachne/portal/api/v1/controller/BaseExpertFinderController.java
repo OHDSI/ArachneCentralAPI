@@ -27,9 +27,9 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
+import com.odysseusinc.arachne.commons.types.SuggestionTarget;
 import com.odysseusinc.arachne.portal.api.v1.dto.ExpertListSearchResultDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchExpertListDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.SuggestionTarget;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserProfileDTO;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Skill;

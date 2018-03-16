@@ -61,7 +61,8 @@ public enum ArachnePermission {
     ACCESS_USER(User.class),
     UPLOAD_ACHILLES_REPORTS(DataSource.class),
     ACCESS_ACHILLES_REPORT_PERMISSION(DataSource.class),
-    EDIT_ACHILLES_REPORT_PERMISSION(DataSource.class)
+    EDIT_ACHILLES_REPORT_PERMISSION(DataSource.class),
+    UPDATE_SUBMISSION(Submission.class)
     ;
 
     private Class<?>[] applicableClass;

@@ -33,4 +33,5 @@ public class Submission_ {
     public static volatile SingularAttribute<Submission, DataSource> dataSource;
     public static volatile SingularAttribute<Submission, SubmissionGroup> submissionGroup;
     public static volatile ListAttribute<Submission, SubmissionStatusHistoryElement> statusHistory;
+    public static volatile SingularAttribute<Submission, Boolean> hidden;
 }

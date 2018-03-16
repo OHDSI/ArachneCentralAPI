@@ -44,7 +44,7 @@ public abstract class BaseSubmissionToSubmissionDTOConverter<T extends Submissio
         dto.setIsExecConfirmed(execConfirmed);
         final Boolean resultConfirmed = status.isResultConfirmed();
         dto.setIsResultConfirmed(resultConfirmed);
-        dto.setAction(status.toString());
+        dto.setAction(source.getStatus().toString());
         IDataSource dataSource = source.getDataSource();
         Long loggedUserId = ((ArachneUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         final boolean isOwner = DataNodeUtils.isDataNodeOwner(dataSource.getDataNode(), loggedUserId);

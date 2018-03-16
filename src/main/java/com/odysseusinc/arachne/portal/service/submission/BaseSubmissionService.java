@@ -42,7 +42,6 @@ import com.odysseusinc.arachne.portal.service.impl.submission.SubmissionAction;
 import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.storage.util.FileSaveRequest;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -135,6 +134,8 @@ public interface BaseSubmissionService<T extends Submission, A extends Analysis>
     void deleteSubmissionStatusHistory(List<SubmissionStatusHistoryElement> statusHistory);
 
     SubmissionStatusHistoryElement getSubmissionStatusHistoryElementById(Long id);
+
+    T updateSubmission(T submission);
 
     void deleteSubmissions(List<T> submission);
 

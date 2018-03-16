@@ -51,6 +51,7 @@ public class SubmissionSpecification<T extends Submission> implements Specificat
     private Set<SubmissionStatus> statuses;
     private Set<Long> dataSourceIds;
     private Boolean hasInsight;
+    private Boolean showHidden;
 
     private final List<Predicate> predicates = new ArrayList<>();
 
@@ -73,6 +74,7 @@ public class SubmissionSpecification<T extends Submission> implements Specificat
         private Set<SubmissionStatus> statuses;
         private Set<Long> dataSourceIds;
         private Boolean hasInsight;
+        private Boolean showHidden;
 
         public SubmissionSearchBuilder(Set<Long> submissionGroupIds) {
 
@@ -97,12 +99,19 @@ public class SubmissionSpecification<T extends Submission> implements Specificat
             return this;
         }
 
+        public SubmissionSearchBuilder<T> showHidden(Boolean showHidden) {
+
+            this.showHidden = showHidden;
+            return this;
+        }
+
         public SubmissionSpecification<T> build() {
 
             final SubmissionSpecification<T> submissionSearch = new SubmissionSpecification<>(submissionGroupIds);
             submissionSearch.statuses = statuses;
             submissionSearch.dataSourceIds = dataSourceIds;
             submissionSearch.hasInsight = hasInsight;
+            submissionSearch.showHidden = showHidden;
             return submissionSearch;
         }
     }
@@ -134,6 +143,10 @@ public class SubmissionSpecification<T extends Submission> implements Specificat
                     )
             );
             predicates.add(cb.exists(where));
+        }
+        if (Objects.isNull(showHidden) || !showHidden) {
+            final Path<Boolean> booleanPath = root.get(Submission_.hidden);
+            predicates.add(cb.isFalse(booleanPath));
         }
 
         if (Objects.nonNull(hasInsight)) {

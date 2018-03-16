@@ -48,6 +48,7 @@ public interface BaseSolrService<T extends SolrField> {
     String IS_PUBLIC = "is_public";
     String PARTICIPANTS = "participants";
     String TENANTS = "tenants";
+    String SYSTEM_ID = "id";
 
     T getSolrField(Field field);
 

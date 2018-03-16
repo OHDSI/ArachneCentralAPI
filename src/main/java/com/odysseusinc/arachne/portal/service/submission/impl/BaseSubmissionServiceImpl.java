@@ -450,6 +450,7 @@ public abstract class BaseSubmissionServiceImpl<
                     .withStatuses(submissoinGroupSearch.getSubmissionStatuses())
                     .withDataSourceIds(submissoinGroupSearch.getDataSourceIds())
                     .hasInsight(submissoinGroupSearch.getHasInsight())
+                    .showHidden(submissoinGroupSearch.getShowHidden())
                     .build();
             submissionRepository.findAll(submissionSpecification)
                     .forEach(s -> submissionGroupMap.get(s.getSubmissionGroup().getId()).getSubmissions().add(s));
@@ -635,6 +636,26 @@ public abstract class BaseSubmissionServiceImpl<
     public SubmissionStatusHistoryElement getSubmissionStatusHistoryElementById(Long id) {
 
         return submissionStatusHistoryRepository.findOne(id);
+    }
+
+    @Override
+    @PreAuthorize("hasPermission(#submission, "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).UPDATE_SUBMISSION)")
+    public T updateSubmission(T submission) {
+
+        final Long id = submission.getId();
+        final T existingSubmission = getSubmissionByIdUnsecured(id);
+
+        final Boolean hidden = submission.getHidden();
+        if (hidden != null) {
+            final SubmissionAction hideAction = getHideAction(existingSubmission);
+            if (!hideAction.getAvailable()) {
+                final String message = String.format("Status of Submission with id: '%s' does not allow hide this one", id);
+                throw new IllegalStateException(message);
+            }
+            existingSubmission.setHidden(hidden);
+        }
+        return submissionRepository.save(existingSubmission);
     }
 
     @Override
@@ -828,7 +849,9 @@ public abstract class BaseSubmissionServiceImpl<
         // Publish submission
         SubmissionAction publishAction = getPublishAction(submission);
 
-        return Arrays.asList(execApproveAction, manualResultUploadAction, publishAction);
+        SubmissionAction hideAction = getHideAction(submission);
+
+        return Arrays.asList(execApproveAction, manualResultUploadAction, publishAction, hideAction);
     }
 
     protected SubmissionAction getPublishAction(Submission submission) {
@@ -877,5 +900,15 @@ public abstract class BaseSubmissionServiceImpl<
                 submission.getStatus().equals(SubmissionStatus.IN_PROGRESS)
         );
         return manualResultUploadAction;
+    }
+
+    private SubmissionAction getHideAction(Submission submission) {
+
+        SubmissionAction hideAction = new SubmissionAction(SubmissionActionType.HIDE.name());
+        List<SubmissionStatus> availableForStatuses = Arrays.asList(
+                NOT_APPROVED, EXECUTED_REJECTED, FAILED_REJECTED, EXECUTED_PUBLISHED, FAILED_PUBLISHED
+        );
+        hideAction.setAvailable(availableForStatuses.contains(submission.getStatus()));
+        return hideAction;
     }
 }

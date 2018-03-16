@@ -143,6 +143,9 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends I
                 Analysis byId = analysisRepository.findOne(analysis.getId());
                 result = byId != null ? getRolesByStudy(user, byId.getStudy()) : result;
             }
+            if (analysis.getAuthor().getId().equals(user.getId())) {
+                result.add(ParticipantRole.ANALYSIS_OWNER);
+            }
         }
         return result;
     }
@@ -153,18 +156,13 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends I
         List<ParticipantRole> result = new LinkedList<>();
         if (submission != null) {
             Analysis analysis = submission.getSubmissionGroup().getAnalysis();
-            if (analysis != null && analysis.getStudy() != null) {
-                result = getRolesByStudy(user, analysis.getStudy());
-                final DataNode dataNode = submission.getDataSource().getDataNode();
-                if (!DataNodeUtils.isDataNodeOwner(dataNode, user.getId())) {
-                    // There can be many DATA_SET_OWNER-s in a single study, owning different data sources
-                    // But in case of Submission, we are interested, whether current user is owner of the submission's DS
-                    result.removeIf(ParticipantRole.DATA_SET_OWNER::equals);
-                }
-            } else if (analysis != null) {
+            result = getRolesByAnalysis(user, analysis);
 
-                Submission byId = submissionRepository.findOne(analysis.getId());
-                result = byId != null ? getRolesByStudy(user, analysis.getStudy()) : result;
+            final DataNode dataNode = submission.getDataSource().getDataNode();
+            if (!DataNodeUtils.isDataNodeOwner(dataNode, user.getId())) {
+                // There can be many DATA_SET_OWNER-s in a single study, owning different data sources
+                // But in case of Submission, we are interested, whether current user is owner of the submission's DS
+                result.removeIf(ParticipantRole.DATA_SET_OWNER::equals);
             }
         }
         return result;

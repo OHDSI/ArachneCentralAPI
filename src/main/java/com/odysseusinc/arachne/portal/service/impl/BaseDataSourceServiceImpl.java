@@ -42,6 +42,8 @@ import com.odysseusinc.arachne.portal.service.TenantService;
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
 import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
+import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
+import com.odysseusinc.arachne.portal.service.mail.NewDataSourceMailMessage;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
@@ -50,8 +52,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
-import com.odysseusinc.arachne.portal.service.mail.NewDataSourceMailMessage;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -65,7 +65,6 @@ import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.ReflectionUtils;
 
 @Transactional(rollbackFor = Exception.class)
 public abstract class BaseDataSourceServiceImpl<
@@ -226,6 +225,9 @@ public abstract class BaseDataSourceServiceImpl<
             exist.setTenants(dataSource.getTenants());
         }
 
+        if (dataSource.getDbmsType() != null) {
+            exist.setDbmsType(dataSource.getDbmsType());
+        }
         return exist;
     }
 

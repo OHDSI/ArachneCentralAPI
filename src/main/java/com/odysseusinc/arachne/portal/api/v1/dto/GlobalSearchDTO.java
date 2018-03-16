@@ -20,6 +20,7 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class GlobalSearchDTO {
@@ -27,13 +28,14 @@ public class GlobalSearchDTO {
     private String id;
     private String label;
     private List<BreadcrumbDTO> breadcrumbs;
+    private List<HighlightDTO> highlight = new ArrayList<>();
 
     public String getId() {
 
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(final String id) {
 
         this.id = id;
     }
@@ -43,7 +45,7 @@ public class GlobalSearchDTO {
         return label;
     }
 
-    public void setLabel(String label) {
+    public void setLabel(final String label) {
 
         this.label = label;
     }
@@ -53,8 +55,64 @@ public class GlobalSearchDTO {
         return breadcrumbs;
     }
 
-    public void setBreadcrumbs(List<BreadcrumbDTO> breadcrumbs) {
+    public void setBreadcrumbs(final List<BreadcrumbDTO> breadcrumbs) {
 
         this.breadcrumbs = breadcrumbs;
+    }
+
+    public List<HighlightDTO> getHighlight() {
+
+        return highlight;
+    }
+
+    public void setHighlight(final List<HighlightDTO> highlight) {
+
+        this.highlight = highlight;
+    }
+    
+    public void addHighlight(final String field, final String value) {
+        
+        this.getHighlight().add(new HighlightDTO(field, value));
+    }
+
+    private class HighlightDTO {
+
+        public HighlightDTO(final String field, final String value) {
+
+            this.field = field;
+            this.value = value;
+        }
+
+        private String field;
+        private String value;
+
+        public String getField() {
+
+            return field;
+        }
+
+        public void setField(final String field) {
+
+            this.field = field;
+        }
+
+        public String getValue() {
+
+            return value;
+        }
+
+        public void setValue(final String value) {
+
+            this.value = value;
+        }
+
+        @Override
+        public String toString() {
+
+            return "HighlightDTO{" +
+                    "field='" + field + '\'' +
+                    ", value='" + value + '\'' +
+                    '}';
+        }
     }
 }

@@ -42,6 +42,7 @@ import org.apache.commons.lang3.StringUtils;
 public @interface SolrFieldAnno {
 
     String name() default StringUtils.EMPTY;
+    Class<?> clazz() default String.class;
 
     boolean query() default false;
     boolean filter() default false;
