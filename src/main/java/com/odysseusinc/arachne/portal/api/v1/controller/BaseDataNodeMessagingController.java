@@ -24,6 +24,7 @@ package com.odysseusinc.arachne.portal.api.v1.controller;
 
 import static com.odysseusinc.arachne.commons.service.messaging.MessagingUtils.getRequestQueueName;
 import static com.odysseusinc.arachne.commons.service.messaging.MessagingUtils.getResponseQueueName;
+import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -153,6 +154,14 @@ public abstract class BaseDataNodeMessagingController<DN extends DataNode, A ext
         }
 
         return conversionService.convert(updated, AtlasShortDTO.class);
+    }
+
+    @RequestMapping(value = "/api/v1/data-nodes/atlases/{id}", method = DELETE)
+    public void deleteAtlas(
+            @PathVariable("id") Long id
+    ) {
+
+        atlasService.delete(id);
     }
 
     @RequestMapping(

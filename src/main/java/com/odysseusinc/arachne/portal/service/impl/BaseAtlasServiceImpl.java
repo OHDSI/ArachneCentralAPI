@@ -6,6 +6,7 @@ import com.odysseusinc.arachne.portal.repository.BaseRawAtlasRepository;
 import com.odysseusinc.arachne.portal.service.BaseAtlasService;
 import com.odysseusinc.arachne.portal.service.TenantService;
 import java.util.List;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 
@@ -36,23 +37,41 @@ public class BaseAtlasServiceImpl<T extends IAtlas> implements BaseAtlasService<
     }
 
     @Override
-    @PostAuthorize("returnObject.dataNode == authentication.principal")
+    @PostAuthorize("returnObject.dataNode == authentication.principal || hasRole('ROLE_ADMIN')")
     public T findByIdInAnyTenant(Long id) {
 
         return baseRawAtlasRepository.findOne(id);
     }
 
     @Override
-    @PreAuthorize("@atlasServiceImpl.findByIdInAnyTenant(#id)?.dataNode == authentication.principal")
+    @PreAuthorize("@rawAtlasRepository.findOne(#id)?.dataNode == authentication.principal")
     public T update(Long id, T atlas) {
 
         T existing = findByIdInAnyTenant(id);
+
+        if (atlas.getName() != null) {
+            existing.setName(atlas.getName());
+        }
 
         if (atlas.getVersion() != null) {
             existing.setVersion(atlas.getVersion());
         }
 
-        return baseAtlasRepository.save(existing);
+        return baseRawAtlasRepository.save(existing);
+    }
+
+    @Override
+    @Secured({"ROLE_ADMIN"})
+    public T updateUnsafeInAnyTenant(T atlas) {
+
+        return baseRawAtlasRepository.save(atlas);
+    }
+
+    @Override
+    @PreAuthorize("@rawAtlasRepository.findOne(#id)?.dataNode == authentication.principal")
+    public void delete(Long id) {
+
+        baseRawAtlasRepository.delete(id);
     }
 
 }

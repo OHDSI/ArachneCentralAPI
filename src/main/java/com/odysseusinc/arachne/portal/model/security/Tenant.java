@@ -1,5 +1,6 @@
 package com.odysseusinc.arachne.portal.model.security;
 
+import com.odysseusinc.arachne.portal.model.RawAtlas;
 import com.odysseusinc.arachne.portal.model.RawDataSource;
 import com.odysseusinc.arachne.portal.model.RawUser;
 import com.odysseusinc.arachne.portal.model.Study;
@@ -34,6 +35,13 @@ public class Tenant implements SolrValue {
 
     @Column
     private String name;
+
+    @LazyCollection(LazyCollectionOption.EXTRA)
+    @ManyToMany(targetEntity = RawAtlas.class, fetch = FetchType.LAZY)
+    @JoinTable(name = "tenants_atlases",
+            joinColumns = @JoinColumn(name = "tenant_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "atlas_id", referencedColumnName = "id"))
+    private Set<RawAtlas> atlases;
 
     @LazyCollection(LazyCollectionOption.EXTRA)
     @ManyToMany(targetEntity = RawUser.class, fetch = FetchType.LAZY)
@@ -82,6 +90,16 @@ public class Tenant implements SolrValue {
     public void setName(String name) {
 
         this.name = name;
+    }
+
+    public Set<RawAtlas> getAtlases() {
+
+        return atlases;
+    }
+
+    public void setAtlases(Set<RawAtlas> atlases) {
+
+        this.atlases = atlases;
     }
 
     public Set<RawUser> getUsers() {

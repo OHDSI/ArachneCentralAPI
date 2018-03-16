@@ -68,7 +68,9 @@ public abstract class BaseDataNodeMessageServiceImpl<DN extends DataNode> implem
         Long messageLifeTime = messagingTimeout;
 
         // Get all Atlases available in user's tenant
-        List<IAtlas> atlasList = atlasService.findAll();
+        List<IAtlas> atlasList = atlasService.findAll().stream()
+                .filter(a -> a.getVersion() != null)
+                .collect(Collectors.toList());
         String baseQueue = MessagingUtils.EntitiesList.getBaseQueue(dataNode);
 
         ProducerConsumerTemplate exchangeTpl = new ProducerConsumerTemplate(

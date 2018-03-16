@@ -11,5 +11,9 @@ public interface BaseAtlasService<T extends IAtlas> {
 
     T update(Long id, T atlas);
 
+    T updateUnsafeInAnyTenant(T atlas);
+
+    void delete(Long id);
+
     T findByIdInAnyTenant(Long id);
 }
