@@ -41,8 +41,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class AchillesController extends BaseAchillesController<DataSource> {
 
     @Autowired
-    public AchillesController(AchillesService<DataSource> achillesService,
-                              BaseDataSourceRepository<DataSource> dataSourceRepository,
+    public AchillesController(AchillesService achillesService,
+                              BaseDataSourceRepository dataSourceRepository,
                               RawDataSourceRepository rawDataSourceRepository,
                               GenericConversionService conversionService,
                               ObjectMapper objectMapper,

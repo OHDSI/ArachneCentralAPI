@@ -23,7 +23,7 @@
 package com.odysseusinc.arachne.portal.service.impl;
 
 import com.odysseusinc.arachne.portal.exception.NotExistException;
-import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyViewItem;
 import com.odysseusinc.arachne.portal.model.achilles.AchillesFile;
@@ -35,7 +35,6 @@ import com.odysseusinc.arachne.portal.repository.AchillesReportRepository;
 import com.odysseusinc.arachne.portal.repository.CharacterizationRepository;
 import com.odysseusinc.arachne.portal.service.AchillesImportService;
 import com.odysseusinc.arachne.portal.service.AchillesService;
-import com.odysseusinc.arachne.portal.service.StudyService;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
@@ -43,29 +42,29 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
-public class AchillesServiceImpl extends BaseAchillesService<DataSource, Study, StudySearch, StudyViewItem> implements AchillesService<DataSource> {
+public class AchillesServiceImpl extends BaseAchillesService<IDataSource, Study, StudySearch, StudyViewItem> implements AchillesService<IDataSource> {
 
-    public AchillesServiceImpl(CharacterizationRepository characterizationRepository, AchillesFileRepository achillesFileRepository, AchillesReportRepository achillesReportRepository, StudyService studyService, AchillesImportService achillesHelperService) {
+    public AchillesServiceImpl(CharacterizationRepository characterizationRepository, AchillesFileRepository achillesFileRepository, AchillesReportRepository achillesReportRepository, AchillesImportService achillesHelperService) {
 
-        super(characterizationRepository, achillesFileRepository, achillesReportRepository, studyService, achillesHelperService);
+        super(characterizationRepository, achillesFileRepository, achillesReportRepository, achillesHelperService);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<Characterization> getCharacterizations(DataSource dataSource) {
+    public List<Characterization> getCharacterizations(IDataSource dataSource) {
 
         return super.getCharacterizations(dataSource);
     }
 
     @Override
-    public Optional<Characterization> getCharacterization(DataSource dataSource, Long characterizationId) {
+    public Optional<Characterization> getCharacterization(IDataSource dataSource, Long characterizationId) {
 
         return super.getCharacterization(dataSource, characterizationId);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<Characterization> getLatestCharacterization(DataSource dataSource) {
+    public Optional<Characterization> getLatestCharacterization(IDataSource dataSource) {
 
         return super.getLatestCharacterization(dataSource);
     }
@@ -79,7 +78,7 @@ public class AchillesServiceImpl extends BaseAchillesService<DataSource, Study, 
 
     @Override
     @Transactional(readOnly = true)
-    public List<AchillesReport> getReports(DataSource dataSource) {
+    public List<AchillesReport> getReports(IDataSource dataSource) {
 
         return super.getReports(dataSource);
     }
@@ -93,7 +92,7 @@ public class AchillesServiceImpl extends BaseAchillesService<DataSource, Study, 
 
     @Override
     @Transactional(readOnly = true)
-    public Long getLatestCharacterizationId(DataSource dataSource) throws NotExistException {
+    public Long getLatestCharacterizationId(IDataSource dataSource) throws NotExistException {
 
         return super.getLatestCharacterizationId(dataSource);
     }
