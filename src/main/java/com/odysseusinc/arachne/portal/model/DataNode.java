@@ -102,7 +102,13 @@ public class DataNode implements HasArachnePermissions {
 
     public String getAtlasVersion() {
 
-        return this.getAtlasList().stream()
+        Set<Atlas> atlasList = this.getAtlasList();
+
+        if (atlasList == null || atlasList.size() == 0) {
+            return null;
+        }
+
+        return atlasList.stream()
                 .filter(a -> a.getVersion() != null)
                 .map(Atlas::getVersion)
                 .sorted()
