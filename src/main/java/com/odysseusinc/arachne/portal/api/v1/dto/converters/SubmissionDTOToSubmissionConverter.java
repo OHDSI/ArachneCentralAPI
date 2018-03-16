@@ -24,7 +24,6 @@ package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionDTO;
 import com.odysseusinc.arachne.portal.model.Submission;
-import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
 import org.springframework.stereotype.Component;
 
 
@@ -36,6 +35,8 @@ public class SubmissionDTOToSubmissionConverter extends BaseConversionServiceAwa
     public Submission convert(SubmissionDTO source) {
 
         Submission submission = new Submission();
+        submission.setId(source.getId());
+        submission.setHidden(source.getHidden());
         return submission;
     }
 }

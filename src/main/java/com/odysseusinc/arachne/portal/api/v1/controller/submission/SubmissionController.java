@@ -26,9 +26,8 @@ import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionDTO;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.service.ToPdfConverter;
-import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
-import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
+import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightService;
 import com.odysseusinc.arachne.portal.service.submission.SubmissionService;
 import com.odysseusinc.arachne.portal.util.ContentStorageHelper;
 import com.odysseusinc.arachne.storage.service.ContentStorageService;
@@ -53,5 +52,11 @@ public class SubmissionController extends BaseSubmissionController<Submission, A
     protected Class<SubmissionDTO> getSubmissionDTOClass() {
 
         return SubmissionDTO.class;
+    }
+
+    @Override
+    protected Class<Submission> getSubmissionClass() {
+
+        return Submission.class;
     }
 }

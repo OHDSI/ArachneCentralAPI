@@ -24,10 +24,11 @@ package com.odysseusinc.arachne.portal.api.v1.controller;
 
 import static com.odysseusinc.arachne.commons.service.messaging.MessagingUtils.getRequestQueueName;
 import static com.odysseusinc.arachne.commons.service.messaging.MessagingUtils.getResponseQueueName;
+import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
-import com.odysseusinc.arachne.commons.api.v1.dto.AtlasInfoDTO;
+import com.odysseusinc.arachne.commons.api.v1.dto.AtlasShortDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonEntityDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonEntityRequestDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonListEntityRequest;
@@ -36,8 +37,9 @@ import com.odysseusinc.arachne.commons.service.messaging.ConsumerTemplate;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.model.DataNode;
+import com.odysseusinc.arachne.portal.model.IAtlas;
 import com.odysseusinc.arachne.portal.model.IUser;
-import com.odysseusinc.arachne.portal.model.User;
+import com.odysseusinc.arachne.portal.service.BaseAtlasService;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.messaging.BaseDataNodeMessageService;
 import com.odysseusinc.arachne.portal.service.messaging.MessagingUtils;
@@ -48,7 +50,6 @@ import java.security.Principal;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
 import javax.jms.JMSException;
 import javax.jms.ObjectMessage;
 import javax.validation.Valid;
@@ -63,7 +64,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
-public abstract class BaseDataNodeMessagingController<DN extends DataNode> extends BaseController<DN, IUser> {
+public abstract class BaseDataNodeMessagingController<DN extends DataNode, A extends IAtlas> extends BaseController<DN, IUser> {
 
     private static final Logger log = LoggerFactory.getLogger(BaseDataNodeController.class);
 
@@ -71,17 +72,20 @@ public abstract class BaseDataNodeMessagingController<DN extends DataNode> exten
     private final DestinationResolver destinationResolver;
     private final BaseDataNodeService<DN> baseDataNodeService;
     private final BaseDataNodeMessageService<DN> dataNodeMessageService;
+    private final BaseAtlasService<A> atlasService;
 
     @Autowired
     public BaseDataNodeMessagingController(
             JmsTemplate jmsTemplate,
             BaseDataNodeService<DN> dataNodeService,
-            BaseDataNodeMessageService<DN> dataNodeMessageService) {
+            BaseDataNodeMessageService<DN> dataNodeMessageService,
+            BaseAtlasService<A> atlasService) {
 
         this.jmsTemplate = jmsTemplate;
         this.destinationResolver = jmsTemplate.getDestinationResolver();
         this.baseDataNodeService = dataNodeService;
         this.dataNodeMessageService = dataNodeMessageService;
+        this.atlasService = atlasService;
     }
 
     /**
@@ -129,19 +133,35 @@ public abstract class BaseDataNodeMessagingController<DN extends DataNode> exten
         }
     }
 
-    @RequestMapping(value = "/api/v1/data-nodes/atlas", method = POST)
-    public void addAtlasInformation(@RequestBody @Valid AtlasInfoDTO atlasInfoDTO, Principal principal)
-            throws PermissionDeniedException, NotExistException {
+    @RequestMapping(value = "/api/v1/data-nodes/atlases", method = POST)
+    public AtlasShortDTO createOrUpdateAtlas(
+            @RequestBody @Valid AtlasShortDTO atlasShortDTO,
+            Principal principal
+    ) throws PermissionDeniedException, NotExistException {
 
-        final DN datanode = getDatanode(principal);
-        String atlasVersion = null;
-        if (atlasInfoDTO.getInstalled()) {
-            atlasVersion = atlasInfoDTO.getVersion();
+        A atlas = convert(atlasShortDTO);
+        A updated;
+
+        if (atlas.getId() == null || atlasService.findByIdInAnyTenant(atlas.getId()) == null) {
+            final DN dataNode = getDatanode(principal);
+
+            atlas.setId(null);
+            atlas.setDataNode(dataNode);
+
+            updated = atlasService.register(atlas);
+        } else {
+            updated = atlasService.update(atlas.getId(), atlas);
         }
-        if (!Objects.equals(datanode.getAtlasVersion(), atlasVersion)) {
-            datanode.setAtlasVersion(atlasVersion);
-            baseDataNodeService.updateAtlasInfo(datanode);
-        }
+
+        return conversionService.convert(updated, AtlasShortDTO.class);
+    }
+
+    @RequestMapping(value = "/api/v1/data-nodes/atlases/{id}", method = DELETE)
+    public void deleteAtlas(
+            @PathVariable("id") Long id
+    ) {
+
+        atlasService.delete(id);
     }
 
     @RequestMapping(
@@ -195,6 +215,8 @@ public abstract class BaseDataNodeMessagingController<DN extends DataNode> exten
                 importedFiles
         );
     }
+
+    protected abstract A convert(AtlasShortDTO atlasDTO);
 
     private void saveCommonEntity(
             Principal principal,

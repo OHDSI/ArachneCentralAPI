@@ -48,6 +48,7 @@ public enum ArachnePermission {
     CREATE_SUBMISSION(Analysis.class),
     APPROVE_SUBMISSION(Submission.class),
     EDIT_DATANODE(DataNode.class),
+    IMPORT_FROM_DATANODE(DataNode.class),
     ACCESS_DATASOURCE(DataSource.class),
     CREATE_DATASOURCE(DataNode.class),
     EDIT_DATASOURCE(DataSource.class),
@@ -60,7 +61,8 @@ public enum ArachnePermission {
     ACCESS_USER(User.class),
     UPLOAD_ACHILLES_REPORTS(DataSource.class),
     ACCESS_ACHILLES_REPORT_PERMISSION(DataSource.class),
-    EDIT_ACHILLES_REPORT_PERMISSION(DataSource.class)
+    EDIT_ACHILLES_REPORT_PERMISSION(DataSource.class),
+    UPDATE_SUBMISSION(Submission.class)
     ;
 
     private Class<?>[] applicableClass;

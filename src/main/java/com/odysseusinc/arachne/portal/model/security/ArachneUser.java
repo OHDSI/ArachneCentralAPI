@@ -47,6 +47,11 @@ public class ArachneUser implements UserDetails {
         super();
     }
 
+    public ArachneUser(Long id) {
+
+        this.id = id;
+    }
+
     public ArachneUser(Long id, Long activeTenantId, String username, String password, String email, Date lastPasswordReset,
                        Collection<? extends GrantedAuthority> authorities) {
 
