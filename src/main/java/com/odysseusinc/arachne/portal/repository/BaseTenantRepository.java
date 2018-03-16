@@ -22,19 +22,19 @@
 
 package com.odysseusinc.arachne.portal.repository;
 
+import com.cosium.spring.data.jpa.entity.graph.repository.EntityGraphJpaRepository;
 import com.odysseusinc.arachne.portal.model.security.Tenant;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.query.Param;
 
 @NoRepositoryBean
-public interface BaseTenantRepository<T extends Tenant> extends JpaRepository<T, Long> {
+public interface BaseTenantRepository<T extends Tenant> extends EntityGraphJpaRepository<T, Long> {
 
     Page<T> findAll(Pageable pageable);
 

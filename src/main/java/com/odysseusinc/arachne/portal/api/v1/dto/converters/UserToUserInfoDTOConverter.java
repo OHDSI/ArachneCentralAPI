@@ -31,15 +31,15 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UserToUserInfoDTOConverter extends BaseConversionServiceAwareConverter<IUser, UserInfoDTO> {
+public class UserToUserInfoDTOConverter<T extends UserInfoDTO> extends BaseConversionServiceAwareConverter<IUser, T> {
 
     @Override
-    public UserInfoDTO convert(IUser source) {
+    public T convert(final IUser source) {
 
         if (source == null) {
             return null;
         }
-        final UserInfoDTO userInfoDTO = new UserInfoDTO();
+        final T userInfoDTO = createResultObject();
         userInfoDTO.setId(source.getUuid());
         userInfoDTO.setEmail(source.getEmail());
         final boolean isAdmin = source.getRoles().stream()
@@ -60,5 +60,11 @@ public class UserToUserInfoDTOConverter extends BaseConversionServiceAwareConver
         userInfoDTO.setTenants(tenantDTOs);
 
         return userInfoDTO;
+    }
+
+    @Override
+    protected T createResultObject() {
+
+        return (T)new UserInfoDTO();
     }
 }
