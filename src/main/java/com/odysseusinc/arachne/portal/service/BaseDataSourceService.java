@@ -87,7 +87,7 @@ public interface BaseDataSourceService<DS extends IDataSource> {
 
     DS findById(Long dataSourceId);
 
-    DS findByInMyTenants(Long dataSourceId);
+    DS findByIdInMyTenants(Long dataSourceId);
 
     List<DS> findByIdsAndNotDeleted(List<Long> dataSourceIds);
 

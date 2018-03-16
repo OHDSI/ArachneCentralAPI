@@ -421,7 +421,7 @@ public abstract class BaseDataSourceServiceImpl<
     @PreAuthorize("hasPermission(#dataSourceId, 'RawDataSource', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_DATASOURCE)")
     @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
-    public DS findByInMyTenants(Long dataSourceId) {
+    public DS findByIdInMyTenants(Long dataSourceId) {
 
         return rawDataSourceRepository.findByIdAndDeletedIsNull(dataSourceId).orElseThrow(() -> new NotExistException(getType()));
     }
