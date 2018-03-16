@@ -24,9 +24,9 @@ package com.odysseusinc.arachne.portal.service.impl;
 
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.model.Paper;
+import com.odysseusinc.arachne.portal.model.RawDataSource;
 import com.odysseusinc.arachne.portal.repository.AnalysisRepository;
-import com.odysseusinc.arachne.portal.repository.BaseDataSourceRepository;
-import com.odysseusinc.arachne.portal.repository.DataSourceRepository;
+import com.odysseusinc.arachne.portal.repository.BaseRawDataSourceRepository;
 import com.odysseusinc.arachne.portal.repository.PaperRepository;
 import com.odysseusinc.arachne.portal.repository.StudyRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionGroupRepository;
@@ -51,7 +51,7 @@ public class BreadcrumbServiceImpl implements BreadcrumbService {
     private final SubmissionGroupRepository submissionGroupRepository;
     private final SubmissionInsightRepository submissionInsightRepository;
     private final UserRepository userRepository;
-    private final BaseDataSourceRepository dataSourceRepository;
+    private final BaseRawDataSourceRepository<RawDataSource> dataSourceRepository;
     private final PaperRepository<Paper> paperRepository;
 
     @Autowired
@@ -61,7 +61,7 @@ public class BreadcrumbServiceImpl implements BreadcrumbService {
                                  final SubmissionInsightRepository submissionInsightRepository,
                                  final SubmissionGroupRepository submissionGroupRepository,
                                  final UserRepository userRepository,
-                                 final BaseDataSourceRepository dataSourceRepository,
+                                 final BaseRawDataSourceRepository dataSourceRepository,
                                  final PaperRepository<Paper> paperRepository) {
 
         this.studyRepository = studyService;
@@ -91,7 +91,7 @@ public class BreadcrumbServiceImpl implements BreadcrumbService {
             case USER:
                 return userRepository.getOne(id);
             case DATA_SOURCE:
-                return dataSourceRepository.findOne(id);
+                return dataSourceRepository.getOne(id);
             case PAPER:
                 return paperRepository.findOne(id);
         }

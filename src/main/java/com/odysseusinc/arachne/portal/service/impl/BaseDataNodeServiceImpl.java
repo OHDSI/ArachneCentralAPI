@@ -116,19 +116,8 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
         final DN existsDataNode = getById(dataNode.getId());
         existsDataNode.setName(dataNode.getName());
         existsDataNode.setDescription(dataNode.getDescription());
-        existsDataNode.setAtlasVersion(dataNode.getAtlasVersion());
         existsDataNode.setPublished(true);
         return dataNodeRepository.save(existsDataNode);
-    }
-
-    @Transactional
-    @Override
-    @PreAuthorize("#dataNode == authentication.principal")
-    public DN updateAtlasInfo(DataNode dataNode) throws NotExistException {
-
-        final DN existsDataNode = getById(dataNode.getId());
-        existsDataNode.setAtlasVersion(dataNode.getAtlasVersion());
-        return null;
     }
 
     @Override
