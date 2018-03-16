@@ -36,6 +36,12 @@ public class BaseAtlasServiceImpl<T extends IAtlas> implements BaseAtlasService<
         return baseAtlasRepository.save(atlas);
     }
 
+    /**
+     * Searches for Atlas independently of current user's tenant and independently of the Atlas'es relations with any Tenant.
+     *
+     * @param id ID of Atlas to search for.
+     * @return Atlas instance.
+     */
     @Override
     @PostAuthorize("returnObject.dataNode == authentication.principal || hasRole('ROLE_ADMIN')")
     public T findByIdInAnyTenant(Long id) {

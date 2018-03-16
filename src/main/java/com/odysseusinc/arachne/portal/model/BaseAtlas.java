@@ -1,5 +1,6 @@
 package com.odysseusinc.arachne.portal.model;
 
+import com.google.common.base.Objects;
 import com.odysseusinc.arachne.portal.model.security.Tenant;
 import java.util.HashSet;
 import java.util.Set;
@@ -54,7 +55,7 @@ public class BaseAtlas implements IAtlas {
     @Override
     public int hashCode() {
 
-        return getId() != null ? getId().hashCode() : 0;
+        return Objects.hashCode(getId());
     }
 
     public Long getId() {
