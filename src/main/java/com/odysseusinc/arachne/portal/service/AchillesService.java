@@ -23,7 +23,6 @@
 package com.odysseusinc.arachne.portal.service;
 
 import com.odysseusinc.arachne.portal.exception.NotExistException;
-import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.achilles.AchillesFile;
 import com.odysseusinc.arachne.portal.model.achilles.AchillesReport;
@@ -35,6 +34,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 
 public interface AchillesService<DS extends IDataSource> {
+
     void createCharacterization(DS dataSource, MultipartFile data) throws IOException;
 
     List<Characterization> getCharacterizations(DS dataSource);

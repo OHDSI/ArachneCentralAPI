@@ -115,7 +115,7 @@ public abstract class BaseDataSourceController<
             result = setValidationErrors(bindingResult);
         } else {
             IUser user = getUser(principal);
-            final DS exist = dataSourceService.findById(dataSourceId);
+            final DS exist = dataSourceService.findByIdInMyTenants(dataSourceId);
             DS dataSource = convertDTOToDataSource(commonDataSourceDTO);
             dataSource.setId(dataSourceId);
             dataSource.setDataNode(exist.getDataNode());
@@ -227,7 +227,7 @@ public abstract class BaseDataSourceController<
     @RequestMapping(value = "/api/v1/data-sources/{id}", method = RequestMethod.DELETE)
     public JsonResult deleteDataSource(@PathVariable("id") Long dataSourceId) throws IOException, SolrServerException {
 
-        final DS dataSource = dataSourceService.findById(dataSourceId);
+        final DS dataSource = dataSourceService.findByIdInMyTenants(dataSourceId);
         dataSourceService.unpublish(dataSourceId);
 
         studyDataSourceService.softDeletingDataSource(dataSource.getId());

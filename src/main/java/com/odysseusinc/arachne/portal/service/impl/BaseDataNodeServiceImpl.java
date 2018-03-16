@@ -186,7 +186,7 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
 
         LOGGER.info(UNLINKING_USER_LOG, user.getId(), dataNode.getId());
         final DataNodeUser existDataNodeUser
-                = dataNodeUserRepository.findByDataNodeAndUser(dataNode, user)
+                = dataNodeUserRepository.findByDataNodeAndUserId(dataNode, user.getId())
                 .orElseThrow(() -> {
                     final String message = String.format(USER_IS_NOT_LINKED_EXC, user.getId(),
                             dataNode.getId());
@@ -222,7 +222,7 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
     private void saveOrUpdateDataNodeUser(DataNode dataNode, DataNodeUser dataNodeUser) {
 
         dataNodeUser.setDataNode(dataNode);
-        dataNodeUserRepository.findByDataNodeAndUser(dataNode, dataNodeUser.getUser())
+        dataNodeUserRepository.findByDataNodeAndUserId(dataNode, dataNodeUser.getUser().getId())
                 .ifPresent(existing -> dataNodeUser.setId(existing.getId()));
         dataNodeUserRepository.save(dataNodeUser);
     }
