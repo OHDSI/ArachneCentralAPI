@@ -12,12 +12,12 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.0.0.RC2</version>
+        <version>2.0.0.RELEASE</version>
         <relativePath/>
     </parent>
 
     <properties>
-        <spring.boot.version>2.0.0.RC2</spring.boot.version>
+        <spring.boot.version>2.0.0.RELEASE</spring.boot.version>
         <spring.security.acl.version>4.2.1.RELEASE</spring.security.acl.version>
         <start-class>com.odysseusinc.arachne.portal.PortalStarter</start-class>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

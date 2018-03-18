@@ -110,7 +110,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
-import org.assertj.core.api.exception.RuntimeIOException;
 import org.ohdsi.sql.SqlRender;
 import org.ohdsi.sql.SqlTranslate;
 import org.slf4j.Logger;
@@ -405,7 +404,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
                         }
                     } catch (IOException e) {
                         LOGGER.error("Failed to add file to archive", e);
-                        throw new RuntimeIOException(e.getMessage(), e);
+                        throw new IllegalArgumentException(e.getMessage(), e);
                     }
                 });
             }
