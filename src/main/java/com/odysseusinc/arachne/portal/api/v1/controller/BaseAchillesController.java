@@ -192,12 +192,9 @@ public abstract class BaseAchillesController<DS extends IDataSource> {
 
     protected DS checkDataSource(Long datasourceId) throws NotExistException {
 
-        DS dataSource = rawDataSourceRepository.findOne(datasourceId);
-        if (dataSource == null) {
-            String message = String.format("Datasource with id: '%s' not found", datasourceId);
-            throw new NotExistException(message, dataSourceClass);
-        }
-        return dataSource;
+       return rawDataSourceRepository.findById(datasourceId).orElseThrow(
+               () -> new NotExistException(String.format("Datasource with id: '%s' not found", datasourceId), dataSourceClass)
+       );
     }
 
 }

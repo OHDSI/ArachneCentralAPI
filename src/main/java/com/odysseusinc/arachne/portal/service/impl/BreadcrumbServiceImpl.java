@@ -83,7 +83,7 @@ public class BreadcrumbServiceImpl implements BreadcrumbService {
             case ANALYSIS:
                 return analysisRepository.getOne(id);
             case SUBMISSION_GROUP:
-                return submissionGroupRepository.findOne(id);
+                return submissionGroupRepository.getOne(id);
             case SUBMISSION:
                 return submissionRepository.getOne(id);
             case INSIGHT:
@@ -93,7 +93,7 @@ public class BreadcrumbServiceImpl implements BreadcrumbService {
             case DATA_SOURCE:
                 return dataSourceRepository.getOne(id);
             case PAPER:
-                return paperRepository.findOne(id);
+                return paperRepository.getOne(id);
         }
         return null;
     }

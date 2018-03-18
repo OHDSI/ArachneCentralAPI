@@ -46,7 +46,7 @@ public class BaseAtlasServiceImpl<T extends IAtlas> implements BaseAtlasService<
     @PostAuthorize("returnObject.dataNode == authentication.principal || hasRole('ROLE_ADMIN')")
     public T findByIdInAnyTenant(Long id) {
 
-        return baseRawAtlasRepository.findOne(id);
+        return baseRawAtlasRepository.findById(id).orElse(null);
     }
 
     @Override
@@ -77,7 +77,7 @@ public class BaseAtlasServiceImpl<T extends IAtlas> implements BaseAtlasService<
     @PreAuthorize("@rawAtlasRepository.findOne(#id)?.dataNode == authentication.principal")
     public void delete(Long id) {
 
-        baseRawAtlasRepository.delete(id);
+        baseRawAtlasRepository.deleteById(id);
     }
 
 }
