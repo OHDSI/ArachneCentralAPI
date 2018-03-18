@@ -32,6 +32,7 @@ import com.odysseusinc.arachne.portal.repository.RoleRepository;
 import com.odysseusinc.arachne.portal.repository.StateProvinceRepository;
 import com.odysseusinc.arachne.portal.repository.StudyDataSourceLinkRepository;
 import com.odysseusinc.arachne.portal.repository.UserStudyRepository;
+import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
 import com.odysseusinc.arachne.portal.service.SkillService;
 import com.odysseusinc.arachne.portal.service.SolrService;
@@ -56,6 +57,7 @@ public class UserServiceImpl extends BaseUserServiceImpl<IUser, Skill, SolrField
                            MessageSource messageSource,
                            ProfessionalTypeService professionalTypeService,
                            JavaMailSender javaMailSender,
+                           ArachnePasswordValidator passwordValidator,
                            BaseUserRepository userRepository,
                            CountryRepository countryRepository,
                            SolrService solrService,
@@ -76,6 +78,7 @@ public class UserServiceImpl extends BaseUserServiceImpl<IUser, Skill, SolrField
                 messageSource,
                 professionalTypeService,
                 javaMailSender,
+                passwordValidator,
                 userRepository,
                 countryRepository,
                 solrService,

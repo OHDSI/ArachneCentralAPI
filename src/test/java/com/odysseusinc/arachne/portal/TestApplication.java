@@ -33,6 +33,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import org.passay.EnglishSequenceData;
+import org.passay.IllegalSequenceRule;
+import org.passay.LengthRule;
+import org.passay.MessageResolver;
+import org.passay.PasswordValidator;
+import org.passay.PropertiesMessageResolver;
+import org.passay.RepeatCharacterRegexRule;
+import org.passay.Rule;
+import org.passay.SequenceData;
+import org.passay.WhitespaceRule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -71,6 +81,24 @@ public class TestApplication {
 
     @TestConfiguration
     static class Config {
+        @Bean
+        public PasswordValidator passwordValidator() throws IOException {
+
+            LengthRule lengthRule = new LengthRule(8, 16);
+            WhitespaceRule whitespaceRule = new WhitespaceRule();
+            IllegalSequenceRule qwertySeqRule = new IllegalSequenceRule(EnglishSequenceData.USQwerty);
+            RepeatCharacterRegexRule repeatRule = new RepeatCharacterRegexRule(4);
+            List<Rule> ruleList = new ArrayList<>();
+            ruleList.add(lengthRule);
+            ruleList.add(whitespaceRule);
+            ruleList.add(qwertySeqRule);
+            ruleList.add(repeatRule);
+            Properties props = new Properties();
+
+            props.load(new ClassPathResource("password_messages.properties").getInputStream());
+            MessageResolver resolver = new PropertiesMessageResolver(props);
+            return new PasswordValidator(resolver, ruleList);
+        }
     }
 
     @Configuration

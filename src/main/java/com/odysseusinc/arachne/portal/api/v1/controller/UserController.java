@@ -37,6 +37,7 @@ import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.PaperSearch;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.security.TokenUtils;
+import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
 import com.odysseusinc.arachne.portal.service.AnalysisUnlockRequestService;
 import com.odysseusinc.arachne.portal.service.DataNodeService;
 import com.odysseusinc.arachne.portal.service.PaperService;
@@ -60,7 +61,8 @@ public class UserController extends BaseUserController<IUser, Study, DataSource,
                           AnalysisService analysisService,
                           AnalysisUnlockRequestService analysisUnlockRequestService,
                           PaperService paperService,
-                          SubmissionService submissionService
+                          SubmissionService submissionService,
+                          ArachnePasswordValidator passwordValidator
     ) {
 
         super(tokenUtils,
@@ -71,7 +73,8 @@ public class UserController extends BaseUserController<IUser, Study, DataSource,
                 analysisService,
                 analysisUnlockRequestService,
                 paperService,
-                submissionService);
+                submissionService,
+                passwordValidator);
     }
 
     @Override

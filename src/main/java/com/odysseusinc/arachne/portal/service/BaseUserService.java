@@ -26,6 +26,7 @@ import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.MetadataException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.NotUniqueException;
+import com.odysseusinc.arachne.portal.exception.PasswordValidationException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
@@ -72,7 +73,7 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
             throws ValidationException, UserNotFoundException, NotExistException, IOException, SolrServerException;
 
     U register(@NotNull U user, String registrantToken, String callbackUrl)
-            throws NotUniqueException, NotExistException;
+            throws NotUniqueException, NotExistException, PasswordValidationException;
 
     void confirmUserEmail(U user)
             throws IOException, NotExistException,
@@ -84,7 +85,7 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
 
     void resendActivationEmail(String email) throws UserNotFoundException;
 
-    U create(U user) throws NotUniqueException, NotExistException;
+    U create(U user) throws NotUniqueException, NotExistException, PasswordValidationException;
 
     void sendRemindPasswordEmail(U user, String token, String registrantToken, String callbackUrl);
 
@@ -134,7 +135,7 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
             throws UserNotFoundException, IllegalAccessException, NotExistException,
             NoSuchFieldException, SolrServerException, IOException;
 
-    void updatePassword(U user, String oldPassword, String newPassword) throws ValidationException;
+    void updatePassword(U user, String oldPassword, String newPassword) throws ValidationException, PasswordValidationException;
 
     U addSkillToUser(Long userId, Long skillId)
             throws NotExistException,
