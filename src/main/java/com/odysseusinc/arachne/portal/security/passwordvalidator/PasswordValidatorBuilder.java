@@ -34,8 +34,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.ArrayUtils;
 import org.passay.CharacterCharacteristicsRule;
+import org.passay.CharacterData;
 import org.passay.CharacterRule;
 import org.passay.DictionarySubstringRule;
+import org.passay.EnglishCharacterData;
 import org.passay.EnglishSequenceData;
 import org.passay.IllegalCharacterRule;
 import org.passay.IllegalSequenceRule;
@@ -229,25 +231,25 @@ public class PasswordValidatorBuilder {
                 characteristicsRule.setNumberOfCharacteristics(numberOfCharacteristics);
             }
             final Integer uppercaseCharacterNum = complexRulesBuilder.uppercaseCharacterNum;
-//            if (Objects.nonNull(uppercaseCharacterNum)) {
-//                characterRules.add(new UpperC(uppercaseCharacterNum));
-//                complexRules.add(new RuleInfo(String.format("At least %s uppercase character(s) (A-Z)", uppercaseCharacterNum)));
-//            }
+            if (Objects.nonNull(uppercaseCharacterNum)) {
+                characterRules.add(new CharacterRule(EnglishCharacterData.UpperCase, uppercaseCharacterNum));
+                complexRules.add(new RuleInfo(String.format("At least %s uppercase character(s) (A-Z)", uppercaseCharacterNum)));
+            }
             final Integer lowercaseCharacterNum = complexRulesBuilder.lowercaseCharacterNum;
-//            if (Objects.nonNull(lowercaseCharacterNum)) {
-//                characterRules.add(new LowercaseCharacterRule(lowercaseCharacterNum));
-//                complexRules.add(new RuleInfo(String.format("At least %s lowercase character(s) (a-z)", lowercaseCharacterNum)));
-//            }
+            if (Objects.nonNull(lowercaseCharacterNum)) {
+                characterRules.add(new CharacterRule(EnglishCharacterData.LowerCase, lowercaseCharacterNum));
+                complexRules.add(new RuleInfo(String.format("At least %s lowercase character(s) (a-z)", lowercaseCharacterNum)));
+            }
             final Integer digitCharacterNum = complexRulesBuilder.digitCharacterNum;
-//            if (Objects.nonNull(digitCharacterNum)) {
-//                characterRules.add(new DigitCharacterRule(digitCharacterNum));
-//                complexRules.add(new RuleInfo(String.format("At least %s digit (0-9)", lowercaseCharacterNum)));
-//            }
+            if (Objects.nonNull(digitCharacterNum)) {
+                characterRules.add(new CharacterRule(EnglishCharacterData.Digit, digitCharacterNum));
+                complexRules.add(new RuleInfo(String.format("At least %s digit (0-9)", lowercaseCharacterNum)));
+            }
             final Integer nonAlphanumericCharacterNum = complexRulesBuilder.nonAlphanumericCharacterNum;
-//            if (Objects.nonNull(nonAlphanumericCharacterNum)) {
-//                characterRules.add(new NonAlphanumericCharacterRule(nonAlphanumericCharacterNum));
-//                complexRules.add(new RuleInfo(String.format("At least %s special character (punctuation)", lowercaseCharacterNum)));
-//            }
+            if (Objects.nonNull(nonAlphanumericCharacterNum)) {
+                characterRules.add(new CharacterRule(EnglishCharacterData.Special, nonAlphanumericCharacterNum));
+                complexRules.add(new RuleInfo(String.format("At least %s special character (punctuation)", lowercaseCharacterNum)));
+            }
             characteristicsRule.setRules(characterRules);
             rules.add(characteristicsRule);
             final int characterisicsMinimum = characteristicsRule.getNumberOfCharacteristics();
