@@ -15,43 +15,17 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: May 17, 2017
+ * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Konstantin Yaroshovets
+ * Created: February 26, 2018
  *
  */
 
-package com.odysseusinc.arachne.portal.api.v1.dto;
+package com.odysseusinc.arachne.portal.model;
 
-public class OptionDTO extends DTO {
+import javax.persistence.metamodel.SingularAttribute;
+import javax.persistence.metamodel.StaticMetamodel;
 
-    private String id;
-    private String name;
-
-    public OptionDTO() {}
-
-    public OptionDTO(String id, String name) {
-
-        this.id = id;
-        this.name = name;
-    }
-
-    public String getId() {
-
-        return id;
-    }
-
-    public void setId(String id) {
-
-        this.id = id;
-    }
-
-    public String getName() {
-
-        return name;
-    }
-
-    public void setName(String name) {
-
-        this.name = name;
-    }
+@StaticMetamodel(IDataSource.class)
+public class IDataSource_ {
+    public static volatile SingularAttribute<IDataSource, Long> id;
 }

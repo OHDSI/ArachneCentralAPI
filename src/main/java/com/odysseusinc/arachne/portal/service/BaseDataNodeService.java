@@ -37,8 +37,6 @@ public interface BaseDataNodeService<DN extends DataNode> {
 
     DN update(DN dataNode) throws NotExistException;
 
-    DN updateAtlasInfo(DN dataNode) throws NotExistException;
-
     List<DN> findAllIsNotVirtual();
 
     DN getById(Long id) throws NotExistException;

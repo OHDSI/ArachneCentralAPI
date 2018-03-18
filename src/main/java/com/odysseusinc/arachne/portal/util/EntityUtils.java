@@ -21,6 +21,8 @@
 
 package com.odysseusinc.arachne.portal.util;
 
+import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
+import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraphUtils;
 import org.hibernate.Hibernate;
 
 public class EntityUtils {
@@ -37,5 +39,10 @@ public class EntityUtils {
     public static <T> T unproxyAndConvert(Object object, Class<T> clazz) {
 
         return (T)Hibernate.unproxy(object);
+    }
+
+    public static EntityGraph fromAttributePaths(final String... strings) {
+
+        return EntityGraphUtils.fromAttributePaths(strings);
     }
 }

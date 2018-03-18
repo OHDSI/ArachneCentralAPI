@@ -25,12 +25,9 @@ package com.odysseusinc.arachne.portal.repository;
 import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
 import com.cosium.spring.data.jpa.entity.graph.repository.EntityGraphJpaRepository;
 import com.odysseusinc.arachne.portal.model.DataSourceStatus;
-import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
-import com.odysseusinc.arachne.portal.model.User;
 import java.util.List;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
 public interface StudyDataSourceLinkRepository extends EntityGraphJpaRepository<StudyDataSourceLink, Long> {
@@ -38,21 +35,24 @@ public interface StudyDataSourceLinkRepository extends EntityGraphJpaRepository<
     @Query("SELECT l FROM StudyDataSourceLink l "
             + " JOIN l.dataSource.dataNode.dataNodeUsers u "
             + " JOIN u.dataNodeRole r"
-            + " WHERE :owner = u.user AND r = 'ADMIN' AND l.status=:status")
-    List<StudyDataSourceLink> findByOwnerAndStatus(@Param("owner") IUser owner, @Param("status") DataSourceStatus status);
+            + " WHERE :ownerId = u.user.id AND r = 'ADMIN' AND l.status=:status")
+    List<StudyDataSourceLink> findByOwnerIdAndStatus(@Param("ownerId") Long ownerId,
+                                                     @Param("status") DataSourceStatus status);
 
     @Query("SELECT l FROM StudyDataSourceLink l "
             + " JOIN l.study s"
             + " JOIN l.dataSource.dataNode.dataNodeUsers u "
             + " JOIN u.dataNodeRole r"
-            + " WHERE :owner = u.user AND r = 'ADMIN' AND s.id = :studyId AND l.status=:status")
-    List<StudyDataSourceLink> findByOwnerAndStudyIdAndStatus(@Param("owner") IUser owner, @Param("studyId") Long studyId, @Param("status") DataSourceStatus status);
+            + " WHERE :ownerId = u.user.id AND r = 'ADMIN' AND s.id = :studyId AND l.status=:status")
+    List<StudyDataSourceLink> findByOwnerIdAndStudyIdAndStatus(@Param("ownerId") Long ownerId,
+                                                               @Param("studyId") Long studyId,
+                                                               @Param("status") DataSourceStatus status);
 
     @Query("SELECT l FROM StudyDataSourceLink l "
             + " JOIN l.dataSource.dataNode.dataNodeUsers u "
             + " JOIN u.dataNodeRole r"
-            + " WHERE :owner = u.user AND r = 'ADMIN' AND l.id=:id")
-    StudyDataSourceLink findByIdAndOwner(@Param("id") Long id, @Param("owner") IUser owner);
+            + " WHERE :ownerId = u.user.id AND r = 'ADMIN' AND l.id=:id")
+    StudyDataSourceLink findByIdAndOwnerId(@Param("id") Long id, @Param("ownerId") Long ownerId);
 
     @Query(nativeQuery = true, value = "SELECT * FROM studies_data_sources l WHERE "
             + "l.study_id=:studyId AND l.data_source_id=:dataSourceId")

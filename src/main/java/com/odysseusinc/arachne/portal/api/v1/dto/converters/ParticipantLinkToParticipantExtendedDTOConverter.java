@@ -22,15 +22,11 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
-import com.odysseusinc.arachne.portal.api.v1.dto.OptionDTO;
+import com.odysseusinc.arachne.commons.api.v1.dto.OptionDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ParticipantExtendedDTO;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.ParticipantLink;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
-import com.odysseusinc.arachne.portal.model.User;
-import org.springframework.beans.factory.annotation.Autowired;
-import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
-import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.stereotype.Component;
 
 @Component

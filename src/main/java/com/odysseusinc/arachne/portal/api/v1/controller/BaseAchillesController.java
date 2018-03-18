@@ -33,18 +33,20 @@ import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.api.v1.dto.AchillesReportDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.CharacterizationDTO;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
+import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.DataNode;
-import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.achilles.AchillesFile;
 import com.odysseusinc.arachne.portal.model.achilles.AchillesReport;
 import com.odysseusinc.arachne.portal.model.achilles.Characterization;
 import com.odysseusinc.arachne.portal.repository.AchillesReportRepository;
 import com.odysseusinc.arachne.portal.repository.BaseDataSourceRepository;
+import com.odysseusinc.arachne.portal.repository.BaseRawDataSourceRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeRepository;
 import com.odysseusinc.arachne.portal.service.AchillesService;
-import com.odysseusinc.arachne.portal.util.ConverterUtils;
+import com.odysseusinc.arachne.portal.util.ArachneConverterUtils;
 import io.swagger.annotations.ApiOperation;
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
@@ -67,23 +69,26 @@ public abstract class BaseAchillesController<DS extends IDataSource> {
     protected static Logger LOGGER = LoggerFactory.getLogger(BaseAchillesController.class);
     protected final AchillesService<DS> achillesService;
     protected final BaseDataSourceRepository<DS> dataSourceRepository;
+    protected final BaseRawDataSourceRepository<DS> rawDataSourceRepository;
     protected final GenericConversionService conversionService;
     protected final ObjectMapper objectMapper;
     protected final DataNodeRepository dataNodeRepository;
     protected final AchillesReportRepository achillesReportRepository;
-    protected final ConverterUtils converterUtils;
+    protected final ArachneConverterUtils converterUtils;
 
     protected Class<DS> dataSourceClass;
 
     public BaseAchillesController(BaseDataSourceRepository<DS> dataSourceRepository,
+                                  BaseRawDataSourceRepository rawDataSourceRepository,
                                   DataNodeRepository dataNodeRepository,
-                                  ConverterUtils converterUtils,
+                                  ArachneConverterUtils converterUtils,
                                   AchillesService<DS> achillesService,
                                   ObjectMapper objectMapper,
                                   AchillesReportRepository achillesReportRepository,
                                   GenericConversionService conversionService) {
 
         this.dataSourceRepository = dataSourceRepository;
+        this.rawDataSourceRepository = rawDataSourceRepository;
         this.dataNodeRepository = dataNodeRepository;
         this.converterUtils = converterUtils;
         this.achillesService = achillesService;
@@ -98,10 +103,13 @@ public abstract class BaseAchillesController<DS extends IDataSource> {
     public void receiveStats(
             @PathVariable("id") Long datasourceId,
             @RequestParam(value = "file") MultipartFile data)
-            throws NotExistException, IOException {
+            throws NotExistException, IOException, ValidationException {
 
         DS dataSource = checkDataSource(datasourceId);
         final DataNode dataNode = dataSource.getDataNode();
+        if (dataNode.getVirtual()) {
+            throw new ValidationException("virtual datasource is not allowed for manual uploading");
+        }
         LOGGER.info(ACHILLES_RESULT_LOADED_LOG,
                 dataSource.getId(), dataSource.getName(), dataNode.getId(), dataNode.getName());
         achillesService.createCharacterization(dataSource, data);
@@ -159,7 +167,7 @@ public abstract class BaseAchillesController<DS extends IDataSource> {
                                         @PathVariable(value = "filepath", required = false) String path,
                                         @PathVariable("filename") String filename) throws NotExistException, IOException {
 
-        final String filepath = StringUtils.isBlank(path) ? filename : path + "/" + filename;
+        final String filepath = StringUtils.isBlank(path) ? filename : path + File.separator + filename;
         DS dataSource = checkDataSource(datasourceId);
         if (characterizationId == null) {
             characterizationId = achillesService.getLatestCharacterizationId(dataSource);
@@ -184,7 +192,12 @@ public abstract class BaseAchillesController<DS extends IDataSource> {
 
     protected DS checkDataSource(Long datasourceId) throws NotExistException {
 
-        return dataSourceRepository.findById(datasourceId).orElseThrow(() -> new NotExistException(String.format("Datasource with id: '%s' not found", datasourceId), dataSourceClass));
+        DS dataSource = rawDataSourceRepository.findOne(datasourceId);
+        if (dataSource == null) {
+            String message = String.format("Datasource with id: '%s' not found", datasourceId);
+            throw new NotExistException(message, dataSourceClass);
+        }
+        return dataSource;
     }
 
 }

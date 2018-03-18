@@ -27,8 +27,9 @@ import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.repository.AchillesReportRepository;
 import com.odysseusinc.arachne.portal.repository.BaseDataSourceRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeRepository;
+import com.odysseusinc.arachne.portal.repository.RawDataSourceRepository;
 import com.odysseusinc.arachne.portal.service.AchillesService;
-import com.odysseusinc.arachne.portal.util.ConverterUtils;
+import com.odysseusinc.arachne.portal.util.ArachneConverterUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -40,15 +41,17 @@ import org.springframework.web.bind.annotation.RestController;
 public class AchillesController extends BaseAchillesController<DataSource> {
 
     @Autowired
-    public AchillesController(AchillesService<DataSource> achillesService,
-                              BaseDataSourceRepository<DataSource> dataSourceRepository,
+    public AchillesController(AchillesService achillesService,
+                              BaseDataSourceRepository dataSourceRepository,
+                              RawDataSourceRepository rawDataSourceRepository,
                               GenericConversionService conversionService,
                               ObjectMapper objectMapper,
                               DataNodeRepository dataNodeRepository,
                               AchillesReportRepository achillesReportRepository,
-                              ConverterUtils converterUtils) {
+                              ArachneConverterUtils converterUtils) {
 
         super(dataSourceRepository,
+                rawDataSourceRepository,
                 dataNodeRepository,
                 converterUtils,
                 achillesService,

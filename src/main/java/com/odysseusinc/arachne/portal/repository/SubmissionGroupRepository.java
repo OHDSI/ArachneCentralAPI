@@ -25,11 +25,12 @@ package com.odysseusinc.arachne.portal.repository;
 import com.odysseusinc.arachne.portal.model.SubmissionGroup;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
-public interface SubmissionGroupRepository extends CrudRepository<SubmissionGroup, Long> {
+public interface SubmissionGroupRepository extends JpaRepository<SubmissionGroup, Long>, JpaSpecificationExecutor<SubmissionGroup> {
 
     @Query(
             value = "SELECT sg FROM SubmissionGroup sg " +

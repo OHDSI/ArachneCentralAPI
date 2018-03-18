@@ -1,5 +1,4 @@
 /*
- *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,26 +14,25 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: July 17, 2017
- *
+ * Authors: Anton Gackovka
+ * Created: March 13, 2018
  */
 
-package com.odysseusinc.arachne.portal.model.messaging;
+package com.odysseusinc.arachne.portal.api.v1.dto;
 
-import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
-import java.io.Serializable;
+public interface ArachneConsts {
 
-public class RequestObject implements Serializable {
-    private CommonAnalysisType entityType;
-
-    public RequestObject(CommonAnalysisType entityType) {
-
-        this.entityType = entityType;
+    interface Modules {
+        String STUDY_NOTEBOOK = "Study Notebook";
+        String EXPERT_FINDER = "Expert Finder";
+        String DATA_CATALOG = "Data Catalog";
     }
 
-    public CommonAnalysisType getEntityType() {
-
-        return entityType;
+    interface Domains {
+        String STUDIES = "studies";
+        String DATA_SOURCES = "data-sources";
+        String ANALYISES = "analyses";
+        String USERS = "users";
+        String PAPERS = "papers";
     }
 }

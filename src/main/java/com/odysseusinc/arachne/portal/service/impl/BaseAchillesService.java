@@ -35,7 +35,6 @@ import com.odysseusinc.arachne.portal.repository.AchillesReportRepository;
 import com.odysseusinc.arachne.portal.repository.CharacterizationRepository;
 import com.odysseusinc.arachne.portal.service.AchillesImportService;
 import com.odysseusinc.arachne.portal.service.AchillesService;
-import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -45,6 +44,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.method.P;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -53,23 +54,20 @@ public abstract class BaseAchillesService<DS extends IDataSource, S extends Stud
     protected final CharacterizationRepository characterizationRepository;
     protected final AchillesFileRepository achillesFileRepository;
     protected final AchillesReportRepository achillesReportRepository;
-    protected final BaseStudyService<S, DS, SS, SU> studyService;
     protected final AchillesImportService achillesHelperService;
 
-    public BaseAchillesService(CharacterizationRepository characterizationRepository, AchillesFileRepository achillesFileRepository, AchillesReportRepository achillesReportRepository, BaseStudyService<S, DS, SS, SU> studyService, AchillesImportService achillesHelperService) {
+    public BaseAchillesService(CharacterizationRepository characterizationRepository, AchillesFileRepository achillesFileRepository, AchillesReportRepository achillesReportRepository,AchillesImportService achillesHelperService) {
 
         this.characterizationRepository = characterizationRepository;
         this.achillesFileRepository = achillesFileRepository;
         this.achillesReportRepository = achillesReportRepository;
-        this.studyService = studyService;
         this.achillesHelperService = achillesHelperService;
     }
 
     @Override
-    // todo ARACHNE-1886
-    /* @PreAuthorize("hasPermission(#dataSource, " +
-            "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACHILLES_PERMISSION)")*/
-    public void createCharacterization(DS dataSource, MultipartFile data) throws IOException {
+    @PreAuthorize("#ds.dataNode == authentication.principal or " +
+            "hasPermission(#ds, T(com.odysseusinc.arachne.portal.security.ArachnePermission).UPLOAD_ACHILLES_REPORTS)")
+    public void createCharacterization(@P("ds") DS dataSource, MultipartFile data) throws IOException {
 
         final File tempFile = Files.createTempFile("achilles", ".zip").toFile();
         data.transferTo(tempFile);

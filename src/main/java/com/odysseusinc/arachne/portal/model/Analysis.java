@@ -23,8 +23,13 @@
 package com.odysseusinc.arachne.portal.model;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
+import com.odysseusinc.arachne.portal.api.v1.dto.converters.AnalysisSolrExtractors;
+import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
+import com.odysseusinc.arachne.portal.model.solr.SolrEntity;
+import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
+import com.odysseusinc.arachne.portal.service.BaseSolrService;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.BreadcrumbType;
 import java.util.ArrayList;
@@ -40,10 +45,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
-import javax.persistence.NamedAttributeNode;
-import javax.persistence.NamedEntityGraph;
-import javax.persistence.NamedEntityGraphs;
-import javax.persistence.NamedSubgraph;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.SequenceGenerator;
@@ -54,7 +55,8 @@ import org.hibernate.annotations.DiscriminatorFormula;
 @Entity
 @Table(name = "analyses")
 @DiscriminatorFormula("'ANALYSIS_ENTITY'")
-public class Analysis implements HasArachnePermissions, Breadcrumb {
+@SolrFieldAnno(name = BaseSolrService.TITLE, postfix = false, extractor = AnalysisSolrExtractors.TitleExtractor.class)
+public class Analysis implements HasArachnePermissions, Breadcrumb, SolrEntity  {
 
     public Analysis() {
 
@@ -73,9 +75,11 @@ public class Analysis implements HasArachnePermissions, Breadcrumb {
     private Long id;
 
     @Column
+    @SolrFieldAnno(query = true)
     private String title;
 
     @Column(length = 1000)
+    @SolrFieldAnno(query = true)
     private String description;
 
     @Column
@@ -88,6 +92,7 @@ public class Analysis implements HasArachnePermissions, Breadcrumb {
     private IUser author;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @SolrFieldAnno(extractor = AnalysisSolrExtractors.StudyIdExtractor.class, sort = false, name = "study_id")
     private Study study;
 
     @Column(name = "ord")
@@ -114,6 +119,12 @@ public class Analysis implements HasArachnePermissions, Breadcrumb {
     @Column
     @Enumerated(EnumType.STRING)
     private CommonAnalysisType type;
+
+    @Override
+    public SolrCollection getCollection() {
+
+        return SolrCollection.ANALYSES;
+    }
 
     public BreadcrumbType getCrumbType() {
 

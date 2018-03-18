@@ -24,7 +24,6 @@ package com.odysseusinc.arachne.portal.api.v1.dto.converters.submission;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightDTO;
-import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionInsight;

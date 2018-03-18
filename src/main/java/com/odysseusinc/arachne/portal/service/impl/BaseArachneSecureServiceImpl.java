@@ -31,6 +31,7 @@ import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import com.odysseusinc.arachne.portal.model.ParticipantStatus;
+import com.odysseusinc.arachne.portal.model.RawUser;
 import com.odysseusinc.arachne.portal.model.ResultFile;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.Submission;
@@ -41,12 +42,12 @@ import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserStudyExtended;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
 import com.odysseusinc.arachne.portal.repository.AnalysisRepository;
+import com.odysseusinc.arachne.portal.repository.BaseTenantRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeUserRepository;
 import com.odysseusinc.arachne.portal.repository.ResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.StudyRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionInsightSubmissionFileRepository;
-import com.odysseusinc.arachne.portal.repository.TenantRepository;
 import com.odysseusinc.arachne.portal.repository.UserStudyExtendedRepository;
 import com.odysseusinc.arachne.portal.repository.UserStudyGroupedRepository;
 import com.odysseusinc.arachne.portal.repository.submission.SubmissionRepository;
@@ -80,7 +81,7 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends I
     protected final UserStudyExtendedRepository userStudyExtendedRepository;
     protected final SubmissionInsightSubmissionFileRepository submissionInsightSubmissionFileRepository;
     protected final ResultFileRepository resultFileRepository;
-    protected final TenantRepository tenantRepository;
+    protected final BaseTenantRepository tenantRepository;
     protected final StudyRepository studyRepository;
 
     @Autowired
@@ -92,7 +93,7 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends I
                                         UserStudyExtendedRepository userStudyExtendedRepository,
                                         SubmissionInsightSubmissionFileRepository submissionInsightSubmissionFileRepository,
                                         ResultFileRepository resultFileRepository,
-                                        TenantRepository tenantRepository,
+                                        BaseTenantRepository tenantRepository,
                                         StudyRepository studyRepository) {
 
         this.userStudyGroupedRepository = userStudyGroupedRepository;
@@ -143,6 +144,9 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends I
             } else {
                 result = analysisRepository.findById(analysis.getId()).map(v -> getRolesByStudy(user, v.getStudy())).orElse(result);
             }
+            if (analysis.getAuthor().getId().equals(user.getId())) {
+                result.add(ParticipantRole.ANALYSIS_OWNER);
+            }
         }
         return result;
     }
@@ -153,15 +157,13 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends I
         List<ParticipantRole> result = new LinkedList<>();
         if (submission != null) {
             Analysis analysis = submission.getSubmissionGroup().getAnalysis();
-            if (analysis != null && analysis.getStudy() != null) {
-                result = getRolesByStudy(user, analysis.getStudy());
-                final DataNode dataNode = submission.getDataSource().getDataNode();
-                if (!DataNodeUtils.isDataNodeOwner(dataNode, user.getId())) {
-                    // check if we are not owner - delete owner role O_O
-                    result.removeIf(ParticipantRole.DATA_SET_OWNER::equals);
-                }
-            } else if (analysis != null) {
-                result = analysisRepository.findById(analysis.getId()).map(v -> getRolesByStudy(user, v.getStudy())).orElse(result);
+            result = getRolesByAnalysis(user, analysis);
+
+            final DataNode dataNode = submission.getDataSource().getDataNode();
+            if (!DataNodeUtils.isDataNodeOwner(dataNode, user.getId())) {
+                // There can be many DATA_SET_OWNER-s in a single study, owning different data sources
+                // But in case of Submission, we are interested, whether current user is owner of the submission's DS
+                result.removeIf(ParticipantRole.DATA_SET_OWNER::equals);
             }
         }
         return result;
@@ -199,27 +201,28 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends I
             participantRoles.add(ParticipantRole.DATA_SET_OWNER);
             participantRoles.add(ParticipantRole.DATANODE_ADMIN);
         }
+        if (canImportFromDatanode(user, dataNode)) {
+            participantRoles.add(ParticipantRole.DATA_NODE_IMPORTER);
+        }
         return participantRoles;
+    }
+
+    public boolean canImportFromDatanode(ArachneUser user, DataNode dataNode) {
+
+        return true;
     }
 
     public boolean checkDataNodeAdmin(ArachneUser user, DataNode dataNode) {
 
-        final User standardUser = new User();
+        final RawUser standardUser = new RawUser();
         standardUser.setId(user.getId());
 
-        Optional<DataNodeUser> optionalDataNode = dataNodeUserRepository.findByDataNodeAndUser(dataNode, standardUser);
+        Optional<DataNodeUser> optionalDataNode = dataNodeUserRepository.findByDataNodeAndUserId(dataNode, standardUser.getId());
         if (optionalDataNode.isPresent()) {
             final Set<DataNodeRole> dataNodeRoles = optionalDataNode.get().getDataNodeRole();
             return dataNodeRoles != null && !dataNodeRoles.isEmpty() && dataNodeRoles.contains(DataNodeRole.ADMIN);
         }
         return false;
-    }
-
-    @Override
-    public boolean test(Long id) {
-
-        System.out.println("TEST " + id);
-        return true;
     }
 
     @Override

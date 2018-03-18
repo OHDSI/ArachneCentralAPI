@@ -24,25 +24,33 @@ package com.odysseusinc.arachne.portal.service.impl;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonModelType;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchDataCatalogDTO;
+import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
+import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
+import com.odysseusinc.arachne.portal.model.Skill;
+import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
 import com.odysseusinc.arachne.portal.repository.BaseDataSourceRepository;
 import com.odysseusinc.arachne.portal.repository.BaseRawDataSourceRepository;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
+import com.odysseusinc.arachne.portal.service.BaseUserService;
 import com.odysseusinc.arachne.portal.service.TenantService;
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
 import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
+import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
+import com.odysseusinc.arachne.portal.service.mail.NewDataSourceMailMessage;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -57,7 +65,6 @@ import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.ReflectionUtils;
 
 @Transactional(rollbackFor = Exception.class)
 public abstract class BaseDataSourceServiceImpl<
@@ -70,18 +77,24 @@ public abstract class BaseDataSourceServiceImpl<
     protected GenericConversionService conversionService;
     protected TenantService tenantService;
     protected BaseRawDataSourceRepository<DS> rawDataSourceRepository;
+    protected final BaseUserService<IUser, Skill> userService;
+    protected final ArachneMailSender arachneMailSender;
 
     public BaseDataSourceServiceImpl(BaseSolrService<SF> solrService,
                                      BaseDataSourceRepository<DS> dataSourceRepository,
                                      GenericConversionService conversionService,
                                      TenantService tenantService,
-                                     BaseRawDataSourceRepository<DS> rawDataSourceRepository) {
+                                     BaseRawDataSourceRepository<DS> rawDataSourceRepository,
+                                     BaseUserService<IUser, Skill> userService,
+                                     ArachneMailSender arachneMailSender) {
 
         this.solrService = solrService;
         this.dataSourceRepository = dataSourceRepository;
         this.conversionService = conversionService;
         this.tenantService = tenantService;
         this.rawDataSourceRepository = rawDataSourceRepository;
+        this.userService = userService;
+        this.arachneMailSender = arachneMailSender;
     }
 
     @Override
@@ -99,6 +112,11 @@ public abstract class BaseDataSourceServiceImpl<
             dataSource.setCdmVersion(null);
         }
         DS savedDataSource = dataSourceRepository.save(dataSource);
+        try {
+            afterCreate(savedDataSource, virtual);
+        } catch (PermissionDeniedException e) {
+            log.error("AfterCreated handler error", e);
+        }
         return savedDataSource;
     }
 
@@ -109,12 +127,27 @@ public abstract class BaseDataSourceServiceImpl<
         dataSource.setTenants(tenantService.getDefault());
     }
 
-    protected QueryResponse solrSearch(SolrQuery solrQuery) throws IOException, SolrServerException, NoSuchFieldException {
+    protected void afterCreate(DS dataSource, boolean virtual) throws PermissionDeniedException {
+
+        List<IUser> admins = userService.getAllAdmins("name", true);
+        notifyNewDataSourceRegistered(admins, dataSource);
+    }
+
+    protected void notifyNewDataSourceRegistered(List<IUser> admins, DS dataSource) throws PermissionDeniedException {
+
+        if (Objects.nonNull(admins)) {
+            admins.forEach(u -> arachneMailSender.send(
+                    new NewDataSourceMailMessage<>(WebSecurityConfig.getDefaultPortalURI(), u, dataSource)
+            ));
+        }
+    }
+
+    protected QueryResponse solrSearch(final SolrQuery solrQuery) throws IOException, SolrServerException, NoSuchFieldException {
 
         return solrService.search(
-                SolrServiceImpl.DATA_SOURCE_COLLECTION,
+                SolrCollection.DATA_SOURCES.getName(),
                 solrQuery,
-                ReflectionUtils.findField(DataSource.class, "tenants")
+                Boolean.TRUE
         );
     }
 
@@ -128,7 +161,7 @@ public abstract class BaseDataSourceServiceImpl<
 
         List<Long> docIdList = solrResponse.getResults()
                 .stream()
-                .map(solrDoc -> Long.parseLong(solrDoc.get("id").toString()))
+                .map(solrDoc -> Long.parseLong(solrDoc.get(BaseSolrServiceImpl.ID).toString()))
                 .collect(Collectors.toList());
 
         // We need to repeat sorting, because repository doesn't prevent order of passed ids
@@ -192,6 +225,9 @@ public abstract class BaseDataSourceServiceImpl<
             exist.setTenants(dataSource.getTenants());
         }
 
+        if (dataSource.getDbmsType() != null) {
+            exist.setDbmsType(dataSource.getDbmsType());
+        }
         return exist;
     }
 
@@ -311,7 +347,7 @@ public abstract class BaseDataSourceServiceImpl<
             dataSource.setPublished(false);
             dataSourceRepository.save(dataSource);
 
-            solrService.deleteByQuery(SolrServiceImpl.DATA_SOURCE_COLLECTION, "id:" + id);
+            solrService.delete(SolrCollection.DATA_SOURCES, String.valueOf(id));
         }
     }
 
@@ -337,11 +373,12 @@ public abstract class BaseDataSourceServiceImpl<
         return Collections.emptyList();
     }
 
+    @Override
     public void indexAllBySolr() throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
-        solrService.deleteByQuery(SolrServiceImpl.DATA_SOURCE_COLLECTION, "*:*");
-        List<DS> dataSourceList = getAllNotDeletedAndIsNotVirtualFromAllTenants();
-        for (DS dataSource : dataSourceList) {
+        solrService.deleteAll(SolrCollection.DATA_SOURCES);
+        final List<DS> dataSourceList = getAllNotDeletedAndIsNotVirtualFromAllTenants();
+        for (final DS dataSource : dataSourceList) {
             indexBySolr(dataSource);
         }
     }
@@ -365,13 +402,7 @@ public abstract class BaseDataSourceServiceImpl<
     public void indexBySolr(DS dataSource)
             throws IOException, SolrServerException, NoSuchFieldException, IllegalAccessException {
 
-        Map<SF, Object> values = solrService.getValuesByEntity(dataSource);
-
-        solrService.putDocument(
-                SolrServiceImpl.DATA_SOURCE_COLLECTION,
-                dataSource.getId(),
-                values
-        );
+        solrService.indexBySolr(dataSource);
     }
 
     @Override
@@ -381,6 +412,15 @@ public abstract class BaseDataSourceServiceImpl<
     public DS findById(Long dataSourceId) {
 
         return dataSourceRepository.findByIdAndDeletedIsNull(dataSourceId).orElseThrow(() -> new NotExistException(getType()));
+    }
+
+    @Override
+    @PreAuthorize("hasPermission(#dataSourceId, 'RawDataSource', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_DATASOURCE)")
+    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
+    public DS findByIdInMyTenants(Long dataSourceId) {
+
+        return rawDataSourceRepository.findByIdAndDeletedIsNull(dataSourceId).orElseThrow(() -> new NotExistException(getType()));
     }
 
     public List<DS> findByIdsAndNotDeleted(List<Long> dataSourceIds) {

@@ -33,10 +33,11 @@ import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonEntityRequestDTO;
+import com.odysseusinc.arachne.commons.api.v1.dto.OptionDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.commons.service.messaging.ProducerConsumerTemplate;
+import com.odysseusinc.arachne.commons.types.DBMSType;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
-import com.odysseusinc.arachne.execution_engine_common.api.v1.dto.DBMSType;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisCreateDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisFileDTO;
@@ -46,8 +47,6 @@ import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisUpdateDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.Commentable;
 import com.odysseusinc.arachne.portal.api.v1.dto.DataReferenceDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.FileDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.OptionDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.PageDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ShortBaseAnalysisDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionGroupDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightDTO;
@@ -71,9 +70,8 @@ import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataReference;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Submission;
-import com.odysseusinc.arachne.portal.model.SubmissionGroup;
 import com.odysseusinc.arachne.portal.model.SubmissionInsight;
-import com.odysseusinc.arachne.portal.model.User;
+import com.odysseusinc.arachne.portal.model.search.SubmissionGroupSearch;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.DataReferenceService;
@@ -119,11 +117,7 @@ import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
-import org.springframework.data.web.SortDefault;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.destination.DestinationResolver;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -221,8 +215,8 @@ public abstract class BaseAnalysisController<T extends Analysis,
             @PathVariable("analysisId") Long analysisId)
             throws NotExistException, NotUniqueException {
 
-       T analysis = analysisService.getById(analysisId);
-       return conversionService.convert(analysis, ShortBaseAnalysisDTO.class);
+        T analysis = analysisService.getById(analysisId);
+        return conversionService.convert(analysis, ShortBaseAnalysisDTO.class);
     }
 
     abstract protected Class<T> getAnalysisClass();
@@ -246,13 +240,11 @@ public abstract class BaseAnalysisController<T extends Analysis,
     @RequestMapping(value = "/api/v1/analysis-management/analyses/{analysisId}/submission-groups", method = GET)
     public Page<SubmissionGroupDTO> getSubmissionGroups(
             @PathVariable("analysisId") Long id,
-            @ModelAttribute PageDTO pageDTO
+            @ModelAttribute SubmissionGroupSearch submissionGroupSearch
     ) {
 
-        PageRequest pageRequest = new PageRequest(pageDTO.getPageablePage(), pageDTO.getPageSize(), new Sort(Sort.Direction.DESC, "created"));
-        Page<SubmissionGroup> submissionGroupList = submissionService.getSubmissionGroups(id, pageRequest);
-
-        return submissionGroupList.map(sg -> {
+        submissionGroupSearch.setAnalysisId(id);
+        return submissionService.getSubmissionGroups(submissionGroupSearch).map(sg -> {
             SubmissionGroupDTO sgDTO = conversionService.convert(sg, SubmissionGroupDTO.class);
             sgDTO.getSubmissions().forEach(sd -> {
                 Submission s = ((Submission) sd.getConversionSource());

@@ -25,33 +25,15 @@ package com.odysseusinc.arachne.portal.model;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonCDMVersionDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonModelType;
+import com.odysseusinc.arachne.commons.types.DBMSType;
 import com.odysseusinc.arachne.portal.model.security.Tenant;
-import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
+import com.odysseusinc.arachne.portal.model.solr.SolrEntity;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
-import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
-import java.io.Serializable;
+import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Set;
-import javax.persistence.Column;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.MappedSuperclass;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Transient;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-import org.hibernate.validator.constraints.NotBlank;
 
-public interface IDataSource {
+public interface IDataSource extends Breadcrumb, SolrEntity {
 
     boolean equals(final Object obj);
 
@@ -112,4 +94,8 @@ public interface IDataSource {
     Boolean getPublished();
 
     void setPublished(Boolean published);
+
+    DBMSType getDbmsType();
+
+    void setDbmsType(DBMSType dbmsType);
 }

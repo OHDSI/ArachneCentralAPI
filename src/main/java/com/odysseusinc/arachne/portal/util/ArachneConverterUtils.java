@@ -22,31 +22,21 @@
 
 package com.odysseusinc.arachne.portal.util;
 
+import com.odysseusinc.arachne.commons.utils.ConverterUtils;
 import com.odysseusinc.arachne.portal.exception.ConverterRuntimeException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.List;
-import java.util.stream.Collectors;
 import org.apache.commons.beanutils.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ConverterUtils {
-
-    private GenericConversionService conversionService;
+public class ArachneConverterUtils extends ConverterUtils {
 
     @Autowired
-    public ConverterUtils(GenericConversionService conversionService) {
+    public ArachneConverterUtils(GenericConversionService conversionService) {
 
-        this.conversionService = conversionService;
-    }
-
-    public <S, R> List<R> convertList(List<S> source, Class<R> targetClass) {
-
-        return source.stream()
-                .map(item -> conversionService.convert(item, targetClass))
-                .collect(Collectors.toList());
+        super(conversionService);
     }
 
     public void shallowCopy(Object to, Object from) {

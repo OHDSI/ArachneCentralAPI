@@ -25,18 +25,14 @@ package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 import static com.odysseusinc.arachne.portal.model.ParticipantStatus.DECLINED;
 import static org.apache.solr.common.StringUtils.isEmpty;
 
+import com.odysseusinc.arachne.commons.api.v1.dto.OptionDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.DataOwnerParticipantDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.OptionDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ParticipantDTO;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.ParticipantLink;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
-import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserStudyExtended;
-import org.springframework.beans.factory.annotation.Autowired;
-import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
-import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.stereotype.Component;
 
 @Component

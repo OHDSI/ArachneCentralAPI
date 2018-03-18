@@ -39,6 +39,7 @@ import com.odysseusinc.arachne.portal.repository.DataNodeRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeStatusRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeUserRepository;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
+import com.odysseusinc.arachne.portal.util.EntityUtils;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
@@ -116,19 +117,8 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
         final DN existsDataNode = getById(dataNode.getId());
         existsDataNode.setName(dataNode.getName());
         existsDataNode.setDescription(dataNode.getDescription());
-        existsDataNode.setAtlasVersion(dataNode.getAtlasVersion());
         existsDataNode.setPublished(true);
         return dataNodeRepository.save(existsDataNode);
-    }
-
-    @Transactional
-    @Override
-    @PreAuthorize("#dataNode == authentication.principal")
-    public DN updateAtlasInfo(DataNode dataNode) throws NotExistException {
-
-        final DN existsDataNode = getById(dataNode.getId());
-        existsDataNode.setAtlasVersion(dataNode.getAtlasVersion());
-        return null;
     }
 
     @Override
@@ -191,7 +181,7 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
 
         LOGGER.info(UNLINKING_USER_LOG, user.getId(), dataNode.getId());
         final DataNodeUser existDataNodeUser
-                = dataNodeUserRepository.findByDataNodeAndUser(dataNode, user)
+                = dataNodeUserRepository.findByDataNodeAndUserId(dataNode, user.getId())
                 .orElseThrow(() -> {
                     final String message = String.format(USER_IS_NOT_LINKED_EXC, user.getId(),
                             dataNode.getId());
@@ -221,13 +211,13 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
     @Override
     public Optional<DN> findByToken(String token) {
 
-        return dataNodeRepository.findByToken(token, EntityGraphUtils.fromAttributePaths("dataSources"));
+        return dataNodeRepository.findByToken(token, EntityUtils.fromAttributePaths("dataSources"));
     }
 
     private void saveOrUpdateDataNodeUser(DataNode dataNode, DataNodeUser dataNodeUser) {
 
         dataNodeUser.setDataNode(dataNode);
-        dataNodeUserRepository.findByDataNodeAndUser(dataNode, dataNodeUser.getUser())
+        dataNodeUserRepository.findByDataNodeAndUserId(dataNode, dataNodeUser.getUser().getId())
                 .ifPresent(existing -> dataNodeUser.setId(existing.getId()));
         dataNodeUserRepository.save(dataNodeUser);
     }

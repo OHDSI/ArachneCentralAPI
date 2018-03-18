@@ -18,6 +18,7 @@ import com.odysseusinc.arachne.portal.repository.SubmissionResultFileRepository;
 import com.odysseusinc.arachne.portal.service.CommentService;
 import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightService;
 import com.odysseusinc.arachne.portal.service.submission.SubmissionService;
+import com.odysseusinc.arachne.portal.util.EntityUtils;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Date;
@@ -122,7 +123,7 @@ public abstract class BaseSubmissionInsightServiceImpl implements SubmissionInsi
     }
 
     @Override
-    @PreAuthorize("hasPermission(#insight, "
+    @PreAuthorize("hasPermission(#submissionId, 'Submission', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_INSIGHT)")
     public SubmissionInsight updateSubmissionInsight(Long submissionId, SubmissionInsight insight)
             throws NotExistException {
@@ -162,7 +163,7 @@ public abstract class BaseSubmissionInsightServiceImpl implements SubmissionInsi
         LOGGER.info(DELETING_INSIGHT_LOG, submissionId);
         final Submission submission = submissionService.getSubmissionById(
                 submissionId,
-                EntityGraphUtils.fromAttributePaths("submissionInsight", "resultFiles")
+                EntityUtils.fromAttributePaths("submissionInsight", "resultFiles")
         );
         throwNotExistExceptionIfNull(submission, submissionId);
         throwNotExistExceptionIfNull(submission.getSubmissionInsight(), submissionId);

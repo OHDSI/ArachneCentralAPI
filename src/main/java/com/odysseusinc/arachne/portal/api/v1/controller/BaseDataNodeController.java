@@ -41,10 +41,12 @@ import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
 import com.odysseusinc.arachne.portal.service.StudyDataSourceService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
+import com.odysseusinc.arachne.portal.util.ArachneConverterUtils;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Collections;
+import java.util.List;
 import javax.validation.Valid;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
@@ -69,6 +71,7 @@ public abstract class BaseDataNodeController<
     protected final GenericConversionService genericConversionService;
     protected final BaseUserService userService;
     protected final StudyDataSourceService studyDataSourceService;
+    protected final ArachneConverterUtils converterUtils;
 
     @Autowired
     public BaseDataNodeController(BaseAnalysisService analysisService,
@@ -76,7 +79,8 @@ public abstract class BaseDataNodeController<
                                   BaseDataSourceService<DS> dataSourceService,
                                   GenericConversionService genericConversionService,
                                   BaseUserService userService,
-                                  StudyDataSourceService studyDataSourceService) {
+                                  StudyDataSourceService studyDataSourceService,
+                                  ArachneConverterUtils converterUtils) {
 
         this.analysisService = analysisService;
         this.baseDataNodeService = dataNodeService;
@@ -84,6 +88,7 @@ public abstract class BaseDataNodeController<
         this.genericConversionService = genericConversionService;
         this.userService = userService;
         this.studyDataSourceService = studyDataSourceService;
+        this.converterUtils = converterUtils;
     }
 
     @ApiOperation("Create new data node.")
@@ -94,14 +99,30 @@ public abstract class BaseDataNodeController<
 
         final IUser user = getUser(principal);
         final DN dataNode = buildEmptyDN();
+        CommonDataNodeCreationResponseDTO responseDTO = createDataNode(dataNode, principal);
+        final JsonResult<CommonDataNodeCreationResponseDTO> result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
+        result.setResult(responseDTO);
+        return result;
+    }
+
+    @ApiOperation("Create new manual data node.")
+    @RequestMapping(value = "/api/v1/data-nodes/manual", method = RequestMethod.POST)
+    public CommonDataNodeCreationResponseDTO createManualDataNode(
+            @RequestBody @Valid CommonDataNodeRegisterDTO commonDataNodeRegisterDTO,
+            Principal principal
+    ) throws PermissionDeniedException, AlreadyExistException {
+
+        final DN dataNode = conversionService.convert(commonDataNodeRegisterDTO, getDataNodeDNClass());
+        return createDataNode(dataNode, principal);
+    }
+
+    private CommonDataNodeCreationResponseDTO createDataNode(DN dataNode, Principal principal)
+            throws PermissionDeniedException, AlreadyExistException {
+
+        final IUser user = getUser(principal);
         final DN registeredDataNode = baseDataNodeService.create(dataNode);
         baseDataNodeService.linkUserToDataNodeUnsafe(registeredDataNode, user, Collections.singleton(DataNodeRole.ADMIN));
-
-        final CommonDataNodeCreationResponseDTO dataNodeRegisterResponseDTO
-                = conversionService.convert(registeredDataNode, CommonDataNodeCreationResponseDTO.class);
-        final JsonResult<CommonDataNodeCreationResponseDTO> result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
-        result.setResult(dataNodeRegisterResponseDTO);
-        return result;
+        return conversionService.convert(registeredDataNode, CommonDataNodeCreationResponseDTO.class);
     }
 
     protected abstract Class<DN> getDataNodeDNClass();
@@ -168,6 +189,13 @@ public abstract class BaseDataNodeController<
         return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, getDataNode(dataNode));
     }
 
+    @RequestMapping(value = "/api/v1/data-nodes", method = RequestMethod.GET)
+    public List<CommonDataNodeDTO> getDataNodes() {
+
+        List<DN> dataNodes = baseDataNodeService.findAllIsNotVirtual();
+        return converterUtils.convertList(dataNodes, CommonDataNodeDTO.class);
+    }
+
     @RequestMapping(value = "/api/v1/data-nodes/byuuid/{dataNodeUuid}", method = RequestMethod.GET)
     public JsonResult<CommonDataNodeDTO> getDataNode(@PathVariable("dataNodeUuid") String dataNodeUuid) {
 
@@ -191,7 +219,7 @@ public abstract class BaseDataNodeController<
                                            @PathVariable("dataSourceId") Long dataSourceId)
             throws PermissionDeniedException, IOException, SolrServerException {
 
-        final DS dataSource = dataSourceService.findById(dataSourceId);
+        final DS dataSource = dataSourceService.findByIdInMyTenants(dataSourceId);
         studyDataSourceService.softDeletingDataSource(dataSource.getId());
         return new JsonResult(JsonResult.ErrorCode.NO_ERROR);
     }

@@ -93,8 +93,6 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
 
     Optional<U> getById(Long id);
 
-    List<U> getAllByIDs(List<Long> ids);
-
     U update(U user)
             throws
             IllegalAccessException,
@@ -208,7 +206,7 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
 
     U findById(Long participantId);
 
-    List<U> findUsersByUuidsIn(List<String> dataOwnerIds);
+    List<IUser> findUsersByUuidsIn(List<String> dataOwnerIds);
 
     List<U> findUsersApprovedInDataSource(Long id);
 

@@ -25,10 +25,16 @@ package com.odysseusinc.arachne.portal.model;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonCDMVersionDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonModelType;
+import com.odysseusinc.arachne.commons.types.DBMSType;
+import com.odysseusinc.arachne.portal.api.v1.dto.converters.DataSourceSolrExtractors;
 import com.odysseusinc.arachne.portal.model.security.Tenant;
+import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
 import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
+import com.odysseusinc.arachne.portal.service.BaseSolrService;
+import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
+import com.odysseusinc.arachne.portal.service.impl.breadcrumb.BreadcrumbType;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashSet;
@@ -52,6 +58,7 @@ import javax.validation.constraints.Pattern;
 import org.hibernate.validator.constraints.NotBlank;
 
 @MappedSuperclass
+@SolrFieldAnno(name = BaseSolrService.TITLE, postfix = false, extractor = DataSourceSolrExtractors.TitleExtractor.class)
 public abstract class BaseDataSource implements IDataSource, Serializable, HasArachnePermissions {
     @Id
     @SequenceGenerator(name = "data_sources_pk_sequence", sequenceName = "data_sources_id_seq", allocationSize = 1)
@@ -68,12 +75,12 @@ public abstract class BaseDataSource implements IDataSource, Serializable, HasAr
     @Column(name = "name", nullable = false, unique = true)
     protected String name;
     @NotNull
+    @SolrFieldAnno(name = "dataNode", query = true, extractor = DataSourceSolrExtractors.DataNodeNameExtractor.class)
     @ManyToOne(fetch = FetchType.LAZY)
     protected DataNode dataNode;
     @Transient
     protected Set<ArachnePermission> permissions;
     @SolrFieldAnno(query = true, filter = true)
-    @NotNull
     @Column
     @Enumerated(EnumType.STRING)
     protected CommonModelType modelType;
@@ -99,8 +106,42 @@ public abstract class BaseDataSource implements IDataSource, Serializable, HasAr
     @JoinTable(name = "tenants_data_sources",
             joinColumns = @JoinColumn(name = "data_source_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "tenant_id", referencedColumnName = "id"))
-    @SolrFieldAnno(filter = true)
+    @SolrFieldAnno(filter = true, postfix = false, sort = false, extractor = DataSourceSolrExtractors.TenantsExtractor.class)
     protected Set<Tenant> tenants = new HashSet<>();
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "dbms_type")
+    private DBMSType dbmsType;
+
+    @Override
+    public SolrCollection getCollection() {
+
+        return SolrCollection.DATA_SOURCES;
+    }
+
+    @Override
+    public BreadcrumbType getCrumbType() {
+
+        return BreadcrumbType.DATA_SOURCE;
+    }
+
+    @Override
+    public Long getCrumbId() {
+
+        return getId();
+    }
+
+    @Override
+    public String getCrumbTitle() {
+
+        return getName();
+    }
+
+    @Override
+    public Breadcrumb getCrumbParent() {
+
+        return null;
+    }
 
     @Override
     public boolean equals(final Object obj) {
@@ -257,5 +298,15 @@ public abstract class BaseDataSource implements IDataSource, Serializable, HasAr
 
     public void setPublished(Boolean published) {
         this.published = published;
+    }
+
+    public DBMSType getDbmsType() {
+
+        return dbmsType;
+    }
+
+    public void setDbmsType(DBMSType dbmsType) {
+
+        this.dbmsType = dbmsType;
     }
 }
