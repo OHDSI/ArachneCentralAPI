@@ -189,7 +189,7 @@ public abstract class BaseDataSourceServiceImpl<
     public DS update(DS dataSource)
             throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
-        DS forUpdate = dataSourceRepository.findByIdAndDeletedIsNull(dataSource.getId())
+        DS forUpdate = rawDataSourceRepository.findByIdAndDeletedIsNull(dataSource.getId())
                 .orElseThrow(() -> new NotExistException(DataSource.class));
         forUpdate = baseUpdate(forUpdate, dataSource);
 
