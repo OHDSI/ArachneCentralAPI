@@ -62,8 +62,6 @@ public interface BaseDataSourceService<DS extends IDataSource> {
                     NoSuchFieldException,
                     IllegalAccessException, NotUniqueException;
 
-    DS getNotDeletedById(Long id);
-
     DS getNotDeletedByIdInAnyTenant(Long id);
 
     DS getByIdUnsecured(Long id) throws NotExistException;
@@ -76,8 +74,6 @@ public interface BaseDataSourceService<DS extends IDataSource> {
             throws IOException, SolrServerException, NoSuchFieldException, IllegalAccessException;
 
     DS findById(Long dataSourceId);
-
-    DS findByIdInMyTenants(Long dataSourceId);
 
     List<DS> findByIdsAndNotDeleted(List<Long> dataSourceIds);
 

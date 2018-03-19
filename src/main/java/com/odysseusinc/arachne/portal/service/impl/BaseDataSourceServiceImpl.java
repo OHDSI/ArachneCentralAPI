@@ -31,7 +31,6 @@ import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
-import com.odysseusinc.arachne.portal.model.RawDataSource;
 import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
 import com.odysseusinc.arachne.portal.repository.BaseDataSourceRepository;
@@ -61,7 +60,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
@@ -190,8 +188,7 @@ public abstract class BaseDataSourceServiceImpl<
     public DS updateInAnyTenant(DS dataSource)
             throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
-        DS forUpdate = rawDataSourceRepository.findByIdAndDeletedIsNull(dataSource.getId())
-                .orElseThrow(() -> new NotExistException(RawDataSource.class));
+        DS forUpdate = getNotDeletedByIdInAnyTenant(dataSource.getId());
         forUpdate = baseUpdate(forUpdate, dataSource);
 
         beforeUpdate(forUpdate, dataSource);
@@ -245,21 +242,23 @@ public abstract class BaseDataSourceServiceImpl<
         }
     }
 
-    @PreAuthorize("hasPermission(#id, 'DataSource', "
-            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_DATASOURCE)")
     @Override
-    public DS getNotDeletedById(Long id) {
+    @PreAuthorize("hasRole('ROLE_ADMIN') || hasPermission(#dataSourceId, 'RawDataSource', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_DATASOURCE)")
+    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
+    public DS getNotDeletedByIdInAnyTenant(Long dataSourceId) {
 
-        return dataSourceRepository.findByIdAndDeletedIsNull(id)
+        return rawDataSourceRepository.findByIdAndDeletedIsNull(dataSourceId)
                 .orElseThrow(() -> new NotExistException(DataSource.class));
     }
 
-    @Secured({"ROLE_ADMIN"})
     @Override
-    public DS getNotDeletedByIdInAnyTenant(Long id) {
+    @PreAuthorize("hasPermission(#dataSourceId, 'DataSource', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_DATASOURCE)")
+    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
+    public DS findById(Long dataSourceId) {
 
-        return rawDataSourceRepository.findByIdAndDeletedIsNull(id)
-                .orElseThrow(() -> new NotExistException(DataSource.class));
+        return dataSourceRepository.findByIdAndDeletedIsNull(dataSourceId).orElseThrow(() -> new NotExistException(getType()));
     }
 
     @Override
@@ -394,24 +393,6 @@ public abstract class BaseDataSourceServiceImpl<
             throws IOException, SolrServerException, NoSuchFieldException, IllegalAccessException {
 
         solrService.indexBySolr(dataSource);
-    }
-
-    @Override
-    @PreAuthorize("hasPermission(#dataSourceId, 'DataSource', "
-            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_DATASOURCE)")
-    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
-    public DS findById(Long dataSourceId) {
-
-        return dataSourceRepository.findByIdAndDeletedIsNull(dataSourceId).orElseThrow(() -> new NotExistException(getType()));
-    }
-
-    @Override
-    @PreAuthorize("hasPermission(#dataSourceId, 'RawDataSource', "
-            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_DATASOURCE)")
-    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
-    public DS findByIdInMyTenants(Long dataSourceId) {
-
-        return rawDataSourceRepository.findByIdAndDeletedIsNull(dataSourceId).orElseThrow(() -> new NotExistException(getType()));
     }
 
     public List<DS> findByIdsAndNotDeleted(List<Long> dataSourceIds) {
