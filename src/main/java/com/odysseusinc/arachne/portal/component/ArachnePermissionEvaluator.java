@@ -150,8 +150,6 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends DataSource> i
     protected PermissionDsl studyRules(Object domainObject, ArachneUser user) {
 
         return domainObject(domainObject)
-                .when(instanceOf(Study.class).and(study -> !study.getPrivacy()))
-                .then(study -> Collections.singleton(ACCESS_STUDY)).apply()
                 .when(instanceOf(Study.class))
                 .then(study -> getArachnePermissions(secureService.getRolesByStudy(user, study))).apply();
     }

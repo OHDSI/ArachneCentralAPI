@@ -98,6 +98,9 @@ public enum ParticipantRole {
             EDIT_ANALYSIS,
             EDIT_INSIGHT
     }),
+    STUDY_READER("Study reader", new ArachnePermission[]{
+            ACCESS_STUDY,
+    }),
     STUDY_PENDING_CONTRIBUTOR("Pending contributor", new ArachnePermission[]{
             ACCESS_STUDY,
     }),

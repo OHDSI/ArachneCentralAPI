@@ -43,6 +43,7 @@ import com.odysseusinc.arachne.portal.repository.AnalysisRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeUserRepository;
 import com.odysseusinc.arachne.portal.repository.ResultFileRepository;
+import com.odysseusinc.arachne.portal.repository.StudyRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionInsightSubmissionFileRepository;
 import com.odysseusinc.arachne.portal.repository.UserStudyExtendedRepository;
 import com.odysseusinc.arachne.portal.repository.UserStudyGroupedRepository;
@@ -50,12 +51,12 @@ import com.odysseusinc.arachne.portal.repository.submission.SubmissionRepository
 import com.odysseusinc.arachne.portal.util.DataNodeUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,6 +74,7 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends D
     protected final UserStudyExtendedRepository userStudyExtendedRepository;
     protected final SubmissionInsightSubmissionFileRepository submissionInsightSubmissionFileRepository;
     protected final ResultFileRepository resultFileRepository;
+    protected final StudyRepository studyRepository;
 
     @Autowired
     public BaseArachneSecureServiceImpl(UserStudyGroupedRepository userStudyGroupedRepository,
@@ -82,7 +84,8 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends D
                                         DataNodeUserRepository dataNodeUserRepository,
                                         UserStudyExtendedRepository userStudyExtendedRepository,
                                         SubmissionInsightSubmissionFileRepository submissionInsightSubmissionFileRepository,
-                                        ResultFileRepository resultFileRepository) {
+                                        ResultFileRepository resultFileRepository,
+                                        StudyRepository studyRepository) {
 
         this.userStudyGroupedRepository = userStudyGroupedRepository;
         this.analysisRepository = analysisRepository;
@@ -92,13 +95,30 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends D
         this.userStudyExtendedRepository = userStudyExtendedRepository;
         this.submissionInsightSubmissionFileRepository = submissionInsightSubmissionFileRepository;
         this.resultFileRepository = resultFileRepository;
+        this.studyRepository = studyRepository;
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ParticipantRole> getRolesByStudy(ArachneUser user, Study study) {
 
-        return study != null ? getParticipantRoles(user.getId(), study) : new LinkedList<>();
+        List<ParticipantRole> participantRoles = new LinkedList<>();
+
+        if (study != null) {
+
+            boolean requiredFieldsAreSet = ObjectUtils.allNotNull(study.getId(), study.getPrivacy());
+
+            if (!requiredFieldsAreSet) {
+                study = studyRepository.findOne(study.getId());
+            }
+
+            if (!study.getPrivacy()) {
+                participantRoles.add(ParticipantRole.STUDY_READER);
+            }
+            participantRoles.addAll(getParticipantRoles(user.getId(), study));
+        }
+
+        return participantRoles;
     }
 
     @Override
