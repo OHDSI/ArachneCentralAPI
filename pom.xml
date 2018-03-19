@@ -6,7 +6,7 @@
 
     <artifactId>portal</artifactId>
     <groupId>com.odysseusinc.arachne</groupId>
-    <version>1.11.2</version>
+    <version>1.11.3</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -298,7 +298,7 @@
         <dependency>
             <groupId>com.odysseusinc.arachne</groupId>
             <artifactId>execution-engine-commons</artifactId>
-            <version>1.11.0</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.ohdsi.sql</groupId>
