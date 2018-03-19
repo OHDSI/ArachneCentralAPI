@@ -693,7 +693,7 @@ public abstract class BaseStudyServiceImpl<
         if (study == null) {
             throw new NotExistException("study not exist", Study.class);
         }
-        DS dataSource = dataSourceService.findById(dataSourceId);
+        DS dataSource = dataSourceService.getNotDeletedById(dataSourceId);
         if (dataSource == null) {
             throw new NotExistException("dataSource not exist", DataSource.class);
         }

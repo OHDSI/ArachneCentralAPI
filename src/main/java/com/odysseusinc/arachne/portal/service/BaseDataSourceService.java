@@ -73,7 +73,7 @@ public interface BaseDataSourceService<DS extends IDataSource> {
     void indexBySolr(DS dataSource)
             throws IOException, SolrServerException, NoSuchFieldException, IllegalAccessException;
 
-    DS findById(Long dataSourceId);
+    DS getNotDeletedById(Long dataSourceId);
 
     List<DS> findByIdsAndNotDeleted(List<Long> dataSourceIds);
 

@@ -208,7 +208,7 @@ public abstract class BaseDataSourceController<
     public JsonResult<DTO> get(@PathVariable("id") Long dataSourceId) throws NotExistException {
 
         JsonResult<DTO> result = new JsonResult<>(NO_ERROR);
-        DS dataSource = dataSourceService.findById(dataSourceId);
+        DS dataSource = dataSourceService.getNotDeletedById(dataSourceId);
         result.setResult(convertDataSourceToDTO(dataSource));
         return result;
     }
@@ -278,7 +278,7 @@ public abstract class BaseDataSourceController<
     @RequestMapping(value = "/api/v1/data-sources/{id}/complete", method = RequestMethod.GET)
     public JsonResult<DS_DTO> getWhole(@PathVariable("id") Long dataSourceId) throws NotExistException {
 
-        DS dataSource = dataSourceService.findById(dataSourceId);
+        DS dataSource = dataSourceService.getNotDeletedByIdInAnyTenant(dataSourceId);
         return new JsonResult<>(NO_ERROR, conversionService.convert(dataSource, getDataSourceDTOClass()));
     }
 
