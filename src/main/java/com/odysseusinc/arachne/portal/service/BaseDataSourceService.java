@@ -54,25 +54,13 @@ public interface BaseDataSourceService<DS extends IDataSource> {
 
     SearchResult<DS> search(SolrQuery solrQuery, IUser user) throws NoSuchFieldException, IOException, SolrServerException;
 
-    DS update(DS dataSource) throws
+    DS updateInAnyTenant(DS dataSource) throws
                     NotExistException,
                     ValidationException,
                     IOException,
                     SolrServerException,
                     NoSuchFieldException,
                     IllegalAccessException, NotUniqueException;
-
-    DS updateInAnyTenant(
-            DS dataSource
-    ) throws
-            NotExistException,
-            ValidationException,
-            IOException,
-            SolrServerException,
-            NoSuchFieldException,
-            IllegalAccessException, NotUniqueException;
-
-    DS getNotDeletedById(Long id);
 
     DS getNotDeletedByIdInAnyTenant(Long id);
 
@@ -85,9 +73,7 @@ public interface BaseDataSourceService<DS extends IDataSource> {
     void indexBySolr(DS dataSource)
             throws IOException, SolrServerException, NoSuchFieldException, IllegalAccessException;
 
-    DS findById(Long dataSourceId);
-
-    DS findByIdInMyTenants(Long dataSourceId);
+    DS getNotDeletedById(Long dataSourceId);
 
     List<DS> findByIdsAndNotDeleted(List<Long> dataSourceIds);
 
