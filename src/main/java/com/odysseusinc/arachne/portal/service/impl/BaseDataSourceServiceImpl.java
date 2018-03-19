@@ -28,10 +28,7 @@ import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
-import com.odysseusinc.arachne.portal.model.DataSource;
-import com.odysseusinc.arachne.portal.model.IDataSource;
-import com.odysseusinc.arachne.portal.model.IUser;
-import com.odysseusinc.arachne.portal.model.Skill;
+import com.odysseusinc.arachne.portal.model.*;
 import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
 import com.odysseusinc.arachne.portal.repository.BaseDataSourceRepository;
 import com.odysseusinc.arachne.portal.repository.BaseRawDataSourceRepository;
@@ -45,12 +42,7 @@ import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import com.odysseusinc.arachne.portal.service.mail.NewDataSourceMailMessage;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -59,12 +51,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.*;
 
 @Transactional(rollbackFor = Exception.class)
 public abstract class BaseDataSourceServiceImpl<
@@ -79,6 +76,7 @@ public abstract class BaseDataSourceServiceImpl<
     protected BaseRawDataSourceRepository<DS> rawDataSourceRepository;
     protected final BaseUserService<IUser, Skill> userService;
     protected final ArachneMailSender arachneMailSender;
+    protected EntityManager entityManager;
 
     public BaseDataSourceServiceImpl(BaseSolrService<SF> solrService,
                                      BaseDataSourceRepository<DS> dataSourceRepository,
@@ -86,7 +84,8 @@ public abstract class BaseDataSourceServiceImpl<
                                      TenantService tenantService,
                                      BaseRawDataSourceRepository<DS> rawDataSourceRepository,
                                      BaseUserService<IUser, Skill> userService,
-                                     ArachneMailSender arachneMailSender) {
+                                     ArachneMailSender arachneMailSender,
+                                     EntityManager entityManager) {
 
         this.solrService = solrService;
         this.dataSourceRepository = dataSourceRepository;
@@ -95,6 +94,7 @@ public abstract class BaseDataSourceServiceImpl<
         this.rawDataSourceRepository = rawDataSourceRepository;
         this.userService = userService;
         this.arachneMailSender = arachneMailSender;
+        this.entityManager = entityManager;
     }
 
     @Override
@@ -316,10 +316,44 @@ public abstract class BaseDataSourceServiceImpl<
     @Override
     public Page<DS> suggestDataSource(final String query, final Long studyId, final Long userId,
                                       PageRequest pageRequest) {
-
+        List<DataSourceStatus> BAD_STATUSES = Arrays.asList(DataSourceStatus.DELETED, DataSourceStatus.DECLINED);
         final String[] split = query.trim().split(" ");
-        String suggestRequest = "%(" + String.join("|", split) + ")%";
-        return doSuggestDataSource(suggestRequest, userId, studyId, pageRequest);
+
+        CriteriaBuilder cb = this.entityManager.getCriteriaBuilder();
+        CriteriaQuery<DS> cq = (CriteriaQuery<DS>) cb.createQuery(RawDataSource.class);
+        Root<DS> root = (Root<DS>) cq.from(RawDataSource.class);
+
+        Subquery sq = cq.subquery(Long.class);
+        Root<StudyDataSourceLink> dsLink = sq.from(StudyDataSourceLink.class);
+        sq.select(dsLink.get("dataSource").get("id"));
+        sq.where(cb.and(cb.equal(dsLink.get("study").get("id"), studyId),
+                        cb.not(dsLink.get("status").in(BAD_STATUSES))));
+
+        cq.select(root);
+        Expression<String> name = cb.concat(cb.concat(root.get("name"), " "), root.get("dataNode").get("name"));
+        Predicate nameClause = cb.conjunction();  // TRUE
+        if (split.length == 1) {
+            nameClause = cb.like(name, split[0] + "%");
+        }
+        else if (split.length > 1) {
+            List<Predicate> predictList = new ArrayList<>();
+            for (String one: split) {
+                predictList.add(cb.like(name, one + "%"));
+            }
+            nameClause = cb.or(predictList.toArray(new Predicate[] {}));
+        }
+
+        cq.where(cb.and(cb.not(root.get("id").in(sq)),
+                        nameClause,
+                        cb.isNull(root.get("deleted")),
+                        cb.isTrue(root.get("published")),
+                        cb.isFalse(root.get("dataNode").get("virtual"))));
+
+        TypedQuery<DS> typedQuery = this.entityManager.createQuery(cq);
+        List<DS> list = typedQuery.setFirstResult(pageRequest.getOffset())
+                            .setMaxResults(pageRequest.getPageSize())
+                            .getResultList();
+        return new PageImpl<>(list, pageRequest, list.size());
     }
 
     protected Page<DS> doSuggestDataSource(String query, Long userId, Long studyId, PageRequest pageRequest) {
