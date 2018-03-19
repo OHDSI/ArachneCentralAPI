@@ -298,7 +298,7 @@
         <dependency>
             <groupId>com.odysseusinc.arachne</groupId>
             <artifactId>execution-engine-commons</artifactId>
-            <version>1.11.0</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.ohdsi.sql</groupId>
