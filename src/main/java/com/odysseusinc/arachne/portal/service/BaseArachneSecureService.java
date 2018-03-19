@@ -60,4 +60,6 @@ public interface BaseArachneSecureService<P extends Paper, DS extends IDataSourc
     Set<ArachnePermission> getPermissionsForUser(ArachneUser user, User targetUser);
 
     boolean canImportFromDatanode(ArachneUser user, DataNode dataNode);
+
+    boolean wasDataSourceApproved(Analysis analysis, Long dataSourceId);
 }

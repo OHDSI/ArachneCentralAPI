@@ -79,8 +79,6 @@ public class AnalysisHelper implements AnalysisPaths {
         //removes datasourceId duplicates
         Set<Long> datasourceIdSet = new HashSet<>(datasourceIds);
 
-        verifyDataSources(analysis, datasourceIdSet);
-
         SubmissionGroup submissionGroup = submissionService.createSubmissionGroup(user, analysis);
 
         for (Long datasourceId : datasourceIdSet) {
@@ -88,21 +86,6 @@ public class AnalysisHelper implements AnalysisPaths {
         }
 
         return submissions;
-    }
-
-    private static void verifyDataSources(Analysis analysis, Set<Long> datasourceIds) throws ValidationException {
-
-        List<Long> dataSourceIds = analysis.getStudy()
-                .getDataSources().stream()
-                .filter(s -> DataSourceStatus.APPROVED.equals(s.getStatus()))
-                .map(s -> s.getDataSource().getId())
-                .collect(Collectors.toList());
-
-        Set<Long> difference = Sets.difference(datasourceIds, new HashSet<>(dataSourceIds));
-
-        if (difference.size() > 0) {
-            throw new ValidationException(String.format("You cannot submit an Analysis to DataSources with ids %s. They probably are disabled or aren't linked with analysis's study", difference.toString()));
-        }
     }
 
     public String getStoreFilesPath() {
