@@ -31,6 +31,7 @@ import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
+import com.odysseusinc.arachne.portal.model.RawDataSource;
 import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
 import com.odysseusinc.arachne.portal.repository.BaseDataSourceRepository;
@@ -182,7 +183,7 @@ public abstract class BaseDataSourceServiceImpl<
     }
 
     @Transactional
-    @PreAuthorize("hasPermission(#dataSource, "
+    @PreAuthorize("hasRole('ROLE_ADMIN') || hasPermission(#dataSource, "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_DATASOURCE)")
     @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
     @Override
@@ -190,11 +191,11 @@ public abstract class BaseDataSourceServiceImpl<
             throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
         DS forUpdate = rawDataSourceRepository.findByIdAndDeletedIsNull(dataSource.getId())
-                .orElseThrow(() -> new NotExistException(DataSource.class));
+                .orElseThrow(() -> new NotExistException(RawDataSource.class));
         forUpdate = baseUpdate(forUpdate, dataSource);
 
         beforeUpdate(forUpdate, dataSource);
-        DS savedDataSource = dataSourceRepository.save(forUpdate);
+        DS savedDataSource = rawDataSourceRepository.save(forUpdate);
         afterUpdate(savedDataSource);
         return savedDataSource;
     }
@@ -229,19 +230,6 @@ public abstract class BaseDataSourceServiceImpl<
             exist.setDbmsType(dataSource.getDbmsType());
         }
         return exist;
-    }
-
-    @Secured({"ROLE_ADMIN"})
-    @Override
-    public DS updateInAnyTenant(DS dataSource)
-            throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
-
-        DS forUpdate = getNotDeletedByIdInAnyTenant(dataSource.getId());
-        forUpdate = baseUpdate(forUpdate, dataSource);
-        beforeUpdate(forUpdate, dataSource);
-        DS savedDataSource = rawDataSourceRepository.save(forUpdate);
-        afterUpdate(savedDataSource);
-        return savedDataSource;
     }
 
     protected void beforeUpdate(DS target, DS dataSource) {
