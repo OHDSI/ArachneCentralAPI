@@ -187,7 +187,7 @@ public abstract class BaseDataSourceServiceImpl<
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_DATASOURCE)")
     @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
     @Override
-    public DS update(DS dataSource)
+    public DS updateInAnyTenant(DS dataSource)
             throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
         DS forUpdate = rawDataSourceRepository.findByIdAndDeletedIsNull(dataSource.getId())
