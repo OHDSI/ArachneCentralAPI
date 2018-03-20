@@ -22,12 +22,12 @@
 
 package com.odysseusinc.arachne.portal.model.factory;
 
-import com.odysseusinc.arachne.portal.model.BaseUser;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Role;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -42,7 +42,7 @@ public class ArachneUserFactory {
         }
         return new ArachneUser(
                 user.getId(),
-                user.getActiveTenant().getId(),
+                Objects.isNull(user.getActiveTenant()) ? null : user.getActiveTenant().getId(),
                 ObjectUtils.firstNonNull(user.getUsername(), user.getEmail()),
                 user.getPassword(),
                 user.getEmail(),
