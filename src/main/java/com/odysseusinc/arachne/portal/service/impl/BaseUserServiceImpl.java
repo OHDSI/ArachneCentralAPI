@@ -31,7 +31,6 @@ import static com.odysseusinc.arachne.portal.service.RoleService.ROLE_ADMIN;
 import static java.lang.Boolean.TRUE;
 import static org.springframework.data.jpa.domain.Specifications.where;
 
-import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraphUtils;
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Metadata;
@@ -170,7 +169,7 @@ public abstract class BaseUserServiceImpl<
     private final UserRegistrantService userRegistrantService;
     private final ArachnePasswordValidator passwordValidator;
     private final TenantService tenantService;
-    private final BaseRawUserRepository<U> rawUserRepository;
+    protected final BaseRawUserRepository<U> rawUserRepository;
 
     @Value("${files.store.path}")
     private String fileStorePath;
@@ -239,6 +238,12 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
+    public U getByUsernameInAnyTenant(final String username) {
+
+        return rawUserRepository.findByEmailAndEnabledTrue(username);
+    }
+
+    @Override
     public U getByEmail(final String email) {
 
         return getByUsername(this.userOrigin, email);
@@ -249,6 +254,12 @@ public abstract class BaseUserServiceImpl<
     public U getByUnverifiedEmail(final String email) {
 
         return userRepository.findByEmail(email, EntityUtils.fromAttributePaths("roles", "professionalType"));
+    }
+
+    @Override
+    public U getByUnverifiedEmailInAnyTenant(final String email) {
+
+        return rawUserRepository.findByEmail(email, EntityUtils.fromAttributePaths("roles", "professionalType"));
     }
 
     @Override
@@ -500,10 +511,10 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    public List<U> suggestUser(final String query, List<String> emailsList, final Integer limit) {
+    public List<U> suggestUserFromAnyTenant(final String query, List<String> emailsList, final Integer limit) {
 
         final String preparedQuery = prepareQuery(query);
-        return userRepository.suggest(preparedQuery, emailsList, limit);
+        return rawUserRepository.suggest(preparedQuery, emailsList, limit);
     }
 
     @Override

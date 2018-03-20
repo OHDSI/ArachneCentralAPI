@@ -22,9 +22,13 @@
 
 package com.odysseusinc.arachne.portal.repository;
 
+import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
 import com.odysseusinc.arachne.portal.model.IUser;
+import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.NoRepositoryBean;
+import org.springframework.data.repository.query.Param;
 
 @NoRepositoryBean
 public interface BaseRawUserRepository<U extends IUser> extends JpaRepository<U, Long> {
@@ -34,4 +38,22 @@ public interface BaseRawUserRepository<U extends IUser> extends JpaRepository<U,
     U findByOriginAndUsername(String userOrigin, String username);
 
     U findByRegistrationCode(String activateCode);
+
+    U findByEmail(String email, EntityGraph entityGraph);
+
+    U findByEmailAndEnabledTrue(String email);
+
+    U findByOriginAndUsernameAndEnabledTrue(String userOrigin, String username);
+
+    @Query(nativeQuery = true, value = "SELECT * FROM users_data "
+            + " WHERE "
+            + "     (lower(firstname) SIMILAR TO :suggestRequest OR\n"
+            + "     lower(lastname) SIMILAR TO :suggestRequest OR\n"
+            + "     lower(middlename) SIMILAR TO :suggestRequest)"
+            + " AND email NOT IN (:emails)"
+            + " AND enabled = TRUE"
+            + " LIMIT :limit")
+    List<U> suggest(@Param("suggestRequest") String suggestRequest,
+                    @Param("emails") List<String> emails,
+                    @Param("limit") Integer limit);
 }
