@@ -145,7 +145,7 @@ public class AnalysisSubmissionControllerTests extends BaseControllerTest {
     public void testCreateSubmissionWithNotConnectedDS() throws Exception {
 
         sendRequest(STUDY_ID, ANALYSIS_ID, NOT_STUDY_DATASOURCE_ID)
-                .andExpect(VALIDATION_ERROR_CODE);
+                .andExpect(PERMISSION_DENIED_CODE);
     }
 
     @Test
