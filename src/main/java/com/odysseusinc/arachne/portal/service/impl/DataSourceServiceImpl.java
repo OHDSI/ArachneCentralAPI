@@ -35,6 +35,7 @@ import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
 import java.util.List;
 
 @Service
@@ -48,9 +49,10 @@ public class DataSourceServiceImpl extends BaseDataSourceServiceImpl<DataSource,
                                  TenantService tenantService,
                                  BaseRawDataSourceRepository rawDataSourceRepository,
                                  UserService userService,
-                                 ArachneMailSender arachneMailSender) {
+                                 ArachneMailSender arachneMailSender,
+                                 EntityManager entityManager) {
 
-        super(solrService, dataSourceRepository, conversionService, tenantService, rawDataSourceRepository, userService, arachneMailSender);
+        super(solrService, dataSourceRepository, conversionService, tenantService, rawDataSourceRepository, userService, arachneMailSender, entityManager);
     }
 
     @Override
