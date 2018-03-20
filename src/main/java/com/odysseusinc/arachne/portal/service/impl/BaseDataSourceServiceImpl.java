@@ -28,7 +28,12 @@ import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
-import com.odysseusinc.arachne.portal.model.*;
+import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.DataSourceStatus;
+import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
+import com.odysseusinc.arachne.portal.model.Skill;
+import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
 import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
 import com.odysseusinc.arachne.portal.repository.BaseDataSourceRepository;
 import com.odysseusinc.arachne.portal.repository.BaseRawDataSourceRepository;
@@ -42,8 +47,20 @@ import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import com.odysseusinc.arachne.portal.service.mail.NewDataSourceMailMessage;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -61,7 +78,6 @@ import org.springframework.util.CollectionUtils;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.*;
 
 @Transactional(rollbackFor = Exception.class)
 public abstract class BaseDataSourceServiceImpl<
@@ -287,7 +303,7 @@ public abstract class BaseDataSourceServiceImpl<
         return dataSource;
     }
 
-    protected abstract Class<?> getType();
+    protected abstract <T extends DS> Class<T> getType();
 
     @Override
     public List<DS> getAllNotDeletedIsNotVirtualUnsecured() {
@@ -320,8 +336,8 @@ public abstract class BaseDataSourceServiceImpl<
         final String[] split = query.trim().split(" ");
 
         CriteriaBuilder cb = this.entityManager.getCriteriaBuilder();
-        CriteriaQuery<DS> cq = (CriteriaQuery<DS>) cb.createQuery(RawDataSource.class);
-        Root<DS> root = (Root<DS>) cq.from(RawDataSource.class);
+        CriteriaQuery<DS> cq = cb.createQuery(getType());
+        Root<DS> root = cq.from(getType());
 
         Subquery sq = cq.subquery(Long.class);
         Root<StudyDataSourceLink> dsLink = sq.from(StudyDataSourceLink.class);
@@ -330,15 +346,12 @@ public abstract class BaseDataSourceServiceImpl<
                         cb.not(dsLink.get("status").in(BAD_STATUSES))));
 
         cq.select(root);
-        Expression<String> name = cb.concat(cb.concat(root.get("name"), " "), root.get("dataNode").get("name"));
         Predicate nameClause = cb.conjunction();  // TRUE
-        if (split.length == 1) {
-            nameClause = cb.like(name, split[0] + "%");
-        }
-        else if (split.length > 1) {
+        if (split.length > 1 || (split.length == 1 && !split[0].equals("") )) {
             List<Predicate> predictList = new ArrayList<>();
             for (String one: split) {
-                predictList.add(cb.like(name, one + "%"));
+                predictList.add(cb.like(cb.lower(root.get("name")), one + "%"));
+                predictList.add(cb.like(cb.lower(root.get("dataNode").get("name")), one + "%"));
             }
             nameClause = cb.or(predictList.toArray(new Predicate[] {}));
         }
