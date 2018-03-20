@@ -22,7 +22,10 @@
 
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
+import com.odysseusinc.arachne.commons.api.v1.dto.AtlasShortDTO;
 import com.odysseusinc.arachne.portal.model.DataNode;
+import com.odysseusinc.arachne.portal.model.IAtlas;
+import com.odysseusinc.arachne.portal.service.AtlasService;
 import com.odysseusinc.arachne.portal.service.DataNodeService;
 import com.odysseusinc.arachne.portal.service.messaging.DataNodeMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,13 +33,20 @@ import org.springframework.jms.core.JmsTemplate;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class DataNodeMessagingController extends BaseDataNodeMessagingController<DataNode> {
+public class DataNodeMessagingController extends BaseDataNodeMessagingController<DataNode, IAtlas> {
 
     @Autowired
     public DataNodeMessagingController(JmsTemplate jmsTemplate,
                                        DataNodeService dataNodeService,
-                                       DataNodeMessageService dataNodeMessageService) {
+                                       DataNodeMessageService dataNodeMessageService,
+                                       AtlasService atlasService) {
 
-        super(jmsTemplate, dataNodeService, dataNodeMessageService);
+        super(jmsTemplate, dataNodeService, dataNodeMessageService, atlasService);
+    }
+
+    @Override
+    protected IAtlas convert(AtlasShortDTO atlasDTO) {
+
+        return conversionService.convert(atlasDTO, IAtlas.class);
     }
 }

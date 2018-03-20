@@ -96,4 +96,5 @@ public class DataSourceDTO extends CommonBaseDataSourceDTO implements IDataSourc
 
         this.permissions = permissions;
     }
+
 }

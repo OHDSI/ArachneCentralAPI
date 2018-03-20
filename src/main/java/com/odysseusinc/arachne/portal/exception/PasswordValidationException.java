@@ -22,20 +22,20 @@
 
 package com.odysseusinc.arachne.portal.exception;
 
-import java.util.List;
+import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordInfo;
 
 public class PasswordValidationException extends Exception {
 
-    private final List<String> messages;
+    private final ArachnePasswordInfo passwordInfo;
 
-    public PasswordValidationException(final List<String> messages) {
+    public PasswordValidationException(final ArachnePasswordInfo passwordInfo) {
 
-        this.messages = messages;
+        this.passwordInfo = passwordInfo;
     }
 
-    public List<String> getMessages() {
+    public ArachnePasswordInfo getPasswordInfo() {
 
-        return messages;
+        return passwordInfo;
     }
 
 }

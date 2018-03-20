@@ -22,23 +22,24 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
+import com.odysseusinc.arachne.portal.api.v1.dto.TenantPersonalDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserInfoDTO;
-import com.odysseusinc.arachne.portal.model.User;
-import org.springframework.beans.factory.annotation.Autowired;
-import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
-import org.springframework.core.convert.support.GenericConversionService;
+import com.odysseusinc.arachne.portal.model.IUser;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UserToUserInfoDTOConverter extends BaseConversionServiceAwareConverter<User, UserInfoDTO> {
+public class UserToUserInfoDTOConverter<T extends UserInfoDTO> extends BaseConversionServiceAwareConverter<IUser, T> {
 
     @Override
-    public UserInfoDTO convert(User source) {
+    public T convert(final IUser source) {
 
         if (source == null) {
             return null;
         }
-        final UserInfoDTO userInfoDTO = new UserInfoDTO();
+        final T userInfoDTO = createResultObject();
         userInfoDTO.setId(source.getUuid());
         userInfoDTO.setEmail(source.getEmail());
         final boolean isAdmin = source.getRoles().stream()
@@ -47,6 +48,23 @@ public class UserToUserInfoDTOConverter extends BaseConversionServiceAwareConver
         userInfoDTO.setFirstname(source.getFirstname());
         userInfoDTO.setMiddlename(source.getMiddlename());
         userInfoDTO.setLastname(source.getLastname());
+
+        List<TenantPersonalDTO> tenantDTOs = source.getTenants()
+                .stream()
+                .map(t -> {
+                    TenantPersonalDTO dto = conversionService.convert(t, TenantPersonalDTO.class);
+                    dto.setActive(Objects.equals(source.getActiveTenant(), t));
+                    return dto;
+                })
+                .collect(Collectors.toList());
+        userInfoDTO.setTenants(tenantDTOs);
+
         return userInfoDTO;
+    }
+
+    @Override
+    protected T createResultObject() {
+
+        return (T)new UserInfoDTO();
     }
 }

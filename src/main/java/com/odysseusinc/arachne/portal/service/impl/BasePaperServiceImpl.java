@@ -30,6 +30,7 @@ import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.AbstractPaperFile;
 import com.odysseusinc.arachne.portal.model.AntivirusFile;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.PaperFavourite;
 import com.odysseusinc.arachne.portal.model.PaperFileType;
@@ -40,6 +41,7 @@ import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.PaperSearch;
 import com.odysseusinc.arachne.portal.model.search.PaperSpecification;
+import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
 import com.odysseusinc.arachne.portal.model.statemachine.study.StudyState;
 import com.odysseusinc.arachne.portal.model.statemachine.study.StudyStateActions;
 import com.odysseusinc.arachne.portal.repository.PaperFavouritesRepository;
@@ -59,6 +61,7 @@ import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJob
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobResponse;
 import java.util.Arrays;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -114,13 +117,15 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
     private RestTemplate restTemplate;
     @Autowired
     private ApplicationEventPublisher eventPublisher;
+    @Autowired
+    private BaseSolrServiceImpl solrService;
 
 
     @Transactional(rollbackFor = Exception.class)
     @Override
     @PreAuthorize("hasPermission(#studyId, 'Study', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_STUDY)")
-    public P create(User owner, Long studyId) {
+    public P create(IUser owner, Long studyId) {
 
         final Study study = studyService.getById(studyId);
         final P paper = createPaper();
@@ -134,7 +139,8 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
     }
 
     protected void afterPaperSave(P newPaper) {
-
+        
+        solrService.indexBySolr(newPaper);
     }
 
     protected void beforePaperSave(P newPaper) {
@@ -144,7 +150,7 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
     public abstract P createPaper();
 
     @Override
-    public Page<P> getPapersAccordingToCurrentUser(PS paperSearch, User user) {
+    public Page<P> getPapersAccordingToCurrentUser(PS paperSearch, IUser user) {
 
         final PaperSpecification<P> paperSpecification = new PaperSpecification<>(paperSearch, user);
         return paperRepository.findAll(paperSpecification, new PageRequest(paperSearch.getPage(), paperSearch.getPageSize()));
@@ -192,6 +198,7 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
 
     protected void afterPaperUpdate(P fromDb, P updated) {
 
+        solrService.indexBySolr(fromDb);
     }
 
     protected void beforePaperUpdate(P exists, P updated) {
@@ -225,7 +232,7 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).LIMITED_EDIT_PAPER)")
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public String saveFile(Long paperId, MultipartFile file, PaperFileType fileType, String label, User user) throws IOException {
+    public String saveFile(Long paperId, MultipartFile file, PaperFileType fileType, String label, IUser user) throws IOException {
 
         if (file == null) {
             throw new IllegalArgumentException("File must not be null");
@@ -256,7 +263,7 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).LIMITED_EDIT_PAPER)")
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public String saveFile(Long paperId, String link, PaperFileType type, String label, User user) throws MalformedURLException {
+    public String saveFile(Long paperId, String link, PaperFileType type, String label, IUser user) throws MalformedURLException {
 
         if (StringUtils.isEmpty(link)) {
             throw new IllegalArgumentException();
@@ -290,7 +297,7 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_PAPER)")
     @Override
     public void updateFile(Long paperId, String uuid, MultipartFile multipartFile,
-                           PaperFileType fileType, User user) throws IOException {
+                           PaperFileType fileType, IUser user) throws IOException {
 
         final AbstractPaperFile paperFile = getAbstractPaperFile(paperId, uuid, fileType);
         fileService.updateFile(multipartFile, paperFile);
@@ -358,7 +365,7 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
 
     private AbstractPaperFile savePaperFile(PaperFileType fileType,
                                             String label,
-                                            User user,
+                                            IUser user,
                                             Paper paper,
                                             String contentType,
                                             String realName,
@@ -387,7 +394,7 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
         return paperFile;
     }
 
-    private void enrichPaperFile(User user, String label, Paper paper, AbstractPaperFile paperFile,
+    private void enrichPaperFile(IUser user, String label, Paper paper, AbstractPaperFile paperFile,
                                  String contentType, String realName, String link) {
 
         paperFile.setPaper(paper);
@@ -412,7 +419,7 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
             Long id
     ) throws PermissionDeniedException, IOException, ValidationException {
 
-        final User user = userService.getUser(principal);
+        final IUser user = userService.getUser(principal);
         if (multipartFile != null) {
             this.saveFile(id, multipartFile, type, label, user);
         } else if (!org.apache.commons.lang3.StringUtils.isEmpty(link)) {
@@ -443,6 +450,21 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
         }
 
         paperRepository.delete(papers);
+    }
+    
+    @Override
+    public void indexAllBySolr() throws IOException, NotExistException, SolrServerException, NoSuchFieldException, IllegalAccessException {
+        solrService.deleteAll(SolrCollection.PAPERS);
+        final List<P> papers = paperRepository.findAll();
+        for (final P paper : papers) {
+            indexBySolr(paper);
+        }
+    }
+    
+    @Override
+    public void indexBySolr(final P paper) {
+        
+        solrService.indexBySolr(paper);
     }
 
     @EventListener

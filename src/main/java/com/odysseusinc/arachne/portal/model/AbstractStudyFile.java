@@ -44,8 +44,8 @@ public abstract class AbstractStudyFile extends AntivirusFile {
     protected Date updated;
     @Column
     protected String link;
-    @ManyToOne(fetch = FetchType.LAZY)
-    protected User author;
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = User.class)
+    protected IUser author;
 
     public String getUuid() {
 
@@ -117,12 +117,12 @@ public abstract class AbstractStudyFile extends AntivirusFile {
         this.link = link;
     }
 
-    public User getAuthor() {
+    public IUser getAuthor() {
 
         return author;
     }
 
-    public void setAuthor(User author) {
+    public void setAuthor(IUser author) {
 
         this.author = author;
     }

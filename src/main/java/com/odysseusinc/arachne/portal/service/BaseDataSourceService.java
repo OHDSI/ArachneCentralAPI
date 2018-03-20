@@ -9,7 +9,7 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * WIDSHOUDS WARRANDSIES OR CONDIDSIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
@@ -26,38 +26,35 @@ import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.NotUniqueException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
-import com.odysseusinc.arachne.portal.model.DataSource;
-import com.odysseusinc.arachne.portal.model.User;
+import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
+import java.io.IOException;
+import java.util.List;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
-import java.io.IOException;
-import java.util.List;
-
-public interface BaseDataSourceService<T extends DataSource> {
+public interface BaseDataSourceService<DS extends IDataSource> {
 
     FieldList getSolrFields();
 
-    T createOrRestoreDataSource(T dataSource)
+    DS createOrRestoreDataSource(DS dataSource)
             throws FieldException,
             NotExistException,
             ValidationException,
             IOException,
             SolrServerException, NoSuchFieldException, IllegalAccessException;
 
-    SearchResult<T> search(
+    SearchResult<DS> search(
             SolrQuery solrQuery
-    ) throws IOException, SolrServerException;
+    ) throws IOException, SolrServerException, NoSuchFieldException;
 
-    SearchResult<T> search(SolrQuery solrQuery, User user) throws NoSuchFieldException, IOException, SolrServerException;
+    SearchResult<DS> search(SolrQuery solrQuery, IUser user) throws NoSuchFieldException, IOException, SolrServerException;
 
-    T update(
-            T dataSource
-    ) throws
+    DS updateInAnyTenant(DS dataSource) throws
                     NotExistException,
                     ValidationException,
                     IOException,
@@ -65,20 +62,29 @@ public interface BaseDataSourceService<T extends DataSource> {
                     NoSuchFieldException,
                     IllegalAccessException, NotUniqueException;
 
-    T getNotDeletedById(Long id);
+    DS getNotDeletedByIdInAnyTenant(Long id);
 
-    T getByIdUnsecured(Long id) throws NotExistException;
+    DS getByIdUnsecured(Long id) throws NotExistException;
 
-    List<T> getAllNotDeletedIsNotVirtualUnsecured();
+    List<DS> getAllNotDeletedIsNotVirtualUnsecured();
 
-    T findByUuidUnsecured(String uuid) throws NotExistException;
+    DS findByUuidUnsecured(String uuid) throws NotExistException;
 
-    T findById(Long dataSourceId);
+    void indexBySolr(DS dataSource)
+            throws IOException, SolrServerException, NoSuchFieldException, IllegalAccessException;
 
-    Page<T> suggestDataSource(String query, Long studyId, Long userId,
+    DS getNotDeletedById(Long dataSourceId);
+
+    List<DS> findByIdsAndNotDeleted(List<Long> dataSourceIds);
+
+    Page<DS> suggestDataSource(String query, Long studyId, Long userId,
                                        PageRequest pageRequest);
 
     void indexAllBySolr() throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException;
 
     void delete(Long id) throws IOException, SolrServerException;
+
+    void unpublish(Long id) throws IOException, SolrServerException;
+
+    Page<DS> getUserDataSources(final String query, final Long userId, PageRequest pageRequest);
 }

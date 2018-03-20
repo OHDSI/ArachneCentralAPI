@@ -22,44 +22,45 @@
 
 package com.odysseusinc.arachne.portal.repository;
 
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.User;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.Specifications;
 
 public class UserSpecifications {
-    public static <U extends User> Specification<U> userEnabled() {
+    public static <U extends IUser> Specification<U> userEnabled() {
 
         return (root, query, cb) -> cb.equal(root.get("enabled"), true);
     }
 
-    public static <U extends User> Specification<U> emailConfirmed() {
+    public static <U extends IUser> Specification<U> emailConfirmed() {
 
         return (root, query, cb) -> cb.equal(root.get("emailConfirmed"), true);
     }
 
-    public static <U extends User> Specification<U> hasEmail() {
+    public static <U extends IUser> Specification<U> hasEmail() {
 
         return (root, query, cb) -> cb.isNotNull(root.get("email"));
     }
 
-    public static <U extends User> Specification<U> withFieldLike(String field, String namePattern) {
+    public static <U extends IUser> Specification<U> withFieldLike(String field, String namePattern) {
 
         return (root, query, cb) -> cb.like(root.get(field), namePattern);
     }
 
-    public static <U extends User> Specification<U> withNameLike(String namePattern) {
+    public static <U extends IUser> Specification<U> withNameLike(String namePattern) {
 
         Specifications<U> spec = Specifications.where(withFieldLike("firstname", namePattern));
         return spec.or(withFieldLike("middlename", namePattern))
                 .or(withFieldLike("lastname", namePattern));
     }
 
-    public static <U extends User> Specification<U> withEmailLike(String emailPattern) {
+    public static <U extends IUser> Specification<U> withEmailLike(String emailPattern) {
 
         return withFieldLike("email", emailPattern);
     }
 
-    public static <U extends User> Specification<U> withNameOrEmailLike(String pattern) {
+    public static <U extends IUser> Specification<U> withNameOrEmailLike(String pattern) {
 
         Specifications<U> spec = Specifications.where(withNameLike(pattern));
         return spec.or(withEmailLike(pattern));

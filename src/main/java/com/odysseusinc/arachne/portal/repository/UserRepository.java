@@ -23,6 +23,8 @@
 package com.odysseusinc.arachne.portal.repository;
 
 import com.odysseusinc.arachne.portal.model.User;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface UserRepository extends BaseUserRepository<User> {
 }

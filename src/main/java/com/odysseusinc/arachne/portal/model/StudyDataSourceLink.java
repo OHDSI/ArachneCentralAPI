@@ -58,7 +58,7 @@ public class StudyDataSourceLink implements Invitationable {
 
     @ManyToOne(optional = false, targetEntity = DataSource.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "data_source_id")
-    private DataSource dataSource;
+    private IDataSource dataSource;
 
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
@@ -72,7 +72,7 @@ public class StudyDataSourceLink implements Invitationable {
 
     @ManyToOne(optional = false, targetEntity = User.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
-    private User createdBy;
+    private IUser createdBy;
 
     @Column(name = "deleted_at")
     private Date deletedAt;
@@ -97,12 +97,12 @@ public class StudyDataSourceLink implements Invitationable {
         this.study = study;
     }
 
-    public DataSource getDataSource() {
+    public IDataSource getDataSource() {
 
         return dataSource;
     }
 
-    public void setDataSource(DataSource dataSource) {
+    public void setDataSource(IDataSource dataSource) {
 
         this.dataSource = dataSource;
     }
@@ -137,12 +137,12 @@ public class StudyDataSourceLink implements Invitationable {
         this.token = token;
     }
 
-    public User getCreatedBy() {
+    public IUser getCreatedBy() {
 
         return createdBy;
     }
 
-    public void setCreatedBy(User createdBy) {
+    public void setCreatedBy(IUser createdBy) {
 
         this.createdBy = createdBy;
     }
@@ -164,7 +164,7 @@ public class StudyDataSourceLink implements Invitationable {
     }
 
     @Override
-    public User getAuthor() {
+    public IUser getAuthor() {
 
         return getCreatedBy();
     }

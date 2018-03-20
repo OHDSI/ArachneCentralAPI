@@ -22,6 +22,11 @@
 
 package com.odysseusinc.arachne.portal.service;
 
+import static com.odysseusinc.arachne.portal.service.impl.solr.SolrField.META_PREFIX;
+
+import com.odysseusinc.arachne.portal.exception.NotExistException;
+import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
+import com.odysseusinc.arachne.portal.model.solr.SolrEntity;
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -33,9 +38,21 @@ import java.lang.reflect.Field;
 import java.util.Map;
 
 public interface BaseSolrService<T extends SolrField> {
+
+    String MULTI_METADATA_PREFIX = "multi_" + META_PREFIX;
+    String BREADCRUMBS = "breadcrumbs";
+    
+    String ID = "entity_id";
+    String TYPE = "entity_type";
+    String TITLE = "entity_title";
+    String IS_PUBLIC = "is_public";
+    String PARTICIPANTS = "participants";
+    String TENANTS = "tenants";
+    String SYSTEM_ID = "id";
+
     T getSolrField(Field field);
 
-    FieldList<T> getFieldsOfClass(Class entity);
+    FieldList<T> getFieldsOfClass(Class<?> entity);
 
     Map<T, Object> getValuesByEntity(Object entity) throws IllegalAccessException, NoSuchFieldException;
 
@@ -47,8 +64,22 @@ public interface BaseSolrService<T extends SolrField> {
 
     QueryResponse search(
             String collection,
+            SolrQuery solrQuery,
+            Boolean isTenantsFilteringNeeded
+    ) throws IOException, SolrServerException, NoSuchFieldException;
+
+    QueryResponse search(
+            String collection,
             SolrQuery solrQuery
-    ) throws IOException, SolrServerException;
+    ) throws IOException, SolrServerException, NoSuchFieldException;
 
     void deleteByQuery(String collection, String query) throws IOException, SolrServerException;
+
+    void indexBySolr(SolrEntity object);
+
+    void delete(SolrEntity entity) throws IOException, SolrServerException;
+
+    void delete(SolrCollection collection, String id) throws IOException, SolrServerException;
+
+    void deleteAll(SolrCollection collection) throws IOException, SolrServerException;
 }

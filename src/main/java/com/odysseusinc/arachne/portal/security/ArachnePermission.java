@@ -25,12 +25,13 @@ package com.odysseusinc.arachne.portal.security;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.AnalysisFile;
 import com.odysseusinc.arachne.portal.model.DataNode;
-import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.Organization;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionInsight;
+import com.odysseusinc.arachne.portal.model.User;
 
 public enum ArachnePermission {
     EDIT_STUDY(Study.class),
@@ -48,14 +49,21 @@ public enum ArachnePermission {
     CREATE_SUBMISSION(Analysis.class),
     APPROVE_SUBMISSION(Submission.class),
     EDIT_DATANODE(DataNode.class),
-    ACCESS_DATASOURCE(DataSource.class),
+    IMPORT_FROM_DATANODE(DataNode.class),
+    ACCESS_DATASOURCE(IDataSource.class),
     CREATE_DATASOURCE(DataNode.class),
-    DELETE_DATASOURCE(DataSource.class),
+    EDIT_DATASOURCE(IDataSource.class),
+    DELETE_DATASOURCE(IDataSource.class),
     SENDING_UNLOCK_ANALYSIS_REQUEST(Analysis.class),
     EDIT_PAPER(Paper.class),
     EDIT_INSIGHT(SubmissionInsight.class),
     ACCESS_PAPER(Paper.class),
     LIMITED_EDIT_PAPER(Paper.class),
+    ACCESS_USER(User.class),
+    UPLOAD_ACHILLES_REPORTS(IDataSource.class),
+    ACCESS_ACHILLES_REPORT_PERMISSION(IDataSource.class),
+    EDIT_ACHILLES_REPORT_PERMISSION(IDataSource.class),
+    UPDATE_SUBMISSION(Submission.class),
     ACCESS_ORGANIZATION(Organization.class),
     CREATE_ORGANIZATION(Organization.class),
     UPDATE_ORGANIZATION(Organization.class),

@@ -22,7 +22,6 @@
 
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
-import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeRegisterDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataSourceDTO;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.DataNode;
@@ -32,6 +31,7 @@ import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
 import com.odysseusinc.arachne.portal.service.StudyDataSourceService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
+import com.odysseusinc.arachne.portal.util.ArachneConverterUtils;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -42,25 +42,35 @@ public class DataNodeController extends BaseDataNodeController<DataSource, Commo
                               BaseDataSourceService<DataSource> dataSourceService,
                               GenericConversionService genericConversionService,
                               BaseUserService userService,
-                              StudyDataSourceService studyDataSourceService) {
+                              StudyDataSourceService studyDataSourceService,
+                              ArachneConverterUtils converterUtils) {
 
         super(analysisService,
                 baseDataNodeService,
                 dataSourceService,
                 genericConversionService,
                 userService,
-                studyDataSourceService);
+                studyDataSourceService,
+                converterUtils);
     }
 
     @Override
-    protected DataNode convertRegisterDtoToDataNode(CommonDataNodeRegisterDTO commonDataNodeRegisterDTO) {
+    protected Class<DataNode> getDataNodeDNClass() {
 
-        return conversionService.convert(commonDataNodeRegisterDTO, DataNode.class);
+        return DataNode.class;
+    }
+
+    @Override
+    protected DataNode buildEmptyDN() {
+
+        return super.buildEmptyDataNode();
     }
 
     @Override
     protected DataSource convertCommonDataSourceDtoToDataSource(CommonDataSourceDTO commonDataSourceDTO) {
 
-        return conversionService.convert(commonDataSourceDTO, DataSource.class);
+        DataSource ds = conversionService.convert(commonDataSourceDTO, DataSource.class);
+        ds.setModelType(null);
+        return ds;
     }
 }

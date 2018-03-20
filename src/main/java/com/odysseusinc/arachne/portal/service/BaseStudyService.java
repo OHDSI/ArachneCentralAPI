@@ -30,7 +30,8 @@ import com.odysseusinc.arachne.portal.exception.NotUniqueException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
-import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
@@ -50,11 +51,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface BaseStudyService<
         T extends Study,
-        DS extends DataSource,
+        DS extends IDataSource,
         SS extends StudySearch,
         SU extends AbstractUserStudyListItem> {
 
-    T create(User owner, T study) throws NotUniqueException, NotExistException;
+    T create(IUser owner, T study) throws NotUniqueException, NotExistException;
 
     void delete(Long id) throws NotExistException;
 
@@ -69,11 +70,11 @@ public interface BaseStudyService<
 
     Page<AbstractUserStudyListItem> findStudies(SS studySearch);
 
-    SU getStudy(final User user, final Long studyId);
+    SU getStudy(final IUser user, final Long studyId);
 
-    List<User> findLeads(T study);
+    List<IUser> findLeads(T study);
 
-    UserStudy addParticipant(User createdBy, Long studyId, Long participantId,
+    UserStudy addParticipant(IUser createdBy, Long studyId, Long participantId,
                              ParticipantRole role) throws NotExistException, AlreadyExistException;
 
     UserStudy updateParticipantRole(Long studyId, Long userId, ParticipantRole role)
@@ -82,10 +83,10 @@ public interface BaseStudyService<
     void removeParticipant(Long id, Long participantId)
             throws NotExistException, PermissionDeniedException, ValidationException;
 
-    String saveFile(MultipartFile multipartFile, Long studyId, String label, User user)
+    String saveFile(MultipartFile multipartFile, Long studyId, String label, IUser user)
             throws IOException;
 
-    String saveFile(String link, Long studyId, String label, User user) throws IOException;
+    String saveFile(String link, Long studyId, String label, IUser user) throws IOException;
 
     StudyFile getStudyFile(Long studyId, String fileName);
 
@@ -95,27 +96,27 @@ public interface BaseStudyService<
 
     List<StudyDataSourceLink> listApprovedDataSources(Long studyId);
 
-    StudyDataSourceLink addDataSource(User createdBy, Long id, Long dataSourceId)
+    StudyDataSourceLink addDataSource(IUser createdBy, Long id, Long dataSourceId)
             throws NotExistException, AlreadyExistException;
 
-    DS addVirtualDataSource(User createdBy, Long studyId, String dataSourceName, List<String> dataOwnerIdList)
+    DS addVirtualDataSource(IUser createdBy, Long studyId, String dataSourceName, List<String> dataOwnerIdList)
             throws NotExistException, AlreadyExistException, NoSuchFieldException,
             IOException, ValidationException, FieldException, IllegalAccessException,
             SolrServerException;
 
-    DS getStudyDataSource(User user, Long studyId, Long dataSourceId);
+    DS getStudyDataSource(IUser user, Long studyId, Long dataSourceId);
 
-    DS updateVirtualDataSource(User user, Long studyId, Long dataSourceId, String name, List<String> dataOwnerIds)
+    DS updateVirtualDataSource(IUser user, Long studyId, Long dataSourceId, String name, List<String> dataOwnerIds)
             throws IllegalAccessException, IOException, NoSuchFieldException, SolrServerException, ValidationException;
 
     void removeDataSource(Long id, Long dataSourceId) throws NotExistException;
 
     void removeDataSourceUnsecured(Long studyId, Long dataSourceId);
 
-    void processDataSourceInvitation(User user, Long id, Boolean accepted,
+    void processDataSourceInvitation(IUser user, Long id, Boolean accepted,
                                      String comment);
 
-    Iterable<T> suggestStudy(String query, User owner, Long id, SuggestSearchRegion region);
+    Iterable<T> suggestStudy(String query, IUser owner, Long id, SuggestSearchRegion region);
 
     void getAllStudyFilesExceptLinks(Long studyId, String archiveName, OutputStream os) throws IOException;
 
@@ -134,4 +135,11 @@ public interface BaseStudyService<
     List<StudyFile> getFilesByStudyId(Long id, EntityGraph author);
 
     void processAntivirusResponse(AntivirusJobStudyFileResponseEvent event);
+
+    void indexAllBySolr()
+            throws IOException,
+            NotExistException,
+            SolrServerException,
+            NoSuchFieldException,
+            IllegalAccessException;
 }

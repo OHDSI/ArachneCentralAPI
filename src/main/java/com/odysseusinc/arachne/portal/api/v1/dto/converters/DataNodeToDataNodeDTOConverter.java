@@ -43,6 +43,7 @@ public class DataNodeToDataNodeDTOConverter extends BaseConversionServiceAwareCo
         dataNodeDTO.setName(dataNode.getName());
         dataNodeDTO.setDescription(dataNode.getDescription());
         dataNodeDTO.setVirtual(dataNode.getVirtual());
+        dataNodeDTO.setPublished(dataNode.getPublished());
         dataNodeDTO.setAtlasVerion(dataNode.getAtlasVersion());
         CommonHealthStatus healthStatus = dataNode.getHealthStatus();
         dataNodeDTO.setHealthStatus(healthStatus);

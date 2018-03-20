@@ -2,9 +2,9 @@
 <dataset>
     <professional_types/>
     <study_types/>
-
-    <studies/>
-    <users/>
+    <tenants/>
+    <studies_data/>
+    <users_data/>
     <studies_users/>
     <papers/>
     <paper_protocols/>
@@ -14,7 +14,7 @@
     <analyses/>
     <datanodes_health_check_journal/>
     <datanodes/>
-    <data_sources/>
+    <data_sources_data/>
     <submission_groups/>
     <submission_files/>
     <submissions/>
@@ -26,4 +26,6 @@
     <achilles_permissions/>
     <analysis_unlock_requests/>
     <result_files/>
+    <tenants_data_sources/>
+    <tenants_users/>
 </dataset>

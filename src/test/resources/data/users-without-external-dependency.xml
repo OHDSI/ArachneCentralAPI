@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <dataset>
-    <users
+    <tenants
+            id="1"
+            name = "Everyone"
+    />
+    <users_data
             id="1"
             firstname="Admin"
             middlename="Admin"
@@ -9,5 +13,12 @@
             enabled="true"
             email="admin@odysseusinc.com"
             email_confirmed="true"
+            origin="NATIVE"
+            username="admin@odysseusinc.com"
+            active_tenant_id="1"
+    />
+    <tenants_users
+            user_id="1"
+            tenant_id="1"
     />
 </dataset>

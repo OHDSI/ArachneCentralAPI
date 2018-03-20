@@ -25,23 +25,27 @@ package com.odysseusinc.arachne.portal.api.v1.controller;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.api.v1.dto.AdminUserDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.ArachneConsts;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
 import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.DataNode;
-import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.Submission;
-import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.PaperSearch;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.model.search.UserSearch;
 import com.odysseusinc.arachne.portal.service.BaseAdminService;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
+import com.odysseusinc.arachne.portal.service.BasePaperService;
+import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
+import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import io.swagger.annotations.ApiOperation;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,26 +77,36 @@ import java.util.stream.StreamSupport;
 @Secured("ROLE_ADMIN")
 public abstract class BaseAdminController<
         S extends Study,
-        DS extends DataSource,
+        DS extends IDataSource,
         SS extends StudySearch,
         SU extends AbstractUserStudyListItem,
         A extends Analysis,
         P extends Paper,
         PS extends PaperSearch,
-        SB extends Submission> extends BaseController<DataNode> {
+        SB extends Submission> extends BaseController<DataNode, IUser> {
 
     private final BaseDataSourceService<DS> dataSourceService;
     protected final ProfessionalTypeService professionalTypeService;
     private final BaseAdminService<S, DS, SS, SU, A, P, PS, SB> adminService;
+    private final BaseStudyService<S, DS, SS, SU> studyService;
+    private final BaseAnalysisService<A> analysisService;
+    private final BasePaperService<P, PS> paperService;
+
 
     @Autowired
-    public BaseAdminController(BaseDataSourceService<DS> dataSourceService,
-                               ProfessionalTypeService professionalTypeService,
-                               BaseAdminService<S, DS, SS, SU, A, P, PS, SB> adminService) {
+    public BaseAdminController(final BaseDataSourceService<DS> dataSourceService,
+                               final ProfessionalTypeService professionalTypeService,
+                               final BaseAdminService<S, DS, SS, SU, A, P, PS, SB> adminService,
+                               final BaseStudyService<S, DS, SS, SU> studyService,
+                               final BaseAnalysisService<A> analysisService, 
+                               final BasePaperService<P, PS> paperService) {
 
         this.dataSourceService = dataSourceService;
         this.professionalTypeService = professionalTypeService;
         this.adminService = adminService;
+        this.studyService = studyService;
+        this.analysisService = analysisService;
+        this.paperService = paperService;
     }
 
     @ApiOperation(value = "Enable user.", hidden = true)
@@ -109,7 +123,7 @@ public abstract class BaseAdminController<
             NoSuchFieldException {
 
         JsonResult<Boolean> result;
-        User user = userService.getByIdAndInitializeCollections(id);
+        IUser user = userService.getByIdAndInitializeCollections(id);
         user.setEnabled(isEnabled);
         userService.update(user);
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
@@ -143,7 +157,7 @@ public abstract class BaseAdminController<
                     pageable.getSort().getOrderFor("name").getDirection(),
                     "firstname", "middlename", "lastname");
         }
-        Page<User> users = userService.getAll(search, userSearch);
+        Page<IUser> users = userService.getAll(search, userSearch);
         return users
                 .map(user -> conversionService.convert(user, CommonUserDTO.class));
     }
@@ -158,7 +172,7 @@ public abstract class BaseAdminController<
     ) throws PermissionDeniedException {
 
         JsonResult<List<AdminUserDTO>> result;
-        List<User> users = userService.getAllAdmins(sortBy, sortAsc);
+        List<IUser> users = userService.getAllAdmins(sortBy, sortAsc);
         List<AdminUserDTO> dtos = users.stream()
                 .map(user -> conversionService.convert(user, AdminUserDTO.class))
                 .collect(Collectors.toList());
@@ -182,9 +196,9 @@ public abstract class BaseAdminController<
     ) {
 
         JsonResult<List<AdminUserDTO>> result;
-        List<User> users = userService.suggestNotAdmin(query, limit == null ? 10 : limit);
+        List<IUser> users = userService.suggestNotAdmin(query, limit == null ? 10 : limit);
         List<AdminUserDTO> userDTOs = new LinkedList<>();
-        for (User user : users) {
+        for (IUser user : users) {
             userDTOs.add(conversionService.convert(user, AdminUserDTO.class));
         }
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
@@ -200,19 +214,30 @@ public abstract class BaseAdminController<
     }
 
 
-    @RequestMapping(value = "/api/v1/admin/data-sources/reindex-solr", method = RequestMethod.POST)
-    public JsonResult reindexDataSourcesBySolr()
+    @RequestMapping(value = "/api/v1/admin/{domain}/reindex-solr", method = RequestMethod.POST)
+    public JsonResult reindexSolr(@PathVariable("domain") final String domain)
             throws IllegalAccessException, NotExistException, NoSuchFieldException, SolrServerException, IOException {
 
-        dataSourceService.indexAllBySolr();
-        return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
-    }
+        switch(domain) {
+            case ArachneConsts.Domains.DATA_SOURCES:
+                dataSourceService.indexAllBySolr();
+                break;
+            case ArachneConsts.Domains.USERS:
+                userService.indexAllBySolr();
+                break;
+            case ArachneConsts.Domains.STUDIES:
+                studyService.indexAllBySolr();
+                break;
+            case ArachneConsts.Domains.ANALYISES:
+                analysisService.indexAllBySolr();
+                break;
+            case ArachneConsts.Domains.PAPERS:
+                paperService.indexAllBySolr();
+                break;
+            default:
+                throw new UnsupportedOperationException("Reindex isn't allowed for domain: " + domain);
+        }
 
-    @RequestMapping(value = "/api/v1/admin/users/reindex-solr", method = RequestMethod.POST)
-    public JsonResult reindexUsersBySolr()
-            throws IllegalAccessException, NotExistException, NoSuchFieldException, SolrServerException, IOException {
-
-        userService.indexAllBySolr();
         return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
     }
 }

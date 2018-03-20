@@ -3,7 +3,7 @@
     <professional_types
             id="1"
             name="professionalTypeName"/>
-    <users
+    <users_data
             firstname="adminFirstName"
             middlename="adminMiddleName"
             lastname="adminLastName"
@@ -13,7 +13,7 @@
             professional_type_id="1"
     />
 
-    <users
+    <users_data
             firstname="firstName"
             middlename="middleName"
             lastname="lastName"

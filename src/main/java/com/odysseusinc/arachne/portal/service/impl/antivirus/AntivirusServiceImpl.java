@@ -37,19 +37,23 @@ import java.io.InputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
+import org.springframework.retry.RetryCallback;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 import xyz.capybara.clamav.ClamavClient;
+import xyz.capybara.clamav.ClamavException;
 import xyz.capybara.clamav.commands.scan.result.ScanResult;
 
 @Service
 public class AntivirusServiceImpl {
     private static final Logger logger = LoggerFactory.getLogger(AntivirusServiceImpl.class);
     private static final String PROCESSING_SCAN_REQUEST = "Processing AntivirusJob with id '{}', fileType '{}'";
+    private static final String PROCESSING_SCAN_ATTEMPT = "Trying send file with id '{}', fileType '{}' to antiviru";
     private static final String PROCESSING_SCAN_RESULT = "File with id '{}', fileType '{}' is '{}'";
 
     private final ApplicationEventPublisher eventPublisher;
@@ -59,16 +63,19 @@ public class AntivirusServiceImpl {
     @Value("${antivirus.port}")
     private Integer antivirusPort;
 
+    private final RetryTemplate retryTemplate;
 
     @Autowired
-    public AntivirusServiceImpl(ApplicationEventPublisher eventPublisher) {
+    public AntivirusServiceImpl(ApplicationEventPublisher eventPublisher,
+                                @Qualifier("antivirusRetryTemplate") RetryTemplate retryTemplate) {
 
         this.eventPublisher = eventPublisher;
+        this.retryTemplate = retryTemplate;
     }
 
     @EventListener
     @Async(value = "antivirusScanExecutor")
-    public void processRequest(AntivirusJobEvent event) throws IOException {
+    public void processRequest(AntivirusJobEvent event) {
 
         final AntivirusJob antivirusJob = event.getAntivirusJob();
 
@@ -76,16 +83,29 @@ public class AntivirusServiceImpl {
         final Long fileId = antivirusJob.getFileId();
 
         logger.debug(PROCESSING_SCAN_REQUEST, fileId, fileType);
-        final ScanResult scan = scan(antivirusJob.getContent());
-
         String description = null;
         AntivirusStatus status;
+        try {
+            final ScanResult scan = retryTemplate.execute((RetryCallback<ScanResult, Exception>) retryContext -> {
+                logger.debug(PROCESSING_SCAN_ATTEMPT, fileId, fileType);
+                return scan(antivirusJob.getContent());
+            });
 
-        if (scan instanceof ScanResult.OK) {
-            status = AntivirusStatus.OK;
-        } else {
-            status = AntivirusStatus.INFECTED;
-            description = scan.toString();
+            if (scan instanceof ScanResult.OK) {
+                status = AntivirusStatus.OK;
+            } else {
+                status = AntivirusStatus.INFECTED;
+                description = scan.toString();
+            }
+        } catch (Exception e) {
+            logger.error("Error scanning file: {}", e.getMessage());
+            if (e instanceof ClamavException) {
+                final Throwable cause = e.getCause();
+                description = cause.getMessage();
+            } else {
+                description = e.getMessage();
+            }
+            status = AntivirusStatus.NOT_SCANNED;
         }
 
         logger.debug(PROCESSING_SCAN_RESULT, fileId, fileType, status);

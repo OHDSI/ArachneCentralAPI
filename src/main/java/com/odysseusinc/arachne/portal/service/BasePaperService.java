@@ -22,9 +22,11 @@
 
 package com.odysseusinc.arachne.portal.service;
 
+import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.AbstractPaperFile;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.PaperFileType;
 import com.odysseusinc.arachne.portal.model.User;
@@ -37,29 +39,30 @@ import java.net.MalformedURLException;
 import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface BasePaperService<T extends Paper, PS extends PaperSearch> {
-    Page<T> getPapersAccordingToCurrentUser(PS paperSearch, User user);
+    Page<T> getPapersAccordingToCurrentUser(PS paperSearch, IUser user);
 
     T get(Long id);
 
     Optional<T> getByStudyId(Long studyId);
 
-    T create(User owner, Long studyId);
+    T create(IUser owner, Long studyId);
 
     T update(T studyInsight);
 
     void delete(Long id) throws FileNotFoundException;
 
-    String saveFile(Long paperId, MultipartFile file, PaperFileType fileType, String label, User user) throws IOException;
+    String saveFile(Long paperId, MultipartFile file, PaperFileType fileType, String label, IUser user) throws IOException;
 
-    String saveFile(Long paperId, String link, PaperFileType type, String label, User user) throws MalformedURLException;
+    String saveFile(Long paperId, String link, PaperFileType type, String label, IUser user) throws MalformedURLException;
 
     AbstractPaperFile getFile(Long paperId, String fileUuid, PaperFileType fileType) throws FileNotFoundException;
 
-    void updateFile(Long paperId, String uuid, MultipartFile multipartFile, PaperFileType fileType, User user) throws IOException;
+    void updateFile(Long paperId, String uuid, MultipartFile multipartFile, PaperFileType fileType, IUser user) throws IOException;
 
     void deleteFile(Long paperId, String fileUuid, PaperFileType fileType) throws FileNotFoundException;
 
@@ -77,6 +80,10 @@ public interface BasePaperService<T extends Paper, PS extends PaperSearch> {
     List<T> findByStudyIds(List<Long> ids);
 
     void fullDelete(List<T> ids);
+
+    void indexAllBySolr() throws IOException, NotExistException, SolrServerException, NoSuchFieldException, IllegalAccessException;
+
+    void indexBySolr(T paper);
 
     void processAntivirusResponse(AntivirusJobPaperPaperFileResponseEvent event);
 

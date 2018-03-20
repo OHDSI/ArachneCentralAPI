@@ -36,6 +36,7 @@ public class DataNodeDTO {
     private String healthStatusTitle;
     private List<ShortUserDTO> dataOwners;
     private Boolean currentUserDataOwner;
+    private Boolean published;
     private OrganizationDTO organization;
 
     public DataNodeDTO() {
@@ -130,6 +131,14 @@ public class DataNodeDTO {
     public void setCurrentUserDataOwner(Boolean currentUserDataOwner) {
 
         this.currentUserDataOwner = currentUserDataOwner;
+    }
+
+    public Boolean getPublished() {
+        return published;
+    }
+
+    public void setPublished(Boolean published) {
+        this.published = published;
     }
 
     public OrganizationDTO getOrganization() {

@@ -36,8 +36,10 @@ import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
 import com.odysseusinc.arachne.portal.model.StudyFile;
+import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.StudyService;
 import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
+import com.odysseusinc.arachne.portal.util.EntityUtils;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,11 +48,11 @@ import org.springframework.util.CollectionUtils;
 public abstract class BaseStudyToStudyDTOConverter<S extends Study, DTO extends StudyDTO> extends BaseConversionServiceAwareConverter<S, DTO> {
 
 
-    private final StudyService studyService;
+    private final BaseStudyService studyService;
     protected final AnalysisService analysisService;
 
     @Autowired
-    public BaseStudyToStudyDTOConverter(StudyService studyService, AnalysisService analysisService) {
+    public BaseStudyToStudyDTOConverter(BaseStudyService studyService, AnalysisService analysisService) {
 
         this.studyService = studyService;
         this.analysisService = analysisService;
@@ -77,7 +79,7 @@ public abstract class BaseStudyToStudyDTOConverter<S extends Study, DTO extends 
 
         final List<StudyDataSourceLink> foundLinks = studyService.getLinksByStudyId(
                 source.getId(),
-                EntityGraphUtils.fromAttributePaths(
+                EntityUtils.fromAttributePaths(
                     "dataSource.dataNode.dataNodeUsers.user",
                     "dataSource.dataNode.dataNodeUsers.dataNodeRole"
                 )
@@ -96,7 +98,7 @@ public abstract class BaseStudyToStudyDTOConverter<S extends Study, DTO extends 
 
         List<StudyFile> files = studyService.getFilesByStudyId(
                 source.getId(),
-                EntityGraphUtils.fromAttributePaths("author")
+                EntityUtils.fromAttributePaths("author")
         );
         for (final StudyFile studyFile : files) {
             studyDTO.getFiles().add(conversionService.convert(studyFile, StudyFileDTO.class));
@@ -119,7 +121,7 @@ public abstract class BaseStudyToStudyDTOConverter<S extends Study, DTO extends 
 
         return analysisService.getByStudyId(
                 source.getId(),
-                EntityGraphUtils.fromAttributePaths("author")
+                EntityUtils.fromAttributePaths("author")
         );
     }
 }
