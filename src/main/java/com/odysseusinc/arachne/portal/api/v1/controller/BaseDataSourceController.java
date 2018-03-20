@@ -50,7 +50,6 @@ import java.security.Principal;
 import java.util.Arrays;
 import java.util.List;
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.core.convert.support.GenericConversionService;
@@ -177,7 +176,7 @@ public abstract class BaseDataSourceController<
 
     @RequestMapping(value = "/api/v1/data-sources/my", method = RequestMethod.GET)
     public Page<DS_DTO> getUserDataSources(Principal principal,
-                                           @RequestParam("query") @NotNull String query,
+                                           @RequestParam(name = "query", required = false, defaultValue = "") String query,
                                            @ModelAttribute PageDTO pageDTO
     ) throws PermissionDeniedException {
 
