@@ -29,6 +29,7 @@ import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
 import com.odysseusinc.arachne.portal.model.solr.SolrEntity;
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
+import java.util.List;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -54,32 +55,39 @@ public interface BaseSolrService<T extends SolrField> {
 
     FieldList<T> getFieldsOfClass(Class<?> entity);
 
-    Map<T, Object> getValuesByEntity(Object entity) throws IllegalAccessException, NoSuchFieldException;
+    Map<T, Object> getValuesByEntity(SolrEntity entity);
 
     void putDocument(
             String collection,
             Long id,
             Map<T, Object> fields
-    ) throws IOException, SolrServerException;
+    );
+
+    void putDocuments(
+            String collection,
+            List<Map<T, Object>> valuesList
+    );
 
     QueryResponse search(
             String collection,
             SolrQuery solrQuery,
             Boolean isTenantsFilteringNeeded
-    ) throws IOException, SolrServerException, NoSuchFieldException;
+    ) throws NoSuchFieldException;
 
     QueryResponse search(
             String collection,
             SolrQuery solrQuery
-    ) throws IOException, SolrServerException, NoSuchFieldException;
+    ) throws NoSuchFieldException;
 
-    void deleteByQuery(String collection, String query) throws IOException, SolrServerException;
+    void deleteByQuery(String collection, String query);
 
     void indexBySolr(SolrEntity object);
 
-    void delete(SolrEntity entity) throws IOException, SolrServerException;
+    void indexBySolr(List<? extends SolrEntity> entities);
 
-    void delete(SolrCollection collection, String id) throws IOException, SolrServerException;
+    void delete(SolrEntity entity);
 
-    void deleteAll(SolrCollection collection) throws IOException, SolrServerException;
+    void delete(SolrCollection collection, String id);
+
+    void deleteAll(SolrCollection collection);
 }

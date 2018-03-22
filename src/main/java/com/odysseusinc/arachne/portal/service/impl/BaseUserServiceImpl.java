@@ -857,21 +857,24 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    public void indexBySolr(U user)
-            throws IllegalAccessException, IOException, SolrServerException, NotExistException, NoSuchFieldException {
+    public void indexBySolr(final U user)
+            throws NotExistException {
 
         solrService.indexBySolr(user);
+    }
+    
+    private void indexBySolr(final List<U> users) {
+        
+        solrService.indexBySolr(users);
     }
 
     @Override
     public void indexAllBySolr()
-            throws IOException, NotExistException, SolrServerException, NoSuchFieldException, IllegalAccessException {
+            throws NotExistException {
 
         solrService.deleteAll(SolrCollection.USERS);
-        List<U> userList = getAllEnabledFromAllTenants();
-        for (U user : userList) {
-            indexBySolr(user);
-        }
+        final List<U> userList = getAllEnabledFromAllTenants();
+        EntityUtils.split(this::indexBySolr, userList, 90);
     }
 
     protected QueryResponse solrSearch(SolrQuery solrQuery) throws NoSuchFieldException, IOException, SolrServerException {
