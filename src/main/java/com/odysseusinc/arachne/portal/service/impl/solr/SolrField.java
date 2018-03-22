@@ -180,12 +180,12 @@ public class SolrField {
         this.field = field;
     }
 
-    public SolrFieldExtractor<?> getExtractor() {
+    public SolrFieldExtractor getExtractor() {
 
         return extractor;
     }
 
-    public void setExtractor(final SolrFieldExtractor<?> extractor) {
+    public void setExtractor(final SolrFieldExtractor extractor) {
 
         this.extractor = extractor;
     }

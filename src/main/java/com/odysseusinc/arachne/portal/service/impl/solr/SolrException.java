@@ -15,14 +15,18 @@
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
  * Authors: Anton Gackovka
- * Created: March 13, 2018
+ * Created: March 22, 2018
  */
 
-package com.odysseusinc.arachne.portal.api.v1.dto.converters;
+package com.odysseusinc.arachne.portal.service.impl.solr;
 
-import com.odysseusinc.arachne.portal.model.solr.SolrEntity;
+public class SolrException extends RuntimeException {
+    public SolrException(final String message) {
+        
+        super(message);
+    }
+    public SolrException(final String message, final Throwable cause) {
 
-public interface SolrFieldExtractor<T extends SolrEntity>{
-    
-    Object extract(final T domain);
+        super(message, cause);
+    }
 }
