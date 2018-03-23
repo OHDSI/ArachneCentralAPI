@@ -550,7 +550,6 @@ public abstract class BaseUserServiceImpl<
 
         final List<U> usersWithTenants = userRepository.findAllByEnabledIsTrue(EntityUtils.fromAttributePaths("tenants"));
         
-//        final Map<Long, List<S>> userIdToSkillMap = skillService.findAll().stream().collect(Collectors.groupingBy(v -> v.getUser().getId()));
         final Map<Long, List<UserLink>> userIdToLinksMap = userLinkService.findAll().stream().collect(Collectors.groupingBy(v -> v.getUser().getId()));
         final Map<Long, List<UserPublication>> userIdToPublicationsMap = userPublicationService.findAll().stream().collect(Collectors.groupingBy(v -> v.getUser().getId()));
 
@@ -558,7 +557,6 @@ public abstract class BaseUserServiceImpl<
             final Long userId = user.getId();
             user.setLinks(userIdToLinksMap.get(userId));
             user.setPublications(userIdToPublicationsMap.get(userId));
-//            user.setSkills(new HashSet<>(userIdToSkillMap.get(userId)));
         }
         
         return usersWithTenants;
