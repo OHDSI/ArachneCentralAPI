@@ -30,4 +30,6 @@ import java.util.List;
 public interface BreadcrumbService {
 
     List<Breadcrumb> getBreadcrumbs(BreadcrumbType type, Long id) throws NotExistException;
+
+    List<Breadcrumb> getBreadcrumbs(Breadcrumb breadcrumb) throws NotExistException;
 }

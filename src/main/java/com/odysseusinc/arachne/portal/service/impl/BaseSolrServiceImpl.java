@@ -208,7 +208,10 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
         if (entity instanceof Breadcrumb) {
             final Breadcrumb bc = (Breadcrumb)entity;
             try {
-                final List<BreadcrumbDTO> breadcrumbs = breadcrumbService.getBreadcrumbs(bc.getCrumbType(), bc.getId()).stream().map(v -> conversionService.convert(v, BreadcrumbDTO.class)).collect(Collectors.toList());
+                final List<BreadcrumbDTO> breadcrumbs = breadcrumbService.getBreadcrumbs(bc)
+                        .stream()
+                        .map(v -> conversionService.convert(v, BreadcrumbDTO.class))
+                        .collect(Collectors.toList());
                 final T field = newSolrField(BREADCRUMBS);
                 field.setPostfixNeeded(Boolean.FALSE);
                 field.setSearchable(Boolean.FALSE);

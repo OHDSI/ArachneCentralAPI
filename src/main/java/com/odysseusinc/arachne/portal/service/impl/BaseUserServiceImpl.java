@@ -103,6 +103,7 @@ import java.security.Principal;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -547,9 +548,22 @@ public abstract class BaseUserServiceImpl<
     @Override
     public List<U> getAllEnabledFromAllTenants() {
 
-        return userRepository.findAllEnabledFromAllTenants();
-    }
+        final List<U> usersWithTenants = userRepository.findAllByEnabledIsTrue(EntityUtils.fromAttributePaths("tenants"));
+        
+//        final Map<Long, List<S>> userIdToSkillMap = skillService.findAll().stream().collect(Collectors.groupingBy(v -> v.getUser().getId()));
+        final Map<Long, List<UserLink>> userIdToLinksMap = userLinkService.findAll().stream().collect(Collectors.groupingBy(v -> v.getUser().getId()));
+        final Map<Long, List<UserPublication>> userIdToPublicationsMap = userPublicationService.findAll().stream().collect(Collectors.groupingBy(v -> v.getUser().getId()));
 
+        for (final U user: usersWithTenants) {
+            final Long userId = user.getId();
+            user.setLinks(userIdToLinksMap.get(userId));
+            user.setPublications(userIdToPublicationsMap.get(userId));
+//            user.setSkills(new HashSet<>(userIdToSkillMap.get(userId)));
+        }
+        
+        return usersWithTenants;
+    }
+    
     @Override
     public Page<U> getAll(Pageable pageable, UserSearch userSearch) {
 

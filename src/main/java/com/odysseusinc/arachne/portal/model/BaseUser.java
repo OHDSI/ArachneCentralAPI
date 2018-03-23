@@ -102,7 +102,6 @@ public class BaseUser implements IUser, Serializable {
     @Column(name = "last_password_reset")
     protected Date lastPasswordReset;
 
-    @SolrFieldAnno(query = true, filter = true)
     @ManyToMany(targetEntity = Skill.class, fetch = FetchType.LAZY)
     @JoinTable(name = "users_skills",
             joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),

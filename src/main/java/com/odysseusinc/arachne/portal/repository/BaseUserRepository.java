@@ -96,7 +96,7 @@ public interface BaseUserRepository<U extends IUser> extends EntityGraphJpaRepos
 
     U findById(Long id);
 
-    List<U> findAllByEnabledIsTrue();
+    List<U> findAllByEnabledIsTrue(EntityGraph graph);
 
     @Query(nativeQuery = true, value = "SELECT * FROM users_data u WHERE enabled = TRUE")
     List<U> findAllEnabledFromAllTenants();

@@ -22,13 +22,11 @@
 
 package com.odysseusinc.arachne.portal.repository;
 
-import com.odysseusinc.arachne.portal.model.IUser;
-import com.odysseusinc.arachne.portal.model.User;
+import com.cosium.spring.data.jpa.entity.graph.repository.EntityGraphJpaRepository;
 import com.odysseusinc.arachne.portal.model.UserPublication;
 import java.util.List;
-import org.springframework.data.repository.CrudRepository;
 
-public interface UserPublicationRepository<UP extends UserPublication> extends CrudRepository<UP, Long> {
+public interface UserPublicationRepository<UP extends UserPublication> extends EntityGraphJpaRepository<UP, Long> {
 
     List<UP> findByUserId(Long userId);
 }
