@@ -98,10 +98,17 @@ public class BreadcrumbServiceImpl implements BreadcrumbService {
         return null;
     }
 
-    public List<Breadcrumb> getBreadcrumbs(BreadcrumbType type, Long id) throws NotExistException {
+    @Override
+    public List<Breadcrumb> getBreadcrumbs(final BreadcrumbType type, final Long id) throws NotExistException {
+
+        final Breadcrumb breadcrumb = getBreadcrumbByTypeAndId(type, id);
+        return getBreadcrumbs(breadcrumb);
+    }
+
+    @Override
+    public List<Breadcrumb> getBreadcrumbs(Breadcrumb breadcrumb) throws NotExistException {
 
         final List<Breadcrumb> breadcrumbList = new ArrayList<>();
-        Breadcrumb breadcrumb = getBreadcrumbByTypeAndId(type, id);
         breadcrumbList.add(breadcrumb);
 
         while (breadcrumb.getCrumbParent() != null) {
