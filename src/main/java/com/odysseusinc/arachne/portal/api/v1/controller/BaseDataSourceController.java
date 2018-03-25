@@ -50,7 +50,6 @@ import java.security.Principal;
 import java.util.Arrays;
 import java.util.List;
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.core.convert.support.GenericConversionService;
@@ -115,12 +114,12 @@ public abstract class BaseDataSourceController<
             result = setValidationErrors(bindingResult);
         } else {
             IUser user = getUser(principal);
-            final DS exist = dataSourceService.findByIdInMyTenants(dataSourceId);
+            final DS exist = dataSourceService.getNotDeletedByIdInAnyTenant(dataSourceId);
             DS dataSource = convertDTOToDataSource(commonDataSourceDTO);
             dataSource.setId(dataSourceId);
             dataSource.setDataNode(exist.getDataNode());
             dataSource.setPublished(true);
-            dataSource = dataSourceService.update(dataSource);
+            dataSource = dataSourceService.updateInAnyTenant(dataSource);
             result = new JsonResult<>(NO_ERROR);
             result.setResult(convertDataSourceToDTO(dataSource));
         }
@@ -136,7 +135,7 @@ public abstract class BaseDataSourceController<
         JsonResult<DTO> result = new JsonResult<>(NO_ERROR);
         DS updating = convertDTOToDataSource(commonDataSourceDTO);
         updating.setId(dataSourceId);
-        updating = dataSourceService.update(updating);
+        updating = dataSourceService.updateInAnyTenant(updating);
         result.setResult(convertDataSourceToDTO(updating));
         return result;
     }
@@ -177,7 +176,7 @@ public abstract class BaseDataSourceController<
 
     @RequestMapping(value = "/api/v1/data-sources/my", method = RequestMethod.GET)
     public Page<DS_DTO> getUserDataSources(Principal principal,
-                                           @RequestParam("query") @NotNull String query,
+                                           @RequestParam(name = "query", required = false, defaultValue = "") String query,
                                            @ModelAttribute PageDTO pageDTO
     ) throws PermissionDeniedException {
 
@@ -208,7 +207,7 @@ public abstract class BaseDataSourceController<
     public JsonResult<DTO> get(@PathVariable("id") Long dataSourceId) throws NotExistException {
 
         JsonResult<DTO> result = new JsonResult<>(NO_ERROR);
-        DS dataSource = dataSourceService.findById(dataSourceId);
+        DS dataSource = dataSourceService.getNotDeletedById(dataSourceId);
         result.setResult(convertDataSourceToDTO(dataSource));
         return result;
     }
@@ -227,7 +226,7 @@ public abstract class BaseDataSourceController<
     @RequestMapping(value = "/api/v1/data-sources/{id}", method = RequestMethod.DELETE)
     public JsonResult deleteDataSource(@PathVariable("id") Long dataSourceId) throws IOException, SolrServerException {
 
-        final DS dataSource = dataSourceService.findByIdInMyTenants(dataSourceId);
+        final DS dataSource = dataSourceService.getNotDeletedByIdInAnyTenant(dataSourceId);
         dataSourceService.unpublish(dataSourceId);
 
         studyDataSourceService.softDeletingDataSource(dataSource.getId());
@@ -278,7 +277,7 @@ public abstract class BaseDataSourceController<
     @RequestMapping(value = "/api/v1/data-sources/{id}/complete", method = RequestMethod.GET)
     public JsonResult<DS_DTO> getWhole(@PathVariable("id") Long dataSourceId) throws NotExistException {
 
-        DS dataSource = dataSourceService.findById(dataSourceId);
+        DS dataSource = dataSourceService.getNotDeletedByIdInAnyTenant(dataSourceId);
         return new JsonResult<>(NO_ERROR, conversionService.convert(dataSource, getDataSourceDTOClass()));
     }
 

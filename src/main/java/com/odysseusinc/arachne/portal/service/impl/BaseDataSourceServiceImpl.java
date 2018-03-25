@@ -29,9 +29,11 @@ import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.DataSourceStatus;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Skill;
+import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
 import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
 import com.odysseusinc.arachne.portal.repository.BaseDataSourceRepository;
 import com.odysseusinc.arachne.portal.repository.BaseRawDataSourceRepository;
@@ -45,6 +47,8 @@ import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import com.odysseusinc.arachne.portal.service.mail.NewDataSourceMailMessage;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -52,6 +56,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -59,12 +68,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 
 @Transactional(rollbackFor = Exception.class)
 public abstract class BaseDataSourceServiceImpl<
@@ -79,6 +91,7 @@ public abstract class BaseDataSourceServiceImpl<
     protected BaseRawDataSourceRepository<DS> rawDataSourceRepository;
     protected final BaseUserService<IUser, Skill> userService;
     protected final ArachneMailSender arachneMailSender;
+    protected EntityManager entityManager;
 
     public BaseDataSourceServiceImpl(BaseSolrService<SF> solrService,
                                      BaseDataSourceRepository<DS> dataSourceRepository,
@@ -86,7 +99,8 @@ public abstract class BaseDataSourceServiceImpl<
                                      TenantService tenantService,
                                      BaseRawDataSourceRepository<DS> rawDataSourceRepository,
                                      BaseUserService<IUser, Skill> userService,
-                                     ArachneMailSender arachneMailSender) {
+                                     ArachneMailSender arachneMailSender,
+                                     EntityManager entityManager) {
 
         this.solrService = solrService;
         this.dataSourceRepository = dataSourceRepository;
@@ -95,6 +109,7 @@ public abstract class BaseDataSourceServiceImpl<
         this.rawDataSourceRepository = rawDataSourceRepository;
         this.userService = userService;
         this.arachneMailSender = arachneMailSender;
+        this.entityManager = entityManager;
     }
 
     @Override
@@ -182,19 +197,18 @@ public abstract class BaseDataSourceServiceImpl<
     }
 
     @Transactional
-    @PreAuthorize("hasPermission(#dataSource, "
+    @PreAuthorize("hasRole('ROLE_ADMIN') || hasPermission(#dataSource, "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_DATASOURCE)")
     @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
     @Override
-    public DS update(DS dataSource)
+    public DS updateInAnyTenant(DS dataSource)
             throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
-        DS forUpdate = dataSourceRepository.findByIdAndDeletedIsNull(dataSource.getId())
-                .orElseThrow(() -> new NotExistException(DataSource.class));
+        DS forUpdate = getNotDeletedByIdInAnyTenant(dataSource.getId());
         forUpdate = baseUpdate(forUpdate, dataSource);
 
         beforeUpdate(forUpdate, dataSource);
-        DS savedDataSource = dataSourceRepository.save(forUpdate);
+        DS savedDataSource = rawDataSourceRepository.save(forUpdate);
         afterUpdate(savedDataSource);
         return savedDataSource;
     }
@@ -231,19 +245,6 @@ public abstract class BaseDataSourceServiceImpl<
         return exist;
     }
 
-    @Secured({"ROLE_ADMIN"})
-    @Override
-    public DS updateInAnyTenant(DS dataSource)
-            throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
-
-        DS forUpdate = getNotDeletedByIdInAnyTenant(dataSource.getId());
-        forUpdate = baseUpdate(forUpdate, dataSource);
-        beforeUpdate(forUpdate, dataSource);
-        DS savedDataSource = rawDataSourceRepository.save(forUpdate);
-        afterUpdate(savedDataSource);
-        return savedDataSource;
-    }
-
     protected void beforeUpdate(DS target, DS dataSource) {
 
     }
@@ -257,21 +258,23 @@ public abstract class BaseDataSourceServiceImpl<
         }
     }
 
-    @PreAuthorize("hasPermission(#id, 'DataSource', "
-            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_DATASOURCE)")
     @Override
-    public DS getNotDeletedById(Long id) {
+    @PreAuthorize("hasRole('ROLE_ADMIN') || hasPermission(#dataSourceId, 'RawDataSource', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_DATASOURCE)")
+    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
+    public DS getNotDeletedByIdInAnyTenant(Long dataSourceId) {
 
-        return dataSourceRepository.findByIdAndDeletedIsNull(id)
+        return rawDataSourceRepository.findByIdAndDeletedIsNull(dataSourceId)
                 .orElseThrow(() -> new NotExistException(DataSource.class));
     }
 
-    @Secured({"ROLE_ADMIN"})
     @Override
-    public DS getNotDeletedByIdInAnyTenant(Long id) {
+    @PreAuthorize("hasPermission(#dataSourceId, 'DataSource', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_DATASOURCE)")
+    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
+    public DS getNotDeletedById(Long dataSourceId) {
 
-        return rawDataSourceRepository.findByIdAndDeletedIsNull(id)
-                .orElseThrow(() -> new NotExistException(DataSource.class));
+        return dataSourceRepository.findByIdAndDeletedIsNull(dataSourceId).orElseThrow(() -> new NotExistException(getType()));
     }
 
     @Override
@@ -284,7 +287,7 @@ public abstract class BaseDataSourceServiceImpl<
         return dataSource;
     }
 
-    protected abstract Class<?> getType();
+    protected abstract <T extends DS> Class<T> getType();
 
     @Override
     public List<DS> getAllNotDeletedIsNotVirtualUnsecured() {
@@ -313,10 +316,41 @@ public abstract class BaseDataSourceServiceImpl<
     @Override
     public Page<DS> suggestDataSource(final String query, final Long studyId, final Long userId,
                                       PageRequest pageRequest) {
-
+        List<DataSourceStatus> BAD_STATUSES = Arrays.asList(DataSourceStatus.DELETED, DataSourceStatus.DECLINED);
         final String[] split = query.trim().split(" ");
-        String suggestRequest = "%(" + String.join("|", split) + ")%";
-        return doSuggestDataSource(suggestRequest, userId, studyId, pageRequest);
+
+        CriteriaBuilder cb = this.entityManager.getCriteriaBuilder();
+        CriteriaQuery<DS> cq = cb.createQuery(getType());
+        Root<DS> root = cq.from(getType());
+
+        Subquery sq = cq.subquery(Long.class);
+        Root<StudyDataSourceLink> dsLink = sq.from(StudyDataSourceLink.class);
+        sq.select(dsLink.get("dataSource").get("id"));
+        sq.where(cb.and(cb.equal(dsLink.get("study").get("id"), studyId),
+                        cb.not(dsLink.get("status").in(BAD_STATUSES))));
+
+        cq.select(root);
+        Predicate nameClause = cb.conjunction();  // TRUE
+        if (split.length > 1 || (split.length == 1 && !split[0].equals("") )) {
+            List<Predicate> predictList = new ArrayList<>();
+            for (String one: split) {
+                predictList.add(cb.like(cb.lower(root.get("name")), one + "%"));
+                predictList.add(cb.like(cb.lower(root.get("dataNode").get("name")), one + "%"));
+            }
+            nameClause = cb.or(predictList.toArray(new Predicate[] {}));
+        }
+
+        cq.where(cb.and(cb.not(root.get("id").in(sq)),
+                        nameClause,
+                        cb.isNull(root.get("deleted")),
+                        cb.isTrue(root.get("published")),
+                        cb.isFalse(root.get("dataNode").get("virtual"))));
+
+        TypedQuery<DS> typedQuery = this.entityManager.createQuery(cq);
+        List<DS> list = typedQuery.setFirstResult(pageRequest.getOffset())
+                            .setMaxResults(pageRequest.getPageSize())
+                            .getResultList();
+        return new PageImpl<>(list, pageRequest, list.size());
     }
 
     protected Page<DS> doSuggestDataSource(String query, Long userId, Long studyId, PageRequest pageRequest) {
@@ -403,24 +437,6 @@ public abstract class BaseDataSourceServiceImpl<
             throws IOException, SolrServerException, NoSuchFieldException, IllegalAccessException {
 
         solrService.indexBySolr(dataSource);
-    }
-
-    @Override
-    @PreAuthorize("hasPermission(#dataSourceId, 'DataSource', "
-            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_DATASOURCE)")
-    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
-    public DS findById(Long dataSourceId) {
-
-        return dataSourceRepository.findByIdAndDeletedIsNull(dataSourceId).orElseThrow(() -> new NotExistException(getType()));
-    }
-
-    @Override
-    @PreAuthorize("hasPermission(#dataSourceId, 'RawDataSource', "
-            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_DATASOURCE)")
-    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
-    public DS findByIdInMyTenants(Long dataSourceId) {
-
-        return rawDataSourceRepository.findByIdAndDeletedIsNull(dataSourceId).orElseThrow(() -> new NotExistException(getType()));
     }
 
     public List<DS> findByIdsAndNotDeleted(List<Long> dataSourceIds) {

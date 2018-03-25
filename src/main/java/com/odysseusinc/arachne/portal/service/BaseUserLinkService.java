@@ -23,6 +23,7 @@
 package com.odysseusinc.arachne.portal.service;
 
 import com.odysseusinc.arachne.portal.model.IUser;
+import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserLink;
 import java.util.List;
@@ -30,4 +31,6 @@ import java.util.List;
 public interface BaseUserLinkService<UL extends UserLink> extends CRUDLService<UL> {
 
     List<UL> findByUserId(Long userId);
+
+    List<UL> findAll();
 }

@@ -27,6 +27,7 @@ import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataNodeRole;
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
+import com.odysseusinc.arachne.portal.model.DataSourceStatus;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
@@ -207,9 +208,21 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends I
         return participantRoles;
     }
 
+    @Override
     public boolean canImportFromDatanode(ArachneUser user, DataNode dataNode) {
 
         return true;
+    }
+
+    @Override
+    public boolean wasDataSourceApproved(Analysis analysis, Long dataSourceId) {
+
+        return analysis
+                .getStudy()
+                .getDataSources()
+                .stream()
+                .filter(link -> Objects.equals(link.getStatus(), DataSourceStatus.APPROVED))
+                .anyMatch(link -> Objects.equals(link.getDataSource().getId(), dataSourceId));
     }
 
     public boolean checkDataNodeAdmin(ArachneUser user, DataNode dataNode) {

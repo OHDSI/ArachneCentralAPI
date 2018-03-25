@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
+import com.google.common.base.Strings;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeCreationResponseDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeRegisterDTO;
@@ -47,12 +48,15 @@ import java.io.IOException;
 import java.security.Principal;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import javax.validation.Valid;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.support.GenericConversionService;
+import org.springframework.validation.BindException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -166,10 +170,15 @@ public abstract class BaseDataNodeController<
             NotExistException,
             ValidationException,
             IOException,
-            SolrServerException, NoSuchFieldException, IllegalAccessException {
+            SolrServerException, NoSuchFieldException, IllegalAccessException, BindException {
 
+        // we validate only two fields, because we don't want to validate another fields, because they always are null
+        validate(commonDataSourceDTO);
+        
         JsonResult<CommonDataSourceDTO> result;
         DataNode dataNode = baseDataNodeService.getById(id);
+        
+        
         if (dataNode == null) {
             throw new IllegalArgumentException("Unable to find datanode by ID " + id);
         }
@@ -180,6 +189,21 @@ public abstract class BaseDataNodeController<
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
         result.setResult(genericConversionService.convert(dataSource, CommonDataSourceDTO.class));
         return result;
+    }
+
+    private void validate(final C_DS_DTO commonDataSourceDTO) throws BindException {
+
+        BindException bindException = new BindException("ds", "not null");
+
+        if (Objects.isNull(commonDataSourceDTO.getDbmsType())) {
+            bindException.addError(new FieldError("ds", "dbmsType", "May not be empty"));
+        }
+        if (Strings.isNullOrEmpty(commonDataSourceDTO.getName())) {
+            bindException.addError(new FieldError("ds", "name", "May not be empty"));
+        }
+        if (bindException.hasErrors()) {
+            throw bindException;
+        }
     }
 
     @RequestMapping(value = "/api/v1/data-nodes/{dataNodeId}", method = RequestMethod.GET)
@@ -219,7 +243,7 @@ public abstract class BaseDataNodeController<
                                            @PathVariable("dataSourceId") Long dataSourceId)
             throws PermissionDeniedException, IOException, SolrServerException {
 
-        final DS dataSource = dataSourceService.findByIdInMyTenants(dataSourceId);
+        final DS dataSource = dataSourceService.getNotDeletedByIdInAnyTenant(dataSourceId);
         studyDataSourceService.softDeletingDataSource(dataSource.getId());
         return new JsonResult(JsonResult.ErrorCode.NO_ERROR);
     }

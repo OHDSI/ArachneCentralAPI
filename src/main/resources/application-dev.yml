@@ -18,3 +18,5 @@ achilles:
 arachne:
   token:
     expiration: 604800
+swagger:
+  enable: false

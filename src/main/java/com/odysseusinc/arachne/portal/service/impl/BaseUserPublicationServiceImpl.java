@@ -22,7 +22,6 @@
 
 package com.odysseusinc.arachne.portal.service.impl;
 
-import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.UserPublication;
 import com.odysseusinc.arachne.portal.repository.UserPublicationRepository;
 import com.odysseusinc.arachne.portal.service.BaseUserPublicationService;
@@ -45,5 +44,11 @@ public abstract class BaseUserPublicationServiceImpl<UP extends UserPublication>
     public List<UP> findByUserId(Long userId) {
 
         return userPublicationRepository.findByUserId(userId);
+    }
+
+    @Override
+    public List<UP> findAll() {
+
+        return userPublicationRepository.findAll();
     }
 }

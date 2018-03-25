@@ -31,7 +31,6 @@ import static com.odysseusinc.arachne.portal.service.RoleService.ROLE_ADMIN;
 import static java.lang.Boolean.TRUE;
 import static org.springframework.data.jpa.domain.Specifications.where;
 
-import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraphUtils;
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Metadata;
@@ -103,6 +102,7 @@ import java.security.Principal;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -169,7 +169,7 @@ public abstract class BaseUserServiceImpl<
     private final UserRegistrantService userRegistrantService;
     private final ArachnePasswordValidator passwordValidator;
     private final TenantService tenantService;
-    private final BaseRawUserRepository<U> rawUserRepository;
+    protected final BaseRawUserRepository<U> rawUserRepository;
 
     @Value("${files.store.path}")
     private String fileStorePath;
@@ -238,6 +238,12 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
+    public U getByUsernameInAnyTenant(final String username) {
+
+        return rawUserRepository.findByEmailAndEnabledTrue(username);
+    }
+
+    @Override
     public U getByEmail(final String email) {
 
         return getByUsername(this.userOrigin, email);
@@ -248,6 +254,12 @@ public abstract class BaseUserServiceImpl<
     public U getByUnverifiedEmail(final String email) {
 
         return userRepository.findByEmail(email, EntityUtils.fromAttributePaths("roles", "professionalType"));
+    }
+
+    @Override
+    public U getByUnverifiedEmailInAnyTenant(final String email) {
+
+        return rawUserRepository.findByEmail(email, EntityUtils.fromAttributePaths("roles", "professionalType"));
     }
 
     @Override
@@ -492,10 +504,10 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    public List<U> suggestUser(final String query, List<String> emailsList, final Integer limit) {
+    public List<U> suggestUserFromAnyTenant(final String query, List<String> emailsList, final Integer limit) {
 
         final String preparedQuery = prepareQuery(query);
-        return userRepository.suggest(preparedQuery, emailsList, limit);
+        return rawUserRepository.suggest(preparedQuery, emailsList, limit);
     }
 
     @Override
@@ -528,9 +540,20 @@ public abstract class BaseUserServiceImpl<
     @Override
     public List<U> getAllEnabledFromAllTenants() {
 
-        return userRepository.findAllEnabledFromAllTenants();
-    }
+        final List<U> usersWithTenants = userRepository.findAllByEnabledIsTrue(EntityUtils.fromAttributePaths("tenants"));
+        
+        final Map<Long, List<UserLink>> userIdToLinksMap = userLinkService.findAll().stream().collect(Collectors.groupingBy(v -> v.getUser().getId()));
+        final Map<Long, List<UserPublication>> userIdToPublicationsMap = userPublicationService.findAll().stream().collect(Collectors.groupingBy(v -> v.getUser().getId()));
 
+        for (final U user: usersWithTenants) {
+            final Long userId = user.getId();
+            user.setLinks(userIdToLinksMap.get(userId));
+            user.setPublications(userIdToPublicationsMap.get(userId));
+        }
+        
+        return usersWithTenants;
+    }
+    
     @Override
     public Page<U> getAll(Pageable pageable, UserSearch userSearch) {
 
@@ -838,21 +861,24 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    public void indexBySolr(U user)
-            throws IllegalAccessException, IOException, SolrServerException, NotExistException, NoSuchFieldException {
+    public void indexBySolr(final U user)
+            throws NotExistException {
 
         solrService.indexBySolr(user);
+    }
+    
+    private void indexBySolr(final List<U> users) {
+        
+        solrService.indexBySolr(users);
     }
 
     @Override
     public void indexAllBySolr()
-            throws IOException, NotExistException, SolrServerException, NoSuchFieldException, IllegalAccessException {
+            throws NotExistException {
 
         solrService.deleteAll(SolrCollection.USERS);
-        List<U> userList = getAllEnabledFromAllTenants();
-        for (U user : userList) {
-            indexBySolr(user);
-        }
+        final List<U> userList = getAllEnabledFromAllTenants();
+        EntityUtils.split(this::indexBySolr, userList, 90);
     }
 
     protected QueryResponse solrSearch(SolrQuery solrQuery) throws NoSuchFieldException, IOException, SolrServerException {

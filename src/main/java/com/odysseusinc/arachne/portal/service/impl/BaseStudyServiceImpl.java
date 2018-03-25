@@ -30,7 +30,6 @@ import static java.lang.Boolean.TRUE;
 import static java.util.Collections.singletonList;
 
 import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
-import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraphUtils;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
@@ -796,7 +795,7 @@ public abstract class BaseStudyServiceImpl<
         updateDataNodeOwners(dataOwners, dataNode);
 
         dataSource.setName(name);
-        final DS update = dataSourceService.update(dataSource);
+        final DS update = dataSourceService.updateInAnyTenant(dataSource);
         return dataSource;
     }
 

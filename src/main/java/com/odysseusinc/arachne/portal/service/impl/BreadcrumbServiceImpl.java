@@ -28,10 +28,10 @@ import com.odysseusinc.arachne.portal.model.RawDataSource;
 import com.odysseusinc.arachne.portal.repository.AnalysisRepository;
 import com.odysseusinc.arachne.portal.repository.BaseRawDataSourceRepository;
 import com.odysseusinc.arachne.portal.repository.PaperRepository;
+import com.odysseusinc.arachne.portal.repository.RawUserRepository;
 import com.odysseusinc.arachne.portal.repository.StudyRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionGroupRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionInsightRepository;
-import com.odysseusinc.arachne.portal.repository.UserRepository;
 import com.odysseusinc.arachne.portal.repository.submission.SubmissionRepository;
 import com.odysseusinc.arachne.portal.service.BreadcrumbService;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
@@ -50,7 +50,7 @@ public class BreadcrumbServiceImpl implements BreadcrumbService {
     private final SubmissionRepository submissionRepository;
     private final SubmissionGroupRepository submissionGroupRepository;
     private final SubmissionInsightRepository submissionInsightRepository;
-    private final UserRepository userRepository;
+    private final RawUserRepository userRepository;
     private final BaseRawDataSourceRepository<RawDataSource> dataSourceRepository;
     private final PaperRepository<Paper> paperRepository;
 
@@ -60,7 +60,7 @@ public class BreadcrumbServiceImpl implements BreadcrumbService {
                                  final SubmissionRepository submissionService,
                                  final SubmissionInsightRepository submissionInsightRepository,
                                  final SubmissionGroupRepository submissionGroupRepository,
-                                 final UserRepository userRepository,
+                                 final RawUserRepository userRepository,
                                  final BaseRawDataSourceRepository dataSourceRepository,
                                  final PaperRepository<Paper> paperRepository) {
 
@@ -98,10 +98,17 @@ public class BreadcrumbServiceImpl implements BreadcrumbService {
         return null;
     }
 
-    public List<Breadcrumb> getBreadcrumbs(BreadcrumbType type, Long id) throws NotExistException {
+    @Override
+    public List<Breadcrumb> getBreadcrumbs(final BreadcrumbType type, final Long id) throws NotExistException {
+
+        final Breadcrumb breadcrumb = getBreadcrumbByTypeAndId(type, id);
+        return getBreadcrumbs(breadcrumb);
+    }
+
+    @Override
+    public List<Breadcrumb> getBreadcrumbs(Breadcrumb breadcrumb) throws NotExistException {
 
         final List<Breadcrumb> breadcrumbList = new ArrayList<>();
-        Breadcrumb breadcrumb = getBreadcrumbByTypeAndId(type, id);
         breadcrumbList.add(breadcrumb);
 
         while (breadcrumb.getCrumbParent() != null) {

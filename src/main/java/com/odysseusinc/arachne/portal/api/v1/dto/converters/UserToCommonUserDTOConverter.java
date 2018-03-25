@@ -26,16 +26,16 @@ import com.odysseusinc.arachne.commons.api.v1.dto.CommonProfessionalTypeDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserDTO;
 import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.exception.NoDTOConverterException;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.ProfessionalType;
-import com.odysseusinc.arachne.portal.model.User;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UserToCommonUserDTOConverter extends BaseConversionServiceAwareConverter<User, CommonUserDTO> {
+public class UserToCommonUserDTOConverter extends BaseConversionServiceAwareConverter<IUser, CommonUserDTO> {
 
 
     @Override
-    public CommonUserDTO convert(User user) {
+    public CommonUserDTO convert(IUser user) {
 
         CommonUserDTO dto = new CommonUserDTO();
         dto.setId(UserIdUtils.idToUuid(user.getId()));
