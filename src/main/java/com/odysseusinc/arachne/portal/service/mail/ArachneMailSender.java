@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.service.mail;
 
+import com.sun.mail.util.MailConnectException;
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import javax.mail.MessagingException;
@@ -67,8 +68,14 @@ public class ArachneMailSender {
             helper.setText(buildContent(mailMessage.getTemplate(), mailMessage.getParameters()), true);
             mailSender.send(message);
 
-        } catch (MessagingException | MailSendException | UnsupportedEncodingException ex) {
+        } catch (MailConnectException e) {
+            LOG.error(e.getMessage(), e);
+            throw new MailSendException(e.getMessage());
+        } catch (MessagingException | UnsupportedEncodingException ex) {
             LOG.error(ex.getMessage(), ex);
+        } catch (MailSendException e) {
+            LOG.error(e.getMessage(), e);
+            throw new MailSendException("Failed to send e-mail. Please, contact to the administrator.");
         }
     }
 
