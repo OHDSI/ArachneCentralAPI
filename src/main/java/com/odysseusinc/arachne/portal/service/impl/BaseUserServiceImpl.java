@@ -264,7 +264,7 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    public U findLoginCandidate(final String email) {
+    public U getByEmailInAnyTenant(final String email) {
 
         return rawUserRepository.findByOriginAndUsername(this.userOrigin, email);
     }
@@ -549,7 +549,7 @@ public abstract class BaseUserServiceImpl<
     public List<U> getAllEnabledFromAllTenants() {
 
         final List<U> usersWithTenants = userRepository.findAllByEnabledIsTrue(EntityUtils.fromAttributePaths("tenants"));
-        
+
         final Map<Long, List<UserLink>> userIdToLinksMap = userLinkService.findAll().stream().collect(Collectors.groupingBy(v -> v.getUser().getId()));
         final Map<Long, List<UserPublication>> userIdToPublicationsMap = userPublicationService.findAll().stream().collect(Collectors.groupingBy(v -> v.getUser().getId()));
 
@@ -558,10 +558,10 @@ public abstract class BaseUserServiceImpl<
             user.setLinks(userIdToLinksMap.get(userId));
             user.setPublications(userIdToPublicationsMap.get(userId));
         }
-        
+
         return usersWithTenants;
     }
-    
+
     @Override
     public Page<U> getAll(Pageable pageable, UserSearch userSearch) {
 
@@ -874,9 +874,9 @@ public abstract class BaseUserServiceImpl<
 
         solrService.indexBySolr(user);
     }
-    
+
     private void indexBySolr(final List<U> users) {
-        
+
         solrService.indexBySolr(users);
     }
 
