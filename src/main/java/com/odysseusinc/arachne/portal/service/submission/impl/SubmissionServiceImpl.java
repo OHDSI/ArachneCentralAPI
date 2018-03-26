@@ -127,8 +127,8 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
     }
 
     @Override
-    @PreAuthorize("hasPermission(#analysis, "
-            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).CREATE_SUBMISSION)")
+    @PreAuthorize("hasPermission(#analysis, T(com.odysseusinc.arachne.portal.security.ArachnePermission).CREATE_SUBMISSION) && " +
+            "@arachneSecureServiceImpl.wasDataSourceApproved(#analysis, #datasourceId)")
     public Submission createSubmission(IUser user, Analysis analysis, Long datasourceId, SubmissionGroup submissionGroup) throws NotExistException, IOException {
 
         return super.createSubmission(user, analysis, datasourceId, submissionGroup);

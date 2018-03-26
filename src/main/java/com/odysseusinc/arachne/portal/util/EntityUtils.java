@@ -23,6 +23,9 @@ package com.odysseusinc.arachne.portal.util;
 
 import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
 import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraphUtils;
+import com.google.common.collect.Lists;
+import java.util.List;
+import java.util.function.Consumer;
 import org.hibernate.Hibernate;
 
 public class EntityUtils {
@@ -44,5 +47,17 @@ public class EntityUtils {
     public static EntityGraph fromAttributePaths(final String... strings) {
 
         return EntityGraphUtils.fromAttributePaths(strings);
+    }
+
+    /**
+     * Splits the given collection and runs the given function on them.
+     *
+     * @param f callback
+     * @param list list of values
+     * @param batchSize size of batch
+     */
+    public static <T> void split(final Consumer<List<T>> f, final List<T> list, final int batchSize) {
+
+        Lists.partition(list, batchSize).forEach(f);
     }
 }

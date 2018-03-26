@@ -1,5 +1,4 @@
 /*
- *
  * Copyright 2017 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +14,19 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: June 13, 2017
- *
+ * Authors: Anton Gackovka
+ * Created: March 22, 2018
  */
 
-package com.odysseusinc.arachne.portal.service;
+package com.odysseusinc.arachne.portal.service.impl.solr;
 
-import com.odysseusinc.arachne.portal.exception.NotExistException;
-import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
-import com.odysseusinc.arachne.portal.service.impl.breadcrumb.BreadcrumbType;
-import java.util.List;
+public class SolrException extends RuntimeException {
+    public SolrException(final String message) {
+        
+        super(message);
+    }
+    public SolrException(final String message, final Throwable cause) {
 
-public interface BreadcrumbService {
-
-    List<Breadcrumb> getBreadcrumbs(BreadcrumbType type, Long id) throws NotExistException;
-
-    List<Breadcrumb> getBreadcrumbs(Breadcrumb breadcrumb) throws NotExistException;
+        super(message, cause);
+    }
 }

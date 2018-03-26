@@ -68,6 +68,10 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
 
     U getByUnverifiedEmail(final String email);
 
+    U getByUnverifiedEmailInAnyTenant(final String email);
+
+    U getByUsernameInAnyTenant(final String username);
+
     void remove(Long id)
             throws ValidationException, UserNotFoundException, NotExistException, IOException, SolrServerException;
 
@@ -116,7 +120,7 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_USER)")
     U getByUuidAndInitializeCollections(String uuid);
 
-    List<U> suggestUser(String query, List<String> emailsList, Integer limit);
+    List<U> suggestUserFromAnyTenant(String query, List<String> emailsList, Integer limit);
 
     List<U> suggestUserToStudy(String query, Long studyId, int limit);
 

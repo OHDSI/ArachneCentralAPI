@@ -52,18 +52,6 @@ public interface BaseUserRepository<U extends IUser> extends EntityGraphJpaRepos
 
     U findByEmail(String email, EntityGraph entityGraph);
 
-    @Query(nativeQuery = true, value = "SELECT * FROM users "
-            + " WHERE "
-            + "     (lower(firstname) SIMILAR TO :suggestRequest OR\n"
-            + "     lower(lastname) SIMILAR TO :suggestRequest OR\n"
-            + "     lower(middlename) SIMILAR TO :suggestRequest)"
-            + " AND email NOT IN (:emails)"
-            + " AND enabled = TRUE"
-            + " LIMIT :limit")
-    List<U> suggest(@Param("suggestRequest") String suggestRequest,
-                    @Param("emails") List<String> emails,
-                    @Param("limit") Integer limit);
-
     @Query(nativeQuery = true, value = "SELECT * FROM users"
             + " WHERE id NOT IN "
             + "      (SELECT user_id  FROM users_studies_extended WHERE study_id=:studyId "
@@ -108,7 +96,7 @@ public interface BaseUserRepository<U extends IUser> extends EntityGraphJpaRepos
 
     U findById(Long id);
 
-    List<U> findAllByEnabledIsTrue();
+    List<U> findAllByEnabledIsTrue(EntityGraph graph);
 
     @Query(nativeQuery = true, value = "SELECT * FROM users_data u WHERE enabled = TRUE")
     List<U> findAllEnabledFromAllTenants();

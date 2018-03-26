@@ -91,4 +91,10 @@ public abstract class BaseSkillServiceImpl<S extends Skill> extends CRUDLService
 
         return skillRepository.getAllExpectOfUserSkills(userId);
     }
+
+    @Override
+    public List<S> findAll() {
+
+        return skillRepository.findAll();
+    }
 }

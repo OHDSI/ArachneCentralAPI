@@ -23,10 +23,13 @@
 package com.odysseusinc.arachne.portal.service;
 
 import com.odysseusinc.arachne.portal.model.IUser;
+import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.UserPublication;
 import java.util.List;
 
 public interface BaseUserPublicationService<UP extends UserPublication> extends CRUDLService<UP> {
 
     List<UP> findByUserId(Long userId);
+
+    List<UP> findAll();
 }
