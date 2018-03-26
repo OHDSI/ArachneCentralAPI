@@ -24,6 +24,7 @@ package com.odysseusinc.arachne.portal.api.v1.controller;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
+import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.AdminUserDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ArachneConsts;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
@@ -47,6 +48,17 @@ import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import io.swagger.annotations.ApiOperation;
+import java.io.IOException;
+import java.security.Principal;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -60,18 +72,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-
-import java.io.IOException;
-import java.security.Principal;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Spliterator;
-import java.util.Spliterators;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 
 @Secured("ROLE_ADMIN")
@@ -110,8 +110,8 @@ public abstract class BaseAdminController<
     }
 
     @ApiOperation(value = "Enable user.", hidden = true)
-    @RequestMapping(value = "/api/v1/admin/users/{userId}/enable/{isEnabled}", method = RequestMethod.POST)
-    public JsonResult<Boolean> enableUser(@PathVariable("userId") Long id,
+    @RequestMapping(value = "/api/v1/admin/users/{userUuid}/enable/{isEnabled}", method = RequestMethod.POST)
+    public JsonResult<Boolean> enableUser(@PathVariable("userUuid") String uuid,
                                           @PathVariable("isEnabled") Boolean isEnabled)
             throws
             PermissionDeniedException,
@@ -123,9 +123,9 @@ public abstract class BaseAdminController<
             NoSuchFieldException {
 
         JsonResult<Boolean> result;
-        IUser user = userService.getByIdAndInitializeCollections(id);
+        IUser user = userService.getByIdInAnyTenant(UserIdUtils.uuidToId(uuid));
         user.setEnabled(isEnabled);
-        userService.update(user);
+        userService.updateUnsafeInAnyTenant(user);
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
         result.setResult(isEnabled);
         return result;
@@ -212,7 +212,6 @@ public abstract class BaseAdminController<
         userService.removeUserFromAdmins(id);
         return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
     }
-
 
     @RequestMapping(value = "/api/v1/admin/{domain}/reindex-solr", method = RequestMethod.POST)
     public JsonResult reindexSolr(@PathVariable("domain") final String domain)

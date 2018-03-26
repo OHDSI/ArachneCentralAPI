@@ -586,7 +586,7 @@ public abstract class BaseUserController<
             case InvitationType.UNLOCK_ANALYSIS:
             case InvitationType.APPROVE_PUBLISH_SUBMISSION:
             case InvitationType.APPROVE_EXECUTE_SUBMISSION: {
-                user = userService.getByIdAndInitializeCollections(userId);
+                user = userService.getByIdInAnyTenantAndInitializeCollections(userId);
                 break;
             }
             default: {
@@ -647,7 +647,8 @@ public abstract class BaseUserController<
             }
         }
         return new JsonResult<>(NO_ERROR,
-                conversionService.convert(userService.getByIdAndInitializeCollections(user.getId()), UserProfileDTO.class));
+                conversionService.convert(userService.getByIdInAnyTenantAndInitializeCollections(user.getId()),
+                        UserProfileDTO.class));
     }
 
     private void checkIfUserExists(U user) {
@@ -777,23 +778,23 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Remove user")
-    @RequestMapping(value = "/api/v1/admin/users/{id}", method = DELETE)
-    public Map<String, Boolean> delete(@PathVariable("id") Long userId)
+    @RequestMapping(value = "/api/v1/admin/users/{uuid}", method = DELETE)
+    public Map<String, Boolean> delete(@PathVariable("uuid") String uuid)
             throws ValidationException, IOException, SolrServerException {
 
-        userService.remove(userId);
+        userService.remove(UserIdUtils.uuidToId(uuid));
         return Collections.singletonMap("result", true);
     }
 
     @ApiOperation("Toggle user email confirmation")
-    @RequestMapping(value = "/api/v1/admin/users/{id}/confirm-email/{confirmed}", method = POST)
-    public CommonUserDTO confirmEmail(@PathVariable("id") Long userId,
+    @RequestMapping(value = "/api/v1/admin/users/{uuid}/confirm-email/{confirmed}", method = POST)
+    public CommonUserDTO confirmEmail(@PathVariable("uuid") String userUuid,
                                       @PathVariable("confirmed") Boolean confirm)
             throws IOException, NoSuchFieldException, SolrServerException, IllegalAccessException {
 
-        U user = userService.getByIdAndInitializeCollections(userId);
+        U user = userService.getByIdInAnyTenantAndInitializeCollections(UserIdUtils.uuidToId(userUuid));
         user.setEmailConfirmed(confirm);
-        userService.update(user);
+        userService.updateUnsafeInAnyTenant(user);
         return conversionService.convert(user, CommonUserDTO.class);
     }
 

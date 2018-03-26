@@ -64,6 +64,8 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
 
     U findLoginCandidate(final String email);
 
+    U getEnabledByIdInAnyTenant(final Long id);
+
     U getByIdInAnyTenant(final Long id);
 
     U getByUnverifiedEmail(final String email);
@@ -92,7 +94,7 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
 
     void sendRemindPasswordEmail(U user, String token, String registrantToken, String callbackUrl);
 
-    U getByIdAndInitializeCollections(Long id);
+    U getByIdInAnyTenantAndInitializeCollections(Long id);
 
     U getById(Long id);
 

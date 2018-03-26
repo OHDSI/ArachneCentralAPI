@@ -104,7 +104,7 @@ public abstract class BaseExpertFinderController<U extends IUser, SK extends Ski
     ) {
 
         JsonResult<CommonUserDTO> result;
-        U user = userService.getByIdAndInitializeCollections(id);
+        U user = userService.getByIdInAnyTenant(id);
         CommonUserDTO userDTO = conversionService.convert(user, CommonUserDTO.class);
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
         result.setResult(userDTO);
