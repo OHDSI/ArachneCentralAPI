@@ -282,7 +282,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
     public JsonResult<UserInfoDTO> info(Principal principal) {
 
         final JsonResult<UserInfoDTO> result;
-        IUser user = userService.getByEmail(principal.getName());
+        IUser user = userService.getByEmailInAnyTenant(principal.getName());
         final UserInfoDTO userInfo = conversionService.convert(user, UserInfoDTO.class);
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
         result.setResult(userInfo);

@@ -62,7 +62,7 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
 
     U getByEmail(String email);
 
-    U findLoginCandidate(final String email);
+    U getByEmailInAnyTenant(final String email);
 
     U getByIdInAnyTenant(final Long id);
 
