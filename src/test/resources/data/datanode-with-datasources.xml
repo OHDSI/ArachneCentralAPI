@@ -20,10 +20,6 @@
             user_id="3"
             id="2"
     />
-    <datanodes_users_roles
-            datanode_user_id="1"
-            datanode_role="ADMIN"
-    />
     <data_sources_data
             id="1"
             name="Public Unsupervised"
