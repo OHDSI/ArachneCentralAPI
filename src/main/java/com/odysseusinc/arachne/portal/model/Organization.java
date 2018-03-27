@@ -104,8 +104,7 @@ public class Organization implements Serializable, HasArachnePermissions {
         if (o == null || getClass() != o.getClass()) return false;
         Organization that = (Organization) o;
         return Objects.equals(id, that.id) &&
-                Objects.equals(name, that.name) &&
-                Objects.equals(dataNodes, that.dataNodes);
+                Objects.equals(name, that.name);
     }
 
     @Override

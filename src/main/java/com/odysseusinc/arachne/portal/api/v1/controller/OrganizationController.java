@@ -62,8 +62,7 @@ public class OrganizationController extends BaseController {
 
         final Organization organization = conversionService.convert(organizationDTO, Organization.class);
         final Organization saved = organizationService.create(organization);
-        final OrganizationDTO savedDTO = conversionService.convert(saved, OrganizationDTO.class);
-        return savedDTO;
+        return conversionService.convert(saved, OrganizationDTO.class);
     }
 
     @ApiOperation("Get Organization")

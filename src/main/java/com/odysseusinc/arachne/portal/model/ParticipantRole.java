@@ -146,7 +146,6 @@ public enum ParticipantRole {
             CREATE_ORGANIZATION
     }),
     ORGANIZATION_READER("Organization user", new ArachnePermission[] {
-            ACCESS_ORGANIZATION,
             ACCESS_ORGANIZATION
     });
 
