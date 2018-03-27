@@ -22,9 +22,7 @@
 
 package com.odysseusinc.arachne.portal.repository;
 
-import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.DataSourceHealthCheckJournalEntry;
-import com.odysseusinc.arachne.portal.model.IDataSource;
 import java.util.Date;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.repository.CrudRepository;
@@ -37,5 +35,5 @@ public interface DataSourceHealthCheckJournalRepository
     @Modifying
     void removeByCreatedLessThan(Date date);
 
-    Long countAllByDataSourceAndCreatedAfter(IDataSource dataSource, Date date);
+    Long countAllByDataSourceIdAndCreatedAfter(Long dataSourceId, Date date);
 }
