@@ -27,19 +27,18 @@ import com.odysseusinc.arachne.portal.api.v1.dto.CountryDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.StateProvinceDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserProfileGeneralDTO;
 import com.odysseusinc.arachne.portal.exception.NoDTOConverterException;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.ProfessionalType;
-import com.odysseusinc.arachne.portal.model.User;
-import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
 import org.springframework.stereotype.Component;
 
 
 @Component
 @SuppressWarnings("unused")
-public class UserToUserProfileGeneralDTOConverter extends BaseConversionServiceAwareConverter<User, UserProfileGeneralDTO> {
+public class UserToUserProfileGeneralDTOConverter extends BaseConversionServiceAwareConverter<IUser, UserProfileGeneralDTO> {
 
 
     @Override
-    public UserProfileGeneralDTO convert(User user) {
+    public UserProfileGeneralDTO convert(IUser user) {
 
         UserProfileGeneralDTO dto = new UserProfileGeneralDTO();
         dto.setFirstname(user.getFirstname());
