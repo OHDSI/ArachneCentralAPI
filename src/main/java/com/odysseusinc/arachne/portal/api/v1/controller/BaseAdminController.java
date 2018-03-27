@@ -125,7 +125,7 @@ public abstract class BaseAdminController<
         JsonResult<Boolean> result;
         IUser user = userService.getByIdInAnyTenant(UserIdUtils.uuidToId(uuid));
         user.setEnabled(isEnabled);
-        userService.updateUnsafeInAnyTenant(user);
+        userService.updateInAnyTenant(user);
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
         result.setResult(isEnabled);
         return result;

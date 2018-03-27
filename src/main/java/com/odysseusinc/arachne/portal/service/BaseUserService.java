@@ -106,13 +106,7 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
             NotExistException,
             NoSuchFieldException;
 
-    U updateUnsafeInAnyTenant(U user)
-            throws
-            IllegalAccessException,
-            SolrServerException,
-            IOException,
-            NotExistException,
-            NoSuchFieldException;
+    U updateInAnyTenant(U user) throws NotExistException;
 
     @PreAuthorize("hasPermission(#uuid, 'User', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_USER)")

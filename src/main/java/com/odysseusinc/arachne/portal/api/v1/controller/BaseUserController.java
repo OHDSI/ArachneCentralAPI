@@ -794,7 +794,7 @@ public abstract class BaseUserController<
 
         U user = userService.getByIdInAnyTenantAndInitializeCollections(UserIdUtils.uuidToId(userUuid));
         user.setEmailConfirmed(confirm);
-        userService.updateUnsafeInAnyTenant(user);
+        userService.updateInAnyTenant(user);
         return conversionService.convert(user, CommonUserDTO.class);
     }
 

@@ -491,8 +491,7 @@ public abstract class BaseUserServiceImpl<
 
     @Override
     @Secured({"ROLE_ADMIN"})
-    public U updateUnsafeInAnyTenant(U user)
-            throws IllegalAccessException, SolrServerException, IOException, NotExistException, NoSuchFieldException {
+    public U updateInAnyTenant(U user) throws NotExistException {
 
         U forUpdate = getByIdInAnyTenant(user.getId());
         forUpdate = baseUpdate(forUpdate, user);
