@@ -64,6 +64,8 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
 
     U getByEmailInAnyTenant(final String email);
 
+    U getEnabledByIdInAnyTenant(final Long id);
+
     U getByIdInAnyTenant(final Long id);
 
     U getByUnverifiedEmail(final String email);
@@ -92,7 +94,7 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
 
     void sendRemindPasswordEmail(U user, String token, String registrantToken, String callbackUrl);
 
-    U getByIdAndInitializeCollections(Long id);
+    U getByIdInAnyTenantAndInitializeCollections(Long id);
 
     U getById(Long id);
 
@@ -104,13 +106,7 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
             NotExistException,
             NoSuchFieldException;
 
-    U updateUnsafeInAnyTenant(U user)
-            throws
-            IllegalAccessException,
-            SolrServerException,
-            IOException,
-            NotExistException,
-            NoSuchFieldException;
+    U updateInAnyTenant(U user) throws NotExistException;
 
     @PreAuthorize("hasPermission(#uuid, 'User', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_USER)")
