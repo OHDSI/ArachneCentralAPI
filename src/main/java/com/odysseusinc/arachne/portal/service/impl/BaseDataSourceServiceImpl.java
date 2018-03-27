@@ -347,7 +347,7 @@ public abstract class BaseDataSourceServiceImpl<
                         cb.isFalse(root.get("dataNode").get("virtual"))));
 
         TypedQuery<DS> typedQuery = this.entityManager.createQuery(cq);
-        List<DS> list = typedQuery.setFirstResult(pageRequest.getOffset())
+        List<DS> list = typedQuery.setFirstResult(Math.toIntExact(pageRequest.getOffset()))
                             .setMaxResults(pageRequest.getPageSize())
                             .getResultList();
         return new PageImpl<>(list, pageRequest, list.size());
