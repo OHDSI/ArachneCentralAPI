@@ -25,7 +25,6 @@ package com.odysseusinc.arachne.portal.service;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.model.DataNode;
-import com.odysseusinc.arachne.portal.model.DataNodeRole;
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
 import com.odysseusinc.arachne.portal.model.IUser;
 import java.util.List;
@@ -41,10 +40,10 @@ public interface BaseDataNodeService<DN extends DataNode> {
 
     DN getById(Long id) throws NotExistException;
 
-    void linkUserToDataNode(DN dataNode, IUser user, Set<DataNodeRole> dataNodeRole)
+    void linkUserToDataNode(DN dataNode, IUser user)
             throws NotExistException, AlreadyExistException;
 
-    void linkUserToDataNodeUnsafe(DN dataNode, IUser user, Set<DataNodeRole> dataNodeRole)
+    void linkUserToDataNodeUnsafe(DN dataNode, IUser user)
             throws NotExistException, AlreadyExistException;
 
 

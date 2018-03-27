@@ -25,7 +25,6 @@ package com.odysseusinc.arachne.portal.service.impl;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.DataNode;
-import com.odysseusinc.arachne.portal.model.DataNodeRole;
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
 import com.odysseusinc.arachne.portal.model.DataSourceStatus;
 import com.odysseusinc.arachne.portal.model.IDataSource;
@@ -230,12 +229,7 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends I
         final RawUser standardUser = new RawUser();
         standardUser.setId(user.getId());
 
-        Optional<DataNodeUser> optionalDataNode = dataNodeUserRepository.findByDataNodeAndUserId(dataNode, standardUser.getId());
-        if (optionalDataNode.isPresent()) {
-            final Set<DataNodeRole> dataNodeRoles = optionalDataNode.get().getDataNodeRole();
-            return dataNodeRoles != null && !dataNodeRoles.isEmpty() && dataNodeRoles.contains(DataNodeRole.ADMIN);
-        }
-        return false;
+        return dataNodeUserRepository.findByDataNodeAndUserId(dataNode, standardUser.getId()).isPresent();
     }
 
     @Override
