@@ -65,7 +65,6 @@ import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.AnalysisUnlockRequest;
 import com.odysseusinc.arachne.portal.model.Country;
 import com.odysseusinc.arachne.portal.model.DataNode;
-import com.odysseusinc.arachne.portal.model.DataNodeRole;
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
@@ -703,19 +702,11 @@ public abstract class BaseUserController<
                                          @RequestBody CommonLinkUserToDataNodeDTO linkUserToDataNode
     ) throws NotExistException, AlreadyExistException {
 
-        final DN datanode = Optional.ofNullable(baseDataNodeService.getById(datanodeId)).orElseThrow(() ->
+        final DN dataNode = Optional.ofNullable(baseDataNodeService.getById(datanodeId)).orElseThrow(() ->
                 new NotExistException(String.format(DATA_NODE_NOT_FOUND_EXCEPTION, datanodeId),
                         DataNode.class));
         final U user = userService.getByUnverifiedEmailInAnyTenant(linkUserToDataNode.getUserName());
-        final Set<DataNodeRole> roles = linkUserToDataNode.getRoles()
-                .stream()
-                .map(role ->
-                        DataNodeRole.valueOf(
-                                role.getName().replace("ROLE_", "")
-                        )
-                )
-                .collect(Collectors.toSet());
-        baseDataNodeService.linkUserToDataNode(datanode, user, roles);
+        baseDataNodeService.linkUserToDataNode(dataNode, user);
         return new JsonResult(NO_ERROR);
     }
 
@@ -734,34 +725,22 @@ public abstract class BaseUserController<
 
     @ApiOperation("Relink all Users to DataNode")
     @RequestMapping(value = "/api/v1/user-management/datanodes/{datanodeId}/users", method = RequestMethod.PUT)
-    public JsonResult<List<CommonUserDTO>> relinkAllUsersToDataNode(@PathVariable("datanodeId") Long datanodeId,
-                                                                    @RequestBody List<CommonLinkUserToDataNodeDTO> linkUserToDataNodes
+    public JsonResult<List<CommonUserDTO>> relinkAllUsersToDataNode(@PathVariable("datanodeId") final Long dataNodeId,
+                                                                    @RequestBody final List<CommonLinkUserToDataNodeDTO> linkUserToDataNodes
     ) throws NotExistException {
 
-        final DN datanode = baseDataNodeService.getById(datanodeId);
+        final DN dataNode = baseDataNodeService.getById(dataNodeId);
+        
         final Set<DataNodeUser> users = linkUserToDataNodes.stream()
-                .map(link -> {
-                            final U user = userService.getByUnverifiedEmailInAnyTenant(link.getUserName());
-                            final Set<DataNodeRole> roles = link.getRoles()
-                                    .stream()
-                                    .map(role ->
-                                            DataNodeRole.valueOf(
-                                                    role.getName().replace("ROLE_", "")
-                                            )
-                                    )
-                                    .collect(Collectors.toSet());
-                            final DataNodeUser dataNodeUser = new DataNodeUser();
-                            dataNodeUser.setDataNode(datanode);
-                            dataNodeUser.setUser(user);
-                            dataNodeUser.setDataNodeRole(roles);
-                            return dataNodeUser;
-                        }
-                )
+                .map(link -> new DataNodeUser(userService.getByUnverifiedEmailInAnyTenant(link.getUserName()), dataNode))
                 .collect(Collectors.toSet());
-        baseDataNodeService.relinkAllUsersToDataNode(datanode, users);
-        List<CommonUserDTO> userDTOs = users.stream()
+        
+        baseDataNodeService.relinkAllUsersToDataNode(dataNode, users);
+        
+        final List<CommonUserDTO> userDTOs = users.stream()
                 .map(user -> conversionService.convert(user.getUser(), CommonUserDTO.class))
                 .collect(Collectors.toList());
+        
         return new JsonResult<>(NO_ERROR, userDTOs);
     }
 

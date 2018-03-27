@@ -65,7 +65,6 @@ public interface BaseSubmissionRepository<T extends Submission> extends EntityGr
             + "  INNER JOIN data_sources ds ON ds.id = sub.data_source_id\n"
             + "  INNER JOIN datanodes dn ON dn.id = ds.data_node_id\n"
             + "  INNER JOIN datanodes_users dnu ON dnu.datanode_id = dn.id\n"
-            + "  INNER JOIN datanodes_users_roles dur ON dur.datanode_user_id = dnu.id AND dur.datanode_role = 'ADMIN'"
             + "  INNER JOIN submission_status_history ssh ON ssh.submission_id = sub.id "
             + "   AND ssh.is_last = TRUE "
             + "   AND ssh.status in ('FAILED', 'PENDING', 'EXECUTED')\n"
