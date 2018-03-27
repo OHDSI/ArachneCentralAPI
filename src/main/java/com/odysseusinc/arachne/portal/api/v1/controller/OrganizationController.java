@@ -93,8 +93,8 @@ public class OrganizationController extends BaseController {
 
     @ApiOperation("Suggest Organizations")
     @RequestMapping(value = "/api/v1/user-management/organizations", produces = APPLICATION_JSON_UTF8_VALUE, method = GET)
-    public List<OrganizationDTO> suggest(@RequestParam("query") String query,
-                                         @RequestParam("limit") Integer limit) {
+    public List<OrganizationDTO> suggest(@RequestParam(value = "query", required = false, defaultValue = "") String query,
+                                         @RequestParam(value = "limit", required = false, defaultValue = "10") Integer limit) {
 
         final List<Organization> organizations = organizationService.suggest(query, limit);
         return organizations.stream()
