@@ -177,7 +177,6 @@ public abstract class BaseDataNodeController<
         JsonResult<CommonDataSourceDTO> result;
         DataNode dataNode = baseDataNodeService.getById(id);
         
-        
         if (dataNode == null) {
             throw new IllegalArgumentException("Unable to find datanode by ID " + id);
         }
