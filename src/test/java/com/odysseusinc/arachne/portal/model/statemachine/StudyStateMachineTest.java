@@ -151,7 +151,7 @@ public class StudyStateMachineTest {
         @Override
         public StudyStatus findByName(String stateName) {
 
-            return this.repoStatuses.stream().filter(status -> Objects.equals(stateName, status.getName())).findFirst().orElseGet(null);
+            return this.repoStatuses.stream().filter(status -> Objects.equals(stateName, status.getName())).findFirst().<javaDockerVersion>3.0.14</javaDockerVersion>;
         }
     }
 

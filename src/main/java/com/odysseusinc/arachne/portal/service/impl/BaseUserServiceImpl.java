@@ -91,6 +91,7 @@ import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import com.odysseusinc.arachne.portal.service.mail.RegistrationMailMessage;
 import com.odysseusinc.arachne.portal.service.mail.RemindPasswordMailMessage;
+import com.odysseusinc.arachne.portal.util.EntityUtils;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
@@ -387,7 +388,7 @@ public abstract class BaseUserServiceImpl<
     @Override
     public U getByIdInAnyTenantAndInitializeCollections(Long id) {
 
-        return initUserCollections(rawUserRepository.findOne(id).get());
+        return initUserCollections(rawUserRepository.findById(id).get());
     }
 
     @Override
