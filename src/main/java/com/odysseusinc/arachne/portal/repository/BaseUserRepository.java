@@ -22,15 +22,12 @@
 
 package com.odysseusinc.arachne.portal.repository;
 
-import static com.odysseusinc.arachne.portal.service.RoleService.ROLE_ADMIN;
-
 import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
 import com.cosium.spring.data.jpa.entity.graph.repository.EntityGraphJpaRepository;
 import com.odysseusinc.arachne.portal.model.IUser;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.NoRepositoryBean;
@@ -82,17 +79,7 @@ public interface BaseUserRepository<U extends IUser> extends EntityGraphJpaRepos
                            @Param("paperId") Long paperId,
                            @Param("limit") Integer limit);
 
-    @Query(nativeQuery = true, value = "SELECT * FROM users u "
-            + " WHERE (lower(u.firstname) SIMILAR TO :suggestRequest OR\n"
-            + "        lower(u.lastname) SIMILAR TO :suggestRequest OR\n"
-            + "        lower(u.middlename) SIMILAR TO :suggestRequest) "
-            + " AND u.id NOT IN\n"
-            + "          (SELECT user_id FROM users_roles ur\n"
-            + "           LEFT JOIN roles r ON ur.role_id=r.id\n"
-            + "           WHERE  r.name='" + ROLE_ADMIN + "')\n"
-            + " AND enabled = TRUE"
-            + " LIMIT :limit")
-    List<U> suggestNotAdmin(@Param("suggestRequest") String suggestRequest, @Param("limit") Integer limit);
+    U findById(Long id);
 
     List<U> findAllByEnabledIsTrue(EntityGraph graph);
 
@@ -100,8 +87,6 @@ public interface BaseUserRepository<U extends IUser> extends EntityGraphJpaRepos
     List<U> findAllEnabledFromAllTenants();
 
     Page<U> findAllBy(Pageable pageable);
-
-    List<U> findByRoles_name(String role, Sort sort);
 
     List<U> findAllByUsernameInAndEnabledTrue(List<String> userNames);
 

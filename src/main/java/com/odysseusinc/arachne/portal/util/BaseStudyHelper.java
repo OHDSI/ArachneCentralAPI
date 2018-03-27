@@ -28,7 +28,6 @@ import static com.odysseusinc.arachne.portal.service.AnalysisPaths.CONTENT_DIR;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonCDMVersionDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
 import com.odysseusinc.arachne.portal.model.DataNode;
-import com.odysseusinc.arachne.portal.model.DataNodeRole;
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
@@ -42,7 +41,6 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -79,12 +77,10 @@ public abstract class BaseStudyHelper<DN extends DataNode, DS extends IDataSourc
         return dataNode;
     }
 
-    public Set<DataNodeUser> usersToDataNodeAdmins(List<IUser> users, final DN dataNode) {
+    public Set<DataNodeUser> createDataNodeUsers(final List<IUser> users, final DN dataNode) {
 
-        final Set<DataNodeRole> dataNodeRoles = new HashSet<>();
-        dataNodeRoles.add(DataNodeRole.ADMIN);
         return users.stream()
-                .map(u -> new DataNodeUser(u, dataNode, dataNodeRoles))
+                .map(u -> new DataNodeUser(u, dataNode))
                 .collect(Collectors.toSet());
     }
 

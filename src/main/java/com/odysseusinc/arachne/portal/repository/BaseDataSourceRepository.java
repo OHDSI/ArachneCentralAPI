@@ -90,8 +90,6 @@ public interface BaseDataSourceRepository<T extends IDataSource> extends CrudRep
             + "JOIN achilles_files f ON f.characterization_id = c.id WHERE f.id = :fileId")
     T getByAchillesFileId(@Param("fileId") Long fileId);
 
-    List<T> getByDataNodeVirtualAndDeletedIsNullAndPublishedTrue(Boolean isVirtual);
-
     // Have to do native query because of request to non-tenant table w/ data sources
     @Query(
             nativeQuery = true,
@@ -99,8 +97,8 @@ public interface BaseDataSourceRepository<T extends IDataSource> extends CrudRep
                     "FROM data_sources_data ds " +
                     "JOIN datanodes dn ON dn.id = ds.data_node_id " +
                     "WHERE dn.is_virtual = FALSE " +
-                    "AND ds.deleted IS NULL AND ds.published = TRUE")
-    List<T> getAllNotDeletedAndIsNotVirtualAndPublishedTrueFromAllTenants();
+                    "AND ds.deleted IS NULL AND ds.published = TRUE AND (:withManual OR ds.execution_policy != 'MANUAL')")
+    List<T> getAllNotDeletedAndIsNotVirtualAndPublishedTrueFromAllTenants(@Param("withManual") boolean withManual);
 
     @Transactional
     int deleteByIdAndDeletedIsNull(Long id);

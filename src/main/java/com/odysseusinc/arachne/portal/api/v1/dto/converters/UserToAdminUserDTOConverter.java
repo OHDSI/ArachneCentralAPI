@@ -23,18 +23,16 @@
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.AdminUserDTO;
-import com.odysseusinc.arachne.portal.model.User;
+import com.odysseusinc.arachne.portal.model.IUser;
 import java.util.stream.Collectors;
-import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
 import org.springframework.stereotype.Component;
 
 
 @Component
-public class UserToAdminUserDTOConverter extends BaseConversionServiceAwareConverter<User, AdminUserDTO> {
-
+public class UserToAdminUserDTOConverter extends BaseConversionServiceAwareConverter<IUser, AdminUserDTO> {
 
     @Override
-    public AdminUserDTO convert(User user) {
+    public AdminUserDTO convert(IUser user) {
 
         AdminUserDTO dto = new AdminUserDTO();
         dto.setId(user.getId());
@@ -48,6 +46,5 @@ public class UserToAdminUserDTOConverter extends BaseConversionServiceAwareConve
         }
         return dto;
     }
-
 
 }

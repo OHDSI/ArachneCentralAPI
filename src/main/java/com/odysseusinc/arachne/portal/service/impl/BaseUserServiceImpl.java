@@ -92,7 +92,6 @@ import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import com.odysseusinc.arachne.portal.service.mail.RegistrationMailMessage;
 import com.odysseusinc.arachne.portal.service.mail.RemindPasswordMailMessage;
 import java.awt.image.BufferedImage;
-import com.odysseusinc.arachne.portal.util.EntityUtils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -102,7 +101,6 @@ import java.security.Principal;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -135,6 +133,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specifications;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -263,16 +262,23 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    public U findLoginCandidate(final String email) {
+    public U getByEmailInAnyTenant(final String email) {
 
         return rawUserRepository.findByOriginAndUsername(this.userOrigin, email);
     }
 
     @Override
     @Secured({"ROLE_ADMIN"})
-    public U getByIdInAnyTenant(final Long id) {
+    public U getEnabledByIdInAnyTenant(final Long id) {
 
         return rawUserRepository.findByIdAndEnabledTrue(id);
+    }
+
+    @Override
+    @PreAuthorize("#dataNode == authentication.principal || hasRole('ROLE_ADMIN')")
+    public U getByIdInAnyTenant(final Long id) {
+
+        return rawUserRepository.getOne(id);
     }
 
     @Override
@@ -379,9 +385,9 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    public U getByIdAndInitializeCollections(Long id) {
+    public U getByIdInAnyTenantAndInitializeCollections(Long id) {
 
-        return initUserCollections(getById(id).get());
+        return initUserCollections(rawUserRepository.findOne(id).get());
     }
 
     @Override
@@ -390,7 +396,7 @@ public abstract class BaseUserServiceImpl<
         return userRepository.findById(id);
     }
 
-    private void afterUpdate(U savedUser) throws IOException, SolrServerException, NoSuchFieldException, IllegalAccessException {
+    private void afterUpdate(U savedUser) {
 
         if (savedUser.getEnabled()) {
             indexBySolr(savedUser);
@@ -399,7 +405,7 @@ public abstract class BaseUserServiceImpl<
         }
     }
 
-    private U baseUpdate(U forUpdate, U user) throws IOException, SolrServerException, NoSuchFieldException, IllegalAccessException {
+    private U baseUpdate(U forUpdate, U user) {
 
         final Date date = new Date();
         forUpdate.setId(user.getId());
@@ -476,8 +482,7 @@ public abstract class BaseUserServiceImpl<
 
     @Override
     @Secured({"ROLE_ADMIN"})
-    public U updateUnsafeInAnyTenant(U user)
-            throws IllegalAccessException, SolrServerException, IOException, NotExistException, NoSuchFieldException {
+    public U updateInAnyTenant(U user) throws NotExistException {
 
         U forUpdate = getByIdInAnyTenant(user.getId());
         forUpdate = baseUpdate(forUpdate, user);
@@ -534,14 +539,14 @@ public abstract class BaseUserServiceImpl<
         }
         suggestRequest.delete(suggestRequest.length() - 1, suggestRequest.length());
         suggestRequest.append(")%");
-        return userRepository.suggestNotAdmin(suggestRequest.toString(), limit);
+        return rawUserRepository.suggestNotAdmin(suggestRequest.toString(), limit);
     }
 
     @Override
     public List<U> getAllEnabledFromAllTenants() {
 
         final List<U> usersWithTenants = userRepository.findAllByEnabledIsTrue(EntityUtils.fromAttributePaths("tenants"));
-        
+
         final Map<Long, List<UserLink>> userIdToLinksMap = userLinkService.findAll().stream().collect(Collectors.groupingBy(v -> v.getUser().getId()));
         final Map<Long, List<UserPublication>> userIdToPublicationsMap = userPublicationService.findAll().stream().collect(Collectors.groupingBy(v -> v.getUser().getId()));
 
@@ -550,10 +555,10 @@ public abstract class BaseUserServiceImpl<
             user.setLinks(userIdToLinksMap.get(userId));
             user.setPublications(userIdToPublicationsMap.get(userId));
         }
-        
+
         return usersWithTenants;
     }
-    
+
     @Override
     public Page<U> getAll(Pageable pageable, UserSearch userSearch) {
 
@@ -568,7 +573,7 @@ public abstract class BaseUserServiceImpl<
             String pattern = userSearch.getQuery() + "%";
             spec = spec.and(withNameOrEmailLike(pattern));
         }
-        return userRepository.findAll(spec, pageable);
+        return rawUserRepository.findAll(spec, pageable);
     }
 
     private void sendRegistrationEmail(final U user) {
@@ -866,9 +871,9 @@ public abstract class BaseUserServiceImpl<
 
         solrService.indexBySolr(user);
     }
-    
+
     private void indexBySolr(final List<U> users) {
-        
+
         solrService.indexBySolr(users);
     }
 
@@ -980,18 +985,18 @@ public abstract class BaseUserServiceImpl<
         } else {
             sort = new Sort(direction, sortBy);
         }
-        List<U> admins = userRepository.findByRoles_name(ROLE_ADMIN, sort);
+        List<U> admins = rawUserRepository.findByRoles_name(ROLE_ADMIN, sort);
         return admins;
     }
 
     @Override
     public void addUserToAdmins(Long id) {
 
-        U user = userRepository.findById(id).get();
+        U user = rawUserRepository.findById(id).get();
         List<Role> roles = roleRepository.findByName(ROLE_ADMIN);
         if (roles != null && !roles.isEmpty()) {
             user.getRoles().add(roles.get(0));
-            userRepository.save(user);
+            rawUserRepository.save(user);
         } else {
             throw new ArachneSystemRuntimeException("ROLE_ADMIN not found");
         }
@@ -1000,11 +1005,11 @@ public abstract class BaseUserServiceImpl<
     @Override
     public void removeUserFromAdmins(Long id) {
 
-        U user = userRepository.findById(id).get();
+        U user = rawUserRepository.findById(id).get();
         List<Role> roles = roleRepository.findByName(ROLE_ADMIN);
         if (roles != null && !roles.isEmpty()) {
             user.getRoles().remove(roles.get(0));
-            userRepository.save(user);
+            rawUserRepository.save(user);
         } else {
             throw new ArachneSystemRuntimeException("ROLE_ADMIN not found");
         }

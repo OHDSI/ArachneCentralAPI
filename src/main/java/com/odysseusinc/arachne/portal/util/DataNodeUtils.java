@@ -23,7 +23,6 @@
 package com.odysseusinc.arachne.portal.util;
 
 import com.odysseusinc.arachne.portal.model.DataNode;
-import com.odysseusinc.arachne.portal.model.DataNodeRole;
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.User;
@@ -44,7 +43,6 @@ public class DataNodeUtils {
         return dataNode.getDataNodeUsers()
                 .stream()
                 .filter(u -> Objects.nonNull(u.getUser().getEnabled()) && u.getUser().getEnabled())
-                .filter(u -> u.getDataNodeRole().contains(DataNodeRole.ADMIN))
                 .map(DataNodeUser::getUser)
                 .collect(Collectors.toSet());
     }
@@ -53,7 +51,6 @@ public class DataNodeUtils {
 
         return datanode.getDataNodeUsers().stream()
                 .filter(u -> Objects.nonNull(u.getUser().getEnabled()) && u.getUser().getEnabled())
-                .filter(dataNodeUser -> dataNodeUser.getDataNodeRole().contains(DataNodeRole.ADMIN))
                 .anyMatch(UserPredicates.dataNodeUserEquals(user));
     }
 

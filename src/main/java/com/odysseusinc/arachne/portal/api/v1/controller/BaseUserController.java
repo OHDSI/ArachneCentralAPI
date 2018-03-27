@@ -65,7 +65,6 @@ import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.AnalysisUnlockRequest;
 import com.odysseusinc.arachne.portal.model.Country;
 import com.odysseusinc.arachne.portal.model.DataNode;
-import com.odysseusinc.arachne.portal.model.DataNodeRole;
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
@@ -586,7 +585,7 @@ public abstract class BaseUserController<
             case InvitationType.UNLOCK_ANALYSIS:
             case InvitationType.APPROVE_PUBLISH_SUBMISSION:
             case InvitationType.APPROVE_EXECUTE_SUBMISSION: {
-                user = userService.getByIdAndInitializeCollections(userId);
+                user = userService.getByIdInAnyTenantAndInitializeCollections(userId);
                 break;
             }
             default: {
@@ -647,7 +646,8 @@ public abstract class BaseUserController<
             }
         }
         return new JsonResult<>(NO_ERROR,
-                conversionService.convert(userService.getByIdAndInitializeCollections(user.getId()), UserProfileDTO.class));
+                conversionService.convert(userService.getByIdInAnyTenantAndInitializeCollections(user.getId()),
+                        UserProfileDTO.class));
     }
 
     private void checkIfUserExists(U user) {
@@ -702,19 +702,11 @@ public abstract class BaseUserController<
                                          @RequestBody CommonLinkUserToDataNodeDTO linkUserToDataNode
     ) throws NotExistException, AlreadyExistException {
 
-        final DN datanode = Optional.ofNullable(baseDataNodeService.getById(datanodeId)).orElseThrow(() ->
+        final DN dataNode = Optional.ofNullable(baseDataNodeService.getById(datanodeId)).orElseThrow(() ->
                 new NotExistException(String.format(DATA_NODE_NOT_FOUND_EXCEPTION, datanodeId),
                         DataNode.class));
         final U user = userService.getByUnverifiedEmailInAnyTenant(linkUserToDataNode.getUserName());
-        final Set<DataNodeRole> roles = linkUserToDataNode.getRoles()
-                .stream()
-                .map(role ->
-                        DataNodeRole.valueOf(
-                                role.getName().replace("ROLE_", "")
-                        )
-                )
-                .collect(Collectors.toSet());
-        baseDataNodeService.linkUserToDataNode(datanode, user, roles);
+        baseDataNodeService.linkUserToDataNode(dataNode, user);
         return new JsonResult(NO_ERROR);
     }
 
@@ -733,34 +725,22 @@ public abstract class BaseUserController<
 
     @ApiOperation("Relink all Users to DataNode")
     @RequestMapping(value = "/api/v1/user-management/datanodes/{datanodeId}/users", method = RequestMethod.PUT)
-    public JsonResult<List<CommonUserDTO>> relinkAllUsersToDataNode(@PathVariable("datanodeId") Long datanodeId,
-                                                                    @RequestBody List<CommonLinkUserToDataNodeDTO> linkUserToDataNodes
+    public JsonResult<List<CommonUserDTO>> relinkAllUsersToDataNode(@PathVariable("datanodeId") final Long dataNodeId,
+                                                                    @RequestBody final List<CommonLinkUserToDataNodeDTO> linkUserToDataNodes
     ) throws NotExistException {
 
-        final DN datanode = baseDataNodeService.getById(datanodeId);
+        final DN dataNode = baseDataNodeService.getById(dataNodeId);
+        
         final Set<DataNodeUser> users = linkUserToDataNodes.stream()
-                .map(link -> {
-                            final U user = userService.getByUnverifiedEmailInAnyTenant(link.getUserName());
-                            final Set<DataNodeRole> roles = link.getRoles()
-                                    .stream()
-                                    .map(role ->
-                                            DataNodeRole.valueOf(
-                                                    role.getName().replace("ROLE_", "")
-                                            )
-                                    )
-                                    .collect(Collectors.toSet());
-                            final DataNodeUser dataNodeUser = new DataNodeUser();
-                            dataNodeUser.setDataNode(datanode);
-                            dataNodeUser.setUser(user);
-                            dataNodeUser.setDataNodeRole(roles);
-                            return dataNodeUser;
-                        }
-                )
+                .map(link -> new DataNodeUser(userService.getByUnverifiedEmailInAnyTenant(link.getUserName()), dataNode))
                 .collect(Collectors.toSet());
-        baseDataNodeService.relinkAllUsersToDataNode(datanode, users);
-        List<CommonUserDTO> userDTOs = users.stream()
+        
+        baseDataNodeService.relinkAllUsersToDataNode(dataNode, users);
+        
+        final List<CommonUserDTO> userDTOs = users.stream()
                 .map(user -> conversionService.convert(user.getUser(), CommonUserDTO.class))
                 .collect(Collectors.toList());
+        
         return new JsonResult<>(NO_ERROR, userDTOs);
     }
 
@@ -777,23 +757,23 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Remove user")
-    @RequestMapping(value = "/api/v1/admin/users/{id}", method = DELETE)
-    public Map<String, Boolean> delete(@PathVariable("id") Long userId)
+    @RequestMapping(value = "/api/v1/admin/users/{uuid}", method = DELETE)
+    public Map<String, Boolean> delete(@PathVariable("uuid") String uuid)
             throws ValidationException, IOException, SolrServerException {
 
-        userService.remove(userId);
+        userService.remove(UserIdUtils.uuidToId(uuid));
         return Collections.singletonMap("result", true);
     }
 
     @ApiOperation("Toggle user email confirmation")
-    @RequestMapping(value = "/api/v1/admin/users/{id}/confirm-email/{confirmed}", method = POST)
-    public CommonUserDTO confirmEmail(@PathVariable("id") Long userId,
+    @RequestMapping(value = "/api/v1/admin/users/{uuid}/confirm-email/{confirmed}", method = POST)
+    public CommonUserDTO confirmEmail(@PathVariable("uuid") String userUuid,
                                       @PathVariable("confirmed") Boolean confirm)
             throws IOException, NoSuchFieldException, SolrServerException, IllegalAccessException {
 
-        U user = userService.getByIdAndInitializeCollections(userId);
+        U user = userService.getByIdInAnyTenantAndInitializeCollections(UserIdUtils.uuidToId(userUuid));
         user.setEmailConfirmed(confirm);
-        userService.update(user);
+        userService.updateInAnyTenant(user);
         return conversionService.convert(user, CommonUserDTO.class);
     }
 

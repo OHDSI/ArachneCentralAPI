@@ -24,12 +24,10 @@ package com.odysseusinc.arachne.portal.service.impl;
 
 import static org.assertj.core.util.Preconditions.checkNotNull;
 
-import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraphUtils;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataNodeJournalEntry;
-import com.odysseusinc.arachne.portal.model.DataNodeRole;
 import com.odysseusinc.arachne.portal.model.DataNodeStatus;
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
 import com.odysseusinc.arachne.portal.model.IUser;
@@ -155,22 +153,21 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
     @Transactional
     @Override
     @PreAuthorize("#dataNode == authentication.principal")
-    public void linkUserToDataNode(DN dataNode, IUser user, Set<DataNodeRole> roles)
+    public void linkUserToDataNode(DN dataNode, IUser user)
             throws NotExistException, AlreadyExistException {
 
-        linkUserToDataNodeUnsafe(dataNode, user, roles);
+        linkUserToDataNodeUnsafe(dataNode, user);
     }
 
     @Transactional
     @Override
-    public void linkUserToDataNodeUnsafe(DN dataNode, IUser user, Set<DataNodeRole> roles)
+    public void linkUserToDataNodeUnsafe(DN dataNode, IUser user)
             throws NotExistException {
 
         LOGGER.info(LINKING_USER_LOG, user.getId(), dataNode.getId());
         final DataNodeUser dataNodeUser = new DataNodeUser();
         dataNodeUser.setDataNode(dataNode);
         dataNodeUser.setUser(user);
-        dataNodeUser.setDataNodeRole(roles);
         saveOrUpdateDataNodeUser(dataNode, dataNodeUser);
     }
 

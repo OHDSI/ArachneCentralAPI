@@ -34,24 +34,21 @@ public interface StudyDataSourceLinkRepository extends EntityGraphJpaRepository<
 
     @Query("SELECT l FROM StudyDataSourceLink l "
             + " JOIN l.dataSource.dataNode.dataNodeUsers u "
-            + " JOIN u.dataNodeRole r"
-            + " WHERE :ownerId = u.user.id AND r = 'ADMIN' AND l.status=:status")
+            + " WHERE :ownerId = u.user.id AND l.status=:status")
     List<StudyDataSourceLink> findByOwnerIdAndStatus(@Param("ownerId") Long ownerId,
                                                      @Param("status") DataSourceStatus status);
 
     @Query("SELECT l FROM StudyDataSourceLink l "
             + " JOIN l.study s"
             + " JOIN l.dataSource.dataNode.dataNodeUsers u "
-            + " JOIN u.dataNodeRole r"
-            + " WHERE :ownerId = u.user.id AND r = 'ADMIN' AND s.id = :studyId AND l.status=:status")
+            + " WHERE :ownerId = u.user.id AND s.id = :studyId AND l.status=:status")
     List<StudyDataSourceLink> findByOwnerIdAndStudyIdAndStatus(@Param("ownerId") Long ownerId,
                                                                @Param("studyId") Long studyId,
                                                                @Param("status") DataSourceStatus status);
 
     @Query("SELECT l FROM StudyDataSourceLink l "
             + " JOIN l.dataSource.dataNode.dataNodeUsers u "
-            + " JOIN u.dataNodeRole r"
-            + " WHERE :ownerId = u.user.id AND r = 'ADMIN' AND l.id=:id")
+            + " WHERE :ownerId = u.user.id AND l.id=:id")
     StudyDataSourceLink findByIdAndOwnerId(@Param("id") Long id, @Param("ownerId") Long ownerId);
 
     @Query(nativeQuery = true, value = "SELECT * FROM studies_data_sources l WHERE "

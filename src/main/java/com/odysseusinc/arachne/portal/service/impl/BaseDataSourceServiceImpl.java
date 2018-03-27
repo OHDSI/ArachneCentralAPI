@@ -56,6 +56,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
@@ -74,9 +76,6 @@ import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
 
 @Transactional(rollbackFor = Exception.class)
 public abstract class BaseDataSourceServiceImpl<
@@ -290,14 +289,9 @@ public abstract class BaseDataSourceServiceImpl<
     protected abstract <T extends DS> Class<T> getType();
 
     @Override
-    public List<DS> getAllNotDeletedIsNotVirtualUnsecured() {
+    public List<DS> getAllNotDeletedAndIsNotVirtualFromAllTenants(boolean withManual) {
 
-        return dataSourceRepository.getByDataNodeVirtualAndDeletedIsNullAndPublishedTrue(false);
-    }
-
-    private List<DS> getAllNotDeletedAndIsNotVirtualFromAllTenants() {
-
-        return dataSourceRepository.getAllNotDeletedAndIsNotVirtualAndPublishedTrueFromAllTenants();
+        return dataSourceRepository.getAllNotDeletedAndIsNotVirtualAndPublishedTrueFromAllTenants(withManual);
     }
 
     @Override
@@ -411,7 +405,7 @@ public abstract class BaseDataSourceServiceImpl<
     public void indexAllBySolr() throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
         solrService.deleteAll(SolrCollection.DATA_SOURCES);
-        final List<DS> dataSourceList = getAllNotDeletedAndIsNotVirtualFromAllTenants();
+        final List<DS> dataSourceList = getAllNotDeletedAndIsNotVirtualFromAllTenants(true);
         for (final DS dataSource : dataSourceList) {
             indexBySolr(dataSource);
         }

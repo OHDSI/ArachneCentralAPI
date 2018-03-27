@@ -952,7 +952,7 @@ public abstract class BaseStudyServiceImpl<
 
     private Set<DataNodeUser> updateDataNodeOwners(List<IUser> dataOwners, DataNode dataNode) {
 
-        final Set<DataNodeUser> dataNodeUsers = studyHelper.usersToDataNodeAdmins(dataOwners, dataNode);
+        final Set<DataNodeUser> dataNodeUsers = studyHelper.createDataNodeUsers(dataOwners, dataNode);
         final Authentication savedAuth = studyHelper.loginByNode(dataNode);
         baseDataNodeService.relinkAllUsersToDataNode(dataNode, dataNodeUsers);
         SecurityContextHolder.getContext().setAuthentication(savedAuth);

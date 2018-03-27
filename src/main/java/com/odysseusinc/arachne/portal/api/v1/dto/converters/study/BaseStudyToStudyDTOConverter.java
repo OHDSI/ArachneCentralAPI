@@ -22,7 +22,6 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto.converters.study;
 
-import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraphUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.BaseAnalysisDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.DataSourceDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ParticipantDTO;
@@ -37,7 +36,6 @@ import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
 import com.odysseusinc.arachne.portal.model.StudyFile;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
-import com.odysseusinc.arachne.portal.service.StudyService;
 import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
 import com.odysseusinc.arachne.portal.util.EntityUtils;
 import java.util.List;
@@ -80,8 +78,7 @@ public abstract class BaseStudyToStudyDTOConverter<S extends Study, DTO extends 
         final List<StudyDataSourceLink> foundLinks = studyService.getLinksByStudyId(
                 source.getId(),
                 EntityUtils.fromAttributePaths(
-                    "dataSource.dataNode.dataNodeUsers.user",
-                    "dataSource.dataNode.dataNodeUsers.dataNodeRole"
+                    "dataSource.dataNode.dataNodeUsers.user"
                 )
         );
 

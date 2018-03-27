@@ -58,6 +58,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.MailSendException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -225,7 +226,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
     public void remindPassword(@RequestBody @Valid RemindPasswordDTO remindPasswordDTO) throws InterruptedException {
 
         String email = remindPasswordDTO.getEmail();
-        IUser user = userService.getByUnverifiedEmail(email);
+        IUser user = userService.getByUnverifiedEmailInAnyTenant(email);
         // If user was not found,
         // do not throw exception to prevent "Unauthenticated Email Address Enumeration" security issue
         if (user != null) {
@@ -264,7 +265,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
                 throw new PasswordValidationException(passwordValidator.getMessages(validationResult));
             }
             if (passwordResetService.canReset(email, token)) {
-                IUser user = userService.getByUnverifiedEmail(email);
+                IUser user = userService.getByUnverifiedEmailInAnyTenant(email);
                 user.setPassword(newPassword);
                 userService.resetPassword(user);
                 result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
@@ -281,7 +282,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
     public JsonResult<UserInfoDTO> info(Principal principal) {
 
         final JsonResult<UserInfoDTO> result;
-        IUser user = userService.getByEmail(principal.getName());
+        IUser user = userService.getByEmailInAnyTenant(principal.getName());
         final UserInfoDTO userInfo = conversionService.convert(user, UserInfoDTO.class);
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
         result.setResult(userInfo);
