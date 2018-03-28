@@ -103,14 +103,13 @@ public class Organization implements Serializable, HasArachnePermissions {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Organization that = (Organization) o;
-        return Objects.equals(id, that.id) &&
-                Objects.equals(name, that.name);
+        return Objects.equals(getId(), that.getId());//Pavel Grafkin guess that we will not use 2 entities in one collection with 1 id
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(id, name, dataNodes);
+        return Objects.hash(getId()); //Pavel Grafkin guess that we will not use 2 entities in one collection with 1 id
     }
 
     @Override
