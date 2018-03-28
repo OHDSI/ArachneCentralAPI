@@ -121,20 +121,10 @@ public abstract class BaseDataNodeController<
             Principal principal
     ) throws PermissionDeniedException, AlreadyExistException, ValidationException {
 
+        commonDataNodeRegisterDTO.setId(null);
         final DN dataNode = conversionService.convert(commonDataNodeRegisterDTO, getDataNodeDNClass());
-        final Long dataNodeId = dataNode.getId();
-        if (dataNodeId != null) {
-            return conversionService.convert(baseDataNodeService.getById(dataNodeId), CommonDataNodeCreationResponseDTO.class);
-        }
         final Organization organization = conversionService.convert(commonDataNodeRegisterDTO.getOrganization(), Organization.class);
-        final Organization savedOrganization;
-        final Long organizationId = organization.getId();
-        if (organizationId != null) {
-            savedOrganization = organizationService.get(organizationId);
-        } else {
-            savedOrganization = organizationService.create(organization);
-        }
-        dataNode.setOrganization(savedOrganization);
+        dataNode.setOrganization(organizationService.getOrCreate(organization));
         return createDataNode(dataNode, principal);
     }
 

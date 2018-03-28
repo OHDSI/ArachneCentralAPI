@@ -80,6 +80,17 @@ public class OrganizationServiceImpl implements OrganizationService {
 
     @Override
     @Transactional
+    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
+    public Organization getOrCreate(Organization organization) throws ValidationException {
+
+        try {
+            return get(organization.getId());
+        } catch (NotExistException ignored) {}
+            return create(organization);
+    }
+
+    @Override
+    @Transactional
     @PreAuthorize("hasPermission(#organization, 'Organization', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).UPDATE_ORGANIZATION)")
     @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")

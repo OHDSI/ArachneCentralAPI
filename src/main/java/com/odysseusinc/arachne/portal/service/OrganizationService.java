@@ -31,6 +31,8 @@ public interface OrganizationService {
 
     Organization get(Long id);
 
+    Organization getOrCreate(Organization organization) throws ValidationException;
+
     Organization update(Organization organization);
 
     void delete(Long id);
