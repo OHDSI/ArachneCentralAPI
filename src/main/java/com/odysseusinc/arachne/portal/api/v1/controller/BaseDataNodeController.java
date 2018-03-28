@@ -34,7 +34,6 @@ import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.DataNode;
-import com.odysseusinc.arachne.portal.model.DataNodeRole;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Organization;
@@ -133,7 +132,7 @@ public abstract class BaseDataNodeController<
 
         final IUser user = getUser(principal);
         final DN registeredDataNode = baseDataNodeService.create(dataNode);
-        baseDataNodeService.linkUserToDataNodeUnsafe(registeredDataNode, user, Collections.singleton(DataNodeRole.ADMIN));
+        baseDataNodeService.linkUserToDataNodeUnsafe(registeredDataNode, user);
         return conversionService.convert(registeredDataNode, CommonDataNodeCreationResponseDTO.class);
     }
 
@@ -186,7 +185,6 @@ public abstract class BaseDataNodeController<
 
         JsonResult<CommonDataSourceDTO> result;
         DataNode dataNode = baseDataNodeService.getById(id);
-
 
         if (dataNode == null) {
             throw new IllegalArgumentException("Unable to find datanode by ID " + id);

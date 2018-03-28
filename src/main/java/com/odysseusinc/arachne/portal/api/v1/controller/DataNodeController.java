@@ -23,6 +23,7 @@
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataSourceDTO;
+import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataSource;
@@ -74,6 +75,7 @@ public class DataNodeController extends BaseDataNodeController<DataSource, Commo
 
         DataSource ds = conversionService.convert(commonDataSourceDTO, DataSource.class);
         ds.setModelType(null);
+        ds.setHealthStatus(CommonHealthStatus.GREEN);
         return ds;
     }
 }

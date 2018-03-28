@@ -216,7 +216,7 @@ public class UserControllerTests extends BaseControllerTest {
     public void testEnableUser() throws Exception {
 
         mvc.perform(
-                post("/api/v1/admin/users/" + USER_ID + "/enable/true")
+                post("/api/v1/admin/users/" + UserIdUtils.idToUuid(USER_ID) + "/enable/true")
                         .with(user(ADMIN_EMAIL).roles("ADMIN")))
                 .andExpect(NO_ERROR_CODE)
                 .andExpect(OK_STATUS)

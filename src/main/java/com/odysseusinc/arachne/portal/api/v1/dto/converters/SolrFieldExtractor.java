@@ -20,7 +20,9 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
-public interface SolrFieldExtractor<T>{
+import com.odysseusinc.arachne.portal.model.solr.SolrEntity;
+
+public interface SolrFieldExtractor<T extends SolrEntity>{
     
     Object extract(final T domain);
 }

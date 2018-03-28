@@ -104,7 +104,7 @@ public abstract class BaseExpertFinderController<U extends IUser, SK extends Ski
     ) {
 
         JsonResult<CommonUserDTO> result;
-        U user = userService.getByIdAndInitializeCollections(id);
+        U user = userService.getByIdInAnyTenant(id);
         CommonUserDTO userDTO = conversionService.convert(user, CommonUserDTO.class);
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
         result.setResult(userDTO);
@@ -139,7 +139,7 @@ public abstract class BaseExpertFinderController<U extends IUser, SK extends Ski
                 if (CollectionUtils.isEmpty(excludeEmails)) {
                     throw new javax.validation.ValidationException("Emails for excluding must be specified when SuggestionTarget=DATANODE");
                 }
-                users = userService.suggestUser(query, excludeEmails, limit);
+                users = userService.suggestUserFromAnyTenant(query, excludeEmails, limit);
                 break;
             }
             default: {

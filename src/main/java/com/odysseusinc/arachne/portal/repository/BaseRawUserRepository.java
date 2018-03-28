@@ -22,16 +22,58 @@
 
 package com.odysseusinc.arachne.portal.repository;
 
+import static com.odysseusinc.arachne.portal.service.BaseRoleService.ROLE_ADMIN;
+
+import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
+import com.cosium.spring.data.jpa.entity.graph.repository.EntityGraphJpaRepository;
 import com.odysseusinc.arachne.portal.model.IUser;
-import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.NoRepositoryBean;
+import org.springframework.data.repository.query.Param;
 
 @NoRepositoryBean
-public interface BaseRawUserRepository<U extends IUser> extends JpaRepository<U, Long> {
+public interface BaseRawUserRepository<U extends IUser> extends EntityGraphJpaRepository<U, Long>,
+        JpaSpecificationExecutor<U> {
 
     U findByIdAndEnabledTrue(Long id);
 
     U findByOriginAndUsername(String userOrigin, String username);
 
     U findByRegistrationCode(String activateCode);
+
+    U findByEmail(String email, EntityGraph entityGraph);
+
+    U findByEmailAndEnabledTrue(String email);
+
+    U findByOriginAndUsernameAndEnabledTrue(String userOrigin, String username);
+
+    @Query(nativeQuery = true, value = "SELECT * FROM users_data "
+            + " WHERE "
+            + "     (lower(firstname) SIMILAR TO :suggestRequest OR\n"
+            + "     lower(lastname) SIMILAR TO :suggestRequest OR\n"
+            + "     lower(middlename) SIMILAR TO :suggestRequest)"
+            + " AND email NOT IN (:emails)"
+            + " AND enabled = TRUE"
+            + " LIMIT :limit")
+    List<U> suggest(@Param("suggestRequest") String suggestRequest,
+                    @Param("emails") List<String> emails,
+                    @Param("limit") Integer limit);
+
+    @Query(nativeQuery = true, value = "SELECT * FROM users_data u "
+            + " WHERE (lower(u.firstname) SIMILAR TO :suggestRequest OR\n"
+            + "        lower(u.lastname) SIMILAR TO :suggestRequest OR\n"
+            + "        lower(u.middlename) SIMILAR TO :suggestRequest) "
+            + " AND u.id NOT IN\n"
+            + "          (SELECT user_id FROM users_roles ur\n"
+            + "           LEFT JOIN roles r ON ur.role_id=r.id\n"
+            + "           WHERE  r.name='" + ROLE_ADMIN + "')\n"
+            + " AND enabled = TRUE"
+            + " LIMIT :limit")
+    List<U> suggestNotAdmin(@Param("suggestRequest") String suggestRequest, @Param("limit") Integer limit);
+
+    List<U> findByRoles_name(String role, Sort sort);
+
 }

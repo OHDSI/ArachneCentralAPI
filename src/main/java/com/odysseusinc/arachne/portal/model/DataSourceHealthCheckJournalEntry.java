@@ -50,7 +50,7 @@ public class DataSourceHealthCheckJournalEntry {
     private Date created;
 
     @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, targetEntity = DataSource.class)
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = RawDataSource.class)
     private IDataSource dataSource;
 
     @NotNull
