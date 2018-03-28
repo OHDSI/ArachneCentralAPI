@@ -8,7 +8,18 @@ run_ple_analysis <- function(analysiDescriptionFile, outputFolder, targetCohortD
   # targetCohortDefinitionPath - path to sql file with target cohort description
   # comparatorCohortDefinitionPath - path to sql file with comparator cohort description 
   # outcomeCohortDefinitionPath - path to sql sql with outcome cohort description
-  
+  # dbms - type of DBMS server (possible string values ""mysql", "oracle", "postgresql", "redshift", "sql server", "pdw", "netezza", "bigquery")
+  # connectionString - JDBC connection string ()
+  # user - user name
+  # password - user password
+  # cdmDatabaseSchema - name of the schema with CDM data
+  # vocabularyDatabaseSchema - name of schema with CDM vocabulary
+  # resultsDatabaseSchema - name of schema to store results
+  # exposureTable - name of table with exposure cohorts (default value "cohort"), 
+  # outcomeTable - name of table with outcome cohorts (default value "cohort") 
+  # cdmVersion - OMOP CDM version: currently support "4" and "5" (default value 5)
+  # maxCores - number of parallel threads for propensity score model training (default value 1)
+
   # Outputs: 
   # None
   
@@ -154,60 +165,35 @@ run_ple_analysis <- function(analysiDescriptionFile, outputFolder, targetCohortD
   
   
   # Define which types of covariates must be constructed ----
-  covariateSettings <- createCovariateSettings(useCovariateDemographics = analysisSettings$psDemographics,
-                                               useCovariateDemographicsGender = analysisSettings$psDemographicsGender,
-                                               useCovariateDemographicsRace = analysisSettings$psDemographicsRace,
-                                               useCovariateDemographicsEthnicity = analysisSettings$psDemographicsEthnicity,
-                                               useCovariateDemographicsAge = analysisSettings$psDemographicsAge, 
-                                               useCovariateDemographicsYear = analysisSettings$psDemographicsYear,
-                                               useCovariateDemographicsMonth = analysisSettings$psDemographicsMonth,
-                                               useCovariateConditionOccurrence = analysisSettings$psConditionOcc,    
-                                               useCovariateConditionOccurrence365d = analysisSettings$psConditionOcc365d,
-                                               useCovariateConditionOccurrence30d = analysisSettings$psConditionOcc30d,
-                                               useCovariateConditionOccurrenceInpt180d = analysisSettings$psConditionOccInpt180d,
-                                               useCovariateConditionEra = analysisSettings$psConditionEra, 
-                                               useCovariateConditionEraEver = analysisSettings$psConditionEraEver,
-                                               useCovariateConditionEraOverlap = analysisSettings$psConditionEraOverlap,
-                                               useCovariateConditionGroup = analysisSettings$psConditionGroup,
-                                               useCovariateConditionGroupMeddra = analysisSettings$psConditionGroupMeddra,
-                                               useCovariateConditionGroupSnomed = analysisSettings$psConditionGroupSnomed,
-                                               useCovariateDrugExposure = analysisSettings$psDrugExposure, 
-                                               useCovariateDrugExposure365d = analysisSettings$psDrugExposure365d,
-                                               useCovariateDrugExposure30d = analysisSettings$psDrugExposure30d, 
-                                               useCovariateDrugEra = analysisSettings$psDrugEra,
-                                               useCovariateDrugEra365d = analysisSettings$psDrugEra365d, 
-                                               useCovariateDrugEra30d = analysisSettings$psDrugEra30d,
-                                               useCovariateDrugEraOverlap = analysisSettings$psDrugEraOverlap, 
-                                               useCovariateDrugEraEver = analysisSettings$psDrugEraEver,
-                                               useCovariateDrugGroup = analysisSettings$psDrugGroup, 
-                                               useCovariateProcedureOccurrence = analysisSettings$psProcedureOcc,
-                                               useCovariateProcedureOccurrence365d = analysisSettings$psProcedureOcc365d,
-                                               useCovariateProcedureOccurrence30d = analysisSettings$psProcedureOcc30d,
-                                               useCovariateProcedureGroup = analysisSettings$psProcedureGroup, 
-                                               useCovariateObservation = analysisSettings$psObservation,
-                                               useCovariateObservation365d = analysisSettings$psObservation365d, 
-                                               useCovariateObservation30d = analysisSettings$psObservation30d,
-                                               useCovariateObservationCount365d = analysisSettings$psObservationCount365d, 
-                                               useCovariateMeasurement = analysisSettings$psMeasurement,
-                                               useCovariateMeasurement365d = analysisSettings$psMeasurement365d, 
-                                               useCovariateMeasurement30d = analysisSettings$psMeasurement30d,
-                                               useCovariateMeasurementCount365d = analysisSettings$psMeasurementCount365d,
-                                               useCovariateMeasurementBelow = analysisSettings$psMeasurementBelow,
-                                               useCovariateMeasurementAbove = analysisSettings$psMeasurementAbove, 
-                                               useCovariateConceptCounts = analysisSettings$psConceptCounts,
-                                               useCovariateRiskScores = analysisSettings$psRiskScores, 
-                                               useCovariateRiskScoresCharlson = analysisSettings$psRiskScoresCharlson,
-                                               useCovariateRiskScoresDCSI = analysisSettings$psRiskScoresDcsi, 
-                                               useCovariateRiskScoresCHADS2 = analysisSettings$psRiskScoresChads2,
-                                               useCovariateRiskScoresCHADS2VASc = analysisSettings$psRiskScoresChads2vasc,
-                                               useCovariateInteractionYear = analysisSettings$psInteractionYear, 
-                                               useCovariateInteractionMonth = analysisSettings$psInteractionMonth,
+                                               covariateSettings <- createCovariateSettings(useDemographicsGender = analysisSettings$psDemographicsGender,
+                                               useDemographicsRace = analysisSettings$psDemographicsRace,
+                                               useDemographicsEthnicity = analysisSettings$psDemographicsEthnicity,
+                                               useDemographicsAge = analysisSettings$psDemographicsAge,
+                                               useDemographicsIndexYear = analysisSettings$psDemographicsYear,
+                                               useDemographicsIndexMonth = analysisSettings$psDemographicsMonth,
+                                               useConditionOccurrenceLongTerm = analysisSettings$psConditionOcc365d,
+                                               useConditionOccurrenceShortTerm = analysisSettings$psConditionOcc30d,
+                                               useConditionOccurrenceInpatientMediumTerm = analysisSettings$psConditionOccInpt180d,                         ,
+                                               useConditionEraOverlap = analysisSettings$psConditionEraOverlap,
+                                               useDrugExposureLongTerm = analysisSettings$psDrugExposure365d,
+                                               useDrugExposureShortTerm = analysisSettings$psDrugExposure30d,
+                                               useDrugEraLongTerm = analysisSettings$psDrugEra365d,
+                                               useDrugEraShortTerm = analysisSettings$psDrugEra30d,
+                                               useDrugEraOverlap = analysisSettings$psDrugEraOverlap,
+                                               useProcedureOccurrenceLongTerm = analysisSettings$psProcedureOcc365d,
+                                               useProcedureOccurrenceShortTerm = analysisSettings$psProcedureOcc30d,
+                                               useObservationLongTerm = analysisSettings$psObservation365d,
+                                               useObservationShortTerm = analysisSettings$psObservation30d,
+                                               useMeasurementLongTerm = analysisSettings$psMeasurement365d,
+                                               useMeasurementShortTerm = analysisSettings$psMeasurement30d,
+                                               useCharlsonIndex = analysisSettings$psRiskScoresCharlson,
+                                               useDcsi = analysisSettings$psRiskScoresDcsi,
+                                               useChads2 = analysisSettings$psRiskScoresChads2,
+                                               useChads2Vasc = analysisSettings$psRiskScoresChads2vasc,
                                                excludedCovariateConceptIds = excludedConcepts,
-                                               includedCovariateConceptIds = includedConcepts,
-                                               deleteCovariatesSmallCount = analysisSettings$delCovariatesSmallCount)
-  
-  
-  
+                                               includedCovariateConceptIds = includedConcepts)
+
+
   getDbCmDataArgs <- createGetDbCohortMethodDataArgs(washoutPeriod = as.numeric(analysisSettings$minimumWashoutPeriod),
                                                      firstExposureOnly = FALSE,
                                                      removeDuplicateSubjects = analysisSettings$rmSubjectsInBothCohortsFormatted,
