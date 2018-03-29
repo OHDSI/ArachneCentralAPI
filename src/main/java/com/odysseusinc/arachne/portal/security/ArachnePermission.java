@@ -26,6 +26,7 @@ import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.AnalysisFile;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.model.Organization;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.Submission;
@@ -62,8 +63,11 @@ public enum ArachnePermission {
     UPLOAD_ACHILLES_REPORTS(IDataSource.class),
     ACCESS_ACHILLES_REPORT_PERMISSION(IDataSource.class),
     EDIT_ACHILLES_REPORT_PERMISSION(IDataSource.class),
-    UPDATE_SUBMISSION(Submission.class)
-    ;
+    UPDATE_SUBMISSION(Submission.class),
+    ACCESS_ORGANIZATION(Organization.class),
+    CREATE_ORGANIZATION(Organization.class),
+    UPDATE_ORGANIZATION(Organization.class),
+    DELETE_ORGANIZATION(Organization.class);
 
     private Class<?>[] applicableClass;
 

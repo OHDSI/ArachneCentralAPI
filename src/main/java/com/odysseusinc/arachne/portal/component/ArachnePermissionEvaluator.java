@@ -27,6 +27,7 @@ import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.a
 import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.hasRole;
 import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.instanceOf;
 import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.userIsLeadInvestigator;
+import static com.odysseusinc.arachne.portal.security.ArachnePermission.ACCESS_STUDY;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.DELETE_ANALYSIS_FILES;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.DELETE_DATASOURCE;
 
@@ -36,6 +37,7 @@ import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.model.Organization;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import com.odysseusinc.arachne.portal.model.PublishState;
@@ -100,6 +102,7 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends IDataSource> 
         domainClassMap.put(CommentTopic.class.getSimpleName(), CommentTopic.class);
         domainClassMap.put(User.class.getSimpleName(), User.class);
         domainClassMap.put(RawDataSource.class.getSimpleName(), RawDataSource.class);
+        domainClassMap.put(Organization.class.getSimpleName(), Organization.class);
     }
 
     protected boolean checkPermission(Authentication authentication, Object domainObject, Object permissions) {
@@ -237,6 +240,12 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends IDataSource> 
                 .apply();
     }
 
+    protected PermissionDsl organizationRules(Object domainObject, ArachneUser user) {
+
+        return domainObject(domainObject).when(instanceOf(Organization.class))
+                .then(organization -> getArachnePermissions(secureService.getRolesByOrganization(user, (Organization) organization))).apply();
+    }
+
     protected PermissionDsl additionalRules(Object domainObject, ArachneUser user) {
 
         return domainObject(domainObject);
@@ -255,6 +264,7 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends IDataSource> 
                 .with(paperRules(domainObject, user))
                 .with(insightRules(domainObject, user))
                 .with(topicRules(domainObject, user))
+                .with(organizationRules(domainObject, user))
                 .with(additionalRules(domainObject, user))
                 .with(userRules(domainObject, user))
                 .getPermissions();

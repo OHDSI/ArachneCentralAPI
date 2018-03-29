@@ -31,6 +31,7 @@ import com.odysseusinc.arachne.portal.repository.ResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.StudyRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionInsightSubmissionFileRepository;
 import com.odysseusinc.arachne.portal.repository.TenantRepository;
+import com.odysseusinc.arachne.portal.repository.UserRepository;
 import com.odysseusinc.arachne.portal.repository.UserStudyExtendedRepository;
 import com.odysseusinc.arachne.portal.repository.UserStudyGroupedRepository;
 import com.odysseusinc.arachne.portal.repository.submission.SubmissionRepository;
@@ -55,7 +56,8 @@ public class ArachneSecureServiceImpl extends BaseArachneSecureServiceImpl<Paper
                                     SubmissionInsightSubmissionFileRepository submissionInsightSubmissionFileRepository,
                                     ResultFileRepository resultFileRepository,
                                     TenantRepository tenantRepository,
-                                    StudyRepository studyRepository
+                                    StudyRepository studyRepository,
+                                    UserRepository userRepository
     ) {
 
         super(userStudyGroupedRepository,
@@ -67,6 +69,7 @@ public class ArachneSecureServiceImpl extends BaseArachneSecureServiceImpl<Paper
                 submissionInsightSubmissionFileRepository,
                 resultFileRepository,
                 tenantRepository,
-                studyRepository);
+                studyRepository,
+                userRepository);
     }
 }

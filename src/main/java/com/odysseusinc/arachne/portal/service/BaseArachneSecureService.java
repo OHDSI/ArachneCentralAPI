@@ -26,6 +26,7 @@ import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.model.Organization;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import com.odysseusinc.arachne.portal.model.Study;
@@ -62,4 +63,6 @@ public interface BaseArachneSecureService<P extends Paper, DS extends IDataSourc
     boolean canImportFromDatanode(ArachneUser user, DataNode dataNode);
 
     boolean wasDataSourceApproved(Analysis analysis, Long dataSourceId);
+
+    List<ParticipantRole> getRolesByOrganization(ArachneUser user, Organization organization);
 }

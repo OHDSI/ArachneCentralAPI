@@ -15,30 +15,26 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: April 19, 2017
+ * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Konstantin Yaroshovets
+ * Created: February 6, 2018
  *
  */
 
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
-import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeCreationResponseDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.OrganizationDTO;
-import com.odysseusinc.arachne.portal.model.DataNode;
+import com.odysseusinc.arachne.portal.model.Organization;
 import org.springframework.stereotype.Component;
 
 @Component
-public class DataNodeToCommonDataNodeCreationResponseDTOConverter
-        extends BaseConversionServiceAwareConverter<DataNode, CommonDataNodeCreationResponseDTO> {
+public class OrganizationToOrganizationDTOConverter extends BaseConversionServiceAwareConverter<Organization, OrganizationDTO> {
 
     @Override
-    public CommonDataNodeCreationResponseDTO convert(DataNode source) {
+    public OrganizationDTO convert(Organization source) {
 
-        CommonDataNodeCreationResponseDTO dto = new CommonDataNodeCreationResponseDTO();
-        dto.setDataNodeUuid(source.getSid());
-        dto.setToken(source.getToken());
-        dto.setCentralId(source.getId());
-        dto.setOrganization(conversionService.convert(source.getOrganization(), OrganizationDTO.class));
-        return dto;
+        final OrganizationDTO organizationDTO = new OrganizationDTO();
+        organizationDTO.setId(source.getId());
+        organizationDTO.setName(source.getName());
+        return organizationDTO;
     }
 }

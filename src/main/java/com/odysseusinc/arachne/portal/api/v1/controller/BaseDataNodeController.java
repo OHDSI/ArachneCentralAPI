@@ -36,9 +36,11 @@ import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
+import com.odysseusinc.arachne.portal.model.Organization;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
+import com.odysseusinc.arachne.portal.service.OrganizationService;
 import com.odysseusinc.arachne.portal.service.StudyDataSourceService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.util.ArachneConverterUtils;
@@ -75,6 +77,7 @@ public abstract class BaseDataNodeController<
     protected final BaseUserService userService;
     protected final StudyDataSourceService studyDataSourceService;
     protected final ArachneConverterUtils converterUtils;
+    protected final OrganizationService organizationService;
 
     @Autowired
     public BaseDataNodeController(BaseAnalysisService analysisService,
@@ -83,7 +86,8 @@ public abstract class BaseDataNodeController<
                                   GenericConversionService genericConversionService,
                                   BaseUserService userService,
                                   StudyDataSourceService studyDataSourceService,
-                                  ArachneConverterUtils converterUtils) {
+                                  ArachneConverterUtils converterUtils,
+                                  OrganizationService organizationService) {
 
         this.analysisService = analysisService;
         this.baseDataNodeService = dataNodeService;
@@ -92,6 +96,7 @@ public abstract class BaseDataNodeController<
         this.userService = userService;
         this.studyDataSourceService = studyDataSourceService;
         this.converterUtils = converterUtils;
+        this.organizationService = organizationService;
     }
 
     @ApiOperation("Create new data node.")
@@ -113,9 +118,12 @@ public abstract class BaseDataNodeController<
     public CommonDataNodeCreationResponseDTO createManualDataNode(
             @RequestBody @Valid CommonDataNodeRegisterDTO commonDataNodeRegisterDTO,
             Principal principal
-    ) throws PermissionDeniedException, AlreadyExistException {
+    ) throws PermissionDeniedException, AlreadyExistException, ValidationException {
 
+        commonDataNodeRegisterDTO.setId(null);
         final DN dataNode = conversionService.convert(commonDataNodeRegisterDTO, getDataNodeDNClass());
+        final Organization organization = conversionService.convert(commonDataNodeRegisterDTO.getOrganization(), Organization.class);
+        dataNode.setOrganization(organizationService.getOrCreate(organization));
         return createDataNode(dataNode, principal);
     }
 
@@ -152,7 +160,8 @@ public abstract class BaseDataNodeController<
         final IUser user = getUser(principal);
         final DN dataNode = conversionService.convert(commonDataNodeRegisterDTO, getDataNodeDNClass());
         dataNode.setId(dataNodeId);
-
+        final Organization organization = organizationService.get(commonDataNodeRegisterDTO.getOrganization().getId());
+        dataNode.setOrganization(organization);
         final DN updatedDataNode = baseDataNodeService.update(dataNode);
         final CommonDataNodeDTO dataNodeRegisterResponseDTO
                 = conversionService.convert(updatedDataNode, CommonDataNodeDTO.class);
@@ -173,10 +182,10 @@ public abstract class BaseDataNodeController<
 
         // we validate only two fields, because we don't want to validate another fields, because they always are null
         validate(commonDataSourceDTO);
-        
+
         JsonResult<CommonDataSourceDTO> result;
         DataNode dataNode = baseDataNodeService.getById(id);
-        
+
         if (dataNode == null) {
             throw new IllegalArgumentException("Unable to find datanode by ID " + id);
         }

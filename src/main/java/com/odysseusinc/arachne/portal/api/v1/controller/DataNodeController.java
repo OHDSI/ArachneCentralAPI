@@ -30,6 +30,7 @@ import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
+import com.odysseusinc.arachne.portal.service.OrganizationService;
 import com.odysseusinc.arachne.portal.service.StudyDataSourceService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.util.ArachneConverterUtils;
@@ -44,7 +45,8 @@ public class DataNodeController extends BaseDataNodeController<DataSource, Commo
                               GenericConversionService genericConversionService,
                               BaseUserService userService,
                               StudyDataSourceService studyDataSourceService,
-                              ArachneConverterUtils converterUtils) {
+                              ArachneConverterUtils converterUtils,
+                              OrganizationService organizationService) {
 
         super(analysisService,
                 baseDataNodeService,
@@ -52,7 +54,8 @@ public class DataNodeController extends BaseDataNodeController<DataSource, Commo
                 genericConversionService,
                 userService,
                 studyDataSourceService,
-                converterUtils);
+                converterUtils,
+                organizationService);
     }
 
     @Override
