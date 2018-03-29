@@ -4,4 +4,4 @@ CREATE TABLE IF NOT EXISTS organizations (
 );
 
 ALTER TABLE datanodes
-  ADD COLUMN organization_id BIGINT REFERENCES organizations (id);
+  ADD COLUMN IF NOT EXISTS organization_id BIGINT REFERENCES organizations (id);

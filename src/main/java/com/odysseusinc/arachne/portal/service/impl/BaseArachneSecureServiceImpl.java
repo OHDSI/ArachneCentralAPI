@@ -54,6 +54,7 @@ import com.odysseusinc.arachne.portal.repository.UserStudyExtendedRepository;
 import com.odysseusinc.arachne.portal.repository.UserStudyGroupedRepository;
 import com.odysseusinc.arachne.portal.repository.submission.SubmissionRepository;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
+import com.odysseusinc.arachne.portal.service.BaseRoleService;
 import com.odysseusinc.arachne.portal.util.DataNodeUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -273,7 +274,7 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends I
     public List<ParticipantRole> getRolesByOrganization(ArachneUser user, Organization organization) {
 
         final User standardUser = userRepository.findByEmailAndEnabledTrue(user.getUsername());
-        final boolean admin = standardUser.getRoles().stream().anyMatch(r -> r.getName().equals("ROLE_ADMIN"));
+        final boolean admin = standardUser.getRoles().stream().anyMatch(r -> r.getName().equals(BaseRoleService.ROLE_ADMIN));
         ParticipantRole role = admin ? ParticipantRole.ORGANIZATION_ADMIN : canUserCreateOrganization ? ParticipantRole.ORGANIZATION_CREATOR : ParticipantRole.ORGANIZATION_READER;
         return Arrays.asList(role);
     }
