@@ -27,6 +27,7 @@ import com.cosium.spring.data.jpa.entity.graph.repository.EntityGraphJpaReposito
 import com.odysseusinc.arachne.portal.model.DataSourceStatus;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
 import java.util.List;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -80,4 +81,10 @@ public interface StudyDataSourceLinkRepository extends EntityGraphJpaRepository<
     List<StudyDataSourceLink> findNotDeletedByDataSourceId(@Param("dataSourceId") Long dataSourceId);
 
     List<StudyDataSourceLink> findByStudyId(Long id, EntityGraph graph);
+
+    @Modifying
+    @Query(nativeQuery = true, value = "UPDATE studies_data_sources "
+            + " SET status = 'DELETED' "
+            + " WHERE data_source_id = :dataSourceId AND study_id in (SELECT id from studies_data WHERE tenant_id = :tenantId)")
+    void setLinksBetweenStudiesAndDsDeleted(@Param("tenantId") Long tenantId, @Param("dataSourceId") Long dataSourceId);
 }

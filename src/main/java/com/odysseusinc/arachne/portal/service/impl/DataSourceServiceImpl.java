@@ -25,6 +25,7 @@ package com.odysseusinc.arachne.portal.service.impl;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.repository.BaseDataSourceRepository;
 import com.odysseusinc.arachne.portal.repository.BaseRawDataSourceRepository;
+import com.odysseusinc.arachne.portal.repository.StudyDataSourceLinkRepository;
 import com.odysseusinc.arachne.portal.service.DataSourceService;
 import com.odysseusinc.arachne.portal.service.SolrService;
 import com.odysseusinc.arachne.portal.service.TenantService;
@@ -50,9 +51,10 @@ public class DataSourceServiceImpl extends BaseDataSourceServiceImpl<DataSource,
                                  BaseRawDataSourceRepository rawDataSourceRepository,
                                  UserService userService,
                                  ArachneMailSender arachneMailSender,
-                                 EntityManager entityManager) {
+                                 EntityManager entityManager,
+                                 StudyDataSourceLinkRepository studyDataSourceLinkRepository) {
 
-        super(solrService, dataSourceRepository, conversionService, tenantService, rawDataSourceRepository, userService, arachneMailSender, entityManager);
+        super(solrService, dataSourceRepository, conversionService, tenantService, rawDataSourceRepository, userService, arachneMailSender, entityManager, studyDataSourceLinkRepository);
     }
 
     @Override

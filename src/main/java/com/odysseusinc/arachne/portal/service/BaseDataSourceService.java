@@ -61,7 +61,7 @@ public interface BaseDataSourceService<DS extends IDataSource> {
                     SolrServerException,
                     NoSuchFieldException,
                     IllegalAccessException, NotUniqueException;
-
+    
     DS getNotDeletedByIdInAnyTenant(Long id);
 
     DS getByIdUnsecured(Long id) throws NotExistException;
@@ -87,4 +87,9 @@ public interface BaseDataSourceService<DS extends IDataSource> {
     void unpublish(Long id) throws IOException, SolrServerException;
 
     Page<DS> getUserDataSources(final String query, final Long userId, PageRequest pageRequest);
+
+    /**
+     * Makes links between Studies from the given tenant and DataSource deleted
+     */
+    void makeLinksDeleted(Long tenantId, Long dataSourceId);
 }
