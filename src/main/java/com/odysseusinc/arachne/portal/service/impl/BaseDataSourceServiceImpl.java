@@ -217,16 +217,6 @@ public abstract class BaseDataSourceServiceImpl<
         return savedDataSource;
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @Override
-    public DS updateDataSourceTenants(final DS dataSource) 
-            throws IOException, NoSuchFieldException, SolrServerException, IllegalAccessException {
-
-        final DS savedDataSource = rawDataSourceRepository.save(dataSource);
-        afterUpdate(savedDataSource);
-        return savedDataSource;
-    }
-
     private DS baseUpdate(DS exist, DS dataSource) {
 
         if (dataSource.getName() != null) {

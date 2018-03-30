@@ -62,9 +62,6 @@ public interface BaseDataSourceService<DS extends IDataSource> {
                     NoSuchFieldException,
                     IllegalAccessException, NotUniqueException;
     
-    DS updateDataSourceTenants(DS dataSource) 
-            throws IOException, NoSuchFieldException, SolrServerException, IllegalAccessException;
-
     DS getNotDeletedByIdInAnyTenant(Long id);
 
     DS getByIdUnsecured(Long id) throws NotExistException;
