@@ -48,10 +48,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class OrganizationController extends BaseController {
 
-    private final OrganizationService organizationService;
+    private OrganizationService organizationService;
 
     @Autowired
-    public OrganizationController(OrganizationServiceImpl organizationService) {
+    public OrganizationController(OrganizationService organizationService) {
 
         this.organizationService = organizationService;
     }
