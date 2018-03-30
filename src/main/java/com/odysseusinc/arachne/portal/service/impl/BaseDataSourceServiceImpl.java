@@ -34,9 +34,11 @@ import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
+import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
 import com.odysseusinc.arachne.portal.repository.BaseDataSourceRepository;
 import com.odysseusinc.arachne.portal.repository.BaseRawDataSourceRepository;
+import com.odysseusinc.arachne.portal.repository.StudyDataSourceLinkRepository;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
@@ -91,6 +93,7 @@ public abstract class BaseDataSourceServiceImpl<
     protected final BaseUserService<IUser, Skill> userService;
     protected final ArachneMailSender arachneMailSender;
     protected EntityManager entityManager;
+    protected StudyDataSourceLinkRepository studyDataSourceLinkRepository;
 
     public BaseDataSourceServiceImpl(BaseSolrService<SF> solrService,
                                      BaseDataSourceRepository<DS> dataSourceRepository,
@@ -99,7 +102,8 @@ public abstract class BaseDataSourceServiceImpl<
                                      BaseRawDataSourceRepository<DS> rawDataSourceRepository,
                                      BaseUserService<IUser, Skill> userService,
                                      ArachneMailSender arachneMailSender,
-                                     EntityManager entityManager) {
+                                     EntityManager entityManager,
+                                     StudyDataSourceLinkRepository studyDataSourceLinkRepository) {
 
         this.solrService = solrService;
         this.dataSourceRepository = dataSourceRepository;
@@ -109,6 +113,7 @@ public abstract class BaseDataSourceServiceImpl<
         this.userService = userService;
         this.arachneMailSender = arachneMailSender;
         this.entityManager = entityManager;
+        this.studyDataSourceLinkRepository = studyDataSourceLinkRepository;
     }
 
     @Override
@@ -196,7 +201,7 @@ public abstract class BaseDataSourceServiceImpl<
     }
 
     @Transactional
-    @PreAuthorize("hasRole('ROLE_ADMIN') || hasPermission(#dataSource, "
+    @PreAuthorize("hasPermission(#dataSource, "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_DATASOURCE)")
     @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
     @Override
@@ -208,6 +213,16 @@ public abstract class BaseDataSourceServiceImpl<
 
         beforeUpdate(forUpdate, dataSource);
         DS savedDataSource = rawDataSourceRepository.save(forUpdate);
+        afterUpdate(savedDataSource);
+        return savedDataSource;
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @Override
+    public DS updateDataSourceTenants(final DS dataSource) 
+            throws IOException, NoSuchFieldException, SolrServerException, IllegalAccessException {
+
+        final DS savedDataSource = rawDataSourceRepository.save(dataSource);
         afterUpdate(savedDataSource);
         return savedDataSource;
     }
@@ -388,6 +403,12 @@ public abstract class BaseDataSourceServiceImpl<
         final String[] split = query.trim().split(" ");
         String suggestRequest = "%(" + String.join("|", split) + ")%";
         return dataSourceRepository.getUserDataSources(suggestRequest, userId, pageRequest);
+    }
+
+    @Override
+    public void makeLinksDeleted(final Long tenantId, final Long dataSourceId) {
+        
+        studyDataSourceLinkRepository.setLinksBetweenStudiesAndDsDeleted(tenantId, dataSourceId);
     }
 
     public FieldList<SF> getSolrFields() {

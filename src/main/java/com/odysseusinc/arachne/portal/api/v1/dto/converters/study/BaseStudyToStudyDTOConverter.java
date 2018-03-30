@@ -35,6 +35,7 @@ import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
 import com.odysseusinc.arachne.portal.model.StudyFile;
+import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
 import com.odysseusinc.arachne.portal.util.EntityUtils;
@@ -82,9 +83,17 @@ public abstract class BaseStudyToStudyDTOConverter<S extends Study, DTO extends 
                 )
         );
 
+        final Tenant studyTenant = source.getTenant();
+        
         for (final StudyDataSourceLink studyDataSourceLink : foundLinks) {
+            
             final DataSourceDTO dataSourceDTO = conversionService.convert(studyDataSourceLink,
                     DataSourceDTO.class);
+            
+            if (!studyDataSourceLink.getDataSource().getTenants().contains(studyTenant)) {
+                dataSourceDTO.setCanBeRecreated(Boolean.FALSE);
+            }
+
             studyDTO.getDataSources().add(dataSourceDTO);
         }
 
