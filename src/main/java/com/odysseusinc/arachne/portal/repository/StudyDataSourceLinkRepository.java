@@ -35,6 +35,7 @@ public interface StudyDataSourceLinkRepository extends EntityGraphJpaRepository<
 
     @Query("SELECT l FROM StudyDataSourceLink l "
             + " JOIN l.dataSource.dataNode.dataNodeUsers u "
+            + " JOIN FETCH l.study "
             + " WHERE :ownerId = u.user.id AND l.status=:status")
     List<StudyDataSourceLink> findByOwnerIdAndStatus(@Param("ownerId") Long ownerId,
                                                      @Param("status") DataSourceStatus status);

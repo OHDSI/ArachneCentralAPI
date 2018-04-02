@@ -48,7 +48,8 @@ public interface UserStudyRepository extends CrudRepository<UserStudy, Long>, Jp
 
     List<UserStudy> findByStudyAndRole(Study study, ParticipantRole role);
 
-    List<UserStudy> findByUserAndStatus(IUser user, ParticipantStatus pending);
+    @Query(value = "select us from UserStudy us join fetch us.study where us.status = :status and us.user.id = :userId")
+    List<UserStudy> findByUserAndStatus(@Param("userId") Long userId, @Param("status") ParticipantStatus status);
 
     List<UserStudy> findByUserAndStudyIdAndStatus(IUser user, Long studyId, ParticipantStatus pending);
 

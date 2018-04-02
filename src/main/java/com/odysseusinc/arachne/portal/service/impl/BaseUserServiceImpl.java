@@ -791,7 +791,7 @@ public abstract class BaseUserServiceImpl<
     @Override
     public List<? extends Invitationable> getCollaboratorInvitations(U user) {
 
-        return userStudyRepository.findByUserAndStatus(user, ParticipantStatus.PENDING);
+        return userStudyRepository.findByUserAndStatus(user.getId(), ParticipantStatus.PENDING);
     }
 
     @Override
