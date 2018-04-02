@@ -83,10 +83,6 @@ public interface IDataSource extends Breadcrumb, SolrEntity {
 
     void setCdmVersion(CommonCDMVersionDTO cdmVersion);
 
-    String getOrganization();
-
-    void setOrganization(String organization);
-
     Set<Tenant> getTenants();
 
     void setTenants(Set<Tenant> tenants);

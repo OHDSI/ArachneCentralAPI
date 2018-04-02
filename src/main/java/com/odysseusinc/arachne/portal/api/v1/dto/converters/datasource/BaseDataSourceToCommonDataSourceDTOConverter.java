@@ -42,7 +42,6 @@ public abstract class BaseDataSourceToCommonDataSourceDTOConverter<DS extends ID
         commonDataSourceDTO.setName(dataSource.getName());
         commonDataSourceDTO.setModelType(dataSource.getModelType());
         commonDataSourceDTO.setCdmVersion(dataSource.getCdmVersion());
-        commonDataSourceDTO.setOrganization(dataSource.getOrganization());
 
         proceedAdditionalFields(commonDataSourceDTO, dataSource);
         commonDataSourceDTO.setPublished(dataSource.getPublished());

@@ -41,7 +41,6 @@ public abstract class BaseDataSourceDTOToDataSourceConverter<DTO extends CommonB
         dataSource.setUuid(source.getUuid());
         dataSource.setModelType(source.getModelType());
         dataSource.setCdmVersion(source.getCdmVersion());
-        dataSource.setOrganization(source.getOrganization());
         dataSource.setPublished(source.getPublished());
         dataSource.setDbmsType(source.getDbmsType());
 
