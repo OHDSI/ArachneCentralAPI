@@ -17,6 +17,6 @@ LANGUAGE 'plpgsql';
 ALTER TABLE datanodes DROP CONSTRAINT datanodes_not_blank_fields_if_published;
 ALTER TABLE datanodes ADD CONSTRAINT datanodes_not_blank_fields_if_published
 CHECK (
-  published = FALSE OR
+  published = FALSE OR is_virtual = TRUE OR
   (COALESCE(name, '') <> '' AND COALESCE(description, '') <> '' AND organization_id IS NOT NULL)
 );
