@@ -34,7 +34,6 @@ import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
-import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
 import com.odysseusinc.arachne.portal.repository.BaseDataSourceRepository;
 import com.odysseusinc.arachne.portal.repository.BaseRawDataSourceRepository;
@@ -370,7 +369,7 @@ public abstract class BaseDataSourceServiceImpl<
         rawDataSourceRepository.delete(id);
     }
 
-    @PreAuthorize("hasPermission(#id, 'DataSource', "
+    @PreAuthorize("hasPermission(#id, 'RawDataSource', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_DATASOURCE)")
     @Transactional
     @Override
