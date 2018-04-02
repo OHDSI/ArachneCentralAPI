@@ -49,4 +49,12 @@ public class DataSourceSolrExtractors {
             return ds.getDataNode().getName();
         }
     }
+
+    public static class OrganizationNameExtractor implements SolrFieldExtractor<IDataSource> {
+        @Override
+        public String extract(final IDataSource ds) {
+
+            return ds.getDataNode().getOrganization().getName();
+        }
+    }
 }

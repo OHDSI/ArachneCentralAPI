@@ -59,6 +59,7 @@ import org.hibernate.validator.constraints.NotBlank;
 
 @MappedSuperclass
 @SolrFieldAnno(name = BaseSolrService.TITLE, postfix = false, extractor = DataSourceSolrExtractors.TitleExtractor.class)
+@SolrFieldAnno(name = "organization", filter = true, extractor = DataSourceSolrExtractors.OrganizationNameExtractor.class)
 public abstract class BaseDataSource implements IDataSource, Serializable, HasArachnePermissions {
     @Id
     @SequenceGenerator(name = "data_sources_pk_sequence", sequenceName = "data_sources_id_seq", allocationSize = 1)
@@ -97,9 +98,7 @@ public abstract class BaseDataSource implements IDataSource, Serializable, HasAr
     @Column
     @Enumerated(EnumType.STRING)
     protected CommonCDMVersionDTO cdmVersion;
-    @SolrFieldAnno(query = true, filter = true)
-    @Column
-    protected String organization;
+
     @Column
     private Boolean published;
     @ManyToMany(targetEntity = Tenant.class, fetch = FetchType.LAZY)
@@ -270,16 +269,6 @@ public abstract class BaseDataSource implements IDataSource, Serializable, HasAr
     public void setCdmVersion(CommonCDMVersionDTO cdmVersion) {
 
         this.cdmVersion = cdmVersion;
-    }
-
-    public String getOrganization() {
-
-        return organization;
-    }
-
-    public void setOrganization(String organization) {
-
-        this.organization = organization;
     }
 
     public Set<Tenant> getTenants() {

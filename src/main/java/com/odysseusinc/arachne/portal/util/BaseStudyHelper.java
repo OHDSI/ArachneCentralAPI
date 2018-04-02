@@ -103,7 +103,6 @@ public abstract class BaseStudyHelper<DN extends DataNode, DS extends IDataSourc
         dataSource.setModelType(CDM);
         dataSource.setCreated(new Date());
         dataSource.setCdmVersion(CommonCDMVersionDTO.V4_0);
-        dataSource.setOrganization("OHDSI");
         return dataSource;
     }
 

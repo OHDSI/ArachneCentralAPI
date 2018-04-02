@@ -230,10 +230,6 @@ public abstract class BaseDataSourceServiceImpl<
             exist.setCdmVersion(CommonModelType.CDM.equals(dataSource.getModelType()) ? dataSource.getCdmVersion() : null);
         }
 
-        if (dataSource.getOrganization() != null) {
-            exist.setOrganization(dataSource.getOrganization());
-        }
-
         if (dataSource.getPublished() != null) {
             exist.setPublished(dataSource.getPublished());
         }
