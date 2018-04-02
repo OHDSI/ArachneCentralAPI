@@ -334,18 +334,6 @@ public abstract class BaseStudyServiceImpl<
     public T getById(Long id) throws NotExistException {
 
         T study = studyRepository.getOne(id);
-        return initializeParticipants(study);
-    }
-
-    @Override
-    public T getByIdInAnyTenant(Long id) throws NotExistException {
-
-        T study = studyRepository.findByIdInAnyTenant(id);
-        return initializeParticipants(study);
-    }
-
-    private T initializeParticipants(T study) {
-
         if (study == null) {
             throw new NotExistException(getType());
         }

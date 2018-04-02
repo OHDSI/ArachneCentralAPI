@@ -163,12 +163,6 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
     }
 
     @Override
-    public Study getByIdInAnyTenant(Long id) throws NotExistException {
-
-        return super.getByIdInAnyTenant(id);
-    }
-
-    @Override
     @PreAuthorize("hasPermission(#study, "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_STUDY)")
     @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
