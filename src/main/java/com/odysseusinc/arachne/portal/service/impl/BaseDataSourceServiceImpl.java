@@ -359,7 +359,7 @@ public abstract class BaseDataSourceServiceImpl<
         return dataSourceRepository.suggest(query, studyId, pageRequest);
     }
 
-    @PreAuthorize("hasPermission(#id, 'DataSource', "
+    @PreAuthorize("hasPermission(#id, 'RawDataSource', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).DELETE_DATASOURCE)")
     @Transactional
     @Override

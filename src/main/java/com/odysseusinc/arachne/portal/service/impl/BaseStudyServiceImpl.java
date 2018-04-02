@@ -339,7 +339,7 @@ public abstract class BaseStudyServiceImpl<
     @Override
     public T getByIdUnsecured(Long id) throws NotExistException {
 
-        T study = super.getById(id);
+        T study = studyRepository.findByIdUnsecured(id);
         if (study == null) {
             throw new NotExistException(getType());
         }
@@ -819,7 +819,7 @@ public abstract class BaseStudyServiceImpl<
     @Override
     public void removeDataSourceUnsecured(Long studyId, Long dataSourceId) {
 
-        Study study = studyRepository.findOne(studyId);
+        Study study = studyRepository.findByIdUnsecured(studyId);
         if (study == null) {
             throw new NotExistException("study does not exist.", Study.class);
         }
@@ -870,12 +870,9 @@ public abstract class BaseStudyServiceImpl<
     }
 
     @Override
-    public List<T> getStudiesUsesDataSource(Long dataSourceId) {
+    public List<Long> getStudyIdsOfDataSource(Long dataSourceId) {
 
-        return studyDataSourceLinkRepository.findNotDeletedByDataSourceId(dataSourceId).stream()
-                .map(StudyDataSourceLink::getStudy)
-                .map(s -> (T) s) // there is no way while we are dealing with transitive calls
-                .collect(Collectors.toList());
+        return studyDataSourceLinkRepository.findStudyIdsOfNotDeletedLinksByDataSourceId(dataSourceId);
     }
 
     @Override

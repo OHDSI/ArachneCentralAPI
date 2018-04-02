@@ -55,7 +55,6 @@ public class StudyDataSourceLink implements Invitationable {
     @JoinColumn(name = "study_id")
     private Study study;
 
-
     @ManyToOne(optional = false, targetEntity = RawDataSource.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "data_source_id")
     private IDataSource dataSource;

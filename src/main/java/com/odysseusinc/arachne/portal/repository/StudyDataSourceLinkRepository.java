@@ -75,10 +75,10 @@ public interface StudyDataSourceLinkRepository extends EntityGraphJpaRepository<
             + "and l.dataSource.deleted is null ")
     List<StudyDataSourceLink> findApprovedNotDeletedByStudyId(@Param("studyId") Long studyId);
 
-    @Query("select l from StudyDataSourceLink l "
+    @Query("select l.study.id from StudyDataSourceLink l "
             + " where l.dataSource.id = :dataSourceId "
             + " and l.status = 'APPROVED'")
-    List<StudyDataSourceLink> findNotDeletedByDataSourceId(@Param("dataSourceId") Long dataSourceId);
+    List<Long> findStudyIdsOfNotDeletedLinksByDataSourceId(@Param("dataSourceId") Long dataSourceId);
 
     List<StudyDataSourceLink> findByStudyId(Long id, EntityGraph graph);
 

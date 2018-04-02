@@ -22,7 +22,6 @@
 
 package com.odysseusinc.arachne.portal.service.impl;
 
-import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
@@ -56,8 +55,8 @@ public class StudyDataSourceServiceImpl implements StudyDataSourceService {
     @Override
     public void softDeletingDataSource(final Long dataSourceId) throws IOException, SolrServerException {
 
-        final List<Study> studies = studyService.getStudiesUsesDataSource(dataSourceId);
-        studies.forEach(study -> studyService.removeDataSourceUnsecured(study.getId(), dataSourceId));
+        final List<Long> studyIds = studyService.getStudyIdsOfDataSource(dataSourceId);
+        studyIds.forEach(studyId -> studyService.removeDataSourceUnsecured(studyId, dataSourceId));
         dataSourceService.delete(dataSourceId);
         solrService.delete(SolrCollection.DATA_SOURCES, String.valueOf(dataSourceId));
     }

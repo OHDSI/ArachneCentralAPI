@@ -124,7 +124,7 @@ public interface BaseStudyService<
 
     List<User> getApprovedUsers(DS dataSource);
 
-    List<T> getStudiesUsesDataSource(Long dataSourceId);
+    List<Long> getStudyIdsOfDataSource(Long dataSourceId);
 
     boolean fullDelete(List<T> studies);
 
