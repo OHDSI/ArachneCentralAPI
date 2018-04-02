@@ -29,11 +29,9 @@ import com.odysseusinc.arachne.portal.exception.NotUniqueException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
-import com.odysseusinc.arachne.portal.model.BaseDataSource;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
-import com.odysseusinc.arachne.portal.model.RawDataSource;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
 import com.odysseusinc.arachne.portal.model.StudyFile;
@@ -162,6 +160,12 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
     public Study getById(Long id) throws NotExistException {
 
         return super.getById(id);
+    }
+
+    @Override
+    public Study getByIdUnsecured(Long id) throws NotExistException {
+
+        return super.getByIdUnsecured(id);
     }
 
     @Override

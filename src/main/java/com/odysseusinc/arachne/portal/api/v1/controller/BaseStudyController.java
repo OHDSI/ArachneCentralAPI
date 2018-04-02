@@ -61,7 +61,6 @@ import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.CommentTopic;
-import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
@@ -185,7 +184,7 @@ public abstract class BaseStudyController<
     @RequestMapping(value = "/api/v1/study-management/studies/{studyId}/available-state-transitions", method = RequestMethod.GET)
     public List<StudyTransition> getAvailableTransitions(@PathVariable Long studyId) {
 
-        return studyStateMachine.getAvailableStates(studyService.getByIdUnsecured(studyId));
+        return studyStateMachine.getAvailableStates(studyService.getById(studyId));
     }
 
     @RequestMapping(value = "/api/v1/study-management/studies/{studyId}", method = GET)

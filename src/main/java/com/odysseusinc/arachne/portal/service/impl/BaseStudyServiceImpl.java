@@ -333,13 +333,19 @@ public abstract class BaseStudyServiceImpl<
     @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
     public T getById(Long id) throws NotExistException {
 
-        return getByIdUnsecured(id);
+        T study = studyRepository.getOne(id);
+        return initializeParticipants(study);
     }
 
     @Override
     public T getByIdUnsecured(Long id) throws NotExistException {
 
         T study = studyRepository.findByIdUnsecured(id);
+        return initializeParticipants(study);
+    }
+
+    private T initializeParticipants(T study) {
+
         if (study == null) {
             throw new NotExistException(getType());
         }
