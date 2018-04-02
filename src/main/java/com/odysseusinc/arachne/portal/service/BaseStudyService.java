@@ -61,7 +61,7 @@ public interface BaseStudyService<
 
     T getById(Long id) throws NotExistException;
 
-    T getByIdUnsecured(Long id) throws NotExistException;
+    T getByIdInAnyTenant(Long id) throws NotExistException;
 
     T update(T study)
             throws NotExistException, NotUniqueException, ValidationException;

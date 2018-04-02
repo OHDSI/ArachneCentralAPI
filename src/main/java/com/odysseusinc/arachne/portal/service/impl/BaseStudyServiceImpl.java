@@ -338,9 +338,9 @@ public abstract class BaseStudyServiceImpl<
     }
 
     @Override
-    public T getByIdUnsecured(Long id) throws NotExistException {
+    public T getByIdInAnyTenant(Long id) throws NotExistException {
 
-        T study = studyRepository.findByIdUnsecured(id);
+        T study = studyRepository.findByIdInAnyTenant(id);
         return initializeParticipants(study);
     }
 
@@ -825,7 +825,7 @@ public abstract class BaseStudyServiceImpl<
     @Override
     public void removeDataSourceUnsecured(Long studyId, Long dataSourceId) {
 
-        Study study = studyRepository.findByIdUnsecured(studyId);
+        Study study = studyRepository.findByIdInAnyTenant(studyId);
         if (study == null) {
             throw new NotExistException("study does not exist.", Study.class);
         }

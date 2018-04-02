@@ -163,9 +163,9 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
     }
 
     @Override
-    public Study getByIdUnsecured(Long id) throws NotExistException {
+    public Study getByIdInAnyTenant(Long id) throws NotExistException {
 
-        return super.getByIdUnsecured(id);
+        return super.getByIdInAnyTenant(id);
     }
 
     @Override
