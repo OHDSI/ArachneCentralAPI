@@ -61,8 +61,6 @@ public interface BaseStudyService<
 
     T getById(Long id) throws NotExistException;
 
-    T getByIdUnsecured(Long id) throws NotExistException;
-
     T update(T study)
             throws NotExistException, NotUniqueException, ValidationException;
 
@@ -124,7 +122,7 @@ public interface BaseStudyService<
 
     List<User> getApprovedUsers(DS dataSource);
 
-    List<T> getStudiesUsesDataSource(Long dataSourceId);
+    List<Long> getStudyIdsOfDataSource(Long dataSourceId);
 
     boolean fullDelete(List<T> studies);
 
