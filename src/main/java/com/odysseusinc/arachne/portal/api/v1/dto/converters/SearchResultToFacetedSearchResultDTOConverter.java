@@ -27,6 +27,7 @@ import static java.lang.Long.parseLong;
 import static java.util.Comparator.comparing;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.FacetOptionList;
+import com.odysseusinc.arachne.portal.service.SolrService;
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
 import java.util.ArrayList;
@@ -62,7 +63,7 @@ public abstract class SearchResultToFacetedSearchResultDTOConverter {
 
                 FacetOptionList facetOptionList = getFacetOptionList(facetsMap, facetField.getName(),
                         excludedOptions.get(facetField.getName()));
-                facets.put(solrFields.getBySolrName(facetField.getName()).getName(), facetOptionList);
+                facets.put(solrFields.getBySolrName(SolrService.facetToFieldName(facetField)).getName(), facetOptionList);
             }
         }
         return facets;
