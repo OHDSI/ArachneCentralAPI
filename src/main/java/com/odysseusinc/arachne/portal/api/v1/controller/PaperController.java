@@ -26,8 +26,12 @@ import com.odysseusinc.arachne.portal.api.v1.dto.CreatePaperDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.PaperDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ShortPaperDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdatePaperDTO;
+import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.Paper;
+import com.odysseusinc.arachne.portal.model.Study;
+import com.odysseusinc.arachne.portal.model.StudyViewItem;
 import com.odysseusinc.arachne.portal.model.search.PaperSearch;
+import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.service.BasePaperService;
 import com.odysseusinc.arachne.portal.service.StudyFileService;
 import org.springframework.core.convert.support.GenericConversionService;
@@ -42,10 +46,14 @@ public class PaperController extends BasePaperController
         UpdatePaperDTO,
         ShortPaperDTO,
         PaperDTO,
-        CreatePaperDTO> {
+        CreatePaperDTO,
+        Study,
+        DataSource,
+        StudySearch,
+        StudyViewItem> {
 
     public PaperController(
-            BasePaperService<Paper, PaperSearch> paperService,
+            BasePaperService<Paper, PaperSearch, Study, DataSource, StudySearch, StudyViewItem> paperService,
             GenericConversionService conversionService,
             StudyFileService fileService) {
 

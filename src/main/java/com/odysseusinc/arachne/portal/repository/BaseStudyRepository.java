@@ -67,4 +67,7 @@ public interface BaseStudyRepository<T extends Study> extends JpaRepository<T, L
 
     @Query(nativeQuery = true, value = "SELECT * FROM studies_data where id = :studyId")
     T findByIdInAnyTenant(@Param("studyId") Long id);
+
+    @Query(nativeQuery = true, value = "SELECT s.* FROM studies_data s JOIN papers p on s.id = p.study_id")
+    List<T> findWithPapersInAnyTenant();
 }

@@ -32,6 +32,7 @@ import com.odysseusinc.arachne.portal.model.AnalysisFile;
 import com.odysseusinc.arachne.portal.model.AnalysisUnlockRequest;
 import com.odysseusinc.arachne.portal.model.DataReference;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyViewItem;
@@ -76,7 +77,7 @@ import java.util.List;
 @Service
 @SuppressWarnings("unused")
 @Transactional(rollbackFor = Exception.class)
-public class AnalysisServiceImpl extends BaseAnalysisServiceImpl<Analysis, Study, DataSource, StudySearch, StudyViewItem, SolrField> implements AnalysisService {
+public class AnalysisServiceImpl extends BaseAnalysisServiceImpl<Analysis, Study, IDataSource, StudySearch, StudyViewItem, SolrField> implements AnalysisService {
 
     @Autowired
     public AnalysisServiceImpl(GenericConversionService conversionService,

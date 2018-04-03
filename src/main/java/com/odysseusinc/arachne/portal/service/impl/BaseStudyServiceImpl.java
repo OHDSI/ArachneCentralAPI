@@ -146,7 +146,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Transactional(rollbackFor = Exception.class)
 public abstract class BaseStudyServiceImpl<
         T extends Study,
-                DS extends IDataSource,
+        DS extends IDataSource,
         SS extends StudySearch,
         SU extends AbstractUserStudyListItem,
         SF extends SolrField> extends CRUDLServiceImpl<T>
@@ -984,5 +984,11 @@ public abstract class BaseStudyServiceImpl<
         for (final T study : studies) {
             solrService.indexBySolr(study);
         }
+    }
+
+    @Override
+    public List<T> findAllInAnyTenants() {
+
+        return studyRepository.findWithPapersInAnyTenant();
     }
 }

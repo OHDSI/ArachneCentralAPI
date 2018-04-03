@@ -67,7 +67,7 @@ public abstract class BaseAdminServiceImpl<
 
     private final BaseStudyService<S, DS, SS, SU> studyService;
     private final BaseAnalysisService<A> analysisService;
-    private final BasePaperService<P, PS> paperService;
+    private final BasePaperService<P, PS, S, DS, SS, SU> paperService;
     private final BaseSubmissionService<SB, A> submissionService;
     private final CommentService commentService;
     private final SubmissionInsightService submissionInsightService;
@@ -75,7 +75,7 @@ public abstract class BaseAdminServiceImpl<
     @Autowired
     public BaseAdminServiceImpl(BaseStudyService<S, DS, SS, SU> studyService,
                                 BaseAnalysisService<A> analysisService,
-                                BasePaperService<P, PS> paperService,
+                                BasePaperService<P, PS, S, DS, SS, SU> paperService,
                                 BaseSubmissionService<SB, A> submissionService,
                                 CommentService commentService,
                                 SubmissionInsightService submissionInsightService) {

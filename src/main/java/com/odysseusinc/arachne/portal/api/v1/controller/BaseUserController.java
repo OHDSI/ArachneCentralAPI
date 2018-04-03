@@ -147,7 +147,7 @@ public abstract class BaseUserController<
     protected final BaseDataNodeService<DN> baseDataNodeService;
     protected final BaseAnalysisService<A> analysisService;
     protected final AnalysisUnlockRequestService analysisUnlockRequestService;
-    protected final BasePaperService<P, PS> paperService;
+    protected final BasePaperService<P, PS, S, DS, SS, SU> paperService;
     protected final BaseSubmissionService<SB, A> submissionService;
     protected final ArachnePasswordValidator passwordValidator;
 
@@ -158,7 +158,7 @@ public abstract class BaseUserController<
                               BaseDataNodeService<DN> baseDataNodeService,
                               BaseAnalysisService<A> analysisService,
                               AnalysisUnlockRequestService analysisUnlockRequestService,
-                              BasePaperService<P, PS> paperService,
+                              BasePaperService<P, PS, S, DS, SS, SU> paperService,
                               BaseSubmissionService<SB, A> submissionService,
                               ArachnePasswordValidator passwordValidator) {
 
