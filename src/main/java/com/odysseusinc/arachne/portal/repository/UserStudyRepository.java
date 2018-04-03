@@ -44,7 +44,7 @@ public interface UserStudyRepository extends CrudRepository<UserStudy, Long>, Jp
             + " AND user_id= :userId")
     UserStudy findOneByStudyIdAndUserId(@Param("studyId") Long studyId, @Param("userId") Long userId);
 
-    UserStudy findOneByStudyAndUser(Study study, IUser user);
+    UserStudy findOneByStudyAndUserId(Study study, Long userId);
 
     List<UserStudy> findByStudyAndRole(Study study, ParticipantRole role);
 

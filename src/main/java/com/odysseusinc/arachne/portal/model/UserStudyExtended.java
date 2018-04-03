@@ -39,7 +39,7 @@ public class UserStudyExtended implements ParticipantLink {
     @Id
     private Long id;
 
-    @ManyToOne(optional = false, targetEntity = User.class, fetch = FetchType.LAZY)
+    @ManyToOne(optional = false, targetEntity = RawUser.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private IUser user;
 

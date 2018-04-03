@@ -34,6 +34,7 @@ public class ParticipantDTO {
     protected OptionDTO role;
     protected String status;
     private String comment;
+    private boolean canBeRecreated = Boolean.TRUE;
 
     public ParticipantDTO() {
 
@@ -126,5 +127,15 @@ public class ParticipantDTO {
                 .append(status)
                 .append(comment)
                 .toHashCode();
+    }
+
+    public boolean isCanBeRecreated() {
+
+        return canBeRecreated;
+    }
+
+    public void setCanBeRecreated(final boolean canBeRecreated) {
+
+        this.canBeRecreated = canBeRecreated;
     }
 }
