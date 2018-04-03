@@ -824,7 +824,7 @@ public abstract class BaseUserServiceImpl<
     public UserStudy processInvitation(U user, Long id, Boolean accepted,
                                        String comment) {
 
-        UserStudy userStudy = userStudyRepository.findByIdAndUser(id, user);
+        UserStudy userStudy = userStudyRepository.findByIdAndUserId(id, user.getId());
         if (userStudy != null) {
             ParticipantStatus status = TRUE.equals(accepted)
                     ? APPROVED
