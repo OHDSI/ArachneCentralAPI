@@ -167,6 +167,25 @@
     <copyField source="query_*" dest="query"/>
     <field name="query" type="text_general" multiValued="true" indexed="true" stored="true" />
 
+    <!-- Facets: -->
+
+    <copyField source="*_txt" dest="*_txt_facet"/>
+    <dynamicField name="*_txt_facet" type="text_not_split" indexed="true" stored="false"/>
+
+    <copyField source="*_ts" dest="*_ts_facet"/>
+    <dynamicField name="*_ts_facet" type="text_not_split" indexed="true" stored="true" multiValued="true"/>
+
+    <copyField source="*_i" dest="*_i_facet"/>
+    <dynamicField name="*_i_facet" type="pint" indexed="true" stored="false"/>
+
+    <fieldType name="text_not_split" class="solr.TextField">
+      <analyzer>
+        <tokenizer class="solr.KeywordTokenizerFactory"/>
+      </analyzer>
+    </fieldType>
+
+    <!-- End of Facets: -->
+
     <!-- Field to use to determine and enforce document uniqueness.
       Unless this field is marked with required="false", it will be a required field
     -->
