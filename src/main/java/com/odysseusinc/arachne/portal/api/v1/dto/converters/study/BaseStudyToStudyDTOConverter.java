@@ -35,6 +35,7 @@ import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
 import com.odysseusinc.arachne.portal.model.StudyFile;
+import com.odysseusinc.arachne.portal.model.UserStudyExtended;
 import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
@@ -67,15 +68,20 @@ public abstract class BaseStudyToStudyDTOConverter<S extends Study, DTO extends 
         studyDTO.setEndDate(source.getEndDate());
         studyDTO.setStartDate(source.getStartDate());
         studyDTO.setDescription(source.getDescription());
+        
+        final Tenant studyTenant = source.getTenant();
 
-        if (!CollectionUtils.isEmpty(source.getParticipants())) {
-            studyDTO.setParticipants(source.getParticipants()
-                    .stream()
-                    .map(link -> conversionService.convert(link, ParticipantDTO.class))
-                    .collect(Collectors.toList()));
+        for (final UserStudyExtended studyUserLink : source.getParticipants()) {
+            
+            final ParticipantDTO participantDTO = conversionService.convert(studyUserLink, ParticipantDTO.class);
+            
+            if (!studyUserLink.getUser().getTenants().contains(studyTenant)) {
+                participantDTO.setCanBeRecreated(Boolean.FALSE);
+            }
+            
+            studyDTO.getParticipants().add(participantDTO);
         }
-
-
+        
         final List<StudyDataSourceLink> foundLinks = studyService.getLinksByStudyId(
                 source.getId(),
                 EntityUtils.fromAttributePaths(
@@ -83,7 +89,6 @@ public abstract class BaseStudyToStudyDTOConverter<S extends Study, DTO extends 
                 )
         );
 
-        final Tenant studyTenant = source.getTenant();
         
         for (final StudyDataSourceLink studyDataSourceLink : foundLinks) {
             

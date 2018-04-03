@@ -27,6 +27,7 @@ import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.Paper_;
 import com.odysseusinc.arachne.portal.model.ParticipantStatus;
 import com.odysseusinc.arachne.portal.model.PublishState;
+import com.odysseusinc.arachne.portal.model.RawUser;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserStudyExtended;
@@ -137,7 +138,7 @@ public class PaperSpecification<T extends Paper> implements Specification<T> {
         final Root<UserStudyExtended> userStudyLinkRoot = userStudyExtendedLinkSubquery.from(UserStudyExtended.class);
         userStudyExtendedLinkSubquery.select(userStudyLinkRoot);
 
-        final Path<User> linkUser = userStudyLinkRoot.get(UserStudyExtended_.user);
+        final Path<RawUser> linkUser = userStudyLinkRoot.get(UserStudyExtended_.user);
         final Path<Study> linkStudy = userStudyLinkRoot.get(UserStudyExtended_.study);
         final Path<Long> linkStudyId = linkStudy.get(Study_.id);
         final Path<ParticipantStatus> linkStatus = userStudyLinkRoot.get(UserStudyExtended_.status);

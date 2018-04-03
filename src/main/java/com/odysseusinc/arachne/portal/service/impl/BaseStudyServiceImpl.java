@@ -515,7 +515,8 @@ public abstract class BaseStudyServiceImpl<
                 .orElseThrow(() -> new NotExistException(EX_USER_NOT_EXISTS, User.class));
 
         UserStudy studyLink = Optional.ofNullable(
-                userStudyRepository.findOneByStudyAndUser(study, participant))
+                userStudyRepository.findOneByStudyAndUserId(study, participant.getId()
+                ))
                 .orElseThrow(() -> new NotExistException(UserStudy.class));
 
         checkLastLeadInvestigator(studyLink, study);
@@ -533,7 +534,7 @@ public abstract class BaseStudyServiceImpl<
         Study study = getById(id);
         IUser participant = userService.findOne(participantId);
         UserStudy studyLink = Optional.ofNullable(
-                userStudyRepository.findOneByStudyAndUser(study, participant))
+                userStudyRepository.findOneByStudyAndUserId(study, participant.getId()))
                 .orElseThrow(() -> new NotExistException(UserStudy.class));
         checkLastLeadInvestigator(studyLink, study);
         if (userStudyRepository.hardRemoveIfNotTracked(id, participantId) == 0) {

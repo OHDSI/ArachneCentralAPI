@@ -54,6 +54,7 @@ import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Invitationable;
 import com.odysseusinc.arachne.portal.model.ParticipantStatus;
 import com.odysseusinc.arachne.portal.model.ProfessionalType;
+import com.odysseusinc.arachne.portal.model.RawUser;
 import com.odysseusinc.arachne.portal.model.Role;
 import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.StateProvince;
@@ -1099,6 +1100,30 @@ public abstract class BaseUserServiceImpl<
             }
         }
         throw new NotExistException(Tenant.class);
+    }
+
+    @Override
+    public void makeLinksWithStudiesDeleted(final Long tenantId, final Long userId) {
+        
+        userRepository.setLinksBetweenStudiesAndUsersDeleted(tenantId, userId);
+    }
+
+    @Override
+    public U getRawUser(final Long userId) {
+
+        return rawUserRepository.findOne(userId);
+    }
+
+    @Override
+    public void makeLinksWithPapersDeleted(final Long tenantId, final Long userId) {
+        
+        userRepository.setLinksBetweenPapersAndUsersDeleted(tenantId, userId);
+    }
+
+    @Override
+    public void revertBackUserToPapers(final Long tenantId, final Long userId) {
+        
+        userRepository.revertBackUserToPapers(tenantId, userId);
     }
 
     private class AvatarResolver implements AutoCloseable {

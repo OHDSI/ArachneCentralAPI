@@ -391,7 +391,7 @@ public abstract class BaseDataSourceServiceImpl<
     }
 
     @Override
-    public void makeLinksDeleted(final Long tenantId, final Long dataSourceId) {
+    public void makeLinksWithStudiesDeleted(final Long tenantId, final Long dataSourceId) {
         
         studyDataSourceLinkRepository.setLinksBetweenStudiesAndDsDeleted(tenantId, dataSourceId);
     }

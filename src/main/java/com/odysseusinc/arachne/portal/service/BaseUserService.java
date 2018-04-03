@@ -34,6 +34,7 @@ import com.odysseusinc.arachne.portal.exception.WrongFileFormatException;
 import com.odysseusinc.arachne.portal.model.Country;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Invitationable;
+import com.odysseusinc.arachne.portal.model.RawUser;
 import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.StateProvince;
 import com.odysseusinc.arachne.portal.model.UserLink;
@@ -212,4 +213,12 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
     void putAvatarToResponse(HttpServletResponse response, U user) throws IOException;
 
     void setActiveTenant(U user, Long tenantId);
+
+    void makeLinksWithStudiesDeleted(Long tenantId, Long userId);
+    
+    U getRawUser(Long userId);
+
+    void makeLinksWithPapersDeleted(Long tenantId, Long userId);
+
+    void revertBackUserToPapers(Long tenantId, Long userId);
 }

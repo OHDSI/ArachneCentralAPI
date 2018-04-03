@@ -91,5 +91,5 @@ public interface BaseDataSourceService<DS extends IDataSource> {
     /**
      * Makes links between Studies from the given tenant and DataSource deleted
      */
-    void makeLinksDeleted(Long tenantId, Long dataSourceId);
+    void makeLinksWithStudiesDeleted(Long tenantId, Long dataSourceId);
 }

@@ -29,6 +29,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.query.Param;
@@ -98,4 +99,25 @@ public interface BaseUserRepository<U extends IUser> extends EntityGraphJpaRepos
             + " AND UPPER(d.status) = 'APPROVED' "
             + " AND UPPER(ul.status) = 'APPROVED'")
     List<U> listApprovedByDatasource(@Param("datasourceId") Long datasourceId);
+
+    @Modifying
+    @Query(nativeQuery = true, value ="UPDATE studies_users su " +
+            "SET status = 'DELETED' " +
+            "WHERE su.study_id IN (SELECT id FROM studies_data WHERE tenant_id = :tenantId) AND " +
+            "su.user_id = :userId")
+    void setLinksBetweenStudiesAndUsersDeleted(@Param("tenantId") Long tenantId, @Param("userId") Long userId);
+
+    @Modifying
+    @Query(nativeQuery = true, value = "UPDATE paper_users pu SET status = 'DELETED' \n" +
+            "WHERE pu.paper_id IN (\n" +
+            "  SELECT p.id FROM studies_data sd JOIN papers p on p.study_id = sd.id WHERE tenant_id = :tenantId \n" +
+            ") AND pu.user_id = :userId")
+    void setLinksBetweenPapersAndUsersDeleted(@Param("tenantId") Long tenantId, @Param("userId") Long userId);
+
+    @Modifying
+    @Query(nativeQuery = true, value = "UPDATE paper_users pu SET status = 'APPROVED' \n" +
+            "WHERE pu.paper_id IN (\n" +
+            "  SELECT p.id FROM studies_data sd JOIN papers p on p.study_id = sd.id WHERE tenant_id = :tenantId \n" +
+            ") AND pu.user_id = :userId AND pu.status = 'DELETED'")
+    void revertBackUserToPapers(@Param("tenantId") Long tenantId, @Param("userId") Long userId);
 }
