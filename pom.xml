@@ -29,8 +29,8 @@
         <gson.version>2.7</gson.version>
         <commons.lang3.version>3.5</commons.lang3.version>
         <hikaricp.version>2.6.3</hikaricp.version>
-        <build.number>1</build.number>
-        <build.id>1</build.id>
+        <build.number>${BUILD_NUMBER}</build.number>
+        <build.id>${BUILD_TIMESTAMP}</build.id>
         <dockerImagePrefix>hub.arachnenetwork.com</dockerImagePrefix>
         <jodConverter.version>4.1.0</jodConverter.version>
         <hibernate.version>5.2.12.Final</hibernate.version>
