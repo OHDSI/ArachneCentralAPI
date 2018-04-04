@@ -32,6 +32,7 @@ import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.DataSourceStatus;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
+import com.odysseusinc.arachne.portal.model.PairForUpdating;
 import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
 import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
@@ -56,6 +57,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -199,6 +201,18 @@ public abstract class BaseDataSourceServiceImpl<
         return result;
     }
 
+    public DS updateInAnyTenant(DS dataSource, Consumer<PairForUpdating<DS>> beforeUpdate)
+            throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
+
+        DS forUpdate = getNotDeletedByIdInAnyTenant(dataSource.getId());
+        forUpdate = baseUpdate(forUpdate, dataSource);
+
+        beforeUpdate.accept(new PairForUpdating<>(forUpdate, dataSource));
+        DS savedDataSource = rawDataSourceRepository.save(forUpdate);
+        afterUpdate(savedDataSource);
+        return savedDataSource;
+    }
+
     @Transactional
     @PreAuthorize("hasPermission(#dataSource, "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_DATASOURCE)")
@@ -207,13 +221,18 @@ public abstract class BaseDataSourceServiceImpl<
     public DS updateInAnyTenant(DS dataSource)
             throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
-        DS forUpdate = getNotDeletedByIdInAnyTenant(dataSource.getId());
-        forUpdate = baseUpdate(forUpdate, dataSource);
+        return updateInAnyTenant(dataSource, pair -> beforeUpdate(pair.getExisted(), pair.getUpdated()));
+    }
 
-        beforeUpdate(forUpdate, dataSource);
-        DS savedDataSource = rawDataSourceRepository.save(forUpdate);
-        afterUpdate(savedDataSource);
-        return savedDataSource;
+    @Transactional
+    @PreAuthorize("hasPermission(#dataSource, "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_DATASOURCE)")
+    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
+    @Override
+    public DS updateWithoutMetadataInAnyTenant(DS dataSource)
+            throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
+
+        return updateInAnyTenant(dataSource, pair -> {});
     }
 
     private DS baseUpdate(DS exist, DS dataSource) {
@@ -244,7 +263,8 @@ public abstract class BaseDataSourceServiceImpl<
         return exist;
     }
 
-    protected void beforeUpdate(DS target, DS dataSource) {
+    @Override
+    public void beforeUpdate(DS target, DS dataSource) {
 
     }
 
@@ -324,29 +344,29 @@ public abstract class BaseDataSourceServiceImpl<
         Root<StudyDataSourceLink> dsLink = sq.from(StudyDataSourceLink.class);
         sq.select(dsLink.get("dataSource").get("id"));
         sq.where(cb.and(cb.equal(dsLink.get("study").get("id"), studyId),
-                        cb.not(dsLink.get("status").in(BAD_STATUSES))));
+                cb.not(dsLink.get("status").in(BAD_STATUSES))));
 
         cq.select(root);
         Predicate nameClause = cb.conjunction();  // TRUE
-        if (split.length > 1 || (split.length == 1 && !split[0].equals("") )) {
+        if (split.length > 1 || (split.length == 1 && !split[0].equals(""))) {
             List<Predicate> predictList = new ArrayList<>();
-            for (String one: split) {
+            for (String one : split) {
                 predictList.add(cb.like(cb.lower(root.get("name")), one + "%"));
                 predictList.add(cb.like(cb.lower(root.get("dataNode").get("name")), one + "%"));
             }
-            nameClause = cb.or(predictList.toArray(new Predicate[] {}));
+            nameClause = cb.or(predictList.toArray(new Predicate[]{}));
         }
 
         cq.where(cb.and(cb.not(root.get("id").in(sq)),
-                        nameClause,
-                        cb.isNull(root.get("deleted")),
-                        cb.isTrue(root.get("published")),
-                        cb.isFalse(root.get("dataNode").get("virtual"))));
+                nameClause,
+                cb.isNull(root.get("deleted")),
+                cb.isTrue(root.get("published")),
+                cb.isFalse(root.get("dataNode").get("virtual"))));
 
         TypedQuery<DS> typedQuery = this.entityManager.createQuery(cq);
         List<DS> list = typedQuery.setFirstResult(pageRequest.getOffset())
-                            .setMaxResults(pageRequest.getPageSize())
-                            .getResultList();
+                .setMaxResults(pageRequest.getPageSize())
+                .getResultList();
         return new PageImpl<>(list, pageRequest, list.size());
     }
 
@@ -392,7 +412,7 @@ public abstract class BaseDataSourceServiceImpl<
 
     @Override
     public void makeLinksWithStudiesDeleted(final Long tenantId, final Long dataSourceId) {
-        
+
         studyDataSourceLinkRepository.setLinksBetweenStudiesAndDsDeleted(tenantId, dataSourceId);
     }
 

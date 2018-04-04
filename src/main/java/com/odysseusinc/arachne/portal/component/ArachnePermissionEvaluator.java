@@ -27,7 +27,6 @@ import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.a
 import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.hasRole;
 import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.instanceOf;
 import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.userIsLeadInvestigator;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.ACCESS_STUDY;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.DELETE_ANALYSIS_FILES;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.DELETE_DATASOURCE;
 
@@ -194,7 +193,7 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends IDataSource> 
 
         return domainObject(domainObject).when(instanceOf(IDataSource.class))
                 .then(dataSource -> getArachnePermissions(secureService.getRolesByDataSource(user, (D) dataSource))).apply()
-                .when(instanceOf(DataSource.class).and(hasRole(user, "ROLE_ADMIN")))
+                .when(instanceOf(IDataSource.class).and(hasRole(user, "ROLE_ADMIN")))
                 .then(dataSource -> Collections.singleton(DELETE_DATASOURCE)).apply();
 
     }

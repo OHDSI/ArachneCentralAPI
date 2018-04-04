@@ -165,7 +165,7 @@ run_ple_analysis <- function(analysiDescriptionFile, outputFolder, targetCohortD
   
   
   # Define which types of covariates must be constructed ----
-                                               covariateSettings <- createCovariateSettings(useDemographicsGender = analysisSettings$psDemographicsGender,
+  covariateSettings <- createCovariateSettings(useDemographicsGender = analysisSettings$psDemographicsGender,
                                                useDemographicsRace = analysisSettings$psDemographicsRace,
                                                useDemographicsEthnicity = analysisSettings$psDemographicsEthnicity,
                                                useDemographicsAge = analysisSettings$psDemographicsAge,
@@ -173,7 +173,7 @@ run_ple_analysis <- function(analysiDescriptionFile, outputFolder, targetCohortD
                                                useDemographicsIndexMonth = analysisSettings$psDemographicsMonth,
                                                useConditionOccurrenceLongTerm = analysisSettings$psConditionOcc365d,
                                                useConditionOccurrenceShortTerm = analysisSettings$psConditionOcc30d,
-                                               useConditionOccurrenceInpatientMediumTerm = analysisSettings$psConditionOccInpt180d,                         ,
+                                               useConditionOccurrenceInpatientMediumTerm = analysisSettings$psConditionOccInpt180d,
                                                useConditionEraOverlap = analysisSettings$psConditionEraOverlap,
                                                useDrugExposureLongTerm = analysisSettings$psDrugExposure365d,
                                                useDrugExposureShortTerm = analysisSettings$psDrugExposure30d,

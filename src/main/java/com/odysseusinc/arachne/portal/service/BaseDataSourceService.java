@@ -24,7 +24,6 @@ package com.odysseusinc.arachne.portal.service;
 
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
-import com.odysseusinc.arachne.portal.exception.NotUniqueException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
@@ -54,14 +53,12 @@ public interface BaseDataSourceService<DS extends IDataSource> {
 
     SearchResult<DS> search(SolrQuery solrQuery, IUser user) throws NoSuchFieldException, IOException, SolrServerException;
 
-    DS updateInAnyTenant(DS dataSource) throws
-                    NotExistException,
-                    ValidationException,
-                    IOException,
-                    SolrServerException,
-                    NoSuchFieldException,
-                    IllegalAccessException, NotUniqueException;
-    
+    void beforeUpdate(DS target, DS dataSource);
+
+    DS updateInAnyTenant(DS dataSource) throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException;
+
+    DS updateWithoutMetadataInAnyTenant(DS dataSource) throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException;
+
     DS getNotDeletedByIdInAnyTenant(Long id);
 
     DS getByIdUnsecured(Long id) throws NotExistException;
