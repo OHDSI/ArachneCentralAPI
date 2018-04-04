@@ -54,7 +54,6 @@ import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Invitationable;
 import com.odysseusinc.arachne.portal.model.ParticipantStatus;
 import com.odysseusinc.arachne.portal.model.ProfessionalType;
-import com.odysseusinc.arachne.portal.model.RawUser;
 import com.odysseusinc.arachne.portal.model.Role;
 import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.StateProvince;
@@ -804,8 +803,8 @@ public abstract class BaseUserServiceImpl<
     @Override
     public List<? extends Invitationable> getInvitationsForStudy(U user, final Long studyId) {
 
-        List<? extends Invitationable> collaboratorInvitations = userStudyRepository.findByUserAndStudyIdAndStatus(
-                user,
+        List<? extends Invitationable> collaboratorInvitations = userStudyRepository.findByUserIdAndStudyIdAndStatus(
+                user.getId(),
                 studyId,
                 ParticipantStatus.PENDING
         );
