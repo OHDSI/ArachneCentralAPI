@@ -46,6 +46,7 @@ import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
+import java.util.Set;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -59,7 +60,7 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
 
     U getByUsername(final String username);
 
-    U getByUsername(final String userOrigin, final String username);
+    U getByEmail(final String userOrigin, final String username);
 
     U getByEmail(String email);
 
@@ -221,4 +222,6 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
     void makeLinksWithPapersDeleted(Long tenantId, Long userId);
 
     void revertBackUserToPapers(Long tenantId, Long userId);
+
+    List<U> findByIdsInAnyTenant(Set<Long> userIds);
 }

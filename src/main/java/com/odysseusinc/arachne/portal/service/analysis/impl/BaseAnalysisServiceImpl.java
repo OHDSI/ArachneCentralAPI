@@ -325,7 +325,7 @@ public abstract class BaseAnalysisServiceImpl<
         return analysisRepository.findById(
                 id,
                 EntityUtils.fromAttributePaths(
-                        "submissions",
+                        "study",
                         "submissions.author",
                         "submissions.submissionGroup",
                         "submissions.submissionInsight",

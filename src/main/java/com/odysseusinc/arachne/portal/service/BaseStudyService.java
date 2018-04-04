@@ -45,6 +45,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.Set;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
@@ -142,4 +143,8 @@ public interface BaseStudyService<
             IllegalAccessException;
 
     List<T> findAllInAnyTenants();
+
+    List<T> findByIdsInAnyTenant(Set<Long> studyIds);
+    
+    T findByIdInAnyTenant(Long studyId);
 }

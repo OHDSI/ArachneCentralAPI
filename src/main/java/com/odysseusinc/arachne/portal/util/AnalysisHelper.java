@@ -22,20 +22,16 @@
 
 package com.odysseusinc.arachne.portal.util;
 
-import com.google.common.collect.Sets;
 import com.odysseusinc.arachne.portal.exception.ConverterRuntimeException;
 import com.odysseusinc.arachne.portal.exception.IORuntimeException;
 import com.odysseusinc.arachne.portal.exception.NoExecutableFileException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.Analysis;
-import com.odysseusinc.arachne.portal.model.DataSourceStatus;
 import com.odysseusinc.arachne.portal.model.IUser;
-import com.odysseusinc.arachne.portal.model.ResultFile;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
 import com.odysseusinc.arachne.portal.model.SubmissionGroup;
-import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.service.AnalysisPaths;
 import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
 import java.io.File;
@@ -48,7 +44,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.ZipParameters;

@@ -25,7 +25,6 @@ package com.odysseusinc.arachne.portal.service.impl;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.DataNode;
-import com.odysseusinc.arachne.portal.model.DataNodeUser;
 import com.odysseusinc.arachne.portal.model.DataSourceStatus;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.Organization;
@@ -147,6 +146,8 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends I
     public List<ParticipantRole> getRolesByAnalysis(ArachneUser user, Analysis analysis) {
 
         List<ParticipantRole> result = new LinkedList<>();
+        // sometimes this method can be called from places where it is impossible to retrieve study
+        ensureAnalysisStudyCanBeRetrieved(analysis);
         if (analysis != null) {
             if (analysis.getStudy() != null) {
                 result = getRolesByStudy(user, analysis.getStudy());
@@ -160,6 +161,15 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends I
         }
         return result;
     }
+
+    protected void ensureAnalysisStudyCanBeRetrieved(final Analysis analysis) {
+
+        final Long studyId = analysis.getStudy().getId();
+        final Study foundStudy = getStudyByIdInAnyTenant(studyId);
+        analysis.setStudy(foundStudy);
+    }
+    
+    public abstract Study getStudyByIdInAnyTenant(Long studyId);
 
     @Override
     public List<ParticipantRole> getRolesBySubmission(ArachneUser user, Submission submission) {
