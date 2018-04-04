@@ -32,6 +32,7 @@ import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.DataSourceStatus;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
+import com.odysseusinc.arachne.portal.model.PairForUpdating;
 import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
 import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
@@ -56,6 +57,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -204,13 +206,13 @@ public abstract class BaseDataSourceServiceImpl<
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_DATASOURCE)")
     @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
     @Override
-    public DS updateInAnyTenant(DS dataSource)
+    public DS updateInAnyTenant(DS dataSource, Consumer<PairForUpdating<DS>> beforeUpdate)
             throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
         DS forUpdate = getNotDeletedByIdInAnyTenant(dataSource.getId());
         forUpdate = baseUpdate(forUpdate, dataSource);
 
-        beforeUpdate(forUpdate, dataSource);
+        beforeUpdate.accept(new PairForUpdating<>(forUpdate, dataSource));
         DS savedDataSource = rawDataSourceRepository.save(forUpdate);
         afterUpdate(savedDataSource);
         return savedDataSource;
@@ -244,7 +246,8 @@ public abstract class BaseDataSourceServiceImpl<
         return exist;
     }
 
-    protected void beforeUpdate(DS target, DS dataSource) {
+    @Override
+    public void beforeUpdate(DS target, DS dataSource) {
 
     }
 

@@ -119,7 +119,9 @@ public abstract class BaseDataSourceController<
             dataSource.setId(dataSourceId);
             dataSource.setDataNode(exist.getDataNode());
             dataSource.setPublished(true);
-            dataSource = dataSourceService.updateInAnyTenant(dataSource);
+            dataSource = dataSourceService.updateInAnyTenant(dataSource,
+                    pair -> dataSourceService.beforeUpdate(pair.getExisted(), pair.getUpdated()));
+
             result = new JsonResult<>(NO_ERROR);
             result.setResult(convertDataSourceToDTO(dataSource));
         }
@@ -135,7 +137,8 @@ public abstract class BaseDataSourceController<
         JsonResult<DTO> result = new JsonResult<>(NO_ERROR);
         DS updating = convertDTOToDataSource(commonDataSourceDTO);
         updating.setId(dataSourceId);
-        updating = dataSourceService.updateInAnyTenant(updating);
+        updating.setDataNode(dataSourceService.getByIdUnsecured(dataSourceId).getDataNode());
+        updating = dataSourceService.updateInAnyTenant(updating, pair -> {});
         result.setResult(convertDataSourceToDTO(updating));
         return result;
     }

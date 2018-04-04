@@ -28,10 +28,12 @@ import com.odysseusinc.arachne.portal.exception.NotUniqueException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
+import com.odysseusinc.arachne.portal.model.PairForUpdating;
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
 import java.io.IOException;
 import java.util.List;
+import java.util.function.Consumer;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.data.domain.Page;
@@ -54,7 +56,9 @@ public interface BaseDataSourceService<DS extends IDataSource> {
 
     SearchResult<DS> search(SolrQuery solrQuery, IUser user) throws NoSuchFieldException, IOException, SolrServerException;
 
-    DS updateInAnyTenant(DS dataSource) throws
+    void beforeUpdate(DS target, DS dataSource);
+
+    DS updateInAnyTenant(DS dataSource, Consumer<PairForUpdating<DS>> beforeUpdate) throws
                     NotExistException,
                     ValidationException,
                     IOException,
