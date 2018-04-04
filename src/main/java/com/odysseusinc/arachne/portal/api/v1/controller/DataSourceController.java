@@ -26,7 +26,8 @@ import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataSourceDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.DataCatalogSearchResultDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.DataSourceDTO;
 import com.odysseusinc.arachne.portal.model.DataSource;
-import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
+import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.service.DataSourceService;
 import com.odysseusinc.arachne.portal.service.StudyDataSourceService;
 import com.odysseusinc.arachne.portal.util.ArachneConverterUtils;
 import org.slf4j.Logger;
@@ -38,15 +39,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @SuppressWarnings("unused")
 public class DataSourceController
-        extends BaseDataSourceController<DataSource, CommonDataSourceDTO, DataSourceDTO, DataCatalogSearchResultDTO> {
+        extends BaseDataSourceController<IDataSource, CommonDataSourceDTO, DataSourceDTO, DataCatalogSearchResultDTO> {
 
     Logger log = LoggerFactory.getLogger(DataSourceController.class);
 
     @Autowired
-    public DataSourceController(GenericConversionService conversionService,
-                                BaseDataSourceService<DataSource> dataSourceService,
-                                ArachneConverterUtils converterUtils,
-                                StudyDataSourceService studyDataSourceService
+    public DataSourceController(final GenericConversionService conversionService,
+                                final DataSourceService dataSourceService,
+                                final ArachneConverterUtils converterUtils,
+                                final StudyDataSourceService studyDataSourceService
     ) {
 
         super(conversionService,
@@ -81,7 +82,7 @@ public class DataSourceController
     }
 
     @Override
-    protected CommonDataSourceDTO convertDataSourceToDTO(DataSource dataSource) {
+    protected CommonDataSourceDTO convertDataSourceToDTO(IDataSource dataSource) {
 
         return this.conversionService.convert(dataSource, CommonDataSourceDTO.class);
     }

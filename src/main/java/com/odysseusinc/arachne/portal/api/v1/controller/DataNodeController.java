@@ -27,21 +27,25 @@ import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
+import com.odysseusinc.arachne.portal.service.DataNodeService;
+import com.odysseusinc.arachne.portal.service.DataSourceService;
 import com.odysseusinc.arachne.portal.service.OrganizationService;
 import com.odysseusinc.arachne.portal.service.StudyDataSourceService;
+import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.util.ArachneConverterUtils;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class DataNodeController extends BaseDataNodeController<DataSource, CommonDataSourceDTO, DataNode> {
-    public DataNodeController(BaseAnalysisService<Analysis> analysisService,
-                              BaseDataNodeService<DataNode> baseDataNodeService,
-                              BaseDataSourceService<DataSource> dataSourceService,
+public class DataNodeController extends BaseDataNodeController<IDataSource, CommonDataSourceDTO, DataNode> {
+    public DataNodeController(AnalysisService analysisService,
+                              DataNodeService baseDataNodeService,
+                              DataSourceService dataSourceService,
                               GenericConversionService genericConversionService,
                               BaseUserService userService,
                               StudyDataSourceService studyDataSourceService,

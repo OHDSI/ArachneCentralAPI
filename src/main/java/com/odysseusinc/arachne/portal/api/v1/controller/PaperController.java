@@ -27,12 +27,14 @@ import com.odysseusinc.arachne.portal.api.v1.dto.PaperDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ShortPaperDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdatePaperDTO;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyViewItem;
 import com.odysseusinc.arachne.portal.model.search.PaperSearch;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.service.BasePaperService;
+import com.odysseusinc.arachne.portal.service.PaperService;
 import com.odysseusinc.arachne.portal.service.StudyFileService;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -40,22 +42,22 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RequestMapping(path = "/api/v1/papers")
 @RestController
-public class PaperController extends BasePaperController
-        <Paper,
+public class PaperController extends BasePaperController<
+        Paper,
         PaperSearch,
         UpdatePaperDTO,
         ShortPaperDTO,
         PaperDTO,
         CreatePaperDTO,
         Study,
-        DataSource,
+        IDataSource,
         StudySearch,
         StudyViewItem> {
 
     public PaperController(
-            BasePaperService<Paper, PaperSearch, Study, DataSource, StudySearch, StudyViewItem> paperService,
-            GenericConversionService conversionService,
-            StudyFileService fileService) {
+            final PaperService paperService,
+            final GenericConversionService conversionService,
+            final StudyFileService fileService) {
 
         super(paperService, conversionService, fileService);
     }
