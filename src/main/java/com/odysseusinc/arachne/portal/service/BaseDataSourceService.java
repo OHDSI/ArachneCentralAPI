@@ -53,8 +53,6 @@ public interface BaseDataSourceService<DS extends IDataSource> {
 
     SearchResult<DS> search(SolrQuery solrQuery, IUser user) throws NoSuchFieldException, IOException, SolrServerException;
 
-    void beforeUpdate(DS target, DS dataSource);
-
     DS updateInAnyTenant(DS dataSource) throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException;
 
     DS updateWithoutMetadataInAnyTenant(DS dataSource) throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException;
