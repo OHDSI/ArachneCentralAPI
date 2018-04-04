@@ -42,11 +42,15 @@ import com.odysseusinc.arachne.portal.exception.NotUniqueException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.AbstractPaperFile;
+import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.PaperFileType;
+import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.PaperSearch;
+import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.service.BasePaperService;
 import com.odysseusinc.arachne.portal.service.ToPdfConverter;
 import com.odysseusinc.arachne.portal.service.StudyFileService;
@@ -84,14 +88,18 @@ public abstract class BasePaperController
         U_P_DTO extends UpdatePaperDTO,
         S_P_DTO extends ShortPaperDTO,
         DTO extends PaperDTO,
-        C_P_DTO extends CreatePaperDTO> extends BaseController {
+        C_P_DTO extends CreatePaperDTO,
+        S extends Study,
+        DS extends IDataSource,
+        SS extends StudySearch,
+        SU extends AbstractUserStudyListItem> extends BaseController {
 
-    protected BasePaperService<P, PS> paperService;
+    protected BasePaperService<P, PS, S, DS, SS, SU> paperService;
     protected GenericConversionService conversionService;
     protected StudyFileService fileService;
 
     @Autowired
-    public BasePaperController(BasePaperService<P, PS> paperService, GenericConversionService conversionService, StudyFileService fileService) {
+    public BasePaperController(BasePaperService<P, PS, S, DS, SS, SU> paperService, GenericConversionService conversionService, StudyFileService fileService) {
 
         this.paperService = paperService;
         this.conversionService = conversionService;

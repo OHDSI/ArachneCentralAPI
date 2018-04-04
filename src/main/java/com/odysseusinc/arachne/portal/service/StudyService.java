@@ -22,17 +22,14 @@
 
 package com.odysseusinc.arachne.portal.service;
 
-import com.odysseusinc.arachne.portal.model.Analysis;
-import com.odysseusinc.arachne.portal.model.DataSource;
-import com.odysseusinc.arachne.portal.model.Paper;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyViewItem;
-import com.odysseusinc.arachne.portal.model.search.PaperSearch;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
 
 public interface StudyService extends BaseStudyService<
         Study,
-        DataSource,
+        IDataSource,
         StudySearch,
         StudyViewItem> {
 }

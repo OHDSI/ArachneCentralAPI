@@ -90,7 +90,7 @@ public abstract class BaseAdminController<
     private final BaseAdminService<S, DS, SS, SU, A, P, PS, SB> adminService;
     private final BaseStudyService<S, DS, SS, SU> studyService;
     private final BaseAnalysisService<A> analysisService;
-    private final BasePaperService<P, PS> paperService;
+    private final BasePaperService<P, PS, S, DS, SS, SU> paperService;
 
 
     @Autowired
@@ -99,7 +99,7 @@ public abstract class BaseAdminController<
                                final BaseAdminService<S, DS, SS, SU, A, P, PS, SB> adminService,
                                final BaseStudyService<S, DS, SS, SU> studyService,
                                final BaseAnalysisService<A> analysisService, 
-                               final BasePaperService<P, PS> paperService) {
+                               final BasePaperService<P, PS, S, DS, SS, SU> paperService) {
 
         this.dataSourceService = dataSourceService;
         this.professionalTypeService = professionalTypeService;

@@ -26,11 +26,15 @@ import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.AbstractPaperFile;
+import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.PaperFileType;
+import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.PaperSearch;
+import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobPaperPaperFileResponseEvent;
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobPaperProtocolFileResponseEvent;
 import java.io.FileNotFoundException;
@@ -43,7 +47,14 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
-public interface BasePaperService<T extends Paper, PS extends PaperSearch> {
+public interface BasePaperService<
+        T extends Paper,
+        PS extends PaperSearch,
+        S extends Study,
+        DS extends IDataSource,
+        SS extends StudySearch,
+        SU extends AbstractUserStudyListItem
+        > {
     Page<T> getPapersAccordingToCurrentUser(PS paperSearch, IUser user);
 
     T get(Long id);

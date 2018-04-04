@@ -140,4 +140,6 @@ public interface BaseStudyService<
             SolrServerException,
             NoSuchFieldException,
             IllegalAccessException;
+
+    List<T> findAllInAnyTenants();
 }

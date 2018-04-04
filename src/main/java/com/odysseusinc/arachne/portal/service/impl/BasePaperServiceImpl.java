@@ -29,7 +29,9 @@ import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.AbstractPaperFile;
+import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
 import com.odysseusinc.arachne.portal.model.AntivirusFile;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.PaperFavourite;
@@ -41,6 +43,7 @@ import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.PaperSearch;
 import com.odysseusinc.arachne.portal.model.search.PaperSpecification;
+import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
 import com.odysseusinc.arachne.portal.model.statemachine.study.StudyState;
 import com.odysseusinc.arachne.portal.model.statemachine.study.StudyStateActions;
@@ -60,6 +63,9 @@ import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJob
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobPaperProtocolFileResponseEvent;
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobResponse;
 import java.util.Arrays;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.StringUtils;
@@ -95,7 +101,13 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSearch> implements BasePaperService<P, PS> {
+public abstract class BasePaperServiceImpl<
+        P extends Paper,
+        PS extends PaperSearch,
+        S extends Study,
+        DS extends IDataSource,
+        SS extends StudySearch,
+        SU extends AbstractUserStudyListItem> implements BasePaperService<P, PS, S, DS, SS, SU> {
     private static final Logger log = LoggerFactory.getLogger(BasePaperServiceImpl.class);
 
     @Autowired
@@ -107,7 +119,7 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
     @Autowired
     private PaperFavouritesRepository paperFavouritesRepository;
     @Autowired
-    private BaseStudyService studyService;
+    private BaseStudyService<S, DS, SS, SU> studyService;
     @Autowired
     private BaseUserService userService;
     @Autowired
@@ -455,8 +467,10 @@ public abstract class BasePaperServiceImpl<P extends Paper, PS extends PaperSear
     @Override
     public void indexAllBySolr() throws IOException, NotExistException, SolrServerException, NoSuchFieldException, IllegalAccessException {
         solrService.deleteAll(SolrCollection.PAPERS);
+        final Map<Long, Study> map = studyService.findAllInAnyTenants().stream().collect(Collectors.toMap(Study::getId, Function.identity()));
         final List<P> papers = paperRepository.findAll();
         for (final P paper : papers) {
+            paper.setStudy(map.get(paper.getStudy().getId()));
             indexBySolr(paper);
         }
     }

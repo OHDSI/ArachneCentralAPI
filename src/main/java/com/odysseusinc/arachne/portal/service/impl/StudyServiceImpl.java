@@ -30,6 +30,7 @@ import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import com.odysseusinc.arachne.portal.model.Study;
@@ -82,7 +83,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Transactional(rollbackFor = Exception.class)
 public class StudyServiceImpl extends BaseStudyServiceImpl<
         Study,
-        DataSource,
+        IDataSource,
         StudySearch,
         StudyViewItem,
         SolrField> implements StudyService {
@@ -109,7 +110,7 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
                             final JavaMailSender javaMailSender,
                             final GenericConversionService conversionService,
                             final StudyStateMachine studyStateMachine,
-                            final AddDataSourceStrategyFactory<DataSource> addDataSourceStrategyFactory,
+                            final AddDataSourceStrategyFactory addDataSourceStrategyFactory,
                             final ApplicationEventPublisher eventPublisher,
                             final SolrService solrService) {
 
@@ -265,7 +266,7 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
     @Transactional
     @PreAuthorize("hasPermission(#studyId, 'Study', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).INVITE_DATANODE)")
-    public DataSource addVirtualDataSource(IUser createdBy, Long studyId, String dataSourceName, List<String> dataOwnerIds)
+    public IDataSource addVirtualDataSource(IUser createdBy, Long studyId, String dataSourceName, List<String> dataOwnerIds)
             throws NotExistException, AlreadyExistException, NoSuchFieldException, IOException, ValidationException, FieldException, IllegalAccessException, SolrServerException {
 
         return super.addVirtualDataSource(createdBy, studyId, dataSourceName, dataOwnerIds);

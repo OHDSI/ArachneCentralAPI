@@ -23,6 +23,7 @@
 package com.odysseusinc.arachne.portal.service.impl;
 
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.repository.BaseDataSourceRepository;
 import com.odysseusinc.arachne.portal.repository.BaseRawDataSourceRepository;
 import com.odysseusinc.arachne.portal.repository.StudyDataSourceLinkRepository;
@@ -42,7 +43,7 @@ import java.util.List;
 @Service
 @SuppressWarnings("unused")
 @Transactional(rollbackFor = Exception.class)
-public class DataSourceServiceImpl extends BaseDataSourceServiceImpl<DataSource, SolrField> implements DataSourceService {
+public class DataSourceServiceImpl extends BaseDataSourceServiceImpl<IDataSource, SolrField> implements DataSourceService {
 
     public DataSourceServiceImpl(SolrService solrService,
                                  BaseDataSourceRepository dataSourceRepository,
@@ -64,7 +65,7 @@ public class DataSourceServiceImpl extends BaseDataSourceServiceImpl<DataSource,
     }
 
     @Override
-    public List<DataSource> getAllByUserId(Long userId) {
+    public List<IDataSource> getAllByUserId(Long userId) {
 
         return dataSourceRepository.getAllByUserId(userId);
     }
