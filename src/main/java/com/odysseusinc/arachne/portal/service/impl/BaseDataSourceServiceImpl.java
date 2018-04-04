@@ -263,8 +263,7 @@ public abstract class BaseDataSourceServiceImpl<
         return exist;
     }
 
-    @Override
-    public void beforeUpdate(DS target, DS dataSource) {
+    protected void beforeUpdate(DS target, DS dataSource) {
 
     }
 
