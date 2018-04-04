@@ -24,6 +24,7 @@ package com.odysseusinc.arachne.portal.service.impl;
 
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.Paper;
+import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.repository.AnalysisRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeUserRepository;
@@ -41,7 +42,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component()
-@SuppressWarnings("unused")
 @Transactional(rollbackFor = Exception.class)
 public class ArachneSecureServiceImpl extends BaseArachneSecureServiceImpl<Paper, DataSource>
         implements ArachneSecureService {
@@ -71,5 +71,11 @@ public class ArachneSecureServiceImpl extends BaseArachneSecureServiceImpl<Paper
                 tenantRepository,
                 studyRepository,
                 userRepository);
+    }
+
+    @Override
+    public Study getStudyByIdInAnyTenant(final Long studyId) {
+
+        return studyRepository.findByIdInAnyTenant(studyId);
     }
 }

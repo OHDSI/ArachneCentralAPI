@@ -24,6 +24,7 @@ package com.odysseusinc.arachne.portal.repository;
 
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.statemachine.ObjectRepository;
+import java.util.Collection;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -70,4 +71,7 @@ public interface BaseStudyRepository<T extends Study> extends JpaRepository<T, L
 
     @Query(nativeQuery = true, value = "SELECT s.* FROM studies_data s JOIN papers p on s.id = p.study_id")
     List<T> findWithPapersInAnyTenant();
+
+    @Query(nativeQuery = true, value = "SELECT * FROM studies_data WHERE id IN :studyIds")
+    List<T> findByIdsInAnyTenant(@Param("studyIds") Collection<Long> ids);
 }

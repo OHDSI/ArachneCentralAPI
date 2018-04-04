@@ -108,6 +108,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -234,7 +235,7 @@ public abstract class BaseUserServiceImpl<
 
     @Override
     public U getByUsername(final String userOrigin, final String username) {
-
+        
         return userRepository.findByEmailAndEnabledTrue(username);
     }
 
@@ -970,7 +971,7 @@ public abstract class BaseUserServiceImpl<
         if (principal == null) {
             throw new PermissionDeniedException();
         }
-        U user = getByEmail(principal.getName());
+        final U user = getByUsernameInAnyTenant(principal.getName());
         if (user == null) {
             throw new PermissionDeniedException();
         }
@@ -1123,6 +1124,12 @@ public abstract class BaseUserServiceImpl<
     public void revertBackUserToPapers(final Long tenantId, final Long userId) {
         
         userRepository.revertBackUserToPapers(tenantId, userId);
+    }
+
+    @Override
+    public List<U> findByIdsInAnyTenant(final Set<Long> userIds) {
+        
+        return rawUserRepository.findByIdInAndEnabledTrue(userIds);
     }
 
     private class AvatarResolver implements AutoCloseable {

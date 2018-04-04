@@ -71,7 +71,7 @@
 //
 //    private void createAdminUser() throws Exception {
 //
-//        User admin = userService.getByEmail("admin@odysseusinc.com");
+//        User admin = userService.getByUsername("admin@odysseusinc.com");
 //
 //        if (admin != null && (System.currentTimeMillis() - admin.getCreated().getTime() > 10000)) {
 //            userService.remove(admin.getId());
@@ -95,7 +95,7 @@
 //
 //    private void createOwningUser() throws Exception {
 //
-//        User owner = userService.getByEmail("owner@example.com");
+//        User owner = userService.getByUsername("owner@example.com");
 //
 //        if (owner != null && (System.currentTimeMillis() - owner.getCreated().getTime() > 10000)) {
 //            userService.remove(owner.getId());

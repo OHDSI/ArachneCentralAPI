@@ -991,4 +991,16 @@ public abstract class BaseStudyServiceImpl<
 
         return studyRepository.findWithPapersInAnyTenant();
     }
+
+    @Override
+    public List<T> findByIdsInAnyTenant(final Set<Long> studyIds) {
+
+        return studyRepository.findByIdsInAnyTenant(studyIds);
+    }
+
+    @Override
+    public T findByIdInAnyTenant(final Long studyId) {
+
+        return studyRepository.findByIdInAnyTenant(studyId);
+    }
 }
