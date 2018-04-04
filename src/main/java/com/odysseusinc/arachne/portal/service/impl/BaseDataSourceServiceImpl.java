@@ -201,11 +201,6 @@ public abstract class BaseDataSourceServiceImpl<
         return result;
     }
 
-    @Transactional
-    @PreAuthorize("hasPermission(#dataSource, "
-            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_DATASOURCE)")
-    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
-    @Override
     public DS updateInAnyTenant(DS dataSource, Consumer<PairForUpdating<DS>> beforeUpdate)
             throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
@@ -216,6 +211,28 @@ public abstract class BaseDataSourceServiceImpl<
         DS savedDataSource = rawDataSourceRepository.save(forUpdate);
         afterUpdate(savedDataSource);
         return savedDataSource;
+    }
+
+    @Transactional
+    @PreAuthorize("hasPermission(#dataSource, "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_DATASOURCE)")
+    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
+    @Override
+    public DS updateInAnyTenant(DS dataSource)
+            throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
+
+        return updateInAnyTenant(dataSource, pair -> beforeUpdate(pair.getExisted(), pair.getUpdated()));
+    }
+
+    @Transactional
+    @PreAuthorize("hasPermission(#dataSource, "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_DATASOURCE)")
+    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
+    @Override
+    public DS updateWithoutMetadataInAnyTenant(DS dataSource)
+            throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
+
+        return updateInAnyTenant(dataSource, pair -> {});
     }
 
     private DS baseUpdate(DS exist, DS dataSource) {
@@ -327,29 +344,29 @@ public abstract class BaseDataSourceServiceImpl<
         Root<StudyDataSourceLink> dsLink = sq.from(StudyDataSourceLink.class);
         sq.select(dsLink.get("dataSource").get("id"));
         sq.where(cb.and(cb.equal(dsLink.get("study").get("id"), studyId),
-                        cb.not(dsLink.get("status").in(BAD_STATUSES))));
+                cb.not(dsLink.get("status").in(BAD_STATUSES))));
 
         cq.select(root);
         Predicate nameClause = cb.conjunction();  // TRUE
-        if (split.length > 1 || (split.length == 1 && !split[0].equals("") )) {
+        if (split.length > 1 || (split.length == 1 && !split[0].equals(""))) {
             List<Predicate> predictList = new ArrayList<>();
-            for (String one: split) {
+            for (String one : split) {
                 predictList.add(cb.like(cb.lower(root.get("name")), one + "%"));
                 predictList.add(cb.like(cb.lower(root.get("dataNode").get("name")), one + "%"));
             }
-            nameClause = cb.or(predictList.toArray(new Predicate[] {}));
+            nameClause = cb.or(predictList.toArray(new Predicate[]{}));
         }
 
         cq.where(cb.and(cb.not(root.get("id").in(sq)),
-                        nameClause,
-                        cb.isNull(root.get("deleted")),
-                        cb.isTrue(root.get("published")),
-                        cb.isFalse(root.get("dataNode").get("virtual"))));
+                nameClause,
+                cb.isNull(root.get("deleted")),
+                cb.isTrue(root.get("published")),
+                cb.isFalse(root.get("dataNode").get("virtual"))));
 
         TypedQuery<DS> typedQuery = this.entityManager.createQuery(cq);
         List<DS> list = typedQuery.setFirstResult(pageRequest.getOffset())
-                            .setMaxResults(pageRequest.getPageSize())
-                            .getResultList();
+                .setMaxResults(pageRequest.getPageSize())
+                .getResultList();
         return new PageImpl<>(list, pageRequest, list.size());
     }
 
@@ -395,7 +412,7 @@ public abstract class BaseDataSourceServiceImpl<
 
     @Override
     public void makeLinksWithStudiesDeleted(final Long tenantId, final Long dataSourceId) {
-        
+
         studyDataSourceLinkRepository.setLinksBetweenStudiesAndDsDeleted(tenantId, dataSourceId);
     }
 

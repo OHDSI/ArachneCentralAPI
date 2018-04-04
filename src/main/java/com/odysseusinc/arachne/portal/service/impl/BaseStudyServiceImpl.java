@@ -799,7 +799,7 @@ public abstract class BaseStudyServiceImpl<
         updateDataNodeOwners(dataOwners, dataNode);
 
         dataSource.setName(name);
-        final DS update = dataSourceService.updateInAnyTenant(dataSource, pair -> {});
+        final DS update = dataSourceService.updateWithoutMetadataInAnyTenant(dataSource);
         return dataSource;
     }
 
