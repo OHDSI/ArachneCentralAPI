@@ -80,7 +80,7 @@ import org.springframework.util.CollectionUtils;
 
 @Transactional(rollbackFor = Exception.class)
 public abstract class BaseDataSourceServiceImpl<
-        DS extends IDataSource, // tenant dependent DataSource
+        DS extends IDataSource,
         SF extends SolrField> implements BaseDataSourceService<DS> {
 
     private static final Logger log = LoggerFactory.getLogger(BaseDataSourceServiceImpl.class);
