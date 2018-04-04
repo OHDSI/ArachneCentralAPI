@@ -60,7 +60,7 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
 
     U getByUsername(final String username);
 
-    U getByEmail(final String userOrigin, final String username);
+    U getByUsername(final String userOrigin, final String username);
 
     U getByEmail(String email);
 

@@ -230,11 +230,11 @@ public abstract class BaseUserServiceImpl<
     @Override
     public U getByUsername(final String username) {
 
-        return getByEmail(this.userOrigin, username);
+        return getByUsername(this.userOrigin, username);
     }
 
     @Override
-    public U getByEmail(final String userOrigin, final String username) {
+    public U getByUsername(final String userOrigin, final String username) {
         
         return userRepository.findByEmailAndEnabledTrue(username);
     }
@@ -248,7 +248,7 @@ public abstract class BaseUserServiceImpl<
     @Override
     public U getByEmail(final String email) {
 
-        return getByEmail(this.userOrigin, email);
+        return getByUsername(this.userOrigin, email);
         // return email != null ? userRepository.findByEmailAndEnabledTrue(email) : null;
     }
 
