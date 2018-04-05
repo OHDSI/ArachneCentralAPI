@@ -25,6 +25,7 @@ package com.odysseusinc.arachne.portal.service.impl;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonModelType;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchDataCatalogDTO;
 import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
+import com.odysseusinc.arachne.portal.config.tenancy.TenantContext;
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
@@ -35,6 +36,7 @@ import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.PairForUpdating;
 import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
+import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
 import com.odysseusinc.arachne.portal.repository.BaseDataSourceRepository;
 import com.odysseusinc.arachne.portal.repository.BaseRawDataSourceRepository;
@@ -57,6 +59,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
@@ -117,6 +120,18 @@ public abstract class BaseDataSourceServiceImpl<
         this.studyDataSourceLinkRepository = studyDataSourceLinkRepository;
     }
 
+    protected void beforeCreate(final DS dataSource, final boolean virtual) {
+
+        dataSource.setPublished(false);
+        dataSource.setCreated(new Date());
+        final Set<Tenant> tenants = tenantService.getDefault();
+        if (virtual) {
+            final Tenant tenant = tenantService.findById(TenantContext.getCurrentTenant());
+            tenants.add(tenant);
+        }
+        dataSource.setTenants(tenants);
+    }
+
     @Override
     @PreAuthorize("hasPermission(#dataSource, "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).CREATE_DATASOURCE)")
@@ -138,13 +153,6 @@ public abstract class BaseDataSourceServiceImpl<
             log.error("AfterCreated handler error", e);
         }
         return savedDataSource;
-    }
-
-    protected void beforeCreate(DS dataSource, boolean virtual) {
-
-        dataSource.setPublished(false);
-        dataSource.setCreated(new Date());
-        dataSource.setTenants(tenantService.getDefault());
     }
 
     protected void afterCreate(DS dataSource, boolean virtual) throws PermissionDeniedException {
