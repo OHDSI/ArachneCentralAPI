@@ -278,7 +278,8 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    @PreAuthorize("#dataNode == authentication.principal || hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN') || #dataNode == authentication.principal || hasPermission(#id, 'RawUser', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_USER)")
     public U getByIdInAnyTenant(final Long id) {
 
         return rawUserRepository.getOne(id);
