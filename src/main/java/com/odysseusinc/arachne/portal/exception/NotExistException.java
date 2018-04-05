@@ -24,15 +24,17 @@ package com.odysseusinc.arachne.portal.exception;
 
 public class NotExistException extends RuntimeException {
 
+    private static final String defaultMessage = "Entity cannot be found";
+    
     private final Class<?> entity;
 
-    public NotExistException(Class<?> entity) {
+    public NotExistException(final Class<?> entity) {
 
-        super();
+        super(defaultMessage);
         this.entity = entity;
     }
 
-    public NotExistException(String message, Class<?> entity) {
+    public NotExistException(final String message, final Class<?> entity) {
 
         super(message);
         this.entity = entity;
