@@ -183,7 +183,7 @@ public class ExceptionHandlingController extends BaseController {
     public ResponseEntity<JsonResult> exceptionHandler(UserNotFoundException ex,
                                                        HttpServletResponse response) throws IOException {
 
-        LOGGER.error(ex.getMessage(), ex);
+        LOGGER.error(ex.getMessage());
         JsonResult result = new JsonResult<>(VALIDATION_ERROR);
         result.setErrorMessage(ex.getMessage());
         result.getValidatorErrors().put(ex.getField(), ex.getMessage());
