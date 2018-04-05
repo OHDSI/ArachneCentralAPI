@@ -36,6 +36,7 @@ import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Organization;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
@@ -236,7 +237,7 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends IDataSource> 
 
     protected PermissionDsl userRules(Object domainObject, ArachneUser user) {
 
-        return domainObject(domainObject).when(instanceOf(User.class))
+        return domainObject(domainObject).when(instanceOf(IUser.class))
                 .then(targetUser -> secureService.getPermissionsForUser(user, targetUser))
                 .apply();
     }

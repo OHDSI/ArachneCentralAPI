@@ -26,6 +26,7 @@ import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Organization;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
@@ -58,7 +59,7 @@ public interface BaseArachneSecureService<P extends Paper, DS extends IDataSourc
 
     List<ParticipantRole> getRolesByCommentTopic(ArachneUser user, CommentTopic topic);
 
-    Set<ArachnePermission> getPermissionsForUser(ArachneUser user, User targetUser);
+    Set<ArachnePermission> getPermissionsForUser(ArachneUser user, IUser targetUser);
 
     boolean canImportFromDatanode(ArachneUser user, DataNode dataNode);
 

@@ -27,6 +27,7 @@ import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataSourceStatus;
 import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Organization;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
@@ -290,7 +291,7 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends I
     }
 
     @Override
-    public Set<ArachnePermission> getPermissionsForUser(ArachneUser user, User targetUser) {
+    public Set<ArachnePermission> getPermissionsForUser(ArachneUser user, IUser targetUser) {
 
         Set<ArachnePermission> permissions = new HashSet<>();
         if (tenantRepository.findCommonForUsers(user.getId(), targetUser.getId()).size() > 0) {
