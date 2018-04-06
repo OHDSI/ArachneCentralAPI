@@ -31,13 +31,13 @@ import static com.odysseusinc.arachne.portal.service.RoleService.ROLE_ADMIN;
 import static java.lang.Boolean.TRUE;
 import static org.springframework.data.jpa.domain.Specifications.where;
 
-import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraphUtils;
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.MetadataException;
 import com.drew.metadata.exif.ExifIFD0Directory;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
+import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchExpertListDTO;
 import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
 import com.odysseusinc.arachne.portal.exception.ArachneSystemRuntimeException;
@@ -50,6 +50,7 @@ import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.exception.WrongFileFormatException;
 import com.odysseusinc.arachne.portal.model.Country;
 import com.odysseusinc.arachne.portal.model.DataSourceStatus;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Invitationable;
 import com.odysseusinc.arachne.portal.model.ParticipantStatus;
 import com.odysseusinc.arachne.portal.model.ProfessionalType;
@@ -62,7 +63,10 @@ import com.odysseusinc.arachne.portal.model.UserPublication;
 import com.odysseusinc.arachne.portal.model.UserRegistrant;
 import com.odysseusinc.arachne.portal.model.UserStudy;
 import com.odysseusinc.arachne.portal.model.search.UserSearch;
+import com.odysseusinc.arachne.portal.model.security.Tenant;
+import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
 import com.odysseusinc.arachne.portal.repository.AnalysisUnlockRequestRepository;
+import com.odysseusinc.arachne.portal.repository.BaseRawUserRepository;
 import com.odysseusinc.arachne.portal.repository.BaseUserRepository;
 import com.odysseusinc.arachne.portal.repository.CountryRepository;
 import com.odysseusinc.arachne.portal.repository.RoleRepository;
@@ -75,10 +79,11 @@ import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePassword
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
 import com.odysseusinc.arachne.portal.service.BaseSkillService;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
+import com.odysseusinc.arachne.portal.service.BaseUserLinkService;
+import com.odysseusinc.arachne.portal.service.BaseUserPublicationService;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
-import com.odysseusinc.arachne.portal.service.UserLinkService;
-import com.odysseusinc.arachne.portal.service.UserPublicationService;
+import com.odysseusinc.arachne.portal.service.TenantService;
 import com.odysseusinc.arachne.portal.service.UserRegistrantService;
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
@@ -86,6 +91,7 @@ import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import com.odysseusinc.arachne.portal.service.mail.RegistrationMailMessage;
 import com.odysseusinc.arachne.portal.service.mail.RemindPasswordMailMessage;
+import com.odysseusinc.arachne.portal.util.EntityUtils;
 import edu.vt.middleware.password.Password;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -102,6 +108,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -128,6 +135,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specifications;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -135,7 +144,10 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 
-public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF extends SolrField> implements BaseUserService<U, S> {
+public abstract class BaseUserServiceImpl<
+        U extends IUser,
+        S extends Skill,
+        SF extends SolrField> implements BaseUserService<U, S> {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseUserServiceImpl.class);
     private static final String USERS_DIR = "users";
     private static final String AVATAR_FILE_NAME = "avatar.jpg";
@@ -149,8 +161,8 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     private final UserStudyRepository userStudyRepository;
     private final StudyDataSourceLinkRepository studyDataSourceLinkRepository;
     private final BaseSkillService<S> skillService;
-    private final UserLinkService userLinkService;
-    private final UserPublicationService userPublicationService;
+    private final BaseUserLinkService<UserLink> userLinkService;
+    private final BaseUserPublicationService<UserPublication> userPublicationService;
     private final RoleRepository roleRepository;
     private final BaseSolrService<SF> solrService;
     private final GenericConversionService conversionService;
@@ -158,6 +170,9 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     private final ArachneMailSender arachneMailSender;
     private final UserRegistrantService userRegistrantService;
     private final ArachnePasswordValidator passwordValidator;
+    private final TenantService tenantService;
+    protected final BaseRawUserRepository<U> rawUserRepository;
+
     @Value("${files.store.path}")
     private String fileStorePath;
     @Value("${user.enabled.default}")
@@ -179,14 +194,16 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
                                BaseSolrService<SF> solrService,
                                ArachneMailSender arachneMailSender,
                                UserStudyRepository userStudyRepository,
-                               UserPublicationService userPublicationService,
+                               BaseUserPublicationService<UserPublication> userPublicationService,
                                UserRegistrantService userRegistrantService,
                                StudyDataSourceLinkRepository studyDataSourceLinkRepository,
                                GenericConversionService conversionService,
                                AnalysisUnlockRequestRepository analysisUnlockRequestRepository,
                                BaseSkillService<S> skillService,
                                RoleRepository roleRepository,
-                               UserLinkService userLinkService) {
+                               BaseUserLinkService<UserLink> userLinkService,
+                               TenantService tenantService,
+                               BaseRawUserRepository<U> rawUserRepository) {
 
         this.stateProvinceRepository = stateProvinceRepository;
         this.messageSource = messageSource;
@@ -206,6 +223,8 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         this.skillService = skillService;
         this.roleRepository = roleRepository;
         this.userLinkService = userLinkService;
+        this.tenantService = tenantService;
+        this.rawUserRepository = rawUserRepository;
     }
 
     @Override
@@ -216,8 +235,14 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
 
     @Override
     public U getByUsername(final String userOrigin, final String username) {
-
+        
         return userRepository.findByEmailAndEnabledTrue(username);
+    }
+
+    @Override
+    public U getByUsernameInAnyTenant(final String username) {
+
+        return rawUserRepository.findByEmailAndEnabledTrue(username);
     }
 
     @Override
@@ -230,7 +255,34 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     @Override
     public U getByUnverifiedEmail(final String email) {
 
-        return userRepository.findByEmail(email, EntityGraphUtils.fromAttributePaths("roles", "professionalType"));
+        return userRepository.findByEmail(email, EntityUtils.fromAttributePaths("roles", "professionalType"));
+    }
+
+    @Override
+    public U getByUnverifiedEmailInAnyTenant(final String email) {
+
+        return rawUserRepository.findByEmail(email, EntityUtils.fromAttributePaths("roles", "professionalType"));
+    }
+
+    @Override
+    public U getByEmailInAnyTenant(final String email) {
+
+        return rawUserRepository.findByOriginAndUsername(this.userOrigin, email);
+    }
+
+    @Override
+    @Secured({"ROLE_ADMIN"})
+    public U getEnabledByIdInAnyTenant(final Long id) {
+
+        return rawUserRepository.findByIdAndEnabledTrue(id);
+    }
+
+    @Override
+    @PreAuthorize("hasRole('ROLE_ADMIN') || #dataNode == authentication.principal || hasPermission(#id, 'RawUser', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_USER)")
+    public U getByIdInAnyTenant(final Long id) {
+
+        return rawUserRepository.getOne(id);
     }
 
     @Override
@@ -244,7 +296,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         if (user == null) {
             throw new UserNotFoundException("removeUser", "remove user: user not found");
         }
-        solrService.deleteByQuery(SolrServiceImpl.USER_COLLECTION, "id:" + user.getId());
+        solrService.delete(user);
         userRepository.delete(user);
     }
 
@@ -269,6 +321,11 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         final String middleName = user.getMiddlename();
         validatePassword(username, firstName, lastName, middleName, password);
         user.setPassword(passwordEncoder.encode(password));
+
+        user.setTenants(tenantService.getDefault());
+        if (user.getTenants().size() > 0) {
+            user.setActiveTenant(user.getTenants().iterator().next());
+        }
 
         // The existing user check should come last:
         // it is muted in public registration form, so we need to show other errors ahead
@@ -308,7 +365,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         user.setRegistrationCode("");
         user.setUpdated(new Date());
         user.setEnabled(userEnableDefault);
-        U savedUser = userRepository.save(user);
+        U savedUser = rawUserRepository.save(user);
         indexBySolr(savedUser);
     }
 
@@ -317,7 +374,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
             throws UserNotFoundException, IOException, NotExistException,
             SolrServerException, NoSuchFieldException, IllegalAccessException {
 
-        U user = userRepository.findByRegistrationCode(activateCode);
+        U user = rawUserRepository.findByRegistrationCode(activateCode);
         if (user == null) {
             throw new UserNotFoundException("activationCode", "user not found by registration code " + activateCode);
         }
@@ -335,9 +392,9 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     }
 
     @Override
-    public U getByIdAndInitializeCollections(Long id) {
+    public U getByIdInAnyTenantAndInitializeCollections(Long id) {
 
-        return initUserCollections(getById(id));
+        return initUserCollections(rawUserRepository.findOne(id));
     }
 
     @Override
@@ -346,18 +403,17 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         return userRepository.findOne(id);
     }
 
+    private void afterUpdate(U savedUser) {
 
-    @Override
-    public List<U> getAllByIDs(List<Long> ids) {
-
-        return userRepository.findByIdIn(ids);
+        if (savedUser.getEnabled()) {
+            indexBySolr(savedUser);
+        } else {
+            solrService.delete(savedUser);
+        }
     }
 
-    @Override
-    public U update(final U user)
-            throws IllegalAccessException, SolrServerException, IOException, NotExistException, NoSuchFieldException {
+    private U baseUpdate(U forUpdate, U user) {
 
-        U forUpdate = userRepository.findOne(user.getId());
         final Date date = new Date();
         forUpdate.setId(user.getId());
         if (user.getFirstname() != null) {
@@ -416,31 +472,58 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         if (user.getContactEmail() != null) {
             forUpdate.setContactEmail(user.getContactEmail());
         }
-        U savedUser = initUserCollections(userRepository.save(forUpdate));
-
-        if (savedUser.getEnabled()) {
-            indexBySolr(savedUser);
-        } else {
-            solrService.deleteByQuery(SolrServiceImpl.USER_COLLECTION, "id:" + user.getId());
+        if (user.getTenants() != null) {
+            forUpdate.setTenants(user.getTenants());
         }
+
+        return forUpdate;
+    }
+
+    @Override
+    public U update(final U user)
+            throws IllegalAccessException, SolrServerException, IOException, NotExistException, NoSuchFieldException {
+
+        U forUpdate = userRepository.findOne(user.getId());
+        forUpdate = baseUpdate(forUpdate, user);
+        U savedUser = userRepository.save(forUpdate);
+        savedUser = initUserCollections(savedUser);
+        afterUpdate(savedUser);
         return savedUser;
+    }
+
+    @Override
+    @Secured({"ROLE_ADMIN"})
+    public U updateInAnyTenant(U user) throws NotExistException {
+
+        U forUpdate = getByIdInAnyTenant(user.getId());
+        forUpdate = baseUpdate(forUpdate, user);
+        U savedUser = rawUserRepository.saveAndFlush(forUpdate);
+        savedUser = initUserCollections(savedUser);
+        afterUpdate(savedUser);
+        return user;
     }
 
     @Override
     public U getByUuid(String uuid) {
 
         if (uuid != null && !uuid.isEmpty()) {
-            return userRepository.findByUuid(uuid);
+            return userRepository.findById(UserIdUtils.uuidToId(uuid));
         } else {
             throw new IllegalArgumentException("Given uuid is blank");
         }
     }
 
     @Override
-    public List<U> suggestUser(final String query, List<String> emailsList, final Integer limit) {
+    public U getByUuidAndInitializeCollections(String uuid) {
+
+        return (U) initUserCollections(getByUuid(uuid));
+    }
+
+    @Override
+    public List<U> suggestUserFromAnyTenant(final String query, List<String> emailsList, final Integer limit) {
 
         final String preparedQuery = prepareQuery(query);
-        return userRepository.suggest(preparedQuery, emailsList, limit);
+        return rawUserRepository.suggest(preparedQuery, emailsList, limit);
     }
 
     @Override
@@ -467,13 +550,24 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         }
         suggestRequest.delete(suggestRequest.length() - 1, suggestRequest.length());
         suggestRequest.append(")%");
-        return userRepository.suggestNotAdmin(suggestRequest.toString(), limit);
+        return rawUserRepository.suggestNotAdmin(suggestRequest.toString(), limit);
     }
 
     @Override
-    public List<U> getAllEnabled() {
+    public List<U> getAllEnabledFromAllTenants() {
 
-        return userRepository.findAllByEnabledIsTrue();
+        final List<U> usersWithTenants = userRepository.findAllByEnabledIsTrue(EntityUtils.fromAttributePaths("tenants"));
+
+        final Map<Long, List<UserLink>> userIdToLinksMap = userLinkService.findAll().stream().collect(Collectors.groupingBy(v -> v.getUser().getId()));
+        final Map<Long, List<UserPublication>> userIdToPublicationsMap = userPublicationService.findAll().stream().collect(Collectors.groupingBy(v -> v.getUser().getId()));
+
+        for (final U user: usersWithTenants) {
+            final Long userId = user.getId();
+            user.setLinks(userIdToLinksMap.get(userId));
+            user.setPublications(userIdToPublicationsMap.get(userId));
+        }
+
+        return usersWithTenants;
     }
 
     @Override
@@ -490,7 +584,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
             String pattern = userSearch.getQuery() + "%";
             spec = spec.and(withNameOrEmailLike(pattern));
         }
-        return userRepository.findAll(spec, pageable);
+        return rawUserRepository.findAll(spec, pageable);
     }
 
     private void sendRegistrationEmail(final U user) {
@@ -580,8 +674,8 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
 
         if (user != null) {
             user.setRoles(roleRepository.findByUser(user.getId()));
-            user.setLinks(userLinkService.findByUser(user));
-            user.setPublications(userPublicationService.findByUser(user));
+            user.setLinks(userLinkService.findByUserId(user.getId()));
+            user.setPublications(userPublicationService.findByUserId(user.getId()));
         }
         return user;
     }
@@ -612,7 +706,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         userPublicationService.delete(publicationId);
         U user = userRepository.findOne(userId);
         user.getPublications().size();
-        return initUserCollections(user);
+        return (U) initUserCollections(user);
     }
 
     @Override
@@ -699,25 +793,25 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     @Override
     public List<? extends Invitationable> getCollaboratorInvitations(U user) {
 
-        return userStudyRepository.findByUserAndStatus(user, ParticipantStatus.PENDING);
+        return userStudyRepository.findByUserAndStatus(user.getId(), ParticipantStatus.PENDING);
     }
 
     @Override
     public List<? extends Invitationable> getDataSourceInvitations(U user) {
 
-        return studyDataSourceLinkRepository.findByOwnerAndStatus(user, DataSourceStatus.PENDING);
+        return studyDataSourceLinkRepository.findByOwnerIdAndStatus(user.getId(), DataSourceStatus.PENDING);
     }
 
     @Override
     public List<? extends Invitationable> getInvitationsForStudy(U user, final Long studyId) {
 
-        List<? extends Invitationable> collaboratorInvitations = userStudyRepository.findByUserAndStudyIdAndStatus(
-                user,
+        List<? extends Invitationable> collaboratorInvitations = userStudyRepository.findByUserIdAndStudyIdAndStatus(
+                user.getId(),
                 studyId,
                 ParticipantStatus.PENDING
         );
-        List<? extends Invitationable> dataSourceInvitations = studyDataSourceLinkRepository.findByOwnerAndStudyIdAndStatus(
-                user,
+        List<? extends Invitationable> dataSourceInvitations = studyDataSourceLinkRepository.findByOwnerIdAndStudyIdAndStatus(
+                user.getId(),
                 studyId,
                 DataSourceStatus.PENDING
         );
@@ -731,7 +825,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     public UserStudy processInvitation(U user, Long id, Boolean accepted,
                                        String comment) {
 
-        UserStudy userStudy = userStudyRepository.findByIdAndUser(id, user);
+        UserStudy userStudy = userStudyRepository.findByIdAndUserId(id, user.getId());
         if (userStudy != null) {
             ParticipantStatus status = TRUE.equals(accepted)
                     ? APPROVED
@@ -768,6 +862,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         arachneMailSender.send(mail);
     }
 
+    @Override
     public FieldList getSolrFields() {
 
         FieldList fieldList = new FieldList();
@@ -781,57 +876,63 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         return Collections.emptyList();
     }
 
-    public void indexBySolr(U user)
-            throws IllegalAccessException, IOException, SolrServerException, NotExistException, NoSuchFieldException {
+    @Override
+    public void indexBySolr(final U user)
+            throws NotExistException {
 
-        solrService.putDocument(
-                SolrServiceImpl.USER_COLLECTION,
-                user.getId(),
-                solrService.getValuesByEntity(user)
+        solrService.indexBySolr(user);
+    }
+
+    private void indexBySolr(final List<U> users) {
+
+        solrService.indexBySolr(users);
+    }
+
+    @Override
+    public void indexAllBySolr()
+            throws NotExistException {
+
+        solrService.deleteAll(SolrCollection.USERS);
+        final List<U> userList = getAllEnabledFromAllTenants();
+        EntityUtils.split(this::indexBySolr, userList, 90);
+    }
+
+    protected QueryResponse solrSearch(SolrQuery solrQuery) throws NoSuchFieldException, IOException, SolrServerException {
+
+        return solrService.search(
+                SolrCollection.USERS.getName(),
+                solrQuery,
+                Boolean.TRUE
         );
     }
 
-    public void indexAllBySolr()
-            throws IOException, NotExistException, SolrServerException, NoSuchFieldException, IllegalAccessException {
-
-        solrService.deleteByQuery(SolrServiceImpl.USER_COLLECTION, "*:*");
-        List<U> userList = getAllEnabled();
-        for (U user : userList) {
-            indexBySolr(user);
-        }
-    }
-
-    public SearchResult<U> search(SolrQuery solrQuery) throws IOException, SolrServerException {
+    public SearchResult<U> search(SolrQuery solrQuery) throws IOException, SolrServerException, NoSuchFieldException {
 
         List<U> userList;
 
-        QueryResponse solrResponse = solrService.search(
-                SolrServiceImpl.USER_COLLECTION,
-                solrQuery
-        );
+        QueryResponse solrResponse = solrSearch(solrQuery);
 
         List<Long> docIdList = solrResponse
                 .getResults()
                 .stream()
-                .map(solrDoc -> Long.parseLong(solrDoc.get("id").toString()))
+                .map(solrDoc -> Long.parseLong(solrDoc.get(BaseSolrServiceImpl.ID).toString()))
                 .collect(Collectors.toList());
 
         userList = userRepository.findByIdIn(docIdList);
-        Collections.sort(userList, Comparator.comparing(item -> docIdList.indexOf(item.getId())));
+        userList = userList.stream()
+                .sorted(Comparator.comparing(item -> docIdList.indexOf(item.getId())))
+                .collect(Collectors.toList());
 
         SearchResult<U> searchResult = new SearchResult<>(solrQuery, solrResponse, userList);
         searchResult.setExcludedOptions(getExcludedOptions());
         return searchResult;
     }
 
-    private Map<String, List<String>> getExcludedOptions() throws IOException, SolrServerException {
+    private Map<String, List<String>> getExcludedOptions() throws IOException, SolrServerException, NoSuchFieldException {
 
         SolrQuery solrQuery = conversionService.convert(new SearchExpertListDTO(true), SolrQuery.class);
 
-        QueryResponse solrResponse = solrService.search(
-                SolrServiceImpl.USER_COLLECTION,
-                solrQuery
-        );
+        QueryResponse solrResponse = solrSearch(solrQuery);
         SearchResult<Long> searchResult = new SearchResult<>(solrQuery, solrResponse, Collections.<Long>emptyList());
         return searchResult.excludedOptions();
     }
@@ -871,7 +972,7 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         if (principal == null) {
             throw new PermissionDeniedException();
         }
-        U user = getByEmail(principal.getName());
+        final U user = getByUsernameInAnyTenant(principal.getName());
         if (user == null) {
             throw new PermissionDeniedException();
         }
@@ -895,18 +996,18 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
         } else {
             sort = new Sort(direction, sortBy);
         }
-        List<U> admins = userRepository.findByRoles_name(ROLE_ADMIN, sort);
+        List<U> admins = rawUserRepository.findByRoles_name(ROLE_ADMIN, sort);
         return admins;
     }
 
     @Override
     public void addUserToAdmins(Long id) {
 
-        U user = userRepository.findOne(id);
+        U user = rawUserRepository.findOne(id);
         List<Role> roles = roleRepository.findByName(ROLE_ADMIN);
         if (roles != null && !roles.isEmpty()) {
             user.getRoles().add(roles.get(0));
-            userRepository.save(user);
+            rawUserRepository.save(user);
         } else {
             throw new ArachneSystemRuntimeException("ROLE_ADMIN not found");
         }
@@ -915,11 +1016,11 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     @Override
     public void removeUserFromAdmins(Long id) {
 
-        U user = userRepository.findOne(id);
+        U user = rawUserRepository.findOne(id);
         List<Role> roles = roleRepository.findByName(ROLE_ADMIN);
         if (roles != null && !roles.isEmpty()) {
             user.getRoles().remove(roles.get(0));
-            userRepository.save(user);
+            rawUserRepository.save(user);
         } else {
             throw new ArachneSystemRuntimeException("ROLE_ADMIN not found");
         }
@@ -944,9 +1045,9 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
     }
 
     @Override
-    public List<U> findUsersByIdsIn(List<Long> ids) {
+    public List<IUser> findUsersByUuidsIn(List<String> ids) {
 
-        return userRepository.findByIdIn(ids);
+        return (List<IUser>) userRepository.findByIdIn(UserIdUtils.uuidsToIds(ids));
     }
 
     @Override
@@ -987,6 +1088,49 @@ public abstract class BaseUserServiceImpl<U extends User, S extends Skill, SF ex
             org.apache.commons.io.IOUtils.copy(res.getInputStream(), response.getOutputStream());
             response.flushBuffer();
         }
+    }
+
+    @Override
+    public void setActiveTenant(U user, Long tenantId) {
+
+        for (Tenant t : user.getTenants()) {
+            if (t.getId().equals(tenantId)) {
+                user.setActiveTenant(t);
+                userRepository.save(user);
+                return;
+            }
+        }
+        throw new NotExistException(Tenant.class);
+    }
+
+    @Override
+    public void makeLinksWithStudiesDeleted(final Long tenantId, final Long userId) {
+        
+        userRepository.setLinksBetweenStudiesAndUsersDeleted(tenantId, userId);
+    }
+
+    @Override
+    public U getRawUser(final Long userId) {
+
+        return rawUserRepository.findOne(userId);
+    }
+
+    @Override
+    public void makeLinksWithPapersDeleted(final Long tenantId, final Long userId) {
+        
+        userRepository.setLinksBetweenPapersAndUsersDeleted(tenantId, userId);
+    }
+
+    @Override
+    public void revertBackUserToPapers(final Long tenantId, final Long userId) {
+        
+        userRepository.revertBackUserToPapers(tenantId, userId);
+    }
+
+    @Override
+    public List<U> findByIdsInAnyTenant(final Set<Long> userIds) {
+        
+        return rawUserRepository.findByIdInAndEnabledTrue(userIds);
     }
 
     private class AvatarResolver implements AutoCloseable {

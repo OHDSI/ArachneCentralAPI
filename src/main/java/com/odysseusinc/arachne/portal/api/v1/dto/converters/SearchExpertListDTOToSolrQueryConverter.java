@@ -57,7 +57,7 @@ public class SearchExpertListDTOToSolrQueryConverter
     @Override
     public SolrQuery convert(SearchExpertListDTO source) {
 
-        return source.isFullFacetsQuery() ? super.convertToFullFacetsQuery(source) : super.convert(source);
+        return super.convert(source);
     }
 
 }

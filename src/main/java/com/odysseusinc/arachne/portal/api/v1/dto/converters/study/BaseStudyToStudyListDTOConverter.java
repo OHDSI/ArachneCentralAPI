@@ -28,6 +28,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.StudyListDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
 import com.odysseusinc.arachne.portal.api.v1.dto.dictionary.StudyStatusDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.dictionary.StudyTypeDTO;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.User;
@@ -47,7 +48,7 @@ public abstract class BaseStudyToStudyListDTOConverter<S extends UserStudyGroupe
 
         DTO studyDTO = createResultObject();
         Study source = userStudyExtendedLink.getStudy();
-        List<User> studyLeadList = studyService.findLeads(source);
+        List<IUser> studyLeadList = studyService.findLeads(source);
 
         studyDTO.setStatus(conversionService.convert(source.getStatus(), StudyStatusDTO.class));
         studyDTO.setTitle(source.getTitle());

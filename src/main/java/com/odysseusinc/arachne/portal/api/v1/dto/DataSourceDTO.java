@@ -36,6 +36,7 @@ public class DataSourceDTO extends CommonBaseDataSourceDTO implements IDataSourc
     private String healthStatusTitle;
     private Date deleted;
     private PermissionsDTO permissions;
+    private boolean canBeRecreated = Boolean.TRUE;
 
     public String getStatus() {
 
@@ -95,5 +96,15 @@ public class DataSourceDTO extends CommonBaseDataSourceDTO implements IDataSourc
     public void setPermissions(PermissionsDTO permissions) {
 
         this.permissions = permissions;
+    }
+
+    public boolean isCanBeRecreated() {
+
+        return canBeRecreated;
+    }
+
+    public void setCanBeRecreated(final boolean canBeRecreated) {
+
+        this.canBeRecreated = canBeRecreated;
     }
 }

@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <dataset>
+    <tenants
+            id="1"
+            name="Everyone"
+    />
     <professional_types
             id="1"
             name="professionalTypeName"/>
-    <users
+    <users_data
             id="1"
             firstname="adminFirstName"
             middlename="adminMiddleName"
@@ -12,7 +16,14 @@
             enabled="true"
             email="admin@odysseusinc.com"
             email_confirmed="true"
+            origin="NATIVE"
+            username="admin@odysseusinc.com"
             professional_type_id="1"
+            active_tenant_id="1"
+    />
+    <tenants_users
+            user_id="1"
+            tenant_id="1"
     />
     <studies_users/>
     <study_types

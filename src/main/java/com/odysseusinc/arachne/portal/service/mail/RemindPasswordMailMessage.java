@@ -22,14 +22,14 @@
 
 package com.odysseusinc.arachne.portal.service.mail;
 
-import com.odysseusinc.arachne.portal.model.User;
+import com.odysseusinc.arachne.portal.model.IUser;
 
 public class RemindPasswordMailMessage extends ArachneMailMessage implements UserRegistrantMailMessage {
 
     private String subject = "Arachne reset password";
     private String template = "mail/remind_password";
 
-    public RemindPasswordMailMessage(User user, String portalUrl, String token) {
+    public RemindPasswordMailMessage(IUser user, String portalUrl, String token) {
 
         super(user);
         parameters.put("userFirstName", user.getFirstname());

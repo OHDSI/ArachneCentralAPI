@@ -25,7 +25,7 @@ import javax.persistence.metamodel.StaticMetamodel;
 
 @StaticMetamodel(UserStudyExtended.class)
 public class UserStudyExtended_ {
-    public static volatile SingularAttribute<UserStudyExtended, User> user;
+    public static volatile SingularAttribute<UserStudyExtended, RawUser> user;
     public static volatile SingularAttribute<UserStudyExtended, Study> study;
     public static volatile SingularAttribute<UserStudyExtended, Long> id;
     public static volatile SingularAttribute<UserStudyExtended, ParticipantStatus> status;

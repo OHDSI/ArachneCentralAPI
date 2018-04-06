@@ -22,19 +22,16 @@
 
 package com.odysseusinc.arachne.portal.util;
 
-import com.google.common.collect.Sets;
 import com.odysseusinc.arachne.portal.exception.ConverterRuntimeException;
 import com.odysseusinc.arachne.portal.exception.IORuntimeException;
 import com.odysseusinc.arachne.portal.exception.NoExecutableFileException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.Analysis;
-import com.odysseusinc.arachne.portal.model.DataSourceStatus;
-import com.odysseusinc.arachne.portal.model.ResultFile;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
 import com.odysseusinc.arachne.portal.model.SubmissionGroup;
-import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.service.AnalysisPaths;
 import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
 import java.io.File;
@@ -47,7 +44,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.ZipParameters;
@@ -69,7 +65,7 @@ public class AnalysisHelper implements AnalysisPaths {
     private Long maximumSize;
 
     public static List<Submission> createSubmission(BaseSubmissionService submissionService,
-                                                    List<Long> datasourceIds, User user,
+                                                    List<Long> datasourceIds, IUser user,
                                                     Analysis analysis)
             throws IOException, NotExistException, NoExecutableFileException, ValidationException {
 
@@ -78,8 +74,6 @@ public class AnalysisHelper implements AnalysisPaths {
         //removes datasourceId duplicates
         Set<Long> datasourceIdSet = new HashSet<>(datasourceIds);
 
-        verifyDataSources(analysis, datasourceIdSet);
-
         SubmissionGroup submissionGroup = submissionService.createSubmissionGroup(user, analysis);
 
         for (Long datasourceId : datasourceIdSet) {
@@ -87,21 +81,6 @@ public class AnalysisHelper implements AnalysisPaths {
         }
 
         return submissions;
-    }
-
-    private static void verifyDataSources(Analysis analysis, Set<Long> datasourceIds) throws ValidationException {
-
-        List<Long> dataSourceIds = analysis.getStudy()
-                .getDataSources().stream()
-                .filter(s -> DataSourceStatus.APPROVED.equals(s.getStatus()))
-                .map(s -> s.getDataSource().getId())
-                .collect(Collectors.toList());
-
-        Set<Long> difference = Sets.difference(datasourceIds, new HashSet<>(dataSourceIds));
-
-        if (difference.size() > 0) {
-            throw new ValidationException(String.format("You cannot submit an Analysis to DataSources with ids %s. They probably are disabled or aren't linked with analysis's study", difference.toString()));
-        }
     }
 
     public String getStoreFilesPath() {

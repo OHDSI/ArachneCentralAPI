@@ -23,20 +23,19 @@
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.ShortUserDTO;
-import com.odysseusinc.arachne.portal.model.User;
-import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
+import com.odysseusinc.arachne.portal.model.IUser;
 import org.springframework.stereotype.Component;
 
 
 @Component
-public class UserToShortUserDTOConverter extends BaseConversionServiceAwareConverter<User, ShortUserDTO> {
+public class UserToShortUserDTOConverter extends BaseConversionServiceAwareConverter<IUser, ShortUserDTO> {
 
 
     @Override
-    public ShortUserDTO convert(User user) {
+    public ShortUserDTO convert(IUser user) {
 
         ShortUserDTO dto = new ShortUserDTO();
-        dto.setId(user.getId());
+        dto.setId(user.getUuid());
         dto.setFirstname(user.getFirstname());
         dto.setLastname(user.getLastname());
         return dto;

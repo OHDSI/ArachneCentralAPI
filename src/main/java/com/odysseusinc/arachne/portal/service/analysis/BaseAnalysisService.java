@@ -34,9 +34,9 @@ import com.odysseusinc.arachne.portal.model.AnalysisFile;
 import com.odysseusinc.arachne.portal.model.AnalysisUnlockRequest;
 import com.odysseusinc.arachne.portal.model.ArachneFile;
 import com.odysseusinc.arachne.portal.model.DataReference;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Invitationable;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
-import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.service.AnalysisPaths;
 import com.odysseusinc.arachne.portal.service.CRUDLService;
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobAnalysisFileResponseEvent;
@@ -45,6 +45,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.List;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>, AnalysisPaths {
@@ -54,14 +55,14 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
 
     T update(T object) throws NotUniqueException, NotExistException, ValidationException;
 
-    List<T> list(User user, Long studyId) throws PermissionDeniedException, NotExistException;
+    List<T> list(IUser user, Long studyId) throws PermissionDeniedException, NotExistException;
 
     Boolean moveAnalysis(Long id, Integer index);
 
-    AnalysisFile saveFile(MultipartFile multipartFile, User user, T analysis, String label,
+    AnalysisFile saveFile(MultipartFile multipartFile, IUser user, T analysis, String label,
                           Boolean isExecutable, DataReference dataReference) throws IOException;
 
-    AnalysisFile saveFile(String link, User user, T analysis, String label, Boolean isExecutable)
+    AnalysisFile saveFile(String link, IUser user, T analysis, String label, Boolean isExecutable)
             throws IOException;
 
     Path getAnalysisFile(AnalysisFile analysisFile) throws FileNotFoundException;
@@ -79,7 +80,7 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
             AnalysisUnlockRequest analysisUnlockRequest
     ) throws NotExistException, AlreadyExistException;
 
-    void processAnalysisUnlockRequest(User user, Long invitationId,
+    void processAnalysisUnlockRequest(IUser user, Long invitationId,
                                       Boolean invitationAccepted) throws NotExistException;
 
     Path getSubmissionFile(SubmissionFile submissionFile) throws FileNotFoundException;
@@ -93,7 +94,7 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
             throws IOException;
 
     void writeToFile(AnalysisFile analysisFile,
-                     FileDTO fileContentDTO, User updatedBy) throws IOException;
+                     FileDTO fileContentDTO, IUser updatedBy) throws IOException;
 
     AnalysisFile saveAnalysisFile(AnalysisFile file);
 
@@ -107,9 +108,9 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
 
     void getAnalysisAllFiles(Long analysisId, String archiveName, OutputStream os) throws IOException;
 
-    List<User> findLeads(T analysis);
+    List<IUser> findLeads(T analysis);
 
-    List<? extends Invitationable> getWaitingForApprovalSubmissions(User user);
+    List<? extends Invitationable> getWaitingForApprovalSubmissions(IUser user);
 
     void fullDelete(List<T> analyses);
 
@@ -120,4 +121,14 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
     List<T> getByStudyId(Long id, EntityGraph author);
 
     void processAntivirusResponse(AntivirusJobAnalysisFileResponseEvent event);
+
+    void indexAllBySolr()
+            throws IOException,
+            NotExistException,
+            SolrServerException,
+            NoSuchFieldException,
+            IllegalAccessException;
+
+    void indexBySolr(T analysis)
+            throws IllegalAccessException, IOException, SolrServerException, NotExistException, NoSuchFieldException;
 }

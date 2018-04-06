@@ -23,6 +23,8 @@
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchDTO;
+import com.odysseusinc.arachne.portal.service.SolrService;
+import com.odysseusinc.arachne.portal.service.impl.BaseSolrServiceImpl;
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -52,14 +54,18 @@ public abstract class SearchDTOToSolrQuery {
             // Check if such field exists in Solr index and retrieve it
             SolrField sortSolrSolrField = solrFields.getByName(source.getSort());
             if (sortSolrSolrField != null) {
-                result.setSort(sortSolrSolrField.getSolrName(), SolrQuery.ORDER.valueOf(source.getOrder()));
+                String sortFieldName = sortSolrSolrField.isMultiValuesType() ?
+                        sortSolrSolrField.getMultiValuesTypeFieldName() :
+                        sortSolrSolrField.getSolrName();
+
+                result.setSort(sortFieldName, SolrQuery.ORDER.valueOf(source.getOrder()));
             }
         }
     }
 
-    protected void setOutputFields(SolrQuery result) {
+    protected void setOutputFields(final SolrQuery result, final String[] fields) {
 
-        result.setFields("id");
+        result.setFields(fields);
     }
 
     protected void setPagination(SearchDTO source, SolrQuery result) {
@@ -88,7 +94,7 @@ public abstract class SearchDTOToSolrQuery {
                 Object filterValue = filterEntry.getValue();
                 SolrField solrField = solrFields.getByName(filterName);
                 if (solrField != null && solrField.getFaceted()) {
-                    result.addFilterQuery(getExcludedTag(solrField.getSolrName())
+                    result.addFilterQuery(getExcludedTag(SolrService.fieldNameToFacet(solrField))
                             + solrField.getSolrName() + ":" + filterValue);
                 }
             }
@@ -103,24 +109,33 @@ public abstract class SearchDTOToSolrQuery {
                 .stream()
                 .filter(SolrField::getFaceted)
                 .forEach(solrField -> {
-                    result.addFacetField(solrField.getSolrName());
-                    putIntoJsonFacet(jsonFacet, solrField.getSolrName(),
+                    result.addFacetField(SolrService.fieldNameToFacet(solrField));
+                    putIntoJsonFacet(jsonFacet, SolrService.fieldNameToFacet(solrField),
                             Number.class.isAssignableFrom(solrField.getDataType()));
                 });
         result.add("json.facet", jsonFacet.toString().replace("\"", ""));
     }
 
+
+    protected void setCollections(SearchDTO source, SolrQuery result) {
+
+        if (source.getCollections() != null) {
+            result.setParam("collection", String.join(",", source.getCollections()));
+        }
+    }
+
     public SolrQuery convert(SearchDTO source) {
 
-        SolrQuery result = new SolrQuery();
-        FieldList solrFields = getSolrFields();
+        final SolrQuery result = new SolrQuery();
+        final FieldList solrFields = getSolrFields();
 
         setSorting(source, result, solrFields);
         setPagination(source, result);
-        setOutputFields(result);
+        setOutputFields(result, source.getResultFields());
         setQuery(source, result);
         setFilters(source, result, solrFields);
         setFacets(source, result, solrFields);
+        setCollections(source, result);
 
         return result;
     }

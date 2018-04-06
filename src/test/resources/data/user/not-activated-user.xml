@@ -1,19 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <dataset>
+    <tenants
+            id="1"
+            name="Everyone"
+    />
     <professional_types
             id="1"
             name="professionalTypeName"
     />
 
-    <users
+    <users_data
             id="1"
             password="password"
             enabled="true"
             email="admin@odysseusinc.com"
             email_confirmed="true"
-            professional_type_id="1"/>
+            origin="NATIVE"
+            username="admin@odysseusinc.com"
+            professional_type_id="1"
+            active_tenant_id="1"/>
 
-    <users
+    <users_data
             id="2"
             password="encoded_password"
             firstname="firstName"
@@ -22,9 +29,21 @@
             enabled="false"
             email="mail@mail.com"
             email_confirmed="false"
+            origin="NATIVE"
+            username="mail@mail.com"
             professional_type_id="1"
-            registration_code="activationCode"/>
+            registration_code="activationCode"
+            active_tenant_id="1"
+    />
 
+    <tenants_users
+            user_id="1"
+            tenant_id="1"
+    />
+    <tenants_users
+            user_id="2"
+            tenant_id="1"
+    />
     <studies_users/>
 
 </dataset>

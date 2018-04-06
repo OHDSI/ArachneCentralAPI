@@ -13,6 +13,7 @@ public class BaseSubmissionDTO extends DTO {
     private Date createdAt;
     private ShortUserDTO author;
     private Map<String, Object> resultInfo;
+    private Boolean hidden;
 
     public BaseSubmissionDTO() {
     }
@@ -91,5 +92,15 @@ public class BaseSubmissionDTO extends DTO {
 
     public void setResultInfo(Map<String, Object> resultInfo) {
         this.resultInfo = resultInfo;
+    }
+
+    public void setHidden(Boolean hidden) {
+
+        this.hidden = hidden;
+    }
+
+    public Boolean getHidden() {
+
+        return hidden;
     }
 }

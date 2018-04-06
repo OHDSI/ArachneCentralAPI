@@ -28,13 +28,13 @@ import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.Analysis;
-import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.ResultFile;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
 import com.odysseusinc.arachne.portal.model.SubmissionGroup;
 import com.odysseusinc.arachne.portal.model.SubmissionStatusHistoryElement;
-import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.ResultFileSearch;
 import com.odysseusinc.arachne.portal.repository.ResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionFileRepository;
@@ -43,9 +43,7 @@ import com.odysseusinc.arachne.portal.repository.SubmissionInsightRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionStatusHistoryRepository;
 import com.odysseusinc.arachne.portal.repository.submission.BaseSubmissionRepository;
-import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
-import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
-import com.odysseusinc.arachne.storage.service.ContentStorageService;
+import com.odysseusinc.arachne.portal.service.DataSourceService;
 import com.odysseusinc.arachne.portal.service.UserService;
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import com.odysseusinc.arachne.portal.service.submission.SubmissionService;
@@ -53,6 +51,8 @@ import com.odysseusinc.arachne.portal.util.AnalysisHelper;
 import com.odysseusinc.arachne.portal.util.ContentStorageHelper;
 import com.odysseusinc.arachne.portal.util.LegacyAnalysisHelper;
 import com.odysseusinc.arachne.portal.util.SubmissionHelper;
+import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
+import com.odysseusinc.arachne.storage.service.ContentStorageService;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
@@ -67,27 +67,27 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @Transactional(rollbackFor = Exception.class)
-public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission, Analysis, DataSource>
+public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission, Analysis, IDataSource>
         implements SubmissionService {
 
     @Autowired
-    public SubmissionServiceImpl(BaseSubmissionRepository<Submission> submissionRepository,
-                                 BaseDataSourceService<DataSource> dataSourceService,
-                                 ArachneMailSender mailSender,
-                                 AnalysisHelper analysisHelper,
-                                 SimpMessagingTemplate wsTemplate,
-                                 LegacyAnalysisHelper legacyAnalysisHelper,
-                                 SubmissionResultFileRepository submissionResultFileRepository,
-                                 SubmissionGroupRepository submissionGroupRepository,
-                                 SubmissionInsightRepository submissionInsightRepository,
-                                 SubmissionFileRepository submissionFileRepository,
-                                 ResultFileRepository resultFileRepository,
-                                 SubmissionStatusHistoryRepository submissionStatusHistoryRepository,
-                                 EntityManager entityManager,
-                                 SubmissionHelper submissionHelper,
-                                 ContentStorageService contentStorageService,
-                                 UserService userService,
-                                 ContentStorageHelper contentStorageHelper) {
+    public SubmissionServiceImpl(final BaseSubmissionRepository<Submission> submissionRepository,
+                                 final DataSourceService dataSourceService,
+                                 final ArachneMailSender mailSender,
+                                 final AnalysisHelper analysisHelper,
+                                 final SimpMessagingTemplate wsTemplate,
+                                 final LegacyAnalysisHelper legacyAnalysisHelper,
+                                 final SubmissionResultFileRepository submissionResultFileRepository,
+                                 final SubmissionGroupRepository submissionGroupRepository,
+                                 final SubmissionInsightRepository submissionInsightRepository,
+                                 final SubmissionFileRepository submissionFileRepository,
+                                 final ResultFileRepository resultFileRepository,
+                                 final SubmissionStatusHistoryRepository submissionStatusHistoryRepository,
+                                 final EntityManager entityManager,
+                                 final SubmissionHelper submissionHelper,
+                                 final ContentStorageService contentStorageService,
+                                 final UserService userService,
+                                 final ContentStorageHelper contentStorageHelper) {
 
         super(submissionRepository,
                 dataSourceService,
@@ -118,15 +118,15 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
     @PreAuthorize("hasPermission(#submissionId, 'Submission', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).APPROVE_SUBMISSION)")
     @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
-    public Submission approveSubmissionResult(Long submissionId, ApproveDTO approveDTO, User user) {
+    public Submission approveSubmissionResult(Long submissionId, ApproveDTO approveDTO, IUser user) {
 
         return super.approveSubmissionResult(submissionId, approveDTO, user);
     }
 
     @Override
-    @PreAuthorize("hasPermission(#analysis, "
-            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).CREATE_SUBMISSION)")
-    public Submission createSubmission(User user, Analysis analysis, Long datasourceId, SubmissionGroup submissionGroup) throws NotExistException, IOException {
+    @PreAuthorize("hasPermission(#analysis, T(com.odysseusinc.arachne.portal.security.ArachnePermission).CREATE_SUBMISSION) && " +
+            "@arachneSecureServiceImpl.wasDataSourceApproved(#analysis, #datasourceId)")
+    public Submission createSubmission(IUser user, Analysis analysis, Long datasourceId, SubmissionGroup submissionGroup) throws NotExistException, IOException {
 
         return super.createSubmission(user, analysis, datasourceId, submissionGroup);
     }
@@ -134,7 +134,7 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
     @Override
     @PreAuthorize("hasPermission(#analysis, "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).CREATE_SUBMISSION)")
-    public SubmissionGroup createSubmissionGroup(User user, Analysis analysis) throws IOException, NoExecutableFileException {
+    public SubmissionGroup createSubmissionGroup(IUser user, Analysis analysis) throws IOException, NoExecutableFileException {
 
         return super.createSubmissionGroup(user, analysis);
     }
@@ -159,7 +159,7 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
     @PreAuthorize("hasPermission(#submissionId, 'Submission', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).APPROVE_SUBMISSION)")
     @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
-    public Submission approveSubmission(Long submissionId, Boolean isApproved, String comment, User user) throws IOException, NotExistException {
+    public Submission approveSubmission(Long submissionId, Boolean isApproved, String comment, IUser user) throws IOException, NotExistException {
 
         return super.approveSubmission(submissionId, isApproved, comment, user);
     }
@@ -175,7 +175,7 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
     @Override
     @PreAuthorize("hasPermission(#analysisId, 'Analysis', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
-    public void getSubmissionResultAllFiles(User user, Long analysisId, Long submissionId, String archiveName, OutputStream os) throws IOException, PermissionDeniedException {
+    public void getSubmissionResultAllFiles(IUser user, Long analysisId, Long submissionId, String archiveName, OutputStream os) throws IOException, PermissionDeniedException {
 
         super.getSubmissionResultAllFiles(user, analysisId, submissionId, archiveName, os);
     }
@@ -183,7 +183,7 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
     @Override
     @PreAuthorize("hasPermission(#submissionId, 'Submission', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
-    public List<ArachneFileMeta> getResultFiles(User user, Long submissionId, ResultFileSearch resultFileSearch) throws PermissionDeniedException {
+    public List<ArachneFileMeta> getResultFiles(IUser user, Long submissionId, ResultFileSearch resultFileSearch) throws PermissionDeniedException {
 
         return super.getResultFiles(user, submissionId, resultFileSearch);
     }
@@ -191,7 +191,7 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
     @Override
     @PreAuthorize("hasPermission(#analysisId,  'Analysis', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
-    public ArachneFileMeta getResultFileAndCheckPermission(User user, Submission submission, Long analysisId, String fileUuid)
+    public ArachneFileMeta getResultFileAndCheckPermission(IUser user, Submission submission, Long analysisId, String fileUuid)
             throws PermissionDeniedException {
 
         return super.getResultFileAndCheckPermission(user, submission, analysisId, fileUuid);

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <style>
+        div,p {
+            color: black;
+        }
+    </style>
+</head>
+<body>
+<p th:text="Dear+' '+${userFirstName}+', '"></p>
+<div>
+    There is new Data Source registered with name <a th:href="${dataSourceUrl}"><span class="btn-link" th:text="${dataSourceName}"></span></a>.
+    To review its details please follow this <a th:href="${dataSourceUrl}"><span class="btn-link">link</span></a>.
+</div>
+<p>
+    Regards,<br/>
+    Odysseus Data Services, Inc.
+</p>
+</body>
+</html>

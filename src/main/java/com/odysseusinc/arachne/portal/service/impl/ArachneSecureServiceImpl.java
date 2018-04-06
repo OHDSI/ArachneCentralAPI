@@ -24,12 +24,15 @@ package com.odysseusinc.arachne.portal.service.impl;
 
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.Paper;
+import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.repository.AnalysisRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeUserRepository;
 import com.odysseusinc.arachne.portal.repository.ResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.StudyRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionInsightSubmissionFileRepository;
+import com.odysseusinc.arachne.portal.repository.TenantRepository;
+import com.odysseusinc.arachne.portal.repository.UserRepository;
 import com.odysseusinc.arachne.portal.repository.UserStudyExtendedRepository;
 import com.odysseusinc.arachne.portal.repository.UserStudyGroupedRepository;
 import com.odysseusinc.arachne.portal.repository.submission.SubmissionRepository;
@@ -39,7 +42,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component()
-@SuppressWarnings("unused")
 @Transactional(rollbackFor = Exception.class)
 public class ArachneSecureServiceImpl extends BaseArachneSecureServiceImpl<Paper, DataSource>
         implements ArachneSecureService {
@@ -53,7 +55,9 @@ public class ArachneSecureServiceImpl extends BaseArachneSecureServiceImpl<Paper
                                     UserStudyExtendedRepository userStudyExtendedRepository,
                                     SubmissionInsightSubmissionFileRepository submissionInsightSubmissionFileRepository,
                                     ResultFileRepository resultFileRepository,
-                                    StudyRepository studyRepository
+                                    TenantRepository tenantRepository,
+                                    StudyRepository studyRepository,
+                                    UserRepository userRepository
     ) {
 
         super(userStudyGroupedRepository,
@@ -64,6 +68,14 @@ public class ArachneSecureServiceImpl extends BaseArachneSecureServiceImpl<Paper
                 userStudyExtendedRepository,
                 submissionInsightSubmissionFileRepository,
                 resultFileRepository,
-                studyRepository);
+                tenantRepository,
+                studyRepository,
+                userRepository);
+    }
+
+    @Override
+    public Study getStudyByIdInAnyTenant(final Long studyId) {
+
+        return studyRepository.findByIdInAnyTenant(studyId);
     }
 }

@@ -133,7 +133,7 @@ public class ExceptionHandlingController extends BaseController {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<JsonResult> exceptionHandler(AccessDeniedException ex) {
 
-        LOGGER.error(ex.getMessage(), ex);
+        LOGGER.error(ex.getMessage());
         JsonResult result = new JsonResult<>(PERMISSION_DENIED);
         result.setErrorMessage(ex.getMessage());
         return new ResponseEntity<>(result, HttpStatus.OK);
@@ -194,7 +194,7 @@ public class ExceptionHandlingController extends BaseController {
     @ExceptionHandler(NotExistException.class)
     public ResponseEntity<JsonResult> exceptionHandler(NotExistException ex) {
 
-        LOGGER.error(ex.getMessage(), ex);
+        LOGGER.error(ex.getMessage());
         JsonResult result = new JsonResult<>(VALIDATION_ERROR);
         result.setErrorMessage(ex.getMessage());
         result.getValidatorErrors().put(ex.getEntity().getSimpleName(), ex.getMessage());

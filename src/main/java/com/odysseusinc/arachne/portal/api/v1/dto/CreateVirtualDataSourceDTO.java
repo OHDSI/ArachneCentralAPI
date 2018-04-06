@@ -30,7 +30,7 @@ public class CreateVirtualDataSourceDTO {
     @NotNull
     private String name;
 
-    private List<Long> dataOwnersIds;
+    private List<String> dataOwnersIds;
 
     public String getName() {
 
@@ -42,12 +42,12 @@ public class CreateVirtualDataSourceDTO {
         this.name = name;
     }
 
-    public List<Long> getDataOwnersIds() {
+    public List<String> getDataOwnersIds() {
 
         return dataOwnersIds;
     }
 
-    public void setDataOwnersIds(List<Long> dataOwnersIds) {
+    public void setDataOwnersIds(List<String> dataOwnersIds) {
 
         this.dataOwnersIds = dataOwnersIds;
     }

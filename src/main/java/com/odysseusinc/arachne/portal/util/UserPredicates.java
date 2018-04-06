@@ -23,6 +23,7 @@
 package com.odysseusinc.arachne.portal.util;
 
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
 import java.util.function.Predicate;
@@ -33,7 +34,7 @@ public final class UserPredicates {
         return (u) -> user != null && user.getId().equals(u.getUser().getId());
     }
 
-    public static Predicate<DataNodeUser> dataNodeUserEquals(User user) {
+    public static Predicate<DataNodeUser> dataNodeUserEquals(IUser user) {
 
         return (u) -> user != null && user.getId().equals(u.getUser().getId());
     }

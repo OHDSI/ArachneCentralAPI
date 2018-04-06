@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.service.study.impl;
 
+import com.odysseusinc.arachne.portal.model.BaseDataSource;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.service.study.AddDataSourceStrategy;
 import com.odysseusinc.arachne.portal.service.study.AddDataSourceStrategyFactory;
