@@ -286,18 +286,19 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Transactional(rollbackOn = Exception.class)
     public void remove(Long id) throws ValidationException, UserNotFoundException, NotExistException, IOException, SolrServerException {
 
         if (id == null) {
             throw new ValidationException("remove user: id must be not null");
         }
-        U user = userRepository.findOne(id);
+        U user = rawUserRepository.findOne(id);
         if (user == null) {
             throw new UserNotFoundException("removeUser", "remove user: user not found");
         }
         solrService.delete(user);
-        userRepository.delete(user);
+        rawUserRepository.delete(user.getId());
     }
 
     @Override
