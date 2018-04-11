@@ -110,8 +110,12 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
     @Override
     @PreAuthorize("hasPermission(#dataNode, "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_DATANODE)")
-    public DN update(DN dataNode) throws NotExistException {
+    public DN update(DN dataNode) throws NotExistException, AlreadyExistException {
 
+        DN existed = dataNodeRepository.findByNameAndVirtualIsFalse(dataNode.getName());
+        if (existed != null) {
+            throw new AlreadyExistException("Data node with the same name already exists");
+        }
         final DN existsDataNode = getById(dataNode.getId());
         existsDataNode.setName(dataNode.getName());
         existsDataNode.setDescription(dataNode.getDescription());
