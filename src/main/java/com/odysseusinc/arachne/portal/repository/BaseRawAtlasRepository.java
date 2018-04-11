@@ -6,4 +6,6 @@ import org.springframework.data.repository.NoRepositoryBean;
 
 @NoRepositoryBean
 public interface BaseRawAtlasRepository<A extends IAtlas> extends JpaRepository<A, Long> {
+
+    A findByNameAndDataNodeId(String name, Long dataNodeId);
 }

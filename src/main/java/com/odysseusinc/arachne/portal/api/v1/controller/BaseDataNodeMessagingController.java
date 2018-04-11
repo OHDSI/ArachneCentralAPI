@@ -145,10 +145,16 @@ public abstract class BaseDataNodeMessagingController<DN extends DataNode, A ext
         if (atlas.getId() == null || atlasService.findByIdInAnyTenant(atlas.getId()) == null) {
             final DN dataNode = getDatanode(principal);
 
-            atlas.setId(null);
-            atlas.setDataNode(dataNode);
-
-            updated = atlasService.register(atlas);
+            A existing;
+            if ((existing = atlasService.findByNameAndNodeInAnyTenant(atlas.getName(), dataNode.getId())) != null) {
+                // If for some reason IDs of Atlas at Central and Node sides become unsynced,
+                // search whether there is Atlas with given name owned by the Node (and its ID at Node side will be updated)
+                updated = atlasService.update(existing.getId(), atlas);
+            } else {
+                atlas.setId(null);
+                atlas.setDataNode(dataNode);
+                updated = atlasService.register(atlas);
+            }
         } else {
             updated = atlasService.update(atlas.getId(), atlas);
         }
