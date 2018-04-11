@@ -41,6 +41,7 @@ import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchExpertListDTO;
 import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
 import com.odysseusinc.arachne.portal.exception.ArachneSystemRuntimeException;
+import com.odysseusinc.arachne.portal.exception.NotEmptyException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.NotUniqueException;
 import com.odysseusinc.arachne.portal.exception.PasswordValidationException;
@@ -429,6 +430,9 @@ public abstract class BaseUserServiceImpl<
         forUpdate.setEnabled(user.getEnabled() != null ? user.getEnabled() : forUpdate.getEnabled());
         forUpdate.setUpdated(date);
         if (user.getProfessionalType() != null) {
+            if (user.getProfessionalType().getId() == null){
+                throw new NotEmptyException("professional type is empty");
+            }
             ProfessionalType professionalType = professionalTypeService.getById(user.getProfessionalType().getId());
             if (professionalType != null) {
                 forUpdate.setProfessionalType(professionalType);
@@ -453,16 +457,13 @@ public abstract class BaseUserServiceImpl<
             forUpdate.setZipCode(user.getZipCode());
         }
         if (user.getCountry() != null) {
-            Country country = countryRepository.findOne(user.getCountry().getId());
-            if (country != null) {
-                forUpdate.setCountry(country);
-            }
+            Country country = user.getCountry().getId() != null ? countryRepository.findOne(user.getCountry().getId()) : null;
+            forUpdate.setCountry(country);
         }
         if (user.getStateProvince() != null) {
-            StateProvince stateProvince = stateProvinceRepository.findOne(user.getStateProvince().getId());
-            if (stateProvince != null) {
-                forUpdate.setStateProvince(stateProvince);
-            }
+            Long stateProvinceId = user.getStateProvince().getId();
+            StateProvince stateProvince = stateProvinceId != null ? stateProvinceRepository.findOne(stateProvinceId) : null;
+            forUpdate.setStateProvince(stateProvince);
         }
         if (user.getAffiliation() != null) {
             forUpdate.setAffiliation(user.getAffiliation());
