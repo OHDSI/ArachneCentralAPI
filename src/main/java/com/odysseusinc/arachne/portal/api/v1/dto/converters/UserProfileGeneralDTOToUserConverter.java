@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
+import com.odysseusinc.arachne.portal.api.v1.dto.StateProvinceDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserProfileGeneralDTO;
 import com.odysseusinc.arachne.portal.model.Country;
 import com.odysseusinc.arachne.portal.model.ProfessionalType;
@@ -29,7 +30,6 @@ import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.StateProvince;
 import com.odysseusinc.arachne.portal.model.User;
 import java.util.HashSet;
-import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
 import org.springframework.stereotype.Component;
 
 
@@ -54,7 +54,7 @@ public class UserProfileGeneralDTOToUserConverter extends BaseConversionServiceA
         user.setAddress1(dto.getAddress1());
         user.setAddress2(dto.getAddress2());
         user.setCity(dto.getCity());
-        user.setStateProvince(conversionService.convert(dto.getStateProvince(), StateProvince.class));
+        user.setStateProvince(conversionService.convert(new StateProvinceDTO(dto.getStateProvince()), StateProvince.class));
         user.setZipCode(dto.getZipCode());
         user.setCountry(conversionService.convert(dto.getCountry(), Country.class));
         user.setContactEmail(dto.getContactEmail());
