@@ -39,7 +39,7 @@ public class UserProfileGeneralDTO extends DTO {
     private String address1;
     private String address2;
     private String city;
-    private Long stateProvince;
+    private Long stateProvinceId;
     private String zipCode;
     private CountryDTO country;
     private String contactEmail;
@@ -154,14 +154,14 @@ public class UserProfileGeneralDTO extends DTO {
         this.city = city;
     }
 
-    public Long getStateProvince() {
+    public Long getStateProvinceId() {
 
-        return stateProvince;
+        return stateProvinceId;
     }
 
-    public void setStateProvince(Long stateProvince) {
+    public void setStateProvinceId(Long stateProvinceId) {
 
-        this.stateProvince = stateProvince;
+        this.stateProvinceId = stateProvinceId;
     }
 
     public String getZipCode() {

@@ -54,7 +54,7 @@ public class UserProfileGeneralDTOToUserConverter extends BaseConversionServiceA
         user.setAddress1(dto.getAddress1());
         user.setAddress2(dto.getAddress2());
         user.setCity(dto.getCity());
-        user.setStateProvince(conversionService.convert(new StateProvinceDTO(dto.getStateProvince()), StateProvince.class));
+        user.setStateProvince(conversionService.convert(new StateProvinceDTO(dto.getStateProvinceId()), StateProvince.class));
         user.setZipCode(dto.getZipCode());
         user.setCountry(conversionService.convert(dto.getCountry(), Country.class));
         user.setContactEmail(dto.getContactEmail());
