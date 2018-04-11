@@ -27,6 +27,7 @@ import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeCreationResponse
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeRegisterDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataSourceDTO;
+import com.odysseusinc.arachne.commons.api.v1.dto.OrganizationDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.FieldException;
@@ -118,8 +119,9 @@ public abstract class BaseDataNodeController<
     public CommonDataNodeCreationResponseDTO createManualDataNode(
             @RequestBody @Valid CommonDataNodeRegisterDTO commonDataNodeRegisterDTO,
             Principal principal
-    ) throws PermissionDeniedException, AlreadyExistException, ValidationException {
+    ) throws PermissionDeniedException, AlreadyExistException, ValidationException, BindException {
 
+        validateOrganization(commonDataNodeRegisterDTO.getOrganization());
         commonDataNodeRegisterDTO.setId(null);
         final DN dataNode = conversionService.convert(commonDataNodeRegisterDTO, getDataNodeDNClass());
         final Organization organization = conversionService.convert(commonDataNodeRegisterDTO.getOrganization(), Organization.class);
@@ -155,19 +157,32 @@ public abstract class BaseDataNodeController<
             @PathVariable("dataNodeId") Long dataNodeId,
             @RequestBody @Valid CommonDataNodeRegisterDTO commonDataNodeRegisterDTO,
             Principal principal
-    ) throws PermissionDeniedException, NotExistException {
+    ) throws PermissionDeniedException, NotExistException, AlreadyExistException, BindException, ValidationException {
+
+        validateOrganization(commonDataNodeRegisterDTO.getOrganization());
 
         final IUser user = getUser(principal);
         final DN dataNode = conversionService.convert(commonDataNodeRegisterDTO, getDataNodeDNClass());
         dataNode.setId(dataNodeId);
-        final Organization organization = organizationService.get(commonDataNodeRegisterDTO.getOrganization().getId());
-        dataNode.setOrganization(organization);
+        final Organization organization = conversionService.convert(commonDataNodeRegisterDTO.getOrganization(), Organization.class);
+        dataNode.setOrganization(organizationService.getOrCreate(organization));
         final DN updatedDataNode = baseDataNodeService.update(dataNode);
         final CommonDataNodeDTO dataNodeRegisterResponseDTO
                 = conversionService.convert(updatedDataNode, CommonDataNodeDTO.class);
         final JsonResult<CommonDataNodeDTO> result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
         result.setResult(dataNodeRegisterResponseDTO);
         return result;
+    }
+
+    private void validateOrganization(final OrganizationDTO organizationDTO) throws BindException {
+
+        BindException bindException = new BindException("organization", "not null");
+        if (Objects.isNull(organizationDTO.getId()) && Objects.isNull(organizationDTO.getName()) ) {
+            bindException.addError(new FieldError("organization", "organization", "May not be empty"));
+        }
+        if (bindException.hasErrors()) {
+            throw bindException;
+        }
     }
 
     @ApiOperation("Create new data source of datanode.")
