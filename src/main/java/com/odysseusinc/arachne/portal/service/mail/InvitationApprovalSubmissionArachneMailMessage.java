@@ -28,16 +28,16 @@ import com.odysseusinc.arachne.portal.model.Submission;
 public class InvitationApprovalSubmissionArachneMailMessage extends InvitationArachneMailMessage {
 
 
-
     private final Submission submission;
 
     public InvitationApprovalSubmissionArachneMailMessage(String portalUrl, IUser user, Submission submission) {
+
         super(portalUrl, user, submission.getToken(), null);
 
         this.submission = submission;
 
-        parameters.put("userId", user.getId());
-        parameters.put("analysesUrl", portalUrl+"/analysis-execution/analyses/"+submission.getAnalysis().getId());
+        parameters.put("userUuid", user.getUuid());
+        parameters.put("analysesUrl", portalUrl + "/analysis-execution/analyses/" + submission.getAnalysis().getId());
         parameters.put("submissionId", submission.getId());
         parameters.put("userFirstName", user.getFirstname());
     }
@@ -45,6 +45,7 @@ public class InvitationApprovalSubmissionArachneMailMessage extends InvitationAr
 
     @Override
     protected String getSubject() {
+
         return submission.getStatus().isFinished() ? "Arachne request to publish a submission" : "Arachne request to execute a submission";
     }
 

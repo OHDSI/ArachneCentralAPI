@@ -14,8 +14,8 @@ Access to your dataset was requested for the study
 <a th:href="${studyUrl}"><span class="btn-link" th:text="${studyTitle}"></span></a> by <a th:href="${createdByUrl}"><span class="btn-link" th:text="${createdByName}"></span></a>.
 <br/>
 To accept this invitation, please follow this
-<a th:href="@{${invitationUrl}(id=${studyDataSourceLinkId},accepted='true',type='DATA_OWNER',token=${token},userId=${userId})}">link</a>. Alternatively, please follow this
-<a th:href="@{${invitationUrl}(id=${studyDataSourceLinkId},accepted='false',type='DATA_OWNER',token=${token},userId=${userId})}">link</a>
+<a th:href="@{${invitationUrl}(id=${studyDataSourceLinkId},accepted='true',type='DATA_OWNER',token=${token},userUuid=${userUuid})}">link</a>. Alternatively, please follow this
+<a th:href="@{${invitationUrl}(id=${studyDataSourceLinkId},accepted='false',type='DATA_OWNER',token=${token},userUuid=${userUuid})}">link</a>
 if you wish to reject this invitation.</div>
 <p>
     Regards,<br/>
