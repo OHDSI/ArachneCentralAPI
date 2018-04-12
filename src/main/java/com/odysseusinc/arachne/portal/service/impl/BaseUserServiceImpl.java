@@ -398,6 +398,13 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
+    public U getByUuidInAnyTenantAndInitializeCollections(String uuid) {
+
+        final Long id = UserIdUtils.uuidToId(uuid);
+        return initUserCollections(rawUserRepository.findOne(id));
+    }
+
+    @Override
     public U getById(Long id) {
 
         return userRepository.findOne(id);
