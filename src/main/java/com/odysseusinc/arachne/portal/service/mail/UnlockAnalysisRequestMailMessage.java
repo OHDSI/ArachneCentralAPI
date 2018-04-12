@@ -35,7 +35,7 @@ public class UnlockAnalysisRequestMailMessage extends InvitationArachneMailMessa
         parameters.put("analysisUrl", portalUrl + "/analysis-execution/analyses/" + analysis.getId());
         parameters.put("analysisTitle", analysis.getTitle());
         parameters.put("requestId", request.getId());
-        parameters.put("userId", user.getId());
+        parameters.put("userUuid", user.getUuid());
     }
 
     @Override
