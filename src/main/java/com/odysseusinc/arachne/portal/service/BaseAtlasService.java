@@ -16,4 +16,6 @@ public interface BaseAtlasService<T extends IAtlas> {
     void delete(Long id);
 
     T findByIdInAnyTenant(Long id);
+
+    T findByNameAndNodeInAnyTenant(String name, Long dataNodeId);
 }

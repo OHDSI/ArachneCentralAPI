@@ -41,6 +41,7 @@ import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchExpertListDTO;
 import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
 import com.odysseusinc.arachne.portal.exception.ArachneSystemRuntimeException;
+import com.odysseusinc.arachne.portal.exception.NotEmptyException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.NotUniqueException;
 import com.odysseusinc.arachne.portal.exception.PasswordValidationException;
@@ -286,18 +287,19 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Transactional(rollbackOn = Exception.class)
     public void remove(Long id) throws ValidationException, UserNotFoundException, NotExistException, IOException, SolrServerException {
 
         if (id == null) {
             throw new ValidationException("remove user: id must be not null");
         }
-        U user = userRepository.findOne(id);
+        U user = rawUserRepository.findOne(id);
         if (user == null) {
             throw new UserNotFoundException("removeUser", "remove user: user not found");
         }
         solrService.delete(user);
-        userRepository.delete(user);
+        rawUserRepository.delete(user.getId());
     }
 
     @Override
@@ -435,6 +437,9 @@ public abstract class BaseUserServiceImpl<
         forUpdate.setEnabled(user.getEnabled() != null ? user.getEnabled() : forUpdate.getEnabled());
         forUpdate.setUpdated(date);
         if (user.getProfessionalType() != null) {
+            if (user.getProfessionalType().getId() == null){
+                throw new NotEmptyException("professional type is empty");
+            }
             ProfessionalType professionalType = professionalTypeService.getById(user.getProfessionalType().getId());
             if (professionalType != null) {
                 forUpdate.setProfessionalType(professionalType);
@@ -459,16 +464,13 @@ public abstract class BaseUserServiceImpl<
             forUpdate.setZipCode(user.getZipCode());
         }
         if (user.getCountry() != null) {
-            Country country = countryRepository.findOne(user.getCountry().getId());
-            if (country != null) {
-                forUpdate.setCountry(country);
-            }
+            Country country = user.getCountry().getId() != null ? countryRepository.findOne(user.getCountry().getId()) : null;
+            forUpdate.setCountry(country);
         }
         if (user.getStateProvince() != null) {
-            StateProvince stateProvince = stateProvinceRepository.findOne(user.getStateProvince().getId());
-            if (stateProvince != null) {
-                forUpdate.setStateProvince(stateProvince);
-            }
+            Long stateProvinceId = user.getStateProvince().getId();
+            StateProvince stateProvince = stateProvinceId != null ? stateProvinceRepository.findOne(stateProvinceId) : null;
+            forUpdate.setStateProvince(stateProvince);
         }
         if (user.getAffiliation() != null) {
             forUpdate.setAffiliation(user.getAffiliation());
