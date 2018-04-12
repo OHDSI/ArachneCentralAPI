@@ -34,7 +34,7 @@ public class InvitationDataOwnerMailSender extends InvitationArachneMailMessage 
         parameters.put("studyUrl", portalUrl + "/study-manager/studies/" + String.valueOf(link.getStudy().getId()));
         parameters.put("studyTitle", link.getStudy().getTitle());
         parameters.put("studyDataSourceLinkId", link.getId());
-        parameters.put("userId", user.getId());
+        parameters.put("userUuid", user.getUuid());
     }
 
     @Override

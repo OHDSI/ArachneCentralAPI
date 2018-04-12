@@ -98,6 +98,8 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
 
     U getByIdInAnyTenantAndInitializeCollections(Long id);
 
+    U getByUuidInAnyTenantAndInitializeCollections(String uuid);
+
     U getById(Long id);
 
     U update(U user)

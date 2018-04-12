@@ -14,8 +14,8 @@ You have been requested to unlock analysis for edit
 <a th:href="${analysisUrl}"><span class="btn-link" th:text="${analysisTitle}"></span></a> by <a th:href="${createdByUrl}"><span class="btn-link" th:text="${createdByName}"></span></a>.
 <br/>
 To accept this request, please follow this
-<a th:href="@{${invitationUrl}(id=${requestId},accepted='true',type='UNLOCK_ANALYSIS',token=${token},userId=${userId})}">link</a>. Alternatively, please follow this
-<a th:href="@{${invitationUrl}(id=${requestId},accepted='false',type='UNLOCK_ANALYSIS',token=${token},userId=${userId})}">link</a>
+<a th:href="@{${invitationUrl}(id=${requestId},accepted='true',type='UNLOCK_ANALYSIS',token=${token},userUuid=${userUuid})}">link</a>. Alternatively, please follow this
+<a th:href="@{${invitationUrl}(id=${requestId},accepted='false',type='UNLOCK_ANALYSIS',token=${token},userUuid=${userUuid})}">link</a>
 if you wish to reject this invitation.</div>
 <p>
     Regards,<br/>
