@@ -270,7 +270,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/v1/user-management/organizations/**").authenticated()
                 .antMatchers("/api/v1/user-management/users/**").permitAll()
                 .antMatchers("/api/v1/user-management/users/avatar").hasRole(Roles.ROLE_USER)
-                .antMatchers("/api/v1/build-number/**").permitAll()
+                .antMatchers("/api/v1/build-number**").permitAll()
                 .antMatchers("/api/v1/auth/status/*").permitAll()
                 .antMatchers("/api/v1/data-nodes/**/check-health/**").hasRole(Roles.ROLE_DATA_NODE)
                 .antMatchers("/api/v1/data-nodes/manual").authenticated()
