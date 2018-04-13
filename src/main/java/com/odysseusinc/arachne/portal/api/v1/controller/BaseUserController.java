@@ -514,7 +514,7 @@ public abstract class BaseUserController<
             @RequestParam("accepted") Boolean accepted,
             @RequestParam("type") String type,
             @RequestParam("token") String token,
-            @RequestParam(value = "userId", required = false) Long userId,
+            @RequestParam(value = "userUuid", required = false) String userUuid,
             HttpServletResponse response
     ) throws NotExistException, AlreadyExistException, IOException {
 
@@ -524,7 +524,7 @@ public abstract class BaseUserController<
         U user;
 
         try {
-            user = getUserFromInvitationDto(dto, userId);
+            user = getUserFromInvitationDto(dto, userUuid);
             redirectLink = getRedirectLinkFromInvitationDto(dto, id, token);
         } catch (NotExistException ex) {
             JsonResult result = new JsonResult<>(VALIDATION_ERROR);
@@ -571,7 +571,7 @@ public abstract class BaseUserController<
         return redirectLink;
     }
 
-    private U getUserFromInvitationDto(InvitationActionWithTokenDTO dto, Long userId) {
+    private U getUserFromInvitationDto(InvitationActionWithTokenDTO dto, String userUuid) {
 
         U user = createNewUser();
 
@@ -585,7 +585,7 @@ public abstract class BaseUserController<
             case InvitationType.UNLOCK_ANALYSIS:
             case InvitationType.APPROVE_PUBLISH_SUBMISSION:
             case InvitationType.APPROVE_EXECUTE_SUBMISSION: {
-                user = userService.getByIdInAnyTenantAndInitializeCollections(userId);
+                user = userService.getByUuidInAnyTenantAndInitializeCollections(userUuid);
                 break;
             }
             default: {
