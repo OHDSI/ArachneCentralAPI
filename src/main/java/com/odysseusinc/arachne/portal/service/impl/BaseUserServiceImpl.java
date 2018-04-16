@@ -236,7 +236,7 @@ public abstract class BaseUserServiceImpl<
 
     @Override
     public U getByUsername(final String userOrigin, final String username) {
-        
+
         return userRepository.findByEmailAndEnabledTrue(username);
     }
 
@@ -570,7 +570,7 @@ public abstract class BaseUserServiceImpl<
         final Map<Long, List<UserLink>> userIdToLinksMap = userLinkService.findAll().stream().collect(Collectors.groupingBy(v -> v.getUser().getId()));
         final Map<Long, List<UserPublication>> userIdToPublicationsMap = userPublicationService.findAll().stream().collect(Collectors.groupingBy(v -> v.getUser().getId()));
 
-        for (final U user: usersWithTenants) {
+        for (final U user : usersWithTenants) {
             final Long userId = user.getId();
             user.setLinks(userIdToLinksMap.get(userId));
             user.setPublications(userIdToPublicationsMap.get(userId));
@@ -618,14 +618,18 @@ public abstract class BaseUserServiceImpl<
             throws UserNotFoundException, IllegalAccessException, NotExistException,
             NoSuchFieldException, SolrServerException, IOException {
 
-        U forUpdate = userRepository.findOne(user.getId());
-        Date date = new Date();
-        forUpdate.setId(user.getId());
-        forUpdate.setPassword(passwordEncoder.encode(user.getPassword()));
-        forUpdate.setUpdated(date);
-        U saved = userRepository.save(forUpdate);
-        if (saved.getRegistrationCode() != null && !saved.getRegistrationCode().isEmpty()) {
-            confirmUserEmail(saved.getRegistrationCode());
+        final Long id = user.getId();
+        final U existingUser = rawUserRepository.findOne(id);
+        if (existingUser == null) {
+            final String message = String.format("User with id='%s' does not exist", id);
+            throw new NotExistException(message, User.class);
+        }
+        existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
+        existingUser.setUpdated(new Date());
+        final U updated = rawUserRepository.save(existingUser);
+        final String registrationCode = updated.getRegistrationCode();
+        if (!StringUtils.isEmpty(registrationCode)) {
+            confirmUserEmail(registrationCode);
         }
     }
 
@@ -1114,7 +1118,7 @@ public abstract class BaseUserServiceImpl<
 
     @Override
     public void makeLinksWithStudiesDeleted(final Long tenantId, final Long userId) {
-        
+
         userRepository.setLinksBetweenStudiesAndUsersDeleted(tenantId, userId);
     }
 
@@ -1126,19 +1130,19 @@ public abstract class BaseUserServiceImpl<
 
     @Override
     public void makeLinksWithPapersDeleted(final Long tenantId, final Long userId) {
-        
+
         userRepository.setLinksBetweenPapersAndUsersDeleted(tenantId, userId);
     }
 
     @Override
     public void revertBackUserToPapers(final Long tenantId, final Long userId) {
-        
+
         userRepository.revertBackUserToPapers(tenantId, userId);
     }
 
     @Override
     public List<U> findByIdsInAnyTenant(final Set<Long> userIds) {
-        
+
         return rawUserRepository.findByIdInAndEnabledTrue(userIds);
     }
 
