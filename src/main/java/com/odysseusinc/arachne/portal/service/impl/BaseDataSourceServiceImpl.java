@@ -146,22 +146,18 @@ public abstract class BaseDataSourceServiceImpl<
         if (!CommonModelType.CDM.equals(dataSource.getModelType())) {
             dataSource.setCdmVersion(null);
         }
-        DS savedDataSource = dataSourceRepository.save(dataSource);
-        try {
-            afterCreate(savedDataSource, virtual);
-        } catch (PermissionDeniedException e) {
-            log.error("AfterCreated handler error", e);
-        }
+        DS savedDataSource = dataSourceRepository.saveAndFlush(dataSource);
+        afterCreate(savedDataSource);
         return savedDataSource;
     }
 
-    protected void afterCreate(DS dataSource, boolean virtual) throws PermissionDeniedException {
+    protected void afterCreate(DS dataSource) {
 
         List<IUser> admins = userService.getAllAdmins("name", true);
         notifyNewDataSourceRegistered(admins, dataSource);
     }
 
-    protected void notifyNewDataSourceRegistered(List<IUser> admins, DS dataSource) throws PermissionDeniedException {
+    protected void notifyNewDataSourceRegistered(List<IUser> admins, DS dataSource) {
 
         if (Objects.nonNull(admins)) {
             admins.forEach(u -> arachneMailSender.send(
