@@ -43,14 +43,13 @@ public class BaseAtlasServiceImpl<T extends IAtlas> implements BaseAtlasService<
      * @return Atlas instance.
      */
     @Override
-    @PostAuthorize("returnObject.dataNode == authentication.principal || hasRole('ROLE_ADMIN')")
+    @PostAuthorize("(returnObject != null && returnObject.dataNode == authentication.principal) || hasRole('ROLE_ADMIN')")
     public T findByIdInAnyTenant(Long id) {
 
         return baseRawAtlasRepository.findOne(id);
     }
 
     @Override
-    @PostAuthorize("returnObject.dataNode == authentication.principal || hasRole('ROLE_ADMIN')")
     public T findByNameAndNodeInAnyTenant(String name, Long dataNodeId) {
 
         return baseRawAtlasRepository.findByNameAndDataNodeId(name, dataNodeId);
