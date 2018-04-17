@@ -65,6 +65,7 @@ public class StudySpecification<T extends AbstractUserStudyListItem> implements 
         final Path<StudyStatus> studyStatus = study.get(Study_.status);
         final Path<Long> studyStatusId = studyStatus.get(StudyStatus_.id);
         final Path<StudyType> studyType = study.get(Study_.type);
+        final Path<String> studyTypeName = studyType.get(StudyType_.name);
         final Path<Long> studyTypeId = studyType.get(StudyType_.id);
         final Path<Boolean> favourite = root.get(AbstractUserStudyListItem_.favourite);
 
@@ -89,7 +90,11 @@ public class StudySpecification<T extends AbstractUserStudyListItem> implements 
             predicates.add(cb.isNotNull(root.get(AbstractUserStudyListItem_.role)));
         }
         if (criteria.getQuery() != null) {
-            predicates.add(cb.like(cb.lower(title), "%" + criteria.getQuery().toLowerCase() + "%"));
+            predicates.add(cb.or(
+                    isQuerySimiliarTo(cb, title),
+                    isQuerySimiliarTo(cb, studyTypeName)
+                )
+            );
         }
 
         final Boolean privacy = criteria.getPrivacy();
@@ -100,6 +105,11 @@ public class StudySpecification<T extends AbstractUserStudyListItem> implements 
         getAdditionalPredicate(root, query, cb).map(predicates::add);
 
         return cb.and(predicates.toArray(new Predicate[predicates.size()]));
+    }
+
+    private Predicate isQuerySimiliarTo(final CriteriaBuilder cb, final Path<String> title) {
+
+        return cb.like(cb.lower(title), "%" + criteria.getQuery().toLowerCase() + "%");
     }
 
     protected Optional<Predicate> getAdditionalPredicate(final Root<T> root, final CriteriaQuery<?> query, final CriteriaBuilder cb) {
