@@ -25,7 +25,8 @@ package com.odysseusinc.arachne.portal.service.impl.submission;
 public enum SubmissionActionType {
     EXECUTE("EXECUTE"),
     MANUAL_UPLOAD("MANUAL_UPLOAD"),
-    PUBLISH("PUBLISH");
+    PUBLISH("PUBLISH"),
+    HIDE("HIDE");
 
     private String name;
 

@@ -27,25 +27,24 @@ import com.odysseusinc.arachne.portal.api.v1.dto.UserProfileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserProfileGeneralDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserPublicationDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.dictionary.SkillDTO;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Skill;
-import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserLink;
 import com.odysseusinc.arachne.portal.model.UserPublication;
 import java.util.HashSet;
 import java.util.LinkedList;
-import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
 import org.springframework.stereotype.Component;
 
 
 @Component
-public class UserToUserProfileDTOConverter extends BaseConversionServiceAwareConverter<User, UserProfileDTO> {
+public class UserToUserProfileDTOConverter extends BaseConversionServiceAwareConverter<IUser, UserProfileDTO> {
 
 
     @Override
-    public UserProfileDTO convert(User user) {
+    public UserProfileDTO convert(IUser user) {
 
         UserProfileDTO dto = new UserProfileDTO();
-        dto.setId(user.getId());
+        dto.setId(user.getUuid());
         dto.setEnabled(user.getEnabled());
         dto.setCreated(user.getCreated());
         dto.setUpdated(user.getUpdated());

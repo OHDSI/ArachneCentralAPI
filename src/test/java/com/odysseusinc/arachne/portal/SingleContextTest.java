@@ -2,6 +2,7 @@ package com.odysseusinc.arachne.portal;
 
 import com.github.springtestdbunit.DbUnitTestExecutionListener;
 import com.github.springtestdbunit.annotation.DbUnitConfiguration;
+import com.odysseusinc.arachne.portal.config.tenancy.TenantContext;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -21,4 +22,9 @@ import org.springframework.test.context.support.DependencyInjectionTestExecution
         WithSecurityContextTestExecutionListener.class})
 @DbUnitConfiguration(databaseConnection = {"primaryDataSource"})
 public class SingleContextTest {
+
+    public SingleContextTest() {
+
+        TenantContext.setCurrentTenant(1L);
+    }
 }

@@ -24,26 +24,20 @@ package com.odysseusinc.arachne.portal.service.impl;
 
 import static org.assertj.core.util.Preconditions.checkNotNull;
 
-import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraphUtils;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataNodeJournalEntry;
-import com.odysseusinc.arachne.portal.model.DataNodeRole;
 import com.odysseusinc.arachne.portal.model.DataNodeStatus;
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.repository.DataNodeJournalRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeStatusRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeUserRepository;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.transaction.annotation.Transactional;
-
+import com.odysseusinc.arachne.portal.util.EntityUtils;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
@@ -51,6 +45,11 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 
 public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements BaseDataNodeService<DN> {
 
@@ -83,7 +82,7 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
 
     @Override
     // Does not require permissions because Datanode users can be added after register Datanode only
-    public DN register(DN dataNode) {
+    public DN create(DN dataNode) {
 
         checkNotNull(dataNode, "given datanode is null");
 
@@ -111,23 +110,18 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
     @Override
     @PreAuthorize("hasPermission(#dataNode, "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_DATANODE)")
-    public DN update(DN dataNode) throws NotExistException {
+    public DN update(DN dataNode) throws NotExistException, AlreadyExistException {
 
+        DN existed = dataNodeRepository.findByNameAndVirtualIsFalse(dataNode.getName());
+        if (existed != null) {
+            throw new AlreadyExistException("Data node with the same name already exists");
+        }
         final DN existsDataNode = getById(dataNode.getId());
         existsDataNode.setName(dataNode.getName());
         existsDataNode.setDescription(dataNode.getDescription());
-        existsDataNode.setAtlasVersion(dataNode.getAtlasVersion());
+        existsDataNode.setPublished(true);
+        existsDataNode.setOrganization(dataNode.getOrganization());
         return dataNodeRepository.save(existsDataNode);
-    }
-
-    @Transactional
-    @Override
-    @PreAuthorize("#dataNode == authentication.principal")
-    public DN updateAtlasInfo(DataNode dataNode) throws NotExistException {
-
-        final DN existsDataNode = getById(dataNode.getId());
-        existsDataNode.setAtlasVersion(dataNode.getAtlasVersion());
-        return null;
     }
 
     @Override
@@ -169,25 +163,32 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
     @Transactional
     @Override
     @PreAuthorize("#dataNode == authentication.principal")
-    public void linkUserToDataNode(DN dataNode, User user, Set<DataNodeRole> roles)
+    public void linkUserToDataNode(DN dataNode, IUser user)
             throws NotExistException, AlreadyExistException {
+
+        linkUserToDataNodeUnsafe(dataNode, user);
+    }
+
+    @Transactional
+    @Override
+    public void linkUserToDataNodeUnsafe(DN dataNode, IUser user)
+            throws NotExistException {
 
         LOGGER.info(LINKING_USER_LOG, user.getId(), dataNode.getId());
         final DataNodeUser dataNodeUser = new DataNodeUser();
         dataNodeUser.setDataNode(dataNode);
         dataNodeUser.setUser(user);
-        dataNodeUser.setDataNodeRole(roles);
         saveOrUpdateDataNodeUser(dataNode, dataNodeUser);
     }
 
     @Transactional
     @Override
     @PreAuthorize("#dataNode == authentication.principal")
-    public void unlinkUserToDataNode(DN dataNode, User user) throws NotExistException {
+    public void unlinkUserToDataNode(DN dataNode, IUser user) throws NotExistException {
 
         LOGGER.info(UNLINKING_USER_LOG, user.getId(), dataNode.getId());
         final DataNodeUser existDataNodeUser
-                = dataNodeUserRepository.findByDataNodeAndUser(dataNode, user)
+                = dataNodeUserRepository.findByDataNodeAndUserId(dataNode, user.getId())
                 .orElseThrow(() -> {
                     final String message = String.format(USER_IS_NOT_LINKED_EXC, user.getId(),
                             dataNode.getId());
@@ -217,13 +218,13 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
     @Override
     public Optional<DN> findByToken(String token) {
 
-        return dataNodeRepository.findByToken(token, EntityGraphUtils.fromAttributePaths("dataSources"));
+        return dataNodeRepository.findByToken(token, EntityUtils.fromAttributePaths("dataSources"));
     }
 
     private void saveOrUpdateDataNodeUser(DataNode dataNode, DataNodeUser dataNodeUser) {
 
         dataNodeUser.setDataNode(dataNode);
-        dataNodeUserRepository.findByDataNodeAndUser(dataNode, dataNodeUser.getUser())
+        dataNodeUserRepository.findByDataNodeAndUserId(dataNode, dataNodeUser.getUser().getId())
                 .ifPresent(existing -> dataNodeUser.setId(existing.getId()));
         dataNodeUserRepository.save(dataNodeUser);
     }

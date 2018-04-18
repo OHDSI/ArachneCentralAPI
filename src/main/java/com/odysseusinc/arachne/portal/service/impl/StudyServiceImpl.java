@@ -30,12 +30,13 @@ import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
 import com.odysseusinc.arachne.portal.model.StudyFile;
 import com.odysseusinc.arachne.portal.model.StudyViewItem;
-import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserStudy;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.model.statemachine.study.StudyStateMachine;
@@ -51,11 +52,13 @@ import com.odysseusinc.arachne.portal.repository.UserStudyGroupedRepository;
 import com.odysseusinc.arachne.portal.repository.UserStudyRepository;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.DataSourceService;
+import com.odysseusinc.arachne.portal.service.SolrService;
 import com.odysseusinc.arachne.portal.service.StudyFileService;
 import com.odysseusinc.arachne.portal.service.StudyService;
 import com.odysseusinc.arachne.portal.service.StudyStatusService;
 import com.odysseusinc.arachne.portal.service.StudyTypeService;
 import com.odysseusinc.arachne.portal.service.UserService;
+import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import com.odysseusinc.arachne.portal.service.study.AddDataSourceStrategyFactory;
 import com.odysseusinc.arachne.portal.util.StudyHelper;
@@ -80,34 +83,36 @@ import org.springframework.web.multipart.MultipartFile;
 @Transactional(rollbackFor = Exception.class)
 public class StudyServiceImpl extends BaseStudyServiceImpl<
         Study,
-        DataSource,
+        IDataSource,
         StudySearch,
-        StudyViewItem> implements StudyService {
-    public StudyServiceImpl(UserStudyExtendedRepository userStudyExtendedRepository,
-                            StudyFileService fileService,
-                            StudyViewItemRepository userStudyPublicItemRepository,
-                            UserStudyGroupedRepository userStudyGroupedRepository,
-                            UserStudyRepository userStudyRepository,
-                            ArachneMailSender arachneMailSender,
-                            StudyRepository studyRepository,
-                            FavouriteStudyRepository favouriteStudyRepository,
-                            RestTemplate restTemplate,
-                            StudyTypeService studyTypeService,
-                            DataSourceService dataSourceService,
-                            StudyDataSourceLinkRepository studyDataSourceLinkRepository,
-                            ResultFileRepository resultFileRepository,
-                            StudyFileRepository studyFileRepository,
-                            StudyHelper studyHelper,
-                            StudyDataSourceCommentRepository dataSourceCommentRepository,
-                            UserService userService,
-                            SimpMessagingTemplate wsTemplate,
-                            StudyStatusService studyStatusService,
-                            BaseDataNodeService baseDataNodeService,
-                            JavaMailSender javaMailSender,
-                            GenericConversionService conversionService,
-                            StudyStateMachine studyStateMachine,
-                            AddDataSourceStrategyFactory<DataSource> addDataSourceStrategyFactory,
-                            ApplicationEventPublisher eventPublisher) {
+        StudyViewItem,
+        SolrField> implements StudyService {
+    public StudyServiceImpl(final UserStudyExtendedRepository userStudyExtendedRepository,
+                            final StudyFileService fileService,
+                            final StudyViewItemRepository userStudyPublicItemRepository,
+                            final UserStudyGroupedRepository userStudyGroupedRepository,
+                            final UserStudyRepository userStudyRepository,
+                            final ArachneMailSender arachneMailSender,
+                            final StudyRepository studyRepository,
+                            final FavouriteStudyRepository favouriteStudyRepository,
+                            final RestTemplate restTemplate,
+                            final StudyTypeService studyTypeService,
+                            final DataSourceService dataSourceService,
+                            final StudyDataSourceLinkRepository studyDataSourceLinkRepository,
+                            final ResultFileRepository resultFileRepository,
+                            final StudyFileRepository studyFileRepository,
+                            final StudyHelper studyHelper,
+                            final StudyDataSourceCommentRepository dataSourceCommentRepository,
+                            final UserService userService,
+                            final SimpMessagingTemplate wsTemplate,
+                            final StudyStatusService studyStatusService,
+                            final BaseDataNodeService baseDataNodeService,
+                            final JavaMailSender javaMailSender,
+                            final GenericConversionService conversionService,
+                            final StudyStateMachine studyStateMachine,
+                            final AddDataSourceStrategyFactory addDataSourceStrategyFactory,
+                            final ApplicationEventPublisher eventPublisher,
+                            final SolrService solrService) {
 
         super(userStudyExtendedRepository,
                 fileService,
@@ -133,7 +138,8 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
                 conversionService,
                 studyStateMachine,
                 addDataSourceStrategyFactory,
-                eventPublisher);
+                eventPublisher,
+                solrService);
     }
 
     @Override
@@ -177,7 +183,7 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
     @PreAuthorize("hasPermission(#studyId, 'Study', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
     @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject.study )")
-    public StudyViewItem getStudy(User user, Long studyId) {
+    public StudyViewItem getStudy(IUser user, Long studyId) {
 
         return super.getStudy(user, studyId);
     }
@@ -186,7 +192,7 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
     @Override
     @PreAuthorize("hasPermission(#studyId, 'Study', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).INVITE_CONTRIBUTOR)")
-    public UserStudy addParticipant(User createdBy, Long studyId, Long participantId, ParticipantRole role) throws NotExistException, AlreadyExistException {
+    public UserStudy addParticipant(IUser createdBy, Long studyId, Long participantId, ParticipantRole role) throws NotExistException, AlreadyExistException {
 
         return super.addParticipant(createdBy, studyId, participantId, role);
     }
@@ -210,7 +216,7 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
     @Override
     @PreAuthorize("hasPermission(#studyId, 'Study', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).UPLOAD_FILES)")
-    public String saveFile(MultipartFile multipartFile, Long studyId, String label, User user) throws IOException {
+    public String saveFile(MultipartFile multipartFile, Long studyId, String label, IUser user) throws IOException {
 
         return super.saveFile(multipartFile, studyId, label, user);
     }
@@ -218,7 +224,7 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
     @Override
     @PreAuthorize("hasPermission(#studyId, 'Study', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).UPLOAD_FILES)")
-    public String saveFile(String link, Long studyId, String label, User user) throws IOException {
+    public String saveFile(String link, Long studyId, String label, IUser user) throws IOException {
 
         return super.saveFile(link, studyId, label, user);
     }
@@ -251,7 +257,7 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
     //ordering annotations is important to check current participants before method invoke
     @PreAuthorize("hasPermission(#studyId, 'Study', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).INVITE_DATANODE)")
-    public StudyDataSourceLink addDataSource(User createdBy, Long studyId, Long dataSourceId) throws NotExistException, AlreadyExistException {
+    public StudyDataSourceLink addDataSource(IUser createdBy, Long studyId, Long dataSourceId) throws NotExistException, AlreadyExistException {
 
         return super.addDataSource(createdBy, studyId, dataSourceId);
     }
@@ -260,7 +266,7 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
     @Transactional
     @PreAuthorize("hasPermission(#studyId, 'Study', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).INVITE_DATANODE)")
-    public DataSource addVirtualDataSource(User createdBy, Long studyId, String dataSourceName, List<Long> dataOwnerIds)
+    public IDataSource addVirtualDataSource(IUser createdBy, Long studyId, String dataSourceName, List<String> dataOwnerIds)
             throws NotExistException, AlreadyExistException, NoSuchFieldException, IOException, ValidationException, FieldException, IllegalAccessException, SolrServerException {
 
         return super.addVirtualDataSource(createdBy, studyId, dataSourceName, dataOwnerIds);

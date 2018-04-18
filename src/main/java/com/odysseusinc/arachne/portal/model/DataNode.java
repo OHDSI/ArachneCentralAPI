@@ -26,8 +26,12 @@ import com.google.common.base.Objects;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
+import javax.persistence.JoinColumn;
 import org.hibernate.validator.constraints.NotEmpty;
 
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -44,9 +48,6 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
 @Table(name = "datanodes")
@@ -61,11 +62,9 @@ public class DataNode implements HasArachnePermissions {
     @Column(length = 50, name = "sid")
     private String sid;
 
-    @NotEmpty
     @Column(name = "name")
     private String name;
 
-    @NotEmpty
     @Column(name = "description")
     private String description;
 
@@ -95,11 +94,34 @@ public class DataNode implements HasArachnePermissions {
     @OneToMany(mappedBy = "dataNode", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<DataNodeUser> dataNodeUsers = new HashSet<>();
 
-    @Column(name = "atlas_version")
-    private String atlasVersion;
+    @OneToMany(mappedBy = "dataNode", fetch = FetchType.LAZY)
+    private Set<Atlas> atlasList;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "organization_id")
+    private Organization organization;
 
     @Transient
     private Set<ArachnePermission> permissions;
+
+    @Column
+    private Boolean published;
+
+    public String getAtlasVersion() {
+
+        Set<Atlas> atlasList = this.getAtlasList();
+
+        if (atlasList == null || atlasList.size() == 0) {
+            return null;
+        }
+
+        return atlasList.stream()
+                .filter(a -> a.getVersion() != null)
+                .map(Atlas::getVersion)
+                .sorted()
+                .findAny()
+                .orElse(null);
+    }
 
     public Long getId() {
 
@@ -226,14 +248,32 @@ public class DataNode implements HasArachnePermissions {
         }
     }
 
-    public String getAtlasVersion() {
+    public Set<Atlas> getAtlasList() {
 
-        return atlasVersion;
+        return atlasList;
     }
 
-    public void setAtlasVersion(String atlasVersion) {
+    public void setAtlasList(Set<Atlas> atlasList) {
 
-        this.atlasVersion = atlasVersion;
+        this.atlasList = atlasList;
+    }
+
+    public Boolean getPublished() {
+        return published;
+    }
+
+    public void setPublished(Boolean published) {
+        this.published = published;
+    }
+
+    public Organization getOrganization() {
+
+        return organization;
+    }
+
+    public void setOrganization(Organization organization) {
+
+        this.organization = organization;
     }
 
     @Override

@@ -40,6 +40,7 @@ import com.odysseusinc.arachne.portal.exception.NotUniqueException;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.AnalysisFile;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyType;
 import com.odysseusinc.arachne.portal.model.Submission;
@@ -120,7 +121,7 @@ public class AnalysisHelperTest {
         DataSource dataSource = prepareDataSource();
         when(dataSourceService.getByIdUnsecured(1L)).thenReturn(dataSource);
 
-        User user = prepareUser();
+        IUser user = prepareUser();
         Study study = prepareStudy(user);
         Analysis analysis = prepareAnalysis(user, study);
         List<Submission> submissions = AnalysisHelper.createSubmission(submissionService,
@@ -146,12 +147,12 @@ public class AnalysisHelperTest {
         return dataSource;
     }
 
-    private User prepareUser() {
+    private IUser prepareUser() {
 
         return userService.getByEmail("admin@odysseusinc.com");
     }
 
-    private Analysis prepareAnalysis(User author, Study study) throws Exception {
+    private Analysis prepareAnalysis(IUser author, Study study) throws Exception {
 
         List<Analysis> exists = analysisRepository.findByTitleAndStudyId("AnalysisHelperTest#test", study.getId());
         if (!exists.isEmpty()) {
@@ -193,7 +194,7 @@ public class AnalysisHelperTest {
         return analysis;
     }
 
-    private Study prepareStudy(User owner) throws NotUniqueException, NotExistException {
+    private Study prepareStudy(IUser owner) throws NotUniqueException, NotExistException {
 
         List<Study> exists = studyRepository.findByTitle("AnalysisHelperTest#test");
         if (!exists.isEmpty()) {

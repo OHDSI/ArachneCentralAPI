@@ -23,6 +23,7 @@
 package com.odysseusinc.arachne.portal.repository;
 
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.achilles.Characterization;
 import java.util.List;
 import java.util.Optional;
@@ -30,9 +31,9 @@ import org.springframework.data.repository.CrudRepository;
 
 
 public interface CharacterizationRepository extends CrudRepository<Characterization, Long> {
-    List<Characterization> findByDataSource(DataSource dataSource);
+    List<Characterization> findByDataSource(IDataSource dataSource);
 
-    Optional<Characterization> findByIdAndDataSource(Long characterizationId, DataSource dataSource);
+    Optional<Characterization> findByIdAndDataSource(Long characterizationId, IDataSource dataSource);
 
-    Optional<Characterization> findTopByDataSourceOrderByDateDesc(DataSource dataSource);
+    Optional<Characterization> findTopByDataSourceOrderByDateDesc(IDataSource dataSource);
 }

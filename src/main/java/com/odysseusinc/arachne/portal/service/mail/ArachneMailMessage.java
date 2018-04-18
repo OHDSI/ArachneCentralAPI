@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.service.mail;
 
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.User;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,9 +31,9 @@ public abstract class ArachneMailMessage {
 
     private String fromPersonal = "Arachne";
     protected Map<String, Object> parameters = new HashMap<>();
-    protected User user;
+    protected IUser user;
 
-    protected ArachneMailMessage(User user) {
+    protected ArachneMailMessage(IUser user) {
 
         this.user = user;
         parameters.put("userFirstName", user.getFirstname());
@@ -43,7 +44,7 @@ public abstract class ArachneMailMessage {
         return parameters;
     }
 
-    public User getUser() {
+    public IUser getUser() {
 
         return user;
     }

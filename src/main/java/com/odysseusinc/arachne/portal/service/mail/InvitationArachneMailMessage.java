@@ -22,17 +22,17 @@
 
 package com.odysseusinc.arachne.portal.service.mail;
 
-import com.odysseusinc.arachne.portal.model.User;
+import com.odysseusinc.arachne.portal.model.IUser;
 
-public abstract class InvitationArachneMailMessage extends ArachneMailMessage{
+public abstract class InvitationArachneMailMessage extends ArachneMailMessage {
 
-    protected InvitationArachneMailMessage(String portalUrl, User user, String token, User createdBy) {
+    protected InvitationArachneMailMessage(String portalUrl, IUser user, String token, IUser createdBy) {
 
         super(user);
         parameters.put("token", token);
         parameters.put("invitationUrl", portalUrl + "/api/v1/user-management/users/invitations/mail");
         if (createdBy != null) {
-            parameters.put("createdByUrl", portalUrl + "/expert-finder/profile/" + String.valueOf(createdBy.getId()));
+            parameters.put("createdByUrl", portalUrl + "/expert-finder/profile/" + createdBy.getUuid());
             parameters.put("createdByName", createdBy.getFirstname() + " " + createdBy.getLastname());
         }
     }

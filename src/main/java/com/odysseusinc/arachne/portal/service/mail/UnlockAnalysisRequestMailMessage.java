@@ -24,18 +24,18 @@ package com.odysseusinc.arachne.portal.service.mail;
 
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.AnalysisUnlockRequest;
-import com.odysseusinc.arachne.portal.model.User;
+import com.odysseusinc.arachne.portal.model.IUser;
 
 public class UnlockAnalysisRequestMailMessage extends InvitationArachneMailMessage {
 
-    public UnlockAnalysisRequestMailMessage(String portalUrl, User user, AnalysisUnlockRequest request) {
+    public UnlockAnalysisRequestMailMessage(String portalUrl, IUser user, AnalysisUnlockRequest request) {
 
         super(portalUrl, user, request.getToken(), request.getAuthor());
         final Analysis analysis = request.getAnalysis();
         parameters.put("analysisUrl", portalUrl + "/analysis-execution/analyses/" + analysis.getId());
         parameters.put("analysisTitle", analysis.getTitle());
         parameters.put("requestId", request.getId());
-        parameters.put("userId", user.getId());
+        parameters.put("userUuid", user.getUuid());
     }
 
     @Override

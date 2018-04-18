@@ -25,6 +25,7 @@ package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 import com.odysseusinc.arachne.portal.api.v1.dto.ShortUserDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionStatusDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionStatusHistoryElementDTO;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.SubmissionStatus;
 import com.odysseusinc.arachne.portal.model.SubmissionStatusHistoryElement;
 import com.odysseusinc.arachne.portal.model.User;
@@ -47,7 +48,7 @@ public class SubmissionStatusHistoryToSubmissionStatusHistoryDTOConverter
         if (status != null) {
             submissionStatusDTO = new SubmissionStatusDTO(status);
         }
-        User author = source.getAuthor();
+        IUser author = source.getAuthor();
         ShortUserDTO shortUser = null;
         if (author != null) {
             shortUser = conversionService.convert(author, ShortUserDTO.class);

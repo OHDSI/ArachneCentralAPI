@@ -23,7 +23,18 @@
 package com.odysseusinc.arachne.portal.service;
 
 import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
+import org.apache.solr.client.solrj.response.FacetField;
 
 public interface SolrService extends BaseSolrService<SolrField> {
+
+    static String fieldNameToFacet(SolrField solrField) {
+
+        return solrField.getSolrName() + (solrField.getPostfixNeeded() ? "_facet" : "");
+    }
+
+    static String facetToFieldName(FacetField facetField) {
+
+        return facetField.getName().replaceAll("_facet$", "");
+    }
 
 }

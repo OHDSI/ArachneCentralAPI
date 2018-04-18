@@ -22,18 +22,14 @@
 
 package com.odysseusinc.arachne.portal.service.impl;
 
-import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserLink;
 import com.odysseusinc.arachne.portal.repository.UserLinkRepository;
 import com.odysseusinc.arachne.portal.service.BaseUserLinkService;
-import com.odysseusinc.arachne.portal.service.UserLinkService;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-public abstract class BaseUserLinkServiceImpl<U extends User, UL extends UserLink> extends CRUDLServiceImpl<UL> implements BaseUserLinkService<U, UL> {
+public abstract class BaseUserLinkServiceImpl<UL extends UserLink> extends CRUDLServiceImpl<UL> implements BaseUserLinkService<UL> {
 
     @Autowired
     private UserLinkRepository<UL> userLinkRepository;
@@ -45,8 +41,14 @@ public abstract class BaseUserLinkServiceImpl<U extends User, UL extends UserLin
     }
 
     @Override
-    public List<UL> findByUser(U user) {
+    public List<UL> findByUserId(Long userId) {
 
-        return userLinkRepository.findByUser(user);
+        return userLinkRepository.findByUserId(userId);
+    }
+
+    @Override
+    public List<UL> findAll() {
+
+        return userLinkRepository.findAll();
     }
 }

@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
+import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.FileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserInfoDTO;
 import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
@@ -41,12 +42,7 @@ public class ArachneFileMetaToFileDTOConverter extends BaseConversionServiceAwar
         fileDTO.setCreated(source.getCreated());
         fileDTO.setUpdated(source.getUpdated());
         fileDTO.setDocType(source.getContentType());
-
-        UserInfoDTO userInfoDTO = new UserInfoDTO();
-        userInfoDTO.setId(source.getCreatedBy());
-
-        fileDTO.setAuthor(userInfoDTO);
-
+        fileDTO.setAuthor(new UserInfoDTO(UserIdUtils.idToUuid(source.getCreatedBy())));
         return fileDTO;
     }
 }

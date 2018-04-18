@@ -45,6 +45,7 @@ import com.github.springtestdbunit.annotation.ExpectedDatabase;
 import com.github.springtestdbunit.assertion.DatabaseAssertionMode;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonProfessionalTypeDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserRegistrationDTO;
+import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserLinkDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserProfileGeneralDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserPublicationDTO;
@@ -93,6 +94,7 @@ public class UserControllerTests extends BaseControllerTest {
     private static final String USER_LINK_URL = "userLinkUrl";
 
     private static final String PUBLISHER = "userPublicationPublisher";
+    public static final String USER_2_UUID = UserIdUtils.idToUuid(USER_ID);
 
     private final JSONObject ADMIN_JSON_OBJECT = new JSONObject()
             .put("firstname", ADMIN_FIRST_NAME)
@@ -214,7 +216,7 @@ public class UserControllerTests extends BaseControllerTest {
     public void testEnableUser() throws Exception {
 
         mvc.perform(
-                post("/api/v1/admin/users/" + USER_ID + "/enable/true")
+                post("/api/v1/admin/users/" + UserIdUtils.idToUuid(USER_ID) + "/enable/true")
                         .with(user(ADMIN_EMAIL).roles("ADMIN")))
                 .andExpect(NO_ERROR_CODE)
                 .andExpect(OK_STATUS)
@@ -282,7 +284,7 @@ public class UserControllerTests extends BaseControllerTest {
     public void testGetProfile() throws Exception {
 
         MvcResult mvcResult = mvc.perform(
-                get("/api/v1/user-management/users/" + 2L + "/profile"))
+                get("/api/v1/user-management/users/" + USER_2_UUID + "/profile"))
                 .andExpect(NO_ERROR_CODE)
                 .andExpect(OK_STATUS)
                 .andReturn();
@@ -300,24 +302,22 @@ public class UserControllerTests extends BaseControllerTest {
         final Long studyId = 1L;
 
         MvcResult mvcResult = mvc.perform(
-                get("/api/v1/user-management/users/search-user?query=" + query + "&studyId=" + studyId))
-                .andExpect(NO_ERROR_CODE)
+                get("/api/v1/user-management/users/suggest?target=STUDY&query=" + query + "&id=" + studyId))
                 .andExpect(OK_STATUS)
-                .andExpect(jsonPath("$.result").isNotEmpty())
-                .andExpect(jsonPath("$.result").isArray())
-                .andExpect(jsonPath("$.result", hasSize(3)))
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$", hasSize(3)))
                 .andReturn();
 
-        JSONArray suggested = getResultJSONArray(mvcResult);
+        JSONArray suggested = new JSONArray(mvcResult.getResponse().getContentAsString());
 
         List<Object> list = new ArrayList<>();
         for (int i = 0; i < suggested.length(); i++) {
             list.add(suggested.getJSONObject(i).get("id"));
         }
         // suggested user ids
-        Assert.assertTrue(list.contains(3));
-        Assert.assertTrue(list.contains(6));
-        Assert.assertTrue(list.contains(7));
+        Assert.assertTrue(list.contains(UserIdUtils.idToUuid(3L)));
+        Assert.assertTrue(list.contains(UserIdUtils.idToUuid(6L)));
+        Assert.assertTrue(list.contains(UserIdUtils.idToUuid(7L)));
     }
 
     @Test

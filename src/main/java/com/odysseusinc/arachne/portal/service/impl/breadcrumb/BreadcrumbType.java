@@ -29,4 +29,6 @@ public enum BreadcrumbType {
     SUBMISSION,
     INSIGHT,
     PAPER,
+    USER,
+    DATA_SOURCE
 }

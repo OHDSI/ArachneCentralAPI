@@ -47,12 +47,12 @@ public class AnalysisFile extends ArachneFile {
     @Column(nullable = false)
     private Boolean executable;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    private User author;
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = User.class)
+    private IUser author;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = User.class)
     @JoinColumn(name = "updated_by")
-    private User updatedBy;
+    private IUser updatedBy;
 
     @Column(name = "version")
     private Integer version;
@@ -93,22 +93,22 @@ public class AnalysisFile extends ArachneFile {
         this.executable = executable;
     }
 
-    public User getAuthor() {
+    public IUser getAuthor() {
 
         return author;
     }
 
-    public void setAuthor(User author) {
+    public void setAuthor(IUser author) {
 
         this.author = author;
     }
 
-    public User getUpdatedBy() {
+    public IUser getUpdatedBy() {
 
         return updatedBy;
     }
 
-    public void setUpdatedBy(User updatedBy) {
+    public void setUpdatedBy(IUser updatedBy) {
 
         this.updatedBy = updatedBy;
     }

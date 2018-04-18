@@ -31,7 +31,7 @@ public interface Invitationable {
 
     Date getCreated();
 
-    User getAuthor();
+    IUser getAuthor();
 
     String getActionType();
 

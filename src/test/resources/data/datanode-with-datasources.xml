@@ -15,27 +15,26 @@
             user_id="2"
             id="1"
     />
-    <datanodes_users
-            datanode_id="1"
-            user_id="3"
-            id="2"
-    />
-    <datanodes_users_roles
-            datanode_user_id="1"
-            datanode_role="ADMIN"
-    />
-    <data_sources
+    <data_sources_data
             id="1"
             name="Public Unsupervised"
             uuid="8d3a57d1-1b93-4beb-8856-d114bcc3664e"
             data_node_id="1"
             model_type="CDM"
     />
-    <data_sources
+    <data_sources_data
             id="2"
             name="Public Supervised"
             uuid="88fb5703-edd8-48f1-b2f8-8d4c823c267d"
             data_node_id="1"
             model_type="CDM"
+    />
+    <tenants_data_sources
+            data_source_id="1"
+            tenant_id="1"
+    />
+    <tenants_data_sources
+            data_source_id="2"
+            tenant_id="1"
     />
 </dataset>
