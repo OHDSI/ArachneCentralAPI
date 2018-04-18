@@ -34,7 +34,7 @@ import java.util.Set;
 public interface BaseDataNodeService<DN extends DataNode> {
     DN create(DN dataNode);
 
-    DN update(DN dataNode) throws NotExistException;
+    DN update(DN dataNode) throws NotExistException, AlreadyExistException;
 
     List<DN> findAllIsNotVirtual();
 
