@@ -133,6 +133,7 @@ public abstract class BaseDataSourceServiceImpl<
     }
 
     @Override
+    @Transactional
     @PreAuthorize("hasPermission(#dataSource, "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).CREATE_DATASOURCE)")
     @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
