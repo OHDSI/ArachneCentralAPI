@@ -34,4 +34,4 @@ CREATE OR REPLACE VIEW users_studies_extended AS
                 AND datanodes_users.user_id = studies_data_sources_comment.user_id
        ) AS data;
 
-DROP TABLE datanodes_users_roles;
+DROP TABLE datanodes_users_roles CASCADE;
