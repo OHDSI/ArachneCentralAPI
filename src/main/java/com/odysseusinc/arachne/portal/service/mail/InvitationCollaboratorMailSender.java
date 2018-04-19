@@ -42,7 +42,7 @@ public class InvitationCollaboratorMailSender extends InvitationArachneMailMessa
     @Override
     public String getSubject() {
 
-        return "Arachne invitation to study";
+        return "${app-title} invitation to study";
     }
 
     @Override

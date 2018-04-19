@@ -93,6 +93,8 @@ arachne:
   solrServerUrl: http://localhost:8983/solr
   mail:
     notifier: odysseusinc.notifier@gmail.com
+    signature: Regards,<br/> Odysseus Data Services, Inc.
+    app-title: Arachne
 swagger:
  enable: true
 
