@@ -53,7 +53,7 @@ public interface BaseUserRepository<U extends IUser> extends EntityGraphJpaRepos
     @Query(nativeQuery = true, value = "SELECT * FROM users"
             + " WHERE id NOT IN "
             + "      (SELECT user_id  FROM users_studies_extended WHERE study_id=:studyId "
-            + "       AND lower(status) NOT IN ('declined', 'deleted'))\n"
+            + "       AND lower(status) NOT IN ('declined', 'deleted') and role NOT IN ('DATA_SET_OWNER'))\n"
             + " AND (lower(firstname) SIMILAR TO :suggestRequest OR\n"
             + "      lower(lastname) SIMILAR TO :suggestRequest OR\n"
             + "      lower(middlename) SIMILAR TO :suggestRequest)"
