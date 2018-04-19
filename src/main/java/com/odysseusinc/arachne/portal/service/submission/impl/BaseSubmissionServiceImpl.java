@@ -260,7 +260,7 @@ public abstract class BaseSubmissionServiceImpl<
 
     protected SubmissionStatus calculateSubmissionStatusAccordingToDatasourceOwnership(DS dataSource, IUser user) {
 
-        return PENDING;
+        return IN_PROGRESS;
     }
 
     @Override

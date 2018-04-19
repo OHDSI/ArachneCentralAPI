@@ -780,7 +780,7 @@ public abstract class BaseStudyServiceImpl<
         if (studyDataSourceLink == null) {
             throw new NotExistException("studyDataSourceLink does not exist.", StudyDataSourceLink.class);
         }
-        return (DS) studyDataSourceLink.getDataSource();
+        return (DS) EntityUtils.unproxy(studyDataSourceLink.getDataSource());
     }
 
     @Override
