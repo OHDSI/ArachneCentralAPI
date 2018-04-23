@@ -267,7 +267,7 @@ public abstract class BaseSubmissionServiceImpl<
     public void notifyOwnersAboutNewSubmission(T submission) {
 
         Set<IUser> dnOwners = DataNodeUtils.getDataNodeOwners(submission.getDataSource().getDataNode());
-
+        dnOwners.remove(submission.getAuthor());
         try {
             for (IUser owner : dnOwners) {
                 mailSender.send(new InvitationApprovalSubmissionArachneMailMessage(

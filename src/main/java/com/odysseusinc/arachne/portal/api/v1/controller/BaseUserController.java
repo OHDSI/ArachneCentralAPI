@@ -191,7 +191,8 @@ public abstract class BaseUserController<
             user.setUsername(user.getEmail());
             user.setOrigin(UserOrigin.NATIVE);
             user.setEmailConfirmed(false);
-            userService.register(user, dto.getRegistrantToken(), dto.getCallbackUrl());
+            user.setEnabled(false);
+            userService.createWithEmailVerification(user, dto.getRegistrantToken(), dto.getCallbackUrl());
         } catch (NotUniqueException ex) {
             // If user with such email already exists,
             // mute exception to prevent "Unauthenticated Email Address Enumeration" security issue
@@ -748,12 +749,11 @@ public abstract class BaseUserController<
     @RequestMapping(value = "/api/v1/admin/users", method = POST)
     public CommonUserDTO create(@RequestBody @Valid CommonUserRegistrationDTO dto) throws PasswordValidationException {
 
-        CommonUserDTO result;
         U user = convertRegistrationDTO(dto);
-        user.setEmailConfirmed(false);
-        user = userService.create(user);
-        result = conversionService.convert(user, CommonUserDTO.class);
-        return result;
+        user.setOrigin(UserOrigin.NATIVE);
+
+        user = userService.createWithEmailVerification(user, dto.getRegistrantToken(), dto.getCallbackUrl());
+        return conversionService.convert(user, CommonUserDTO.class);
     }
 
     @ApiOperation("Remove user")
