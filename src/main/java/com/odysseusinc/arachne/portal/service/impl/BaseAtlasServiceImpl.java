@@ -50,7 +50,7 @@ public class BaseAtlasServiceImpl<T extends IAtlas> implements BaseAtlasService<
     }
 
     @Override
-    @PostAuthorize("returnObject.dataNode == authentication.principal || hasRole('ROLE_ADMIN')")
+    @PostAuthorize("returnObject == null || returnObject.dataNode == authentication.principal || hasRole('ROLE_ADMIN')")
     public T findByNameAndNodeInAnyTenant(String name, Long dataNodeId) {
 
         return baseRawAtlasRepository.findByNameAndDataNodeId(name, dataNodeId);
