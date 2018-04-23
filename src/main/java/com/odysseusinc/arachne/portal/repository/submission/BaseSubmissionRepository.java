@@ -54,7 +54,7 @@ public interface BaseSubmissionRepository<T extends Submission> extends EntityGr
     @Query(nativeQuery = true, value = "SELECT * "
             + "FROM submissions s "
             + "  JOIN submission_status_history sh ON s.id = sh.submission_id AND sh.is_last = TRUE "
-            + "  JOIN data_sources ds ON ds.id = s.data_source_id "
+            + "  JOIN data_sources_data ds ON ds.id = s.data_source_id "
             + "  JOIN datanodes dn ON dn.id = ds.data_node_id "
             + "WHERE UPPER(sh.status) = 'STARTING' "
             + "  AND dn.id = :dataNodeId ")

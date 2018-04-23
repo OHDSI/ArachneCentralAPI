@@ -79,8 +79,7 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
     void remove(Long id)
             throws ValidationException, UserNotFoundException, NotExistException, IOException, SolrServerException;
 
-    U register(@NotNull U user, String registrantToken, String callbackUrl)
-            throws NotUniqueException, NotExistException, PasswordValidationException;
+    U createWithEmailVerification(final @NotNull U user, String registrantToken, String callbackUrl) throws PasswordValidationException;
 
     void confirmUserEmail(U user)
             throws IOException, NotExistException,

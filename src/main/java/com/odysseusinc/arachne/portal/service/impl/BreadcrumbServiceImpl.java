@@ -87,7 +87,7 @@ public class BreadcrumbServiceImpl implements BreadcrumbService {
             case SUBMISSION:
                 return submissionRepository.getOne(id);
             case INSIGHT:
-                return submissionInsightRepository.getOne(id);
+                return submissionInsightRepository.findOneBySubmissionId(id);
             case USER:
                 return userRepository.getOne(id);
             case DATA_SOURCE:

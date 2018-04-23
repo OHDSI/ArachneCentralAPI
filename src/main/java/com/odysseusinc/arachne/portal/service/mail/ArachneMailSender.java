@@ -22,16 +22,12 @@
 
 package com.odysseusinc.arachne.portal.service.mail;
 
-import com.sun.mail.util.MailConnectException;
-import java.io.UnsupportedEncodingException;
 import java.util.Map;
-import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -65,9 +61,9 @@ public class ArachneMailSender {
 
     public void send(ArachneMailMessage mailMessage) {
 
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper;
         try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper;
             helper = new MimeMessageHelper(message, true);
             helper.setSubject(mailMessage.getSubject().replaceAll("\\$\\{app-title\\}", appTitle));
             helper.setFrom(from, mailMessage.getFromPersonal().replaceAll("\\$\\{app-title\\}", appTitle));
@@ -75,18 +71,13 @@ public class ArachneMailSender {
             helper.setText(buildContent(mailMessage.getTemplate(), mailMessage.getParameters()), true);
             mailSender.send(message);
 
-        } catch (MailConnectException e) {
+        } catch (Exception e) {
             LOG.error(e.getMessage(), e);
-            throw new MailSendException(e.getMessage());
-        } catch (MessagingException | UnsupportedEncodingException ex) {
-            LOG.error(ex.getMessage(), ex);
-        } catch (MailSendException e) {
-            LOG.error(e.getMessage(), e);
-            throw new MailSendException("Failed to send e-mail. Please, contact to the administrator.");
         }
     }
 
     public String buildContent(String templateName, Map<String, Object> parameters) {
+
         Context context = new Context();
         parameters.put(SIGNATURE, signature);
         context.setVariables(parameters);
