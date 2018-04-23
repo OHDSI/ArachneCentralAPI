@@ -36,4 +36,7 @@ public interface DataNodeRepository<DN extends DataNode> extends EntityGraphJpaR
     Optional<DN> findByToken(String token, EntityGraph entityGraph);
 
     List<DN> findAllByVirtualIsFalse();
+
+    DN findByNameAndVirtualIsFalse(String name);
+
 }

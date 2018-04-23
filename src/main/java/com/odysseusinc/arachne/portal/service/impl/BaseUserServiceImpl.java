@@ -331,7 +331,7 @@ public abstract class BaseUserServiceImpl<
 
         // The existing user check should come last:
         // it is muted in public registration form, so we need to show other errors ahead
-        U byEmail = getByUnverifiedEmail(user.getEmail());
+        U byEmail = getByUnverifiedEmailInAnyTenant(user.getEmail());
         if (byEmail != null) {
             throw new NotUniqueException(
                     "email",
@@ -343,20 +343,17 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    public U register(final @NotNull U user, String registrantToken, String callbackUrl)
+    public U createWithEmailVerification(final @NotNull U user, String registrantToken, String callbackUrl)
             throws NotUniqueException, NotExistException, PasswordValidationException {
 
-        user.setEnabled(false);
         user.setEmailConfirmed(false);
         user.setRegistrationCode(UUID.randomUUID().toString());
-
-        U savedUser = create(user);
+        U createdUser = create(user);
 
         Optional<UserRegistrant> userRegistrant = userRegistrantService.findByToken(registrantToken);
-        sendRegistrationEmail(savedUser, userRegistrant, callbackUrl);
-        return savedUser;
+        sendRegistrationEmail(createdUser, userRegistrant, callbackUrl);
+        return createdUser;
     }
-
 
     @Override
     public void confirmUserEmail(U user)
