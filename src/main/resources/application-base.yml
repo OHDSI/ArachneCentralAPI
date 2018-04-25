@@ -18,6 +18,8 @@ spring:
     database: POSTGRESQL
     properties:
       hibernate:
+        jdbc:
+          batch_size: 20
         dialect: org.hibernate.dialect.PostgreSQLDialect
         ddl-auto: none
         connection:
