@@ -52,6 +52,7 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -62,7 +63,9 @@ public class AchillesImportServiceImpl implements AchillesImportService {
             "{} import Achilles result for Data Source with id='{}', name='{}', Data Node with id='{}' name='{}'";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AchillesImportService.class);
-    private static final int BATCH_SIZE = 1000;
+
+    @Value("${spring.jpa.properties.hibernate.jdbc.batch_size}")
+    private int batchSize = 1000;
 
     protected final EntityManager entityManager;
     protected final CharacterizationRepository characterizationRepository;
@@ -98,7 +101,7 @@ public class AchillesImportServiceImpl implements AchillesImportService {
         try {
             final Characterization result = characterizationRepository.save(characterization);
             JsonParser parser = new JsonParser();
-            List<AchillesFile> files = new ArrayList<>(BATCH_SIZE);
+            List<AchillesFile> files = new ArrayList<>(batchSize);
             ZipFile zipFile = new ZipFile(archivedData);
             for(ZipEntry entry :  Collections.list(zipFile.entries())){
                 String name = entry.getName();
@@ -108,11 +111,12 @@ public class AchillesImportServiceImpl implements AchillesImportService {
                             JsonObject jsonObject = parser.parse(reader).getAsJsonObject();
                             AchillesFile achillesFile = new AchillesFile();
                             achillesFile.setData(jsonObject);
+                            achillesFile.setFilePath(name);
                             achillesFile.setCharacterization(result);
                             files.add(achillesFile);
-                            if (files.size() == BATCH_SIZE) {
+                            if (files.size() == batchSize) {
                                 flush(files);
-                                files = new ArrayList<>(BATCH_SIZE);
+                                files = new ArrayList<>(batchSize);
                             }
                         }
                     }
