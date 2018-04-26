@@ -83,7 +83,7 @@ public class Paper implements HasArachnePermissions, Breadcrumb, SolrEntity {
     @JoinTable(name = "paper_favourites",
             joinColumns = @JoinColumn(name = "paper_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"))
-    private List<User> followers = new ArrayList<>();
+    private List<RawUser> followers = new ArrayList<>();
 
     @Column
     @Enumerated(EnumType.STRING)
@@ -188,12 +188,12 @@ public class Paper implements HasArachnePermissions, Breadcrumb, SolrEntity {
         return getStudy();
     }
 
-    public List<User> getFollowers() {
+    public List<RawUser> getFollowers() {
 
         return followers;
     }
 
-    public void setFollowers(List<User> followers) {
+    public void setFollowers(List<RawUser> followers) {
 
         this.followers = followers;
     }
