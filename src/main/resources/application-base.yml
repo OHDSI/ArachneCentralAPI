@@ -121,6 +121,7 @@ portal:
   useQueryInterceptor: false
   organizations:
     enableCreateByNonAdmin: true
+  notifyAdminAboutNewUser: true
 datanode:
   messaging:
     importTimeout: 60000
