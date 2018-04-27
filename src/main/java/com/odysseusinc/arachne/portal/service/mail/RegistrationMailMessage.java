@@ -22,14 +22,14 @@
 
 package com.odysseusinc.arachne.portal.service.mail;
 
-import com.odysseusinc.arachne.portal.model.User;
+import com.odysseusinc.arachne.portal.model.IUser;
 
 public class RegistrationMailMessage extends ArachneMailMessage implements UserRegistrantMailMessage {
 
     private String subject = "Arachne registration";
     private String template = "mail/registration";
 
-    public RegistrationMailMessage(User user, String portalUrl, String registrationCode) {
+    public RegistrationMailMessage(IUser user, String portalUrl, String registrationCode) {
 
         super(user);
         parameters.put("userFirstName", user.getFirstname());

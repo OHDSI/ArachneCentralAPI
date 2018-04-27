@@ -25,17 +25,22 @@ package com.odysseusinc.arachne.portal.service;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.CommentTopic;
 import com.odysseusinc.arachne.portal.model.DataNode;
-import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
+import com.odysseusinc.arachne.portal.model.Organization;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionGroup;
 import com.odysseusinc.arachne.portal.model.SubmissionInsight;
+import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
+import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import java.util.List;
+import java.util.Set;
 
-public interface BaseArachneSecureService<P extends Paper, DS extends DataSource> {
+public interface BaseArachneSecureService<P extends Paper, DS extends IDataSource> {
     List<ParticipantRole> getRolesByStudy(ArachneUser user, Study study);
 
     List<ParticipantRole> getRolesByAnalysis(ArachneUser user, Analysis analysis);
@@ -46,8 +51,6 @@ public interface BaseArachneSecureService<P extends Paper, DS extends DataSource
 
     List<ParticipantRole> getRolesByDataNode(ArachneUser user, DataNode dataNode);
 
-    boolean test(Long id);
-
     List<ParticipantRole> getRolesBySubmissionGroup(ArachneUser user, SubmissionGroup submissionGroup);
 
     List<ParticipantRole> getRolesByPaper(ArachneUser user, P domainObject);
@@ -55,4 +58,12 @@ public interface BaseArachneSecureService<P extends Paper, DS extends DataSource
     List<ParticipantRole> getRolesByInsight(ArachneUser user, SubmissionInsight domainObject);
 
     List<ParticipantRole> getRolesByCommentTopic(ArachneUser user, CommentTopic topic);
+
+    Set<ArachnePermission> getPermissionsForUser(ArachneUser user, IUser targetUser);
+
+    boolean canImportFromDatanode(ArachneUser user, DataNode dataNode);
+
+    boolean wasDataSourceApproved(Analysis analysis, Long dataSourceId);
+
+    List<ParticipantRole> getRolesByOrganization(ArachneUser user, Organization organization);
 }

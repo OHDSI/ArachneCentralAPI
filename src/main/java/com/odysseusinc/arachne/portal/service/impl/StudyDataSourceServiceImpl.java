@@ -22,19 +22,17 @@
 
 package com.odysseusinc.arachne.portal.service.impl;
 
-import com.odysseusinc.arachne.portal.model.DataSource;
-import com.odysseusinc.arachne.portal.model.Study;
+import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.StudyDataSourceService;
+import java.io.IOException;
+import java.util.List;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.io.IOException;
-import java.util.List;
 
 @Service
 public class StudyDataSourceServiceImpl implements StudyDataSourceService {
@@ -55,12 +53,11 @@ public class StudyDataSourceServiceImpl implements StudyDataSourceService {
 
     @Transactional
     @Override
-    public void softDeletingDataSource(DataSource dataSource) throws IOException, SolrServerException {
+    public void softDeletingDataSource(final Long dataSourceId) throws IOException, SolrServerException {
 
-        final Long id = dataSource.getId();
-        final List<Study> studies = studyService.getStudiesUsesDataSource(id);
-        studies.forEach(study -> studyService.removeDataSourceUnsecured(study.getId(), id));
-        dataSourceService.delete(dataSource.getId());
-        solrService.deleteByQuery(SolrServiceImpl.DATA_SOURCE_COLLECTION, "id:" + id);
+        final List<Long> studyIds = studyService.getStudyIdsOfDataSource(dataSourceId);
+        studyIds.forEach(studyId -> studyService.removeDataSourceUnsecured(studyId, dataSourceId));
+        dataSourceService.delete(dataSourceId);
+        solrService.delete(SolrCollection.DATA_SOURCES, String.valueOf(dataSourceId));
     }
 }

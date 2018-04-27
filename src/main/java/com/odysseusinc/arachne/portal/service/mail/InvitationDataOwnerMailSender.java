@@ -22,19 +22,19 @@
 
 package com.odysseusinc.arachne.portal.service.mail;
 
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
-import com.odysseusinc.arachne.portal.model.User;
 
 public class InvitationDataOwnerMailSender extends InvitationArachneMailMessage {
 
-    public InvitationDataOwnerMailSender(String portalUrl, User user, StudyDataSourceLink link) {
+    public InvitationDataOwnerMailSender(String portalUrl, IUser user, StudyDataSourceLink link) {
 
         super(portalUrl, user, link.getToken(), link.getAuthor());
 
         parameters.put("studyUrl", portalUrl + "/study-manager/studies/" + String.valueOf(link.getStudy().getId()));
         parameters.put("studyTitle", link.getStudy().getTitle());
         parameters.put("studyDataSourceLinkId", link.getId());
-        parameters.put("userId", user.getId());
+        parameters.put("userUuid", user.getUuid());
     }
 
     @Override

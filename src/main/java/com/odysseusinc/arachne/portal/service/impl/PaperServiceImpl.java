@@ -22,15 +22,19 @@
 
 package com.odysseusinc.arachne.portal.service.impl;
 
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.Paper;
+import com.odysseusinc.arachne.portal.model.Study;
+import com.odysseusinc.arachne.portal.model.StudyViewItem;
 import com.odysseusinc.arachne.portal.model.search.PaperSearch;
+import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.service.PaperService;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 @Service
-public class PaperServiceImpl extends BasePaperServiceImpl<Paper, PaperSearch> implements PaperService {
+public class PaperServiceImpl extends BasePaperServiceImpl<Paper, PaperSearch, Study, IDataSource, StudySearch, StudyViewItem> implements PaperService {
 
     @PreAuthorize("hasPermission(#id, 'Paper', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_PAPER)")

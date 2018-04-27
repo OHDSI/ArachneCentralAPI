@@ -32,10 +32,11 @@ import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.exception.WrongFileFormatException;
 import com.odysseusinc.arachne.portal.model.Country;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Invitationable;
+import com.odysseusinc.arachne.portal.model.RawUser;
 import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.StateProvince;
-import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserLink;
 import com.odysseusinc.arachne.portal.model.UserPublication;
 import com.odysseusinc.arachne.portal.model.UserStudy;
@@ -45,15 +46,17 @@ import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
+import java.util.Set;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.multipart.MultipartFile;
 
-public interface BaseUserService<U extends User, S extends Skill> {
+public interface BaseUserService<U extends IUser, S extends Skill> {
 
     U getByUsername(final String username);
 
@@ -61,13 +64,22 @@ public interface BaseUserService<U extends User, S extends Skill> {
 
     U getByEmail(String email);
 
+    U getByEmailInAnyTenant(final String email);
+
+    U getEnabledByIdInAnyTenant(final Long id);
+
+    U getByIdInAnyTenant(final Long id);
+
     U getByUnverifiedEmail(final String email);
+
+    U getByUnverifiedEmailInAnyTenant(final String email);
+
+    U getByUsernameInAnyTenant(final String username);
 
     void remove(Long id)
             throws ValidationException, UserNotFoundException, NotExistException, IOException, SolrServerException;
 
-    U register(@NotNull U user, String registrantToken, String callbackUrl)
-            throws NotUniqueException, NotExistException, PasswordValidationException;
+    U createWithEmailVerification(final @NotNull U user, String registrantToken, String callbackUrl) throws PasswordValidationException;
 
     void confirmUserEmail(U user)
             throws IOException, NotExistException,
@@ -83,11 +95,11 @@ public interface BaseUserService<U extends User, S extends Skill> {
 
     void sendRemindPasswordEmail(U user, String token, String registrantToken, String callbackUrl);
 
-    U getByIdAndInitializeCollections(Long id);
+    U getByIdInAnyTenantAndInitializeCollections(Long id);
+
+    U getByUuidInAnyTenantAndInitializeCollections(String uuid);
 
     U getById(Long id);
-
-    List<U> getAllByIDs(List<Long> ids);
 
     U update(U user)
             throws
@@ -97,9 +109,17 @@ public interface BaseUserService<U extends User, S extends Skill> {
             NotExistException,
             NoSuchFieldException;
 
+    U updateInAnyTenant(U user) throws NotExistException;
+
+    @PreAuthorize("hasPermission(#uuid, 'User', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_USER)")
     U getByUuid(String uuid);
 
-    List<U> suggestUser(String query, List<String> emailsList, Integer limit);
+    @PreAuthorize("hasPermission(#uuid, 'User', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_USER)")
+    U getByUuidAndInitializeCollections(String uuid);
+
+    List<U> suggestUserFromAnyTenant(String query, List<String> emailsList, Integer limit);
 
     List<U> suggestUserToStudy(String query, Long studyId, int limit);
 
@@ -107,7 +127,7 @@ public interface BaseUserService<U extends User, S extends Skill> {
 
     List<U> suggestNotAdmin(String query, Integer limit);
 
-    List<U> getAllEnabled();
+    List<U> getAllEnabledFromAllTenants();
 
     Page<U> getAll(Pageable pageable, UserSearch userSearch);
 
@@ -166,7 +186,7 @@ public interface BaseUserService<U extends User, S extends Skill> {
             NoSuchFieldException,
             IllegalAccessException;
 
-    SearchResult<U> search(SolrQuery solrQuery) throws IOException, SolrServerException;
+    SearchResult<U> search(SolrQuery solrQuery) throws IOException, SolrServerException, NoSuchFieldException;
 
     List<Country> suggestCountry(String query, Integer limit, Long includeId);
 
@@ -188,9 +208,21 @@ public interface BaseUserService<U extends User, S extends Skill> {
 
     U findOne(Long participantId);
 
-    List<U> findUsersByIdsIn(List<Long> dataOwnerIds);
+    List<IUser> findUsersByUuidsIn(List<String> dataOwnerIds);
 
     List<U> findUsersApprovedInDataSource(Long id);
 
     void putAvatarToResponse(HttpServletResponse response, U user) throws IOException;
+
+    void setActiveTenant(U user, Long tenantId);
+
+    void makeLinksWithStudiesDeleted(Long tenantId, Long userId);
+    
+    U getRawUser(Long userId);
+
+    void makeLinksWithPapersDeleted(Long tenantId, Long userId);
+
+    void revertBackUserToPapers(Long tenantId, Long userId);
+
+    List<U> findByIdsInAnyTenant(Set<Long> userIds);
 }

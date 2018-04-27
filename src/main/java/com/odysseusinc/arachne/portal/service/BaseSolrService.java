@@ -22,8 +22,14 @@
 
 package com.odysseusinc.arachne.portal.service;
 
+import static com.odysseusinc.arachne.portal.service.impl.solr.SolrField.META_PREFIX;
+
+import com.odysseusinc.arachne.portal.exception.NotExistException;
+import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
+import com.odysseusinc.arachne.portal.model.solr.SolrEntity;
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
+import java.util.List;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -33,22 +39,55 @@ import java.lang.reflect.Field;
 import java.util.Map;
 
 public interface BaseSolrService<T extends SolrField> {
+
+    String MULTI_METADATA_PREFIX = "multi_" + META_PREFIX;
+    String BREADCRUMBS = "breadcrumbs";
+    
+    String ID = "entity_id";
+    String TYPE = "entity_type";
+    String TITLE = "entity_title";
+    String IS_PUBLIC = "is_public";
+    String PARTICIPANTS = "participants";
+    String TENANTS = "tenants";
+    String SYSTEM_ID = "id";
+
     T getSolrField(Field field);
 
-    FieldList<T> getFieldsOfClass(Class entity);
+    FieldList<T> getFieldsOfClass(Class<?> entity);
 
-    Map<T, Object> getValuesByEntity(Object entity) throws IllegalAccessException, NoSuchFieldException;
+    Map<T, Object> getValuesByEntity(SolrEntity entity);
 
     void putDocument(
             String collection,
             Long id,
             Map<T, Object> fields
-    ) throws IOException, SolrServerException;
+    );
+
+    void putDocuments(
+            String collection,
+            List<Map<T, Object>> valuesList
+    );
+
+    QueryResponse search(
+            String collection,
+            SolrQuery solrQuery,
+            Boolean isTenantsFilteringNeeded
+    ) throws NoSuchFieldException;
 
     QueryResponse search(
             String collection,
             SolrQuery solrQuery
-    ) throws IOException, SolrServerException;
+    ) throws NoSuchFieldException;
 
-    void deleteByQuery(String collection, String query) throws IOException, SolrServerException;
+    void deleteByQuery(String collection, String query);
+
+    void indexBySolr(SolrEntity object);
+
+    void indexBySolr(List<? extends SolrEntity> entities);
+
+    void delete(SolrEntity entity);
+
+    void delete(SolrCollection collection, String id);
+
+    void deleteAll(SolrCollection collection);
 }

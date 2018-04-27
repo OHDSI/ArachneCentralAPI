@@ -26,6 +26,7 @@ import static com.github.springtestdbunit.assertion.DatabaseAssertionMode.NON_ST
 import static com.github.springtestdbunit.assertion.DatabaseAssertionMode.NON_STRICT_UNORDERED;
 import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.ALREADY_EXIST;
 import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.VALIDATION_ERROR;
+import static com.odysseusinc.arachne.portal.api.v1.controller.UserControllerTests.USER_2_UUID;
 import static com.odysseusinc.arachne.portal.api.v1.dto.InvitationType.COLLABORATOR;
 import static com.odysseusinc.arachne.portal.model.ParticipantRole.CONTRIBUTOR;
 import static com.odysseusinc.arachne.portal.model.ParticipantRole.DATA_SET_OWNER;
@@ -33,7 +34,6 @@ import static com.odysseusinc.arachne.portal.model.ParticipantRole.LEAD_INVESTIG
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static java.util.Calendar.MILLISECOND;
-import static java.util.Calendar.MONTH;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -49,6 +49,7 @@ import com.github.springtestdbunit.annotation.DatabaseSetups;
 import com.github.springtestdbunit.annotation.DatabaseTearDown;
 import com.github.springtestdbunit.annotation.ExpectedDatabase;
 import com.github.springtestdbunit.annotation.ExpectedDatabases;
+import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.AddStudyParticipantDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.CreateStudyDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.InvitationActionDTO;
@@ -61,8 +62,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDate;
-import java.time.Month;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -409,7 +408,7 @@ public class StudyControllerTests extends BaseControllerTest {
     public void testAddParticipant() throws Exception {
 
         AddStudyParticipantDTO participantDTO = new AddStudyParticipantDTO();
-        participantDTO.setUserId(2L);
+        participantDTO.setUserId(USER_2_UUID);
         participantDTO.setRole(CONTRIBUTOR);
 
         mvc.perform(
@@ -434,7 +433,7 @@ public class StudyControllerTests extends BaseControllerTest {
         participantDTO.setRole(LEAD_INVESTIGATOR.name());
 
         mvc.perform(
-                put("/api/v1/study-management/studies/" + STUDY_ID + "/participants/" + 2L)
+                put("/api/v1/study-management/studies/" + STUDY_ID + "/participants/" + UserIdUtils.idToUuid(2L))
                         .contentType(APPLICATION_JSON)
                         .content(objectMapper.writeValueAsBytes(participantDTO)))
                 .andExpect(NO_ERROR_CODE)
@@ -476,7 +475,7 @@ public class StudyControllerTests extends BaseControllerTest {
         participantDTO.setRole(CONTRIBUTOR.name());
 
         mvc.perform(
-                put("/api/v1/study-management/studies/" + STUDY_ID + "/participants/" + ADMIN_ID)
+                put("/api/v1/study-management/studies/" + STUDY_ID + "/participants/" + UserIdUtils.idToUuid(ADMIN_ID))
                         .contentType(APPLICATION_JSON)
                         .content(objectMapper.writeValueAsBytes(participantDTO)))
                 .andExpect(jsonPath("$.errorCode").value(VALIDATION_ERROR.getCode()));
@@ -496,7 +495,7 @@ public class StudyControllerTests extends BaseControllerTest {
         participantDTO.setRole(CONTRIBUTOR.name());
 
         mvc.perform(
-                put("/api/v1/study-management/studies/" + STUDY_ID + "/participants/" + ADMIN_ID)
+                put("/api/v1/study-management/studies/" + STUDY_ID + "/participants/" + UserIdUtils.idToUuid(ADMIN_ID))
                         .contentType(APPLICATION_JSON)
                         .content(objectMapper.writeValueAsBytes(participantDTO)))
                 .andExpect(NO_ERROR_CODE)
@@ -514,7 +513,7 @@ public class StudyControllerTests extends BaseControllerTest {
     public void testAddExistedParticipant() throws Exception {
 
         AddStudyParticipantDTO participantDTO = new AddStudyParticipantDTO();
-        participantDTO.setUserId(2L);
+        participantDTO.setUserId(USER_2_UUID);
         participantDTO.setRole(CONTRIBUTOR);
 
         mvc.perform(
@@ -589,7 +588,7 @@ public class StudyControllerTests extends BaseControllerTest {
 
         Long participantId = 2L;
         mvc.perform(
-                delete("/api/v1/study-management/studies/" + STUDY_ID + "/participants/" + participantId))
+                delete("/api/v1/study-management/studies/" + STUDY_ID + "/participants/" + UserIdUtils.idToUuid(participantId)))
                 .andExpect(NO_ERROR_CODE);
     }
 

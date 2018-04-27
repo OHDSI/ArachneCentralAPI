@@ -29,8 +29,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class SolrServiceImpl extends BaseSolrServiceImpl<SolrField> implements SolrService {
 
-    protected SolrField newSolrField() {
+    protected SolrField newSolrField(String name) {
 
-        return new SolrField();
+        return new SolrField(name);
     }
 }

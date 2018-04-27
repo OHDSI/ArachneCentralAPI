@@ -31,7 +31,7 @@ import java.util.Set;
  * Created by AKrutov on 19.10.2016.
  */
 public class UserProfileDTO extends DTO {
-    private Long id;
+    private String id;
 
     private UserProfileGeneralDTO general;
 
@@ -44,12 +44,12 @@ public class UserProfileDTO extends DTO {
     private Boolean isEditable;
 
 
-    public Long getId() {
+    public String getId() {
 
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
 
         this.id = id;
     }

@@ -24,6 +24,7 @@ package com.odysseusinc.arachne.portal.service;
 
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyViewItem;
@@ -31,5 +32,5 @@ import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.search.PaperSearch;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
 
-public interface AdminService extends BaseAdminService<Study, DataSource, StudySearch, StudyViewItem, Analysis, Paper, PaperSearch, Submission> {
+public interface AdminService extends BaseAdminService<Study, IDataSource, StudySearch, StudyViewItem, Analysis, Paper, PaperSearch, Submission> {
 }

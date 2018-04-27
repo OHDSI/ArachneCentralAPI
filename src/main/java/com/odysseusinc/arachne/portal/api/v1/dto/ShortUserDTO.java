@@ -24,16 +24,16 @@ package com.odysseusinc.arachne.portal.api.v1.dto;
 
 public class ShortUserDTO {
 
-    private Long id;
+    private String id;
     private String firstname;
     private String lastname;
 
-    public Long getId() {
+    public String getId() {
 
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
 
         this.id = id;
     }

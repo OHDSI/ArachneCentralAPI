@@ -23,7 +23,7 @@
 package com.odysseusinc.arachne.portal.service.impl;
 
 import com.odysseusinc.arachne.portal.model.Analysis;
-import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyViewItem;
@@ -34,14 +34,14 @@ import com.odysseusinc.arachne.portal.service.AdminService;
 import com.odysseusinc.arachne.portal.service.CommentService;
 import com.odysseusinc.arachne.portal.service.PaperService;
 import com.odysseusinc.arachne.portal.service.StudyService;
-import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightService;
 import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
+import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightService;
 import com.odysseusinc.arachne.portal.service.submission.SubmissionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class AdminServiceImpl extends BaseAdminServiceImpl<Study, DataSource, StudySearch, StudyViewItem, Analysis, Paper, PaperSearch, Submission> implements AdminService{
+public class AdminServiceImpl extends BaseAdminServiceImpl<Study, IDataSource, StudySearch, StudyViewItem, Analysis, Paper, PaperSearch, Submission> implements AdminService{
 
     @Autowired
     public AdminServiceImpl(

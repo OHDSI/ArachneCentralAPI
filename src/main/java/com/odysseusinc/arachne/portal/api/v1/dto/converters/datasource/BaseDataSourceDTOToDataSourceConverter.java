@@ -24,9 +24,9 @@ package com.odysseusinc.arachne.portal.api.v1.dto.converters.datasource;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonBaseDataSourceDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
-import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 
-public abstract class BaseDataSourceDTOToDataSourceConverter<DTO extends CommonBaseDataSourceDTO, DS extends DataSource> extends BaseConversionServiceAwareConverter<DTO, DS> {
+public abstract class BaseDataSourceDTOToDataSourceConverter<DTO extends CommonBaseDataSourceDTO, DS extends IDataSource> extends BaseConversionServiceAwareConverter<DTO, DS> {
 
     @Override
     public final DS convert(DTO source) {
@@ -41,7 +41,8 @@ public abstract class BaseDataSourceDTOToDataSourceConverter<DTO extends CommonB
         dataSource.setUuid(source.getUuid());
         dataSource.setModelType(source.getModelType());
         dataSource.setCdmVersion(source.getCdmVersion());
-        dataSource.setOrganization(source.getOrganization());
+        dataSource.setPublished(source.getPublished());
+        dataSource.setDbmsType(source.getDbmsType());
 
         proceedAdditionalFields(dataSource, source);
 

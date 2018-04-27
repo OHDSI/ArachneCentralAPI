@@ -28,6 +28,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.StudyListDTO;
 import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyViewItem;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
@@ -42,7 +43,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @SuppressWarnings("unused")
 @RestController
-public class StudyController extends BaseStudyController<Study, DataSource, Analysis, StudyDTO, StudySearch, StudyViewItem, StudyListDTO> {
+public class StudyController extends BaseStudyController<Study, IDataSource, Analysis, StudyDTO, StudySearch, StudyViewItem, StudyListDTO> {
     public StudyController(StudyService studyService,
                            BaseAnalysisService<Analysis> analysisService,
                            GenericConversionService conversionService,

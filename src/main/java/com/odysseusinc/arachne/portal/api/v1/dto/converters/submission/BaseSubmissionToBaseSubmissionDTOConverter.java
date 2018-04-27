@@ -57,7 +57,7 @@ public abstract class BaseSubmissionToBaseSubmissionDTOConverter<T extends Submi
         final Status status = statusConverter(source.getStatus());
         final Boolean resultConfirmed = status.isResultConfirmed();
 
-        DataSource dataSource = source.getDataSource();
+        IDataSource dataSource = source.getDataSource();
         dto.setDataSource(conversionService.convert(dataSource, DataSourceDTO.class));
         Long loggedUserId = ((ArachneUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         final boolean isOwner = DataNodeUtils.isDataNodeOwner(dataSource.getDataNode(), loggedUserId);
@@ -69,6 +69,7 @@ public abstract class BaseSubmissionToBaseSubmissionDTOConverter<T extends Submi
         final JsonObject resultInfo = source.getResultInfo();
         final Map map = new Gson().fromJson(resultInfo, Map.class);
         dto.setResultInfo(map);
+        dto.setHidden(source.getHidden());
         return dto;
     }
 

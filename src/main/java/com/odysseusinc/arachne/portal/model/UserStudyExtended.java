@@ -39,9 +39,9 @@ public class UserStudyExtended implements ParticipantLink {
     @Id
     private Long id;
 
-    @ManyToOne(optional = false, targetEntity = User.class, fetch = FetchType.LAZY)
+    @ManyToOne(optional = false, targetEntity = RawUser.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    private User user;
+    private IUser user;
 
     @ManyToOne(optional = false, targetEntity = Study.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "study_id")
@@ -62,12 +62,12 @@ public class UserStudyExtended implements ParticipantLink {
     @JoinColumn(name = "owned_data_source_id")
     private DataSource dataSource;
 
-    public User getUser() {
+    public IUser getUser() {
 
         return user;
     }
 
-    public void setUser(User user) {
+    public void setUser(IUser user) {
 
         this.user = user;
     }

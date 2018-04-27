@@ -22,19 +22,32 @@
 
 package com.odysseusinc.arachne.portal.model.solr;
 
+import com.odysseusinc.arachne.portal.api.v1.dto.converters.SolrFieldExtractor;
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import javax.enterprise.inject.spi.Producer;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Created by PGrafkin on 08.02.2017.
  */
-@Target(ElementType.FIELD)
+@Target({ElementType.FIELD, ElementType.TYPE})
+@Repeatable(SolrFieldAnnos.class)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface SolrFieldAnno {
 
+    String name() default StringUtils.EMPTY;
+    Class<?> clazz() default String.class;
+
     boolean query() default false;
     boolean filter() default false;
+    boolean postfix() default true;
+    boolean sort() default true;
 
+    Class<? extends SolrFieldExtractor<?>>[] extractor() default {};
 }

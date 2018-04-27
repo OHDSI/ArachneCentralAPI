@@ -27,19 +27,16 @@ import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisFileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.BaseAnalysisDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.PermissionsDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.StudyShortDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionGroupDTO;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.AnalysisFile;
-import com.odysseusinc.arachne.portal.util.ConverterUtils;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.odysseusinc.arachne.portal.util.ArachneConverterUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class BaseAnalysisToAnalysisDTOConverter<A extends Analysis, AD extends AnalysisDTO>
         extends BaseConversionServiceAwareConverter<A, AD> {
 
     @Autowired
-    private ConverterUtils converterUtils;
+    private ArachneConverterUtils converterUtils;
 
     @Override
     public AD convert(A source) {
