@@ -24,6 +24,7 @@ package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
 import com.odysseusinc.arachne.portal.api.v1.dto.DataNodeDTO;
+import com.odysseusinc.arachne.commons.api.v1.dto.OrganizationDTO;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
@@ -42,6 +43,7 @@ public class DataNodeToDataNodeDTOConverter extends BaseConversionServiceAwareCo
         dataNodeDTO.setName(dataNode.getName());
         dataNodeDTO.setDescription(dataNode.getDescription());
         dataNodeDTO.setVirtual(dataNode.getVirtual());
+        dataNodeDTO.setPublished(dataNode.getPublished());
         dataNodeDTO.setAtlasVerion(dataNode.getAtlasVersion());
         CommonHealthStatus healthStatus = dataNode.getHealthStatus();
         dataNodeDTO.setHealthStatus(healthStatus);
@@ -54,6 +56,8 @@ public class DataNodeToDataNodeDTOConverter extends BaseConversionServiceAwareCo
         final User loggedUser = new User();
         loggedUser.setId(loggedUserId);
         dataNodeDTO.setCurrentUserDataOwner(DataNodeUtils.isDataNodeOwner(dataNode, loggedUser));
+        final OrganizationDTO organizationDTO = conversionService.convert(dataNode.getOrganization(), OrganizationDTO.class);
+        dataNodeDTO.setOrganization(organizationDTO);
         return dataNodeDTO;
     }
 }

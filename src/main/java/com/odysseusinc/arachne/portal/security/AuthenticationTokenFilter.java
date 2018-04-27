@@ -24,6 +24,8 @@ package com.odysseusinc.arachne.portal.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
+import com.odysseusinc.arachne.portal.config.tenancy.TenantContext;
+import com.odysseusinc.arachne.portal.model.security.ArachneUser;
 import java.io.IOException;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -87,6 +89,8 @@ public class AuthenticationTokenFilter extends UsernamePasswordAuthenticationFil
                                 new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(httpRequest));
                         SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                        TenantContext.setCurrentTenant(((ArachneUser) userDetails).getActiveTenantId());
                     }
                 }
             }

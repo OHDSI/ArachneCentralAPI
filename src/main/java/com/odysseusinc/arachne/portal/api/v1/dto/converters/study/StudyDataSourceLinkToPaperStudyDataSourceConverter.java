@@ -23,6 +23,7 @@
 package com.odysseusinc.arachne.portal.api.v1.dto.converters.study;
 
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.PaperStudyDataSource;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +40,7 @@ public class StudyDataSourceLinkToPaperStudyDataSourceConverter
 
         final PaperStudyDataSource studyDataSource = new PaperStudyDataSource();
 
-        final DataSource dataSource = studyDataSourceLink.getDataSource();
+        final IDataSource dataSource = studyDataSourceLink.getDataSource();
         studyDataSource.setDataSource(dataSource);
 
         return studyDataSource;

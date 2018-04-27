@@ -22,10 +22,10 @@
 
 package com.odysseusinc.arachne.portal.service.study;
 
-import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
-import com.odysseusinc.arachne.portal.model.User;
 
-public interface AddDataSourceStrategy<T extends DataSource> {
-    void addDataSourceToStudy(User createdBy, T dataSource, StudyDataSourceLink link);
+public interface AddDataSourceStrategy<T extends IDataSource> {
+    void addDataSourceToStudy(IUser createdBy, T dataSource, StudyDataSourceLink link);
 }

@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <dataset>
-    <data_sources id="1"
+    <data_sources_data id="1"
                   name="ds_public"
                   uuid="cccf1696-4b8c-11e7-a919-92ebcb67fe33"
                   data_node_id="1"
                   model_type="CDM"
     />
-    <data_sources id="2"
+    <data_sources_data id="2"
                   name="ds_restricted"
                   uuid="22cfa8db-e777-43da-93c8-fcb96af9130f"
                   data_node_id="1"
                   model_type="CDM"
     />
-    <data_sources id="3"
+    <data_sources_data id="3"
                   name="ds_private"
                   uuid="d13a5b49-72ac-4e4b-b82d-2c2a4c94acf5"
                   data_node_id="1"
@@ -37,4 +37,12 @@
                           status="APPROVED"
                           token="123"
                           created_by="1"/>
+    <tenants_data_sources
+            data_source_id="1"
+            tenant_id="1"
+    />
+    <tenants_data_sources
+            data_source_id="2"
+            tenant_id="1"
+    />
 </dataset>

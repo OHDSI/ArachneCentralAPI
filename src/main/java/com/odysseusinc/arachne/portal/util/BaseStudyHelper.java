@@ -28,13 +28,23 @@ import static com.odysseusinc.arachne.portal.service.AnalysisPaths.CONTENT_DIR;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonCDMVersionDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
 import com.odysseusinc.arachne.portal.model.DataNode;
-import com.odysseusinc.arachne.portal.model.DataNodeRole;
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
-import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Study;
-import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.security.DataNodeAuthenticationToken;
 import com.odysseusinc.arachne.portal.security.Roles;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,20 +54,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-public abstract class BaseStudyHelper<DN extends DataNode, DS extends DataSource> {
+public abstract class BaseStudyHelper<DN extends DataNode, DS extends IDataSource> {
 
     private final Logger LOGGER = LoggerFactory.getLogger(BaseStudyHelper.class);
 
@@ -74,17 +71,16 @@ public abstract class BaseStudyHelper<DN extends DataNode, DS extends DataSource
         dataNode.setName(VIRTUAL_DATANODE_NAME);
         final String description = String.format(VIRTUAL_DATANODE_DESC, studyTitle, dataSourceName);
         dataNode.setDescription(description);
+        dataNode.setPublished(true);
         dataNode.setHealthStatus(CommonHealthStatus.GREEN);
         dataNode.setHealthStatusDescription(VIRTUAL_DATANODE_HEALTH_STATUS_DESC);
         return dataNode;
     }
 
-    public Set<DataNodeUser> usersToDataNodeAdmins(List<User> users, final DN dataNode) {
+    public Set<DataNodeUser> createDataNodeUsers(final List<IUser> users, final DN dataNode) {
 
-        final Set<DataNodeRole> dataNodeRoles = new HashSet<>();
-        dataNodeRoles.add(DataNodeRole.ADMIN);
         return users.stream()
-                .map(u -> new DataNodeUser(u, dataNode, dataNodeRoles))
+                .map(u -> new DataNodeUser(u, dataNode))
                 .collect(Collectors.toSet());
     }
 
@@ -107,7 +103,6 @@ public abstract class BaseStudyHelper<DN extends DataNode, DS extends DataSource
         dataSource.setModelType(CDM);
         dataSource.setCreated(new Date());
         dataSource.setCdmVersion(CommonCDMVersionDTO.V4_0);
-        dataSource.setOrganization("OHDSI");
         return dataSource;
     }
 

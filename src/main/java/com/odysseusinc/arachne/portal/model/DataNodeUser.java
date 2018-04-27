@@ -22,15 +22,8 @@
 
 package com.odysseusinc.arachne.portal.model;
 
-import java.util.HashSet;
 import java.util.Objects;
-import java.util.Set;
-import javax.persistence.CollectionTable;
-import javax.persistence.Column;
-import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -49,29 +42,22 @@ public class DataNodeUser {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "datanodes_users_pk_sequence")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = RawUser.class)
     @JoinColumn(name = "user_id")
-    private User user;
+    private IUser user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "datanode_id")
     private DataNode dataNode;
 
-    @Column(name = "datanode_role")
-    @Enumerated(EnumType.STRING)
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "datanodes_users_roles", joinColumns = @JoinColumn(name = "datanode_user_id"))
-    private Set<DataNodeRole> dataNodeRole = new HashSet<>();
-
     public DataNodeUser() {
 
     }
 
-    public DataNodeUser(User user, DataNode dataNode, Set<DataNodeRole> dataNodeRole) {
+    public DataNodeUser(IUser user, DataNode dataNode) {
 
         this.user = user;
         this.dataNode = dataNode;
-        this.dataNodeRole = dataNodeRole;
     }
 
     @Override
@@ -100,12 +86,12 @@ public class DataNodeUser {
         this.id = id;
     }
 
-    public User getUser() {
+    public IUser getUser() {
 
         return user;
     }
 
-    public void setUser(User user) {
+    public void setUser(IUser user) {
 
         this.user = user;
     }
@@ -118,15 +104,5 @@ public class DataNodeUser {
     public void setDataNode(DataNode dataNode) {
 
         this.dataNode = dataNode;
-    }
-
-    public Set<DataNodeRole> getDataNodeRole() {
-
-        return dataNodeRole;
-    }
-
-    public void setDataNodeRole(Set<DataNodeRole> dataNodeRole) {
-
-        this.dataNodeRole = dataNodeRole;
     }
 }

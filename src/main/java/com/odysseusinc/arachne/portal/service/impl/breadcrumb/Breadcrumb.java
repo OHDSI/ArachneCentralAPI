@@ -22,11 +22,11 @@
 
 package com.odysseusinc.arachne.portal.service.impl.breadcrumb;
 
-public interface Breadcrumb {
+import com.odysseusinc.arachne.portal.model.Identifiable;
+
+public interface Breadcrumb extends Identifiable {
 
     BreadcrumbType getCrumbType();
-
-    Long getId();
 
     default Long getCrumbId() {
 

@@ -23,13 +23,14 @@
 package com.odysseusinc.arachne.portal.service.messaging;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
+import com.odysseusinc.arachne.commons.api.v1.dto.CommonEntityDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonListEntityRequest;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import java.util.List;
 import javax.jms.JMSException;
 
 public interface BaseDataNodeMessageService<DN extends DataNode> {
-    <T> List<T> getDataList(DN dataNode, CommonAnalysisType analysisType) throws JMSException;
+    <T extends CommonEntityDTO> List<T> getDataList(DN dataNode, CommonAnalysisType analysisType) throws JMSException;
 
     CommonListEntityRequest getListRequest(DN dataNode) throws JMSException;
 }

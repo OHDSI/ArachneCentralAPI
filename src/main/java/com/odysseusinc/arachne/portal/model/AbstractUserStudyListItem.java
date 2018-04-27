@@ -35,9 +35,9 @@ public class AbstractUserStudyListItem {
     private Long id;
 
 
-    @ManyToOne(optional = false, targetEntity = User.class, fetch = FetchType.LAZY)
+    @ManyToOne(optional = false, targetEntity = RawUser.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    private User user;
+    private IUser user;
 
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
@@ -54,12 +54,12 @@ public class AbstractUserStudyListItem {
     @JoinColumn(name = "first_lead_id")
     private User firstLead;
 
-    public User getUser() {
+    public IUser getUser() {
 
         return user;
     }
 
-    public void setUser(User user) {
+    public void setUser(final IUser user) {
 
         this.user = user;
     }

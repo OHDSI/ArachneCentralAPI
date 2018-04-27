@@ -34,6 +34,7 @@ import com.github.springtestdbunit.annotation.DatabaseSetups;
 import com.github.springtestdbunit.annotation.DatabaseTearDown;
 import com.github.springtestdbunit.annotation.ExpectedDatabase;
 import com.github.springtestdbunit.annotation.ExpectedDatabases;
+import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.CreateVirtualDataSourceDTO;
 import java.util.Arrays;
 import org.json.JSONException;
@@ -85,7 +86,7 @@ public class StudyDataSourceControllerTests extends BaseControllerTest {
 
         final CreateVirtualDataSourceDTO createVirtualDataSourceDTO = new CreateVirtualDataSourceDTO();
         createVirtualDataSourceDTO.setName("virtual");
-        createVirtualDataSourceDTO.setDataOwnersIds(Arrays.asList(1L));
+        createVirtualDataSourceDTO.setDataOwnersIds(Arrays.asList(UserIdUtils.idToUuid(1l)));
         mvc.perform(
                 post("/api/v1/study-management/studies/{studyId}/data-sources",
                         STUDY_ID)

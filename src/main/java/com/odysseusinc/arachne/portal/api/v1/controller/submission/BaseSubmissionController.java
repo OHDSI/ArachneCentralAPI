@@ -40,7 +40,6 @@ import com.odysseusinc.arachne.portal.api.v1.dto.ResultFileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionFileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionStatusHistoryElementDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.UpdateSubmissionsDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UploadFileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.converters.FileDtoContentHandler;
 import com.odysseusinc.arachne.portal.exception.NoExecutableFileException;
@@ -48,12 +47,12 @@ import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.Analysis;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.ResultFile;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
 import com.odysseusinc.arachne.portal.model.SubmissionStatus;
 import com.odysseusinc.arachne.portal.model.SubmissionStatusHistoryElement;
-import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.ResultFileSearch;
 import com.odysseusinc.arachne.portal.service.ToPdfConverter;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
@@ -125,7 +124,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
         if (principal == null) {
             throw new PermissionDeniedException();
         }
-        User user = userService.getByEmail(principal.getName());
+        IUser user = userService.getByEmail(principal.getName());
         if (user == null) {
             throw new PermissionDeniedException();
         }
@@ -152,6 +151,17 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
         return new BaseSubmissionAndAnalysisTypeDTO(dto, submission.getSubmissionGroup().getAnalysisType());
     }
 
+    @ApiOperation("Update submission")
+    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}", method = PUT)
+    public DTO update(
+            @PathVariable("submissionId") Long id, @RequestBody @Valid DTO submissionDTO) {
+
+        submissionDTO.setId(id);
+        final T submission = conversionService.convert(submissionDTO, getSubmissionClass());
+        final T updatedSubmission = submissionService.updateSubmission(submission);
+        return conversionService.convert(updatedSubmission, getSubmissionDTOClass());
+    }
+
     @ApiOperation("Approve submission for execute")
     @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/approve", method = POST)
     public JsonResult<DTO> approveSubmission(
@@ -161,7 +171,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
             PermissionDeniedException, NotExistException, IOException {
 
         Boolean isApproved = approveDTO.getIsApproved();
-        User user = getUser(principal);
+        IUser user = getUser(principal);
         T updatedSubmission = submissionService.approveSubmission(id, isApproved, approveDTO.getComment(), user);
         DTO updatedSubmissionDTO = conversionService.convert(updatedSubmission, getSubmissionDTOClass());
         return new JsonResult<>(NO_ERROR, updatedSubmissionDTO);
@@ -182,16 +192,6 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
 
         DTO submissionDTO = conversionService.convert(updatedSubmission, getSubmissionDTOClass());
         return new JsonResult<>(NO_ERROR, submissionDTO);
-    }
-
-    @ApiOperation("Update submission.")
-    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}", method = PUT)
-    public JsonResult<SubmissionDTO> updateSubmission(
-            @RequestBody UpdateSubmissionsDTO updateSubmissionsDTO,
-            @PathVariable("submissionId") Long id) {
-
-        submissionService.changeSubmissionState(id, updateSubmissionsDTO.getStatus());
-        return new JsonResult<>(NO_ERROR);
     }
 
     @ApiOperation("Manual upload submission result files")
@@ -278,7 +278,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
                 "attachment; filename=" + archiveName);
 
         Submission submission = submissionService.getSubmissionById(submissionId);
-        User user = userService.getByEmail(principal.getName());
+        IUser user = userService.getByEmail(principal.getName());
         submissionService
                 .getSubmissionResultAllFiles(user, submission.getSubmissionGroup().getAnalysis().getId(),
                         submissionId, archiveName, response.getOutputStream());
@@ -342,7 +342,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
             @RequestParam(value = "real-name", required = false) String realName
     ) throws PermissionDeniedException, IOException {
 
-        User user = userService.getByEmail(principal.getName());
+        IUser user = userService.getByEmail(principal.getName());
 
         ResultFileSearch resultFileSearch = new ResultFileSearch();
         resultFileSearch.setPath(path);
@@ -455,7 +455,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
             throws NotExistException, PermissionDeniedException {
 
         Submission submission = submissionService.getSubmissionById(submissionId);
-        User user = userService.getByEmail(principal.getName());
+        IUser user = userService.getByEmail(principal.getName());
         return submissionService.getResultFileAndCheckPermission(user, submission, submission.getSubmissionGroup().getAnalysis().getId(), fileUuid);
     }
 
@@ -520,4 +520,6 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     }
 
     protected abstract Class<DTO> getSubmissionDTOClass();
+
+    protected abstract Class<T> getSubmissionClass();
 }

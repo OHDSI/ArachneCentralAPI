@@ -24,22 +24,20 @@ package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonProfessionalTypeDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.CountryDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.StateProvinceDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserProfileGeneralDTO;
 import com.odysseusinc.arachne.portal.exception.NoDTOConverterException;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.ProfessionalType;
-import com.odysseusinc.arachne.portal.model.User;
-import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
 import org.springframework.stereotype.Component;
 
 
 @Component
 @SuppressWarnings("unused")
-public class UserToUserProfileGeneralDTOConverter extends BaseConversionServiceAwareConverter<User, UserProfileGeneralDTO> {
+public class UserToUserProfileGeneralDTOConverter extends BaseConversionServiceAwareConverter<IUser, UserProfileGeneralDTO> {
 
 
     @Override
-    public UserProfileGeneralDTO convert(User user) {
+    public UserProfileGeneralDTO convert(IUser user) {
 
         UserProfileGeneralDTO dto = new UserProfileGeneralDTO();
         dto.setFirstname(user.getFirstname());
@@ -58,9 +56,13 @@ public class UserToUserProfileGeneralDTOConverter extends BaseConversionServiceA
         dto.setAddress1(user.getAddress1());
         dto.setAddress2(user.getAddress2());
         dto.setCity(user.getCity());
-        dto.setStateProvince(conversionService.convert(user.getStateProvince(), StateProvinceDTO.class));
+        if (user.getStateProvince() != null) {
+            dto.setStateProvinceId(user.getStateProvince().getId());
+        }
         dto.setZipCode(user.getZipCode());
-        dto.setCountry(conversionService.convert(user.getCountry(), CountryDTO.class));
+        if (user.getCountry() != null) {
+            dto.setCountry(conversionService.convert(user.getCountry(), CountryDTO.class));
+        }
         dto.setAffiliation(user.getAffiliation());
         dto.setContactEmail(user.getContactEmail());
         return dto;

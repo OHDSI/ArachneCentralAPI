@@ -22,23 +22,20 @@
 
 package com.odysseusinc.arachne.portal.repository;
 
-import static com.odysseusinc.arachne.portal.service.RoleService.ROLE_ADMIN;
-
 import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
 import com.cosium.spring.data.jpa.entity.graph.repository.EntityGraphJpaRepository;
-import com.odysseusinc.arachne.portal.model.User;
+import com.odysseusinc.arachne.portal.model.IUser;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.query.Param;
 
 @NoRepositoryBean
-public interface BaseUserRepository<U extends User> extends EntityGraphJpaRepository<U, Long>,
+public interface BaseUserRepository<U extends IUser> extends EntityGraphJpaRepository<U, Long>,
         JpaSpecificationExecutor<U> {
 
     List<U> findByIdIn(List<Long> idList);
@@ -51,26 +48,12 @@ public interface BaseUserRepository<U extends User> extends EntityGraphJpaReposi
 
     U findByOriginAndUsernameAndEnabledTrue(String userOrigin, String username);
 
-    U findByRegistrationCode(String activateCode);
-
     U findByEmail(String email, EntityGraph entityGraph);
-
-    @Query(nativeQuery = true, value = "SELECT * FROM users "
-            + " WHERE "
-            + "     (lower(firstname) SIMILAR TO :suggestRequest OR\n"
-            + "     lower(lastname) SIMILAR TO :suggestRequest OR\n"
-            + "     lower(middlename) SIMILAR TO :suggestRequest)"
-            + " AND email NOT IN (:emails)"
-            + " AND enabled = TRUE"
-            + " LIMIT :limit")
-    List<U> suggest(@Param("suggestRequest") String suggestRequest,
-                    @Param("emails") List<String> emails,
-                    @Param("limit") Integer limit);
 
     @Query(nativeQuery = true, value = "SELECT * FROM users"
             + " WHERE id NOT IN "
             + "      (SELECT user_id  FROM users_studies_extended WHERE study_id=:studyId "
-            + "       AND lower(status) NOT IN ('declined', 'deleted'))\n"
+            + "       AND lower(status) NOT IN ('declined', 'deleted') and role NOT IN ('DATA_SET_OWNER'))\n"
             + " AND (lower(firstname) SIMILAR TO :suggestRequest OR\n"
             + "      lower(lastname) SIMILAR TO :suggestRequest OR\n"
             + "      lower(middlename) SIMILAR TO :suggestRequest)"
@@ -97,26 +80,14 @@ public interface BaseUserRepository<U extends User> extends EntityGraphJpaReposi
                            @Param("paperId") Long paperId,
                            @Param("limit") Integer limit);
 
-    @Query(nativeQuery = true, value = "SELECT * FROM users u "
-            + " WHERE (lower(u.firstname) SIMILAR TO :suggestRequest OR\n"
-            + "        lower(u.lastname) SIMILAR TO :suggestRequest OR\n"
-            + "        lower(u.middlename) SIMILAR TO :suggestRequest) "
-            + " AND u.id NOT IN\n"
-            + "          (SELECT user_id FROM users_roles ur\n"
-            + "           LEFT JOIN roles r ON ur.role_id=r.id\n"
-            + "           WHERE  r.name='" + ROLE_ADMIN + "')\n"
-            + " AND enabled = TRUE"
-            + " LIMIT :limit")
-    List<U> suggestNotAdmin(@Param("suggestRequest") String suggestRequest, @Param("limit") Integer limit);
+    U findById(Long id);
 
+    List<U> findAllByEnabledIsTrue(EntityGraph graph);
 
-    U findByUuid(String uuid);
-
-    List<U> findAllByEnabledIsTrue();
+    @Query(nativeQuery = true, value = "SELECT * FROM users_data u WHERE enabled = TRUE")
+    List<U> findAllEnabledFromAllTenants();
 
     Page<U> findAllBy(Pageable pageable);
-
-    List<U> findByRoles_name(String role, Sort sort);
 
     List<U> findAllByUsernameInAndEnabledTrue(List<String> userNames);
 
@@ -128,4 +99,25 @@ public interface BaseUserRepository<U extends User> extends EntityGraphJpaReposi
             + " AND UPPER(d.status) = 'APPROVED' "
             + " AND UPPER(ul.status) = 'APPROVED'")
     List<U> listApprovedByDatasource(@Param("datasourceId") Long datasourceId);
+
+    @Modifying
+    @Query(nativeQuery = true, value ="UPDATE studies_users su " +
+            "SET status = 'DELETED' " +
+            "WHERE su.study_id IN (SELECT id FROM studies_data WHERE tenant_id = :tenantId) AND " +
+            "su.user_id = :userId")
+    void setLinksBetweenStudiesAndUsersDeleted(@Param("tenantId") Long tenantId, @Param("userId") Long userId);
+
+    @Modifying
+    @Query(nativeQuery = true, value = "UPDATE paper_users pu SET status = 'DELETED' \n" +
+            "WHERE pu.paper_id IN (\n" +
+            "  SELECT p.id FROM studies_data sd JOIN papers p on p.study_id = sd.id WHERE tenant_id = :tenantId \n" +
+            ") AND pu.user_id = :userId")
+    void setLinksBetweenPapersAndUsersDeleted(@Param("tenantId") Long tenantId, @Param("userId") Long userId);
+
+    @Modifying
+    @Query(nativeQuery = true, value = "UPDATE paper_users pu SET status = 'APPROVED' \n" +
+            "WHERE pu.paper_id IN (\n" +
+            "  SELECT p.id FROM studies_data sd JOIN papers p on p.study_id = sd.id WHERE tenant_id = :tenantId \n" +
+            ") AND pu.user_id = :userId AND pu.status = 'DELETED'")
+    void revertBackUserToPapers(@Param("tenantId") Long tenantId, @Param("userId") Long userId);
 }

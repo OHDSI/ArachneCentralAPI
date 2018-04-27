@@ -22,24 +22,31 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto;
 
-/**
- * Created by AKrutov on 25.10.2016.
- */
+import java.util.List;
+
 public class UserInfoDTO extends DTO {
-    private Long id;
+    private String id;
     private String email;
     private String firstname;
     private String lastname;
     private String middlename;
     private Integer notificationsCount;
     private Boolean isAdmin;
+    private List<TenantPersonalDTO> tenants;
 
-    public Long getId() {
+    public UserInfoDTO() {
+    }
+
+    public UserInfoDTO(String id) {
+        this.id = id;
+    }
+
+    public String getId() {
 
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
 
         this.id = id;
     }
@@ -102,5 +109,15 @@ public class UserInfoDTO extends DTO {
     public void setIsAdmin(Boolean admin) {
 
         isAdmin = admin;
+    }
+
+    public List<TenantPersonalDTO> getTenants() {
+
+        return tenants;
+    }
+
+    public void setTenants(List<TenantPersonalDTO> tenants) {
+
+        this.tenants = tenants;
     }
 }

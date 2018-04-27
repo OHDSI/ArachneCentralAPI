@@ -22,12 +22,12 @@
 
 package com.odysseusinc.arachne.portal.service.mail;
 
-import com.odysseusinc.arachne.portal.model.User;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.UserStudy;
 
 public class InvitationCollaboratorMailSender extends InvitationArachneMailMessage {
 
-    public InvitationCollaboratorMailSender(String portalUrl, User user, UserStudy userStudy) {
+    public InvitationCollaboratorMailSender(String portalUrl, IUser user, UserStudy userStudy) {
 
         super(portalUrl, user, userStudy.getToken(), userStudy.getCreatedBy());
 

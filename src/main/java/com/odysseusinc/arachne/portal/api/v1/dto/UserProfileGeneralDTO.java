@@ -24,9 +24,6 @@ package com.odysseusinc.arachne.portal.api.v1.dto;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonProfessionalTypeDTO;
 
-/**
- * Created by AKrutov on 19.10.2016.
- */
 public class UserProfileGeneralDTO extends DTO {
 
     private String affiliation;
@@ -42,7 +39,7 @@ public class UserProfileGeneralDTO extends DTO {
     private String address1;
     private String address2;
     private String city;
-    private StateProvinceDTO stateProvince;
+    private Long stateProvinceId;
     private String zipCode;
     private CountryDTO country;
     private String contactEmail;
@@ -157,14 +154,14 @@ public class UserProfileGeneralDTO extends DTO {
         this.city = city;
     }
 
-    public StateProvinceDTO getStateProvince() {
+    public Long getStateProvinceId() {
 
-        return stateProvince;
+        return stateProvinceId;
     }
 
-    public void setStateProvince(StateProvinceDTO stateProvince) {
+    public void setStateProvinceId(Long stateProvinceId) {
 
-        this.stateProvince = stateProvince;
+        this.stateProvinceId = stateProvinceId;
     }
 
     public String getZipCode() {

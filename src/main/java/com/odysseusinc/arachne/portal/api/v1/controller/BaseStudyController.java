@@ -33,6 +33,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
+import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.AddStudyParticipantDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.BooleanDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.Commentable;
@@ -60,7 +61,8 @@ import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.CommentTopic;
-import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
@@ -73,10 +75,10 @@ import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.model.statemachine.study.StudyStateMachine;
 import com.odysseusinc.arachne.portal.model.statemachine.study.StudyTransition;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
-import com.odysseusinc.arachne.portal.service.ToPdfConverter;
 import com.odysseusinc.arachne.portal.service.StudyFileService;
-import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightService;
+import com.odysseusinc.arachne.portal.service.ToPdfConverter;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
+import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightService;
 import io.swagger.annotations.ApiOperation;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -85,6 +87,7 @@ import java.security.Principal;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
@@ -110,7 +113,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 public abstract class BaseStudyController<
         T extends Study,
-        DS extends DataSource,
+        DS extends IDataSource,
         A extends Analysis,
         SD extends StudyDTO,
         SS extends StudySearch,
@@ -118,6 +121,7 @@ public abstract class BaseStudyController<
         SL extends StudyListDTO> extends BaseController {
 
     private static final Logger LOG = LoggerFactory.getLogger(StudyController.class);
+    private static final String EX_USER_NOT_EXISTS = "The user does not exist";
     private final StudyFileService fileService;
     private final StudyStateMachine studyStateMachine;
     protected BaseStudyService<T, DS, SS, SU> studyService;
@@ -160,7 +164,7 @@ public abstract class BaseStudyController<
             throws NotExistException, NotUniqueException {
 
         JsonResult<SD> result;
-        User user = userService.getByEmail(principal.getName());
+        IUser user = userService.getByEmail(principal.getName());
         if (user != null) {
             if (binding.hasErrors()) {
                 result = setValidationErrors(binding);
@@ -180,7 +184,7 @@ public abstract class BaseStudyController<
     @RequestMapping(value = "/api/v1/study-management/studies/{studyId}/available-state-transitions", method = RequestMethod.GET)
     public List<StudyTransition> getAvailableTransitions(@PathVariable Long studyId) {
 
-        return studyStateMachine.getAvailableStates(studyService.getByIdUnsecured(studyId));
+        return studyStateMachine.getAvailableStates(studyService.getById(studyId));
     }
 
     @RequestMapping(value = "/api/v1/study-management/studies/{studyId}", method = GET)
@@ -190,7 +194,7 @@ public abstract class BaseStudyController<
             throws PermissionDeniedException, NotExistException {
 
         JsonResult<SD> result;
-        User user = getUser(principal);
+        IUser user = getUser(principal);
         SU myStudy = studyService.getStudy(user, id);
         result = new JsonResult<>(NO_ERROR);
         SD studyDTO = convert(myStudy);
@@ -230,7 +234,7 @@ public abstract class BaseStudyController<
             Principal principal)
             throws PermissionDeniedException, NotExistException, NotUniqueException, ValidationException {
 
-        final User user = getUser(principal);
+        final IUser user = getUser(principal);
         studyService.setFavourite(user.getId(), studyId, isFavourite.isValue());
         return new JsonResult<>(NO_ERROR);
     }
@@ -274,7 +278,7 @@ public abstract class BaseStudyController<
 
         handleInputSearchParams(studySearch);
 
-        final User user = getUser(principal);
+        final IUser user = getUser(principal);
 
         studySearch.setUserId(user.getId());
 
@@ -312,11 +316,13 @@ public abstract class BaseStudyController<
         if (binding.hasErrors()) {
             return setValidationErrors(binding);
         }
-        final User createdBy = getUser(principal);
+        final IUser createdBy = getUser(principal);
+        IUser participant = Optional.ofNullable(userService.getByUuid(addParticipantDTO.getUserId()))
+                .orElseThrow(() -> new NotExistException(EX_USER_NOT_EXISTS, User.class));
         UserStudy userStudy = studyService.addParticipant(
                 createdBy,
                 studyId,
-                addParticipantDTO.getUserId(),
+                participant.getId(),
                 addParticipantDTO.getRole()
         );
 
@@ -330,33 +336,33 @@ public abstract class BaseStudyController<
     }
 
     @ApiOperation("Update participant.")
-    @RequestMapping(value = "/api/v1/study-management/studies/{studyId}/participants/{userId}",
+    @RequestMapping(value = "/api/v1/study-management/studies/{studyId}/participants/{userUuid}",
             method = PUT)
     public JsonResult<Boolean> updateParticipantRole(
             @PathVariable("studyId") Long studyId,
-            @PathVariable("userId") Long userId,
+            @PathVariable("userUuid") String userUuid,
             @RequestBody @Valid UpdateParticipantDTO participantDTO
-    ) throws PermissionDeniedException, NotExistException, AlreadyExistException, ValidationException {
+    ) throws NotExistException, AlreadyExistException, ValidationException {
 
         if (participantDTO.getRole() != null) {
             ParticipantRole newRole = ParticipantRole.valueOf(participantDTO.getRole());
-            UserStudy userStudy = studyService.updateParticipantRole(studyId, userId, newRole);
+            studyService.updateParticipantRole(studyId, UserIdUtils.uuidToId(userUuid), newRole);
         }
 
         return new JsonResult<>(NO_ERROR, Boolean.TRUE);
     }
 
     @ApiOperation("Remove participant from the study.")
-    @RequestMapping(value = "/api/v1/study-management/studies/{studyId}/participants/{userId}",
+    @RequestMapping(value = "/api/v1/study-management/studies/{studyId}/participants/{userUuid}",
             method = DELETE)
     public JsonResult<Boolean> removeParticipant(
             Principal principal,
             @PathVariable("studyId") Long id,
-            @PathVariable("userId") Long userId)
+            @PathVariable("userUuid") String userUuid)
             throws PermissionDeniedException, NotExistException, ValidationException {
 
         JsonResult<Boolean> result;
-        studyService.removeParticipant(id, userId);
+        studyService.removeParticipant(id, UserIdUtils.uuidToId(userUuid));
         result = new JsonResult<>(NO_ERROR);
         result.setResult(Boolean.TRUE);
         return result;
@@ -383,7 +389,7 @@ public abstract class BaseStudyController<
     ) throws PermissionDeniedException, NotExistException, IOException {
 
         JsonResult<Boolean> result = null;
-        final User user = getUser(principal);
+        final IUser user = getUser(principal);
         if (uploadFileDTO.getFile() != null) {
             studyService.saveFile(uploadFileDTO.getFile(), id, uploadFileDTO.getLabel(), user);
             result = new JsonResult<>(NO_ERROR);
@@ -498,8 +504,8 @@ public abstract class BaseStudyController<
             @RequestBody @Valid CreateVirtualDataSourceDTO dataSourceDTO
     ) throws PermissionDeniedException, NotExistException, IllegalAccessException, SolrServerException, IOException, ValidationException, FieldException, AlreadyExistException, NoSuchFieldException {
 
-        final User createdBy = getUser(principal);
-        final DataSource dataSource = studyService.addVirtualDataSource(
+        final IUser createdBy = getUser(principal);
+        final IDataSource dataSource = studyService.addVirtualDataSource(
                 createdBy,
                 studyId,
                 dataSourceDTO.getName(),
@@ -516,14 +522,14 @@ public abstract class BaseStudyController<
             @PathVariable("studyId") Long studyId,
             @PathVariable("dataSourceId") Long dataSourceId) throws PermissionDeniedException {
 
-        final User createdBy = getUser(principal);
+        final IUser createdBy = getUser(principal);
         final DS dataSource = studyService.getStudyDataSource(createdBy, studyId, dataSourceId);
         final DataSourceDTO dataSourceDTO = conversionService.convert(dataSource, DataSourceDTO.class);
         final List<ShortUserDTO> userDTOs = dataSource.getDataNode().getDataNodeUsers().stream()
                 .map(dnu -> {
-                    final User user = dnu.getUser();
+                    final IUser user = dnu.getUser();
                     final ShortUserDTO userDTO = new ShortUserDTO();
-                    userDTO.setId(user.getId());
+                    userDTO.setId(user.getUuid());
                     userDTO.setFirstname(user.getFirstname());
                     userDTO.setLastname(user.getLastname());
                     return userDTO;
@@ -543,8 +549,8 @@ public abstract class BaseStudyController<
             @RequestBody @Valid CreateVirtualDataSourceDTO dataSourceDTO
     ) throws PermissionDeniedException, ValidationException, IOException, NoSuchFieldException, SolrServerException, IllegalAccessException {
 
-        final User user = getUser(principal);
-        DataSource dataSource = studyService.updateVirtualDataSource(
+        final IUser user = getUser(principal);
+        IDataSource dataSource = studyService.updateVirtualDataSource(
                 user, studyId, dataSourceId, dataSourceDTO.getName(), dataSourceDTO.getDataOwnersIds()
         );
         return new JsonResult<>(NO_ERROR, conversionService.convert(dataSource, DataSourceDTO.class));
@@ -558,7 +564,7 @@ public abstract class BaseStudyController<
             @PathVariable("dataSourceId") Long dataSourceId)
             throws PermissionDeniedException, NotExistException, AlreadyExistException {
 
-        final User createdBy = getUser(principal);
+        final IUser createdBy = getUser(principal);
         StudyDataSourceLink link = studyService.addDataSource(createdBy, studyId, dataSourceId);
         return conversionService.convert(link, EntityLinkDTO.class);
     }
@@ -579,12 +585,26 @@ public abstract class BaseStudyController<
     @RequestMapping(value = "/api/v1/study-management/studies/search", method = GET)
     public JsonResult<List<StudyDTO>> suggest(
             Principal principal,
-            @RequestParam("id") Long id,
+            @RequestParam("id") String requestId,
             @RequestParam("query") String query,
             @RequestParam("region") SuggestSearchRegion region) throws PermissionDeniedException {
 
         JsonResult<List<StudyDTO>> result;
-        User owner = getUser(principal);
+        IUser owner = getUser(principal);
+        Long id;
+        switch (region) {
+            case DATASOURCE:
+                id = Long.valueOf(requestId);
+                break;
+            case PARTICIPANT:
+                IUser participant = Optional.ofNullable(userService.getByUuid(requestId))
+                        .orElseThrow(() -> new NotExistException(EX_USER_NOT_EXISTS, User.class));
+                id = participant.getId();
+                break;
+            default:
+                id = 0L;
+                break;
+        }
         Iterable<T> studies = studyService.suggestStudy(query, owner, id, region);
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
         List<StudyDTO> studiesDTOs = new LinkedList<>();

@@ -63,7 +63,7 @@ public class CommentServiceImpl implements CommentService {
         this.commentRepository = commentRepository;
     }
 
-    @Cacheable("comments")
+//    @Cacheable("comments") broken code here
     @Override
     public CommentTopic getTopic(Long id) throws NotExistException {
 

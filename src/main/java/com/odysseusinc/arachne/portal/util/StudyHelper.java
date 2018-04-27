@@ -24,12 +24,13 @@ package com.odysseusinc.arachne.portal.util;
 
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import org.springframework.stereotype.Component;
 
 @Component
-public class StudyHelper extends BaseStudyHelper<DataNode, DataSource> {
+public class StudyHelper extends BaseStudyHelper<DataNode, IDataSource> {
     @Override
-    protected DataSource createDataSource() {
+    protected IDataSource createDataSource() {
 
         return new DataSource();
     }

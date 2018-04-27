@@ -26,5 +26,5 @@ import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserLink;
 import java.util.List;
 
-public interface UserLinkService extends BaseUserLinkService<User, UserLink> {
+public interface UserLinkService extends BaseUserLinkService<UserLink> {
 }

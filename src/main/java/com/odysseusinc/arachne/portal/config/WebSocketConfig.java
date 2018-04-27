@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.config;
 
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.security.TokenUtils;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
@@ -124,7 +125,7 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
                     String authToken = tokenList.get(0).toString();
                     String username = tokenUtils.getUsernameFromToken(authToken);
                     if (!tokenUtils.isExpired(authToken)) {
-                        User user = userService.getByUsername(username);
+                        IUser user = userService.getByUsername(username);
                         if (user != null) {
                             principal = () -> user.getUsername();
                             accessor.setUser(principal);

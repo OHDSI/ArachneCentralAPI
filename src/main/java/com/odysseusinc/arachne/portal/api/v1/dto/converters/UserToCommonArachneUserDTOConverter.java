@@ -24,8 +24,7 @@ package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonArachneUserDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonArachneUserTypeDTO;
-import com.odysseusinc.arachne.portal.model.User;
-import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
+import com.odysseusinc.arachne.portal.model.IUser;
 import org.springframework.stereotype.Component;
 
 /**
@@ -33,11 +32,11 @@ import org.springframework.stereotype.Component;
  * @since 4/12/17.
  */
 @Component
-public class UserToCommonArachneUserDTOConverter extends BaseConversionServiceAwareConverter<User, CommonArachneUserDTO> {
+public class UserToCommonArachneUserDTOConverter extends BaseConversionServiceAwareConverter<IUser, CommonArachneUserDTO> {
 
 
     @Override
-    public CommonArachneUserDTO convert(User user) {
+    public CommonArachneUserDTO convert(IUser user) {
 
         final CommonArachneUserDTO dto = new CommonArachneUserDTO();
         dto.setFirstName(user.getFirstname());

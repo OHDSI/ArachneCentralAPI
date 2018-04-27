@@ -23,16 +23,18 @@
 package com.odysseusinc.arachne.portal.api.v1.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.odysseusinc.arachne.commons.api.v1.dto.OptionDTO;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ParticipantDTO {
-    protected Long id;
+    protected String id;
     protected String fullName;
     protected OptionDTO role;
     protected String status;
     private String comment;
+    private boolean canBeRecreated = Boolean.TRUE;
 
     public ParticipantDTO() {
 
@@ -46,12 +48,12 @@ public class ParticipantDTO {
         this.status = other.status;
     }
 
-    public Long getId() {
+    public String getId() {
 
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
 
         this.id = id;
     }
@@ -125,5 +127,15 @@ public class ParticipantDTO {
                 .append(status)
                 .append(comment)
                 .toHashCode();
+    }
+
+    public boolean isCanBeRecreated() {
+
+        return canBeRecreated;
+    }
+
+    public void setCanBeRecreated(final boolean canBeRecreated) {
+
+        this.canBeRecreated = canBeRecreated;
     }
 }

@@ -22,70 +22,119 @@
 
 package com.odysseusinc.arachne.portal.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.odysseusinc.arachne.portal.api.v1.dto.BreadcrumbDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.converters.SolrFieldExtractor;
+import com.odysseusinc.arachne.portal.config.tenancy.TenantContext;
+import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
+import com.odysseusinc.arachne.portal.model.solr.SolrEntity;
+import com.odysseusinc.arachne.portal.model.solr.SolrException;
 import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
 import com.odysseusinc.arachne.portal.model.solr.SolrValue;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
+import com.odysseusinc.arachne.portal.service.BreadcrumbService;
+import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
-import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.HttpSolrClient;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.client.solrj.response.UpdateResponse;
-import org.apache.solr.common.SolrInputDocument;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.response.UpdateResponse;
+import org.apache.solr.common.SolrInputDocument;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.convert.ConversionService;
 
 public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSolrService<T> {
-    public static final String DATA_SOURCE_COLLECTION = "data-sources";
-    public static final String USER_COLLECTION = "users";
+
     private static final String QUERY_FIELD_PREFIX = "query_";
-    private static final String ID = "id";
 
     @Autowired
     private SolrClient solrClient;
 
-    public T getSolrField(Field field) {
+    @Autowired
+    private BreadcrumbService breadcrumbService;
+
+    @Autowired
+    private ConversionService conversionService;
+
+    private ObjectMapper objectMapper = new ObjectMapper();
+
+    public T getSolrField(final Field field) {
 
         T solrField = null;
         if (field.isAnnotationPresent(SolrFieldAnno.class)) {
-            SolrFieldAnno solrFieldAnno = field.getAnnotation(SolrFieldAnno.class);
-            solrField = newSolrField();
-            solrField.setName(field.getName());
-            solrField.setDataType(field.getType());
-            solrField.setSearchable(solrFieldAnno.query());
-            solrField.setFaceted(solrFieldAnno.filter());
+            final SolrFieldAnno solrFieldAnno = field.getAnnotation(SolrFieldAnno.class);
+            solrField = extractSolrField(solrFieldAnno);
+            solrField.setDataType(solrFieldAnno.clazz() == String.class ? field.getType() : solrFieldAnno.clazz());
+            solrField.setField(field);
+            if (StringUtils.isEmpty(solrField.getName())) {
+                solrField.setName(field.getName());
+            }
         }
         return solrField;
     }
 
-    protected abstract T newSolrField();
+    private T extractSolrField(final SolrFieldAnno solrFieldAnno) {
 
-    public FieldList<T> getFieldsOfClass(Class entity) {
+        final T solrField = newSolrField(solrFieldAnno.name());
+        solrField.setSearchable(solrFieldAnno.query());
+        solrField.setFaceted(solrFieldAnno.filter());
+        solrField.setPostfixNeeded(solrFieldAnno.postfix());
+        solrField.setSortNeeded(solrFieldAnno.sort());
+        solrField.setDataType(solrFieldAnno.clazz());
+        final Class<? extends SolrFieldExtractor>[] extractors = solrFieldAnno.extractor();
+        if (extractors.length > 0) {
+            solrField.setExtractor(BeanUtils.instantiate(extractors[0]));
+        }
+        return solrField;
+    }
 
-        FieldList<T> result = new FieldList<>();
-        List<Field> fields = getDeclaredFields(entity);
+    protected abstract T newSolrField(String name);
 
-        for (Field field : fields) {
-            T solrField = getSolrField(field);
+    public FieldList<T> getFieldsOfClass(final Class<?> entity) {
+
+        final FieldList<T> result = new FieldList<>();
+        final List<Field> fields = getDeclaredFields(entity);
+
+        for (final Field field : fields) {
+            final T solrField = getSolrField(field);
             if (solrField != null) {
                 result.add(solrField);
             }
         }
 
+        result.addAll(gatherClassSolrAnnotations(entity));
+
         return result;
+    }
+
+    private List<T> gatherClassSolrAnnotations(final Class<?> entity) {
+
+        final List<T> fields = new LinkedList<>();
+        AnnotationUtils.getRepeatableAnnotations(entity, SolrFieldAnno.class).forEach(
+                anno -> fields.add(extractSolrField(anno))
+        );
+        
+        if (entity.getSuperclass() != null) {
+            fields.addAll(gatherClassSolrAnnotations(entity.getSuperclass()));
+        }
+        return fields;
     }
 
     private List<Field> getDeclaredFields(Class<?> entity) {
@@ -112,35 +161,123 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
     }
 
     @Override
-    public Map<T, Object> getValuesByEntity(Object entity) throws IllegalAccessException, NoSuchFieldException {
+    public Map<T, Object> getValuesByEntity(final SolrEntity entity)  {
 
-        Map<T, Object> values = new HashMap<>();
-
-        FieldList<T> fieldList = getFieldsOfClass(entity.getClass());
-        for (T solrField : fieldList) {
-            Optional<Field> fieldOptional = getDeclaredField(entity.getClass(), solrField.getName());
-            if (fieldOptional.isPresent()) {
-                Field field = fieldOptional.get();
+        final Map<T, Object> values = new HashMap<>();
+        final FieldList<T> fieldList = getFieldsOfClass(entity.getClass());
+        for (final T solrField : fieldList) {
+            final Object fieldValue;
+            final Field field = solrField.getField();
+            final SolrFieldExtractor extractor = solrField.getExtractor();
+            
+            if (extractor != null) {
+                fieldValue = extractor.extract(entity);
+            } else if (field != null) {
                 field.setAccessible(true);
-                values.put(solrField, field.get(entity));
+                fieldValue = getFieldValue(entity, field);
+            } else {
+                throw new NullPointerException("FieldValue cannot be null");
             }
+            
+            values.put(solrField, fieldValue);
         }
+
+        if (entity.getId() != null) {
+            final T idField = newSolrField(ID);
+            idField.setDataType(Long.class);
+            idField.setPostfixNeeded(false);
+            values.put(idField, entity.getId());
+        }
+        
+        addBreadcrumbsIfNeeded(entity, values);
 
         return values;
     }
 
+    private Object getFieldValue(final Object entity, final Field field) {
+        
+        try {
+            return field.get(entity);
+        } catch (final IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void addBreadcrumbsIfNeeded(final Object entity, final Map<T, Object> values) {
+
+        if (entity instanceof Breadcrumb) {
+            final Breadcrumb bc = (Breadcrumb)entity;
+            try {
+                final List<BreadcrumbDTO> breadcrumbs = breadcrumbService.getBreadcrumbs(bc)
+                        .stream()
+                        .map(v -> conversionService.convert(v, BreadcrumbDTO.class))
+                        .collect(Collectors.toList());
+                final T field = newSolrField(BREADCRUMBS);
+                field.setPostfixNeeded(Boolean.FALSE);
+                field.setSearchable(Boolean.FALSE);
+                values.put(field, objectMapper.writeValueAsString(breadcrumbs));
+            } catch (final JsonProcessingException e) {
+                throw new UnsupportedOperationException(e);
+            }
+        }
+    }
+
     @Override
     public void putDocument(
-            String collection,
-            Long id,
-            Map<T, Object> values
-    ) throws IOException, SolrServerException {
+            final String collection,
+            final Long id,
+            final Map<T, Object> values
+    ) {
 
-        SolrInputDocument document = new SolrInputDocument();
+        try {
+            final SolrInputDocument document = createSolrDocument(collection, id, values);
 
-        for (Map.Entry<T, Object> field : values.entrySet()) {
-            SolrField solrField = field.getKey();
-            Object rawValue = field.getValue();
+            final UpdateResponse updateResponse = solrClient.add(collection, document);
+            final UpdateResponse commitResponse = solrClient.commit(collection);
+
+            if (commitResponse.getStatus() != 0 || updateResponse.getStatus() != 0) {
+                throw new SolrServerException("Cannot index by Solr");
+            }    
+        } catch( IOException | SolrServerException e) {
+            throw new SolrException(e);
+        }
+        
+    }
+    
+    @Override
+    public void putDocuments(
+            final String collection,
+            final List<Map<T, Object>> valuesList
+    ) {
+
+        try {
+            final List<SolrInputDocument> documents = valuesList.stream().map(v -> createSolrDocument(collection, v)).collect(Collectors.toList());
+
+            final UpdateResponse updateResponse = solrClient.add(collection, documents);
+            final UpdateResponse commitResponse = solrClient.commit(collection);
+
+            if (commitResponse.getStatus() != 0 || updateResponse.getStatus() != 0) {
+                throw new SolrServerException("Cannot index by Solr");
+            }
+        } catch( IOException | SolrServerException e) {
+            throw new SolrException(e);
+        }
+    }
+        
+    
+    private SolrInputDocument createSolrDocument(final String entityType, final Map<T, Object> values) {
+        
+        // in this case ID will be taken from values
+        return this.createSolrDocument(entityType, null, values);
+    }
+    
+    private SolrInputDocument createSolrDocument(final String entityType, final Long id, final Map<T, Object> values) {
+
+        final SolrInputDocument document = new SolrInputDocument();
+
+        for (final Map.Entry<T, Object> field : values.entrySet()) {
+            final T solrField = field.getKey();
+            final Object rawValue = field.getValue();
             // Note: value for filtering and value for full-text search can differ.
             // E.g. main value may be an id of object,
             // and full-text search should be done over human-readable representation of such object
@@ -150,12 +287,12 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
             // Parse saved value
             if (rawValue != null) {
                 if (rawValue instanceof Collection<?>) {
-                    Collection rawValueList = (Collection) rawValue;
-                    int arrSize = rawValueList.size();
-                    Object[] valArray = new Object[arrSize];
-                    Object[] queryValArray = new Object[arrSize];
+                    final Collection rawValueList = (Collection) rawValue;
+                    final int arrSize = rawValueList.size();
+                    final Object[] valArray = new Object[arrSize];
+                    final Object[] queryValArray = new Object[arrSize];
                     int index = 0;
-                    for (Object rawValueEntry : rawValueList) {
+                    for (final Object rawValueEntry : rawValueList) {
                         if (rawValueEntry instanceof SolrValue) {
                             valArray[index] = ((SolrValue) rawValueEntry).getSolrValue();
                             queryValArray[index] = ((SolrValue) rawValueEntry).getSolrQueryValue();
@@ -183,38 +320,121 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
             }
 
             document.addField(solrField.getSolrName(), value);
+
+            if (solrField.isSortNeeded() && solrField.isMultiValuesType()) {
+                String valueForSort = null;
+                if (!StringUtils.isEmpty((String) queryValue)) {
+                    final List<String> list = Arrays.asList(StringUtils.split(((String) queryValue)));
+                    Collections.sort(list);
+                    valueForSort = String.join(" ", list);
+                }
+                document.addField(solrField.getMultiValuesTypeFieldName(), valueForSort);
+            }
+            
+            
         }
 
-        document.addField(ID, id);
+        // these two fields will be concatenated into solr document id
+        if (document.getField(ID) == null) {
+            if (id == null) {
+                throw new IllegalArgumentException("Id cannot be null");
+            } else {
+                document.addField(ID, id);
+            }
+        }
+        document.addField(TYPE, entityType);
+        return document;
+    }
 
-        // Example of calling RequestProcessorChain for update:
-        // UpdateRequest updateRequest = new UpdateRequest();
-        // updateRequest.setCommitWithin(1000);
-        // updateRequest.setParam("update.chain", "query_agg");
-        // updateRequest.add(document);
-        // UpdateResponse updateResponse = updateRequest.process(solrClient);
+    private SolrQuery addTenantFilter(final SolrQuery solrQuery) {
 
-        UpdateResponse updateResponse = solrClient.add(collection, document);
-        UpdateResponse commitResponse = solrClient.commit(collection);
+        final String tenancyFilter = BaseSolrService.TENANTS + ":" + TenantContext.getCurrentTenant().toString();
+        return solrQuery.addFilterQuery(tenancyFilter);
+    }
 
-        if (commitResponse.getStatus() != 0 || updateResponse.getStatus() != 0) {
-            throw new SolrServerException("Cannot index by Solr");
+    @Override
+    public QueryResponse search(
+            final String collection,
+            SolrQuery solrQuery,
+            final Boolean isTenantsFilteringNeeded
+    ) {
+
+        if (isTenantsFilteringNeeded) {
+            solrQuery = addTenantFilter(solrQuery);
+        }
+        try {
+            return solrClient.query(collection, solrQuery);
+        } catch (SolrServerException | IOException e) {
+            throw new SolrException(e);
         }
     }
 
     @Override
     public QueryResponse search(
-            String collection,
-            SolrQuery solrQuery
-    ) throws IOException, SolrServerException {
+            final String collection,
+            final SolrQuery solrQuery
+    ) {
 
-        return solrClient.query(collection, solrQuery);
+        return search(collection, solrQuery, false);
     }
 
     @Override
-    public void deleteByQuery(String collection, String query) throws IOException, SolrServerException {
+    public void deleteByQuery(final String collection, final String query) {
 
-        solrClient.deleteByQuery(collection, query);
-        solrClient.commit(collection);
+        try {
+            solrClient.deleteByQuery(collection, query);
+            solrClient.commit(collection);       
+        } catch( IOException | SolrServerException e) {
+            throw new SolrException(e);
+        }
+    }
+
+    @Override
+    public void indexBySolr(final SolrEntity entity) {
+        
+        try {
+            final Map<T, Object> values = getValuesByEntity(entity);
+            putDocument(
+                    entity.getCollection().getName(),
+                    entity.getId(),
+                    values
+            );
+        } catch (final Exception e) {
+            throw new SolrException(e);
+        }
+    }
+    
+    @Override
+    public void indexBySolr(final List<? extends SolrEntity> entities) {
+        
+        try {
+            final Map<SolrCollection, List<SolrEntity>> entitiesGroupByCollection = entities
+                    .stream()
+                    .collect(Collectors.groupingBy(SolrEntity::getCollection));
+            entitiesGroupByCollection.forEach((key, value) -> putDocuments(
+                    key.getName(), 
+                    value.stream().map(this::getValuesByEntity).collect(Collectors.toList())
+            ));
+        } catch (final Exception e) {
+            throw new SolrException(e);
+        }
+    }
+
+    @Override
+    public void delete(final SolrEntity entity) {
+
+        delete(entity.getCollection(), entity.getSolrId());
+    }
+    
+    @Override
+    public void delete(final SolrCollection collection, final String id) {
+        
+        deleteByQuery(collection.getName(), "id:" + id);
+    }
+
+    @Override
+    public void deleteAll(final SolrCollection collection) {
+
+        deleteByQuery(collection.getName(), "*:*");
     }
 }

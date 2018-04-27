@@ -23,10 +23,11 @@
 package com.odysseusinc.arachne.portal.service;
 
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import java.io.File;
 import java.io.IOException;
 
 public interface AchillesImportService {
 
-    void importData(DataSource dataSource, File archivedData) throws IOException;
+    void importData(IDataSource dataSource, File archivedData) throws IOException;
 }
