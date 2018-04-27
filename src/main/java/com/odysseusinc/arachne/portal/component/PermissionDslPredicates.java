@@ -42,35 +42,52 @@ public class PermissionDslPredicates {
         return targetClass::isInstance;
     }
 
-    public static <T extends Analysis> Predicate<T> analysisAuthorIs(ArachneUser user) {
-        return analysis -> Objects.nonNull(analysis.getAuthor()) && Objects.equals(analysis.getAuthor().getId(), user.getId());
+    public static class AnalysisPredicates {
+        
+        public static <T extends Analysis> Predicate<T> analysisAuthorIs(ArachneUser user) {
+            return analysis -> Objects.nonNull(analysis.getAuthor()) && Objects.equals(analysis.getAuthor().getId(), user.getId());
+        }
+
+        public static <T extends Analysis> Predicate<T> userIsLeadInvestigator(ArachneUser user) {
+            return analysis -> Objects.nonNull(analysis)
+                    && getRoles(user, analysis)
+                    .anyMatch(ParticipantRole.LEAD_INVESTIGATOR::equals);
+        }
+    }
+    
+    public static class AnalysisFilePredicates {
+        public static <T extends AnalysisFile> Predicate<T> analysisFileAuthorIs(ArachneUser user) {
+            return analysisFile -> Objects.nonNull(analysisFile.getAuthor())
+                    && Objects.equals(analysisFile.getAuthor().getId(), user.getId());
+        }
+
+        public static <T extends AnalysisFile> Predicate<T> userIsLeadInvestigator(ArachneUser user) {
+            return analysisFile -> Objects.nonNull(analysisFile.getAnalysis())
+                    && getRoles(user, analysisFile)
+                    .anyMatch(ParticipantRole.LEAD_INVESTIGATOR::equals);
+        }
+
+        public static <T extends AnalysisFile> Predicate<T> userIsDSOwner(ArachneUser user) {
+            return analysisFile -> Objects.nonNull(analysisFile.getAnalysis())
+                    && getRoles(user, analysisFile)
+                    .anyMatch(ParticipantRole.DATA_SET_OWNER::equals);
+        }
     }
 
-    public static <T extends AnalysisFile> Predicate<T> analysisFileAuthorIs(ArachneUser user) {
-        return analysisFile -> Objects.nonNull(analysisFile.getAuthor())
-                && Objects.equals(analysisFile.getAuthor().getId(), user.getId());
-    }
-
-    public static <T extends AnalysisFile> Predicate<T> userIsLeadInvestigator(ArachneUser user) {
-        return analysisFile -> Objects.nonNull(analysisFile.getAnalysis())
-                && getRoles(user, analysisFile)
-                .anyMatch(ParticipantRole.LEAD_INVESTIGATOR::equals);
-    }
-
-    public static <T extends AnalysisFile> Predicate<T> userIsDSOwner(ArachneUser user) {
-        return analysisFile -> Objects.nonNull(analysisFile.getAnalysis())
-                && getRoles(user, analysisFile)
-                .anyMatch(ParticipantRole.DATA_SET_OWNER::equals);
-    }
 
     private static <T extends AnalysisFile> Stream<ParticipantRole> getRoles(ArachneUser user, T analysisFile) {
 
-        return analysisFile.getAnalysis().getStudy().getParticipants().stream()
+        return getRoles(user, analysisFile.getAnalysis());
+    }
+
+    private static <T extends Analysis> Stream<ParticipantRole> getRoles(final ArachneUser user, final T analysis) {
+
+        return analysis.getStudy().getParticipants().stream()
                 .filter(userLink -> Objects.equals(user.getId(), userLink.getUser().getId()))
                 .filter(userLink -> ParticipantStatus.APPROVED.equals(userLink.getStatus()))
                 .map(UserStudyExtended::getRole);
     }
-
+    
     public static <T> Predicate<T> hasRole(ArachneUser user, String role) {
         return entity -> user.getAuthorities().contains(new SimpleGrantedAuthority(role));
     }

@@ -22,11 +22,11 @@
 package com.odysseusinc.arachne.portal.component;
 
 import static com.odysseusinc.arachne.portal.component.PermissionDsl.domainObject;
-import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.analysisAuthorIs;
-import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.analysisFileAuthorIs;
+import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.*;
+import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.AnalysisFilePredicates.analysisFileAuthorIs;
+import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.AnalysisPredicates.analysisAuthorIs;
 import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.hasRole;
 import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.instanceOf;
-import static com.odysseusinc.arachne.portal.component.PermissionDslPredicates.userIsLeadInvestigator;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.DELETE_ANALYSIS_FILES;
 import static com.odysseusinc.arachne.portal.security.ArachnePermission.DELETE_DATASOURCE;
 
@@ -168,11 +168,12 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends IDataSource> 
                 .then(analysis -> getArachnePermissions(secureService.getRolesByAnalysis(user, analysis)))
                 .filter((analysis, permission) -> !(ArachnePermission.DELETE_ANALYSIS.equals(permission)
                         && (
-                        Objects.isNull(analysis.getAuthor())
-                                || !Objects.equals(user.getId(), analysis.getAuthor().getId())
-                                || (Objects.nonNull(analysis.getFiles()) && !analysis.getFiles().isEmpty())
-                                || (Objects.nonNull(analysis.getSubmissions()) && !analysis.getSubmissions().isEmpty())
-                ))).apply()
+                            Objects.isNull(analysis.getAuthor())
+                                    || !(Objects.equals(user.getId(), analysis.getAuthor().getId()) || AnalysisPredicates.userIsLeadInvestigator(user).test(analysis))
+                                    || (Objects.nonNull(analysis.getFiles()) && !analysis.getFiles().isEmpty())
+                                    || (Objects.nonNull(analysis.getSubmissions()) && !analysis.getSubmissions().isEmpty())
+                            )
+                )).apply()
                 .when(instanceOf(Analysis.class).and(analysisAuthorIs(user)))
                 .then(analysis -> Collections.singleton(DELETE_ANALYSIS_FILES)).apply();
     }
@@ -188,7 +189,7 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends IDataSource> 
         return domainObject(domainObject)
                 .when(instanceOf(AnalysisFile.class).and(analysisFileAuthorIs(user)))
                 .then(file -> Collections.singleton(DELETE_ANALYSIS_FILES)).apply()
-                .when(instanceOf(AnalysisFile.class).and(userIsLeadInvestigator(user)))
+                .when(instanceOf(AnalysisFile.class).and(AnalysisFilePredicates.userIsLeadInvestigator(user)))
                 .then(file -> Collections.singleton(DELETE_ANALYSIS_FILES)).apply();
     }
 
@@ -302,6 +303,11 @@ public class ArachnePermissionEvaluator<T extends Paper, D extends IDataSource> 
                     final Set<ArachnePermission> filePermissions = getAllPermissions(file, user);
                     file.setPermissions(filePermissions);
                 });
+            }
+        } else if (hasPermissionsObj instanceof Study) {
+            final Study study = (Study) hasPermissionsObj;
+            for (final Analysis analysis : study.getAnalyses()) {
+                analysis.setPermissions(getAllPermissions(analysis, user));
             }
         }
         return true;
