@@ -90,6 +90,7 @@ import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
 import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
+import com.odysseusinc.arachne.portal.service.mail.NewUserMailMessage;
 import com.odysseusinc.arachne.portal.service.mail.RegistrationMailMessage;
 import com.odysseusinc.arachne.portal.service.mail.RemindPasswordMailMessage;
 import com.odysseusinc.arachne.portal.util.EntityUtils;
@@ -181,6 +182,9 @@ public abstract class BaseUserServiceImpl<
     private Resource defaultAvatar = new ClassPathResource("avatar.svg");
     @Value("${portal.authMethod}")
     protected String userOrigin;
+
+    @Value("${portal.notifyAdminAboutNewUser}")
+    protected boolean notifyAdminAboutNewUser;
 
     private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -366,6 +370,21 @@ public abstract class BaseUserServiceImpl<
         user.setEnabled(userEnableDefault);
         U savedUser = rawUserRepository.save(user);
         indexBySolr(savedUser);
+
+        if (notifyAdminAboutNewUser) {
+            sendNotificationAboutNewUserToAdmin(savedUser);
+        }
+    }
+
+    protected void sendNotificationAboutNewUserToAdmin(U newUser) {
+
+        List<U> admins = getAllAdmins("name", true);
+
+        if (Objects.nonNull(admins)) {
+            admins.forEach(u -> arachneMailSender.send(
+                    new NewUserMailMessage(WebSecurityConfig.getDefaultPortalURI(), u, newUser)
+            ));
+        }
     }
 
     @Override

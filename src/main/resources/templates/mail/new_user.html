@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <style>
+        div,p {
+            color: black;
+        }
+    </style>
+</head>
+<body>
+<p th:text="Dear+' '+${userFirstName}+', '"></p>
+<div>
+    There is new user registered - <a th:href="${userUrl}"><span class="btn-link" th:text="${userName}"></span></a>.
+    <br/>
+    This notification was sent to you since you are the site's administrator.
+</div>
+<p>
+    Regards,<br/>
+    Odysseus Data Services, Inc.
+</p>
+</body>
+</html>
