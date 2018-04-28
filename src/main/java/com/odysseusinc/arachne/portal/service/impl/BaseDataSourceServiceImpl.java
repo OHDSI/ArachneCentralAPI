@@ -439,9 +439,7 @@ public abstract class BaseDataSourceServiceImpl<
 
         solrService.deleteAll(SolrCollection.DATA_SOURCES);
         final List<DS> dataSourceList = getAllNotDeletedAndIsNotVirtualFromAllTenants(true);
-        for (final DS dataSource : dataSourceList) {
-            indexBySolr(dataSource);
-        }
+        solrService.indexBySolr(dataSourceList);
     }
 
     protected SolrQuery addFilterQuery(SolrQuery solrQuery, IUser user) throws NoSuchFieldException {

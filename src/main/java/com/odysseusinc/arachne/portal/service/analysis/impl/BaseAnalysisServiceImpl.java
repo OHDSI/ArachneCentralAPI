@@ -908,10 +908,7 @@ public abstract class BaseAnalysisServiceImpl<
     @Override
     public void indexAllBySolr() throws IOException, NotExistException, SolrServerException, NoSuchFieldException, IllegalAccessException {
         solrService.deleteAll(SolrCollection.ANALYSES);
-        final List<A> analyses = analysisRepository.findAll();
-        for (final A analysis : analyses) {
-            indexBySolr(analysis);
-        }
+        solrService.indexBySolr(analysisRepository.findAll());
     }
 
     @Override
