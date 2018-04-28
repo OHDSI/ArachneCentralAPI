@@ -172,8 +172,6 @@ public abstract class BaseAnalysisServiceImpl<
     protected final StudyStateMachine studyStateMachine;
     @Value("${files.store.path}")
     private String fileStorePath;
-    @Value("${arachne.solrBatchSize}")
-    private int solrBatchSize;
     protected final BaseStudyService<S, DS, SS, SU> studyService;
     protected final AnalysisHelper analysisHelper;
     protected final StudyFileService fileService;
@@ -910,7 +908,7 @@ public abstract class BaseAnalysisServiceImpl<
     @Override
     public void indexAllBySolr() throws IOException, NotExistException, SolrServerException, NoSuchFieldException, IllegalAccessException {
         solrService.deleteAll(SolrCollection.ANALYSES);
-        EntityUtils.split(solrService::indexBySolr, analysisRepository.findAll(), solrBatchSize);
+        solrService.indexBySolr(analysisRepository.findAll());
     }
 
     @Override
