@@ -182,6 +182,8 @@ public abstract class BaseUserServiceImpl<
     private Resource defaultAvatar = new ClassPathResource("avatar.svg");
     @Value("${portal.authMethod}")
     protected String userOrigin;
+    @Value("${arachne.solrBatchSize}")
+    private int solrBatchSize;
 
     @Value("${portal.notifyAdminAboutNewUser}")
     protected boolean notifyAdminAboutNewUser;
@@ -912,18 +914,13 @@ public abstract class BaseUserServiceImpl<
         solrService.indexBySolr(user);
     }
 
-    private void indexBySolr(final List<U> users) {
-
-        solrService.indexBySolr(users);
-    }
-
     @Override
     public void indexAllBySolr()
             throws NotExistException {
 
         solrService.deleteAll(SolrCollection.USERS);
         final List<U> userList = getAllEnabledFromAllTenants();
-        EntityUtils.split(this::indexBySolr, userList, 90);
+        EntityUtils.split(solrService::indexBySolr, userList, solrBatchSize);
     }
 
     protected QueryResponse solrSearch(SolrQuery solrQuery) throws NoSuchFieldException, IOException, SolrServerException {
