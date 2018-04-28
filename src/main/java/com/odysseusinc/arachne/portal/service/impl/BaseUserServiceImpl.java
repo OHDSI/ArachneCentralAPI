@@ -247,7 +247,17 @@ public abstract class BaseUserServiceImpl<
     @Override
     public U getByUsernameInAnyTenant(final String username) {
 
-        return rawUserRepository.findByEmailAndEnabledTrue(username);
+        return getByUsernameInAnyTenant(username, false);
+    }
+
+    @Override
+    public U getByUsernameInAnyTenant(final String username, boolean includeDeleted) {
+
+        if (includeDeleted) {
+            return rawUserRepository.findByEmail(username);
+        } else {
+            return rawUserRepository.findByEmailAndEnabledTrue(username);
+        }
     }
 
     @Override
