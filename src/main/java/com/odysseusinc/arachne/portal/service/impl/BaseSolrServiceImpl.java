@@ -412,10 +412,10 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
     @Override
     public void indexBySolr(final List<? extends SolrEntity> entities) {
         
-        EntityUtils.splitAndApplyBatchFunction(this::indexBySolrIternal, entities, solrBatchSize);
+        EntityUtils.splitAndApplyBatchFunction(this::indexBySolrInternal, entities, solrBatchSize);
     }
 
-    public void indexBySolrIternal(final List<? extends SolrEntity> entities) {
+    public void indexBySolrInternal(final List<? extends SolrEntity> entities) {
         
         try {
             final Map<SolrCollection, List<SolrEntity>> entitiesGroupByCollection = entities
