@@ -75,6 +75,7 @@
             id="1"
             study_id="1"
             type="COHORT"
+            author_id="1"
     />
 
 </dataset>
