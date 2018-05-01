@@ -719,8 +719,10 @@ public abstract class BaseUserController<
 
         final DN datanode = Optional.ofNullable(baseDataNodeService.getById(datanodeId)).orElseThrow(() ->
                 new NotExistException(String.format(DATA_NODE_NOT_FOUND_EXCEPTION, datanodeId), DataNode.class));
-        final U user = userService.getByUsernameInAnyTenant(linkUserToDataNode.getUserName());
-        baseDataNodeService.unlinkUserToDataNode(datanode, user);
+        final U user = userService.getByUsernameInAnyTenant(linkUserToDataNode.getUserName(), true);
+        if (user != null) {
+            baseDataNodeService.unlinkUserToDataNode(datanode, user);
+        }
         return new JsonResult(NO_ERROR);
     }
 
