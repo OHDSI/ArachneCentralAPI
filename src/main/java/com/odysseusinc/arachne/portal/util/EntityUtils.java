@@ -56,7 +56,7 @@ public class EntityUtils {
      * @param list list of values
      * @param batchSize size of batch
      */
-    public static <T> void split(final Consumer<List<T>> f, final List<T> list, final int batchSize) {
+    public static <T> void splitAndApplyBatchFunction(final Consumer<List<T>> f, final List<T> list, final int batchSize) {
 
         Lists.partition(list, batchSize).forEach(f);
     }

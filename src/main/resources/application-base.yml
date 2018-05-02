@@ -93,6 +93,7 @@ arachne:
     resetMinutes: 3
   passwordBlacklist: password,secret,arachne
   solrServerUrl: http://localhost:8983/solr
+  solrBatchSize: 90
   mail:
     notifier: odysseusinc.notifier@gmail.com
     signature: Regards,<br/> Odysseus Data Services, Inc.
