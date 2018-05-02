@@ -26,7 +26,7 @@ import com.odysseusinc.arachne.portal.model.IUser;
 
 public class RemindPasswordMailMessage extends ArachneMailMessage implements UserRegistrantMailMessage {
 
-    private String subject = "Arachne reset password";
+    private String subject = "${app-title} reset password";
     private String template = "mail/remind_password";
 
     public RemindPasswordMailMessage(IUser user, String portalUrl, String token) {
