@@ -37,6 +37,7 @@ import com.odysseusinc.arachne.portal.service.BreadcrumbService;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
+import com.odysseusinc.arachne.portal.util.EntityUtils;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -57,6 +58,7 @@ import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.convert.ConversionService;
 
@@ -64,6 +66,9 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
 
     private static final String QUERY_FIELD_PREFIX = "query_";
 
+    @Value("${arachne.solrBatchSize}")
+    private int solrBatchSize;
+    
     @Autowired
     private SolrClient solrClient;
 
@@ -403,9 +408,14 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
             throw new SolrException(e);
         }
     }
-    
+
     @Override
     public void indexBySolr(final List<? extends SolrEntity> entities) {
+        
+        EntityUtils.splitAndApplyBatchFunction(this::indexBySolrInternal, entities, solrBatchSize);
+    }
+
+    public void indexBySolrInternal(final List<? extends SolrEntity> entities) {
         
         try {
             final Map<SolrCollection, List<SolrEntity>> entitiesGroupByCollection = entities
