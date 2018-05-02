@@ -76,6 +76,8 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
 
     U getByUsernameInAnyTenant(final String username);
 
+    U getByUsernameInAnyTenant(final String username, boolean includeDeleted);
+
     void remove(Long id)
             throws ValidationException, UserNotFoundException, NotExistException, IOException, SolrServerException;
 
