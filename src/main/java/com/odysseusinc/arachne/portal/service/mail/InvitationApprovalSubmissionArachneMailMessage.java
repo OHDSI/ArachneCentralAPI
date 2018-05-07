@@ -46,7 +46,7 @@ public class InvitationApprovalSubmissionArachneMailMessage extends InvitationAr
     @Override
     protected String getSubject() {
 
-        return submission.getStatus().isFinished() ? "Arachne request to publish a submission" : "Arachne request to execute a submission";
+        return submission.getStatus().isFinished() ? "${app-title} request to publish a submission" : "${app-title} request to execute a submission";
     }
 
     @Override

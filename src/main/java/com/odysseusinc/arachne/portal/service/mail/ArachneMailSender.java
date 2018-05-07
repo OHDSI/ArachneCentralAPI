@@ -37,6 +37,7 @@ import org.thymeleaf.context.Context;
 @Service
 public class ArachneMailSender {
     private static final Logger LOG = LoggerFactory.getLogger(ArachneMailSender.class);
+    private static final String SIGNATURE = "signature";
 
     @Autowired
     private TemplateEngine templateEngine;
@@ -45,6 +46,12 @@ public class ArachneMailSender {
 
     @Value("${arachne.mail.notifier}")
     private String from;
+
+    @Value("${arachne.mail.signature}")
+    private String signature;
+
+    @Value("${arachne.mail.app-title}")
+    private String appTitle;
 
     @Autowired
     public ArachneMailSender(JavaMailSender mailSender) {
@@ -58,8 +65,8 @@ public class ArachneMailSender {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper;
             helper = new MimeMessageHelper(message, true);
-            helper.setSubject(mailMessage.getSubject());
-            helper.setFrom(from, mailMessage.getFromPersonal());
+            helper.setSubject(mailMessage.getSubject().replaceAll("\\$\\{app-title\\}", appTitle));
+            helper.setFrom(from, mailMessage.getFromPersonal().replaceAll("\\$\\{app-title\\}", appTitle));
             helper.setTo(mailMessage.getUser().getEmail());
             helper.setText(buildContent(mailMessage.getTemplate(), mailMessage.getParameters()), true);
             mailSender.send(message);
@@ -72,6 +79,7 @@ public class ArachneMailSender {
     public String buildContent(String templateName, Map<String, Object> parameters) {
 
         Context context = new Context();
+        parameters.put(SIGNATURE, signature);
         context.setVariables(parameters);
         return templateEngine.process(templateName, context);
     }

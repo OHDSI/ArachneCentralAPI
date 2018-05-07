@@ -28,6 +28,7 @@ import com.odysseusinc.arachne.portal.security.AuthenticationTokenFilter;
 import com.odysseusinc.arachne.portal.security.DataNodeAuthenticationProvider;
 import com.odysseusinc.arachne.portal.security.EntryPointUnauthorizedHandler;
 import com.odysseusinc.arachne.portal.security.HostNameIsNotInServiceException;
+import com.odysseusinc.arachne.portal.security.LoginRequestFilter;
 import com.odysseusinc.arachne.portal.security.Roles;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.PasswordValidatorBuilder;
@@ -207,6 +208,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
+    public LoginRequestFilter loginRequestFilter() {
+
+        return new LoginRequestFilter();
+    }
+
+    @Bean
     public HostFilter hostFilter() {
 
         return new HostFilter(urls);
@@ -297,6 +304,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .addFilterBefore(authenticationTokenFilterBean(), UsernamePasswordAuthenticationFilter.class);
         // DataNode authentication
         http.addFilterBefore(authenticationSystemTokenFilter(), AuthenticationTokenFilter.class);
+        http.addFilterAfter(loginRequestFilter(), AuthenticationTokenFilter.class);
         http.addFilterBefore(hostfilter, AuthenticationSystemTokenFilter.class);
     }
 

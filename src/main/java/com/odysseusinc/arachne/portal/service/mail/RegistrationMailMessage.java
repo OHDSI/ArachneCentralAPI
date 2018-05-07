@@ -26,7 +26,7 @@ import com.odysseusinc.arachne.portal.model.IUser;
 
 public class RegistrationMailMessage extends ArachneMailMessage implements UserRegistrantMailMessage {
 
-    private String subject = "Arachne registration";
+    private String subject = "${app-title} registration";
     private String template = "mail/registration";
 
     public RegistrationMailMessage(IUser user, String portalUrl, String registrationCode) {
