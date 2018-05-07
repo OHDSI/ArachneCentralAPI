@@ -37,7 +37,10 @@ public class InvitationApprovalSubmissionArachneMailMessage extends InvitationAr
         this.submission = submission;
 
         parameters.put("userUuid", user.getUuid());
-        parameters.put("analysesUrl", portalUrl + "/analysis-execution/analyses/" + submission.getAnalysis().getId());
+        parameters.put("analysisUrl", portalUrl + "/analysis-execution/analyses/" + submission.getAnalysis().getId());
+        parameters.put("analysisTitle", submission.getAnalysis().getTitle());
+        parameters.put("studyUrl", portalUrl + "study-manager/studies/" + submission.getAnalysis().getStudy().getId());
+        parameters.put("studyTitle", submission.getAnalysis().getStudy().getTitle());
         parameters.put("submissionId", submission.getId());
         parameters.put("userFirstName", user.getFirstname());
     }
