@@ -38,6 +38,8 @@ public interface BaseDataNodeService<DN extends DataNode> {
 
     List<DN> findAllIsNotVirtual();
 
+    List<DN> suggestDataNode(Long userId);
+
     DN getById(Long id) throws NotExistException;
 
     void linkUserToDataNode(DN dataNode, IUser user)
