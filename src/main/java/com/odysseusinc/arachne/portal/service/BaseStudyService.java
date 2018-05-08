@@ -142,7 +142,9 @@ public interface BaseStudyService<
             NoSuchFieldException,
             IllegalAccessException;
 
-    List<T> findAllInAnyTenants();
+    List<T> findWithPapersInAnyTenant();
+
+    List<T> findWithAnalysesInAnyTenant();
 
     List<T> findByIdsInAnyTenant(Set<Long> studyIds);
     
