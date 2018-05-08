@@ -987,9 +987,15 @@ public abstract class BaseStudyServiceImpl<
     }
 
     @Override
-    public List<T> findAllInAnyTenants() {
+    public List<T> findWithPapersInAnyTenant() {
 
         return studyRepository.findWithPapersInAnyTenant();
+    }
+
+    @Override
+    public List<T> findWithAnalysesInAnyTenant() {
+
+        return studyRepository.findWithAnalysesInAnyTenant();
     }
 
     @Override
