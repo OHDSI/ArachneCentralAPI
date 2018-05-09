@@ -242,6 +242,14 @@ public abstract class BaseDataNodeController<
         return converterUtils.convertList(dataNodes, CommonDataNodeDTO.class);
     }
 
+    @RequestMapping(value = "/api/v1/data-nodes/suggest", method = RequestMethod.GET)
+    public List<CommonDataNodeDTO> suggestDataNodes(Principal principal) throws PermissionDeniedException {
+
+        IUser user = getUser(principal);
+        List<DN> dataNodes = baseDataNodeService.suggestDataNode(user.getId());
+        return converterUtils.convertList(dataNodes, CommonDataNodeDTO.class);
+    }
+
     @RequestMapping(value = "/api/v1/data-nodes/byuuid/{dataNodeUuid}", method = RequestMethod.GET)
     public JsonResult<CommonDataNodeDTO> getDataNode(@PathVariable("dataNodeUuid") String dataNodeUuid) {
 
