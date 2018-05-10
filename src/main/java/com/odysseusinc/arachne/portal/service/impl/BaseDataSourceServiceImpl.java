@@ -28,7 +28,6 @@ import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
 import com.odysseusinc.arachne.portal.config.tenancy.TenantContext;
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
-import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.DataSourceStatus;
 import com.odysseusinc.arachne.portal.model.IDataSource;
@@ -237,7 +236,8 @@ public abstract class BaseDataSourceServiceImpl<
     public DS updateWithoutMetadataInAnyTenant(DS dataSource)
             throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
-        return updateInAnyTenant(dataSource, pair -> {});
+        return updateInAnyTenant(dataSource, pair -> {
+        });
     }
 
     private DS baseUpdate(DS exist, DS dataSource) {
@@ -337,6 +337,7 @@ public abstract class BaseDataSourceServiceImpl<
     @Override
     public Page<DS> suggestDataSource(final String query, final Long studyId, final Long userId,
                                       PageRequest pageRequest) {
+
         List<DataSourceStatus> BAD_STATUSES = Arrays.asList(DataSourceStatus.DELETED, DataSourceStatus.DECLINED);
         final String[] split = query.trim().split(" ");
 
@@ -355,8 +356,8 @@ public abstract class BaseDataSourceServiceImpl<
         if (split.length > 1 || (split.length == 1 && !split[0].equals(""))) {
             List<Predicate> predictList = new ArrayList<>();
             for (String one : split) {
-                predictList.add(cb.like(cb.lower(root.get("name")), one + "%"));
-                predictList.add(cb.like(cb.lower(root.get("dataNode").get("name")), one + "%"));
+                predictList.add(cb.like(cb.lower(root.get("name")), one.toLowerCase() + "%"));
+                predictList.add(cb.like(cb.lower(root.get("dataNode").get("name")), one.toLowerCase() + "%"));
             }
             nameClause = cb.or(predictList.toArray(new Predicate[]{}));
         }
@@ -425,11 +426,11 @@ public abstract class BaseDataSourceServiceImpl<
         FieldList<SF> fieldList = new FieldList<>();
 
         fieldList.addAll(solrService.getFieldsOfClass(getType()));
-        fieldList.addAll(getExtraSolrFilelds());
+        fieldList.addAll(getExtraSolrFields());
         return fieldList;
     }
 
-    protected List<SF> getExtraSolrFilelds() {
+    protected List<SF> getExtraSolrFields() {
 
         return Collections.emptyList();
     }
