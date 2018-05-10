@@ -98,7 +98,7 @@ public interface BaseDataSourceRepository<T extends IDataSource> extends EntityG
                     "FROM data_sources_data ds " +
                     "JOIN datanodes dn ON dn.id = ds.data_node_id " +
                     "WHERE dn.is_virtual = FALSE " +
-                    "AND ds.deleted IS NULL AND ds.published = TRUE AND (:withManual OR ds.execution_policy != 'MANUAL')")
+                    "AND ds.deleted IS NULL AND ds.published = TRUE AND :withManual")
     List<T> getAllNotDeletedAndIsNotVirtualAndPublishedTrueFromAllTenants(@Param("withManual") boolean withManual);
 
     @Transactional
