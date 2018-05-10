@@ -236,8 +236,7 @@ public abstract class BaseDataSourceServiceImpl<
     public DS updateWithoutMetadataInAnyTenant(DS dataSource)
             throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
-        return updateInAnyTenant(dataSource, pair -> {
-        });
+        return updateInAnyTenant(dataSource, pair -> {});
     }
 
     private DS baseUpdate(DS exist, DS dataSource) {
