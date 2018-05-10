@@ -300,11 +300,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .anyRequest().permitAll();
 
         // Custom JWT based authentication
-        http
-                .addFilterBefore(authenticationTokenFilterBean(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(loginRequestFilter(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(authenticationTokenFilterBean(), LoginRequestFilter.class);
         // DataNode authentication
         http.addFilterBefore(authenticationSystemTokenFilter(), AuthenticationTokenFilter.class);
-        http.addFilterAfter(loginRequestFilter(), AuthenticationTokenFilter.class);
         http.addFilterBefore(hostfilter, AuthenticationSystemTokenFilter.class);
     }
 
