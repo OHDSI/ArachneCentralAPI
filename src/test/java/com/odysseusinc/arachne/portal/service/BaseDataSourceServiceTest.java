@@ -1,6 +1,8 @@
 package com.odysseusinc.arachne.portal.service;
 
+import com.github.springtestdbunit.annotation.DatabaseOperation;
 import com.github.springtestdbunit.annotation.DatabaseSetup;
+import com.github.springtestdbunit.annotation.DatabaseTearDown;
 import com.odysseusinc.arachne.portal.SingleContextTest;
 import edu.emory.mathcs.backport.java.util.Arrays;
 import java.util.Collection;
@@ -20,6 +22,9 @@ import org.springframework.test.context.junit4.rules.SpringClassRule;
 import org.springframework.test.context.junit4.rules.SpringMethodRule;
 
 @RunWith(Parameterized.class)
+@DatabaseSetup("/data/users.xml")
+@DatabaseSetup("/data/published-datanode-with-datasources.xml")
+@DatabaseTearDown(value = "/data/empty.xml", type = DatabaseOperation.DELETE_ALL)
 public class BaseDataSourceServiceTest extends SingleContextTest {
 
     @ClassRule
@@ -39,7 +44,6 @@ public class BaseDataSourceServiceTest extends SingleContextTest {
     public String checkingString;
 
     @Test
-    @DatabaseSetup("/data/published-datanode-with-datasources.xml")
     public void testSuggestionDataSourceDifferentCase() {
         //Arrange
         Sort sort = new Sort(Sort.Direction.ASC, "name");
