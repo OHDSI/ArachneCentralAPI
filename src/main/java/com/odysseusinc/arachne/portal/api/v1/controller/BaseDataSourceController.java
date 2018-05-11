@@ -52,6 +52,8 @@ import java.util.List;
 import javax.validation.Valid;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -74,6 +76,7 @@ public abstract class BaseDataSourceController<
     protected final BaseDataSourceService<DS> dataSourceService;
     protected final ArachneConverterUtils converterUtils;
     protected final StudyDataSourceService studyDataSourceService;
+    protected static final Logger LOGGER = LoggerFactory.getLogger(BaseDataSourceController.class);
 
     public BaseDataSourceController(GenericConversionService conversionService,
                                     BaseDataSourceService<DS> dataSourceService,
@@ -228,11 +231,17 @@ public abstract class BaseDataSourceController<
     @RequestMapping(value = "/api/v1/data-sources/{id}", method = RequestMethod.DELETE)
     public JsonResult deleteDataSource(@PathVariable("id") Long dataSourceId) throws IOException, SolrServerException {
 
-        final DS dataSource = dataSourceService.getNotDeletedByIdInAnyTenant(dataSourceId);
+        JsonResult result = new JsonResult(JsonResult.ErrorCode.NO_ERROR);
+        final DS dataSource;
+        try {
+            dataSource = dataSourceService.getNotDeletedByIdInAnyTenant(dataSourceId);
+        } catch (NotExistException e) {
+            LOGGER.warn("{}, deleting datasource with id = {}",  e.getMessage(), dataSourceId);
+            return result;
+        }
         dataSourceService.unpublish(dataSourceId);
-
         studyDataSourceService.softDeletingDataSource(dataSource.getId());
-        return new JsonResult(JsonResult.ErrorCode.NO_ERROR);
+        return result;
     }
 
     @ApiOperation("Unpublish data source")
