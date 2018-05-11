@@ -10,10 +10,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 public class LoginRequestFilter extends OncePerRequestFilter {
 
+    private static final String USER_REQ_PARAM = "user-req";
+
     @Override
     protected void doFilterInternal(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, FilterChain filterChain) throws ServletException, IOException {
 
-        String username = httpServletRequest.getParameter("user_req");
+        String username = httpServletRequest.getParameter(USER_REQ_PARAM);
         if (Objects.nonNull(username)) {
             LoginRequestContext.setUserName(username);
         }
