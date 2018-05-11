@@ -262,6 +262,7 @@ public class ExceptionHandlingController extends BaseController {
 
                 if (Objects.nonNull(LoginRequestContext.getUserName())) {
                     Cookie cookie = new Cookie(COOKIE_USER_REQUEST, LoginRequestContext.getUserName());
+                    cookie.setPath("/");
                     response.addCookie(cookie);
                 }
 
