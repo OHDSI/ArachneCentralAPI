@@ -22,6 +22,8 @@ import org.springframework.test.context.junit4.rules.SpringClassRule;
 import org.springframework.test.context.junit4.rules.SpringMethodRule;
 
 @RunWith(Parameterized.class)
+@DatabaseSetup("/data/users.xml")
+@DatabaseSetup("/data/published-datanode-with-datasources.xml")
 @DatabaseTearDown(value = "/data/empty.xml", type = DatabaseOperation.DELETE_ALL)
 public class BaseDataSourceServiceTest extends SingleContextTest {
 
@@ -42,8 +44,6 @@ public class BaseDataSourceServiceTest extends SingleContextTest {
     public String checkingString;
 
     @Test
-    @DatabaseSetup("/data/users.xml")
-    @DatabaseSetup("/data/published-datanode-with-datasources.xml")
     public void testSuggestionDataSourceDifferentCase() {
         //Arrange
         Sort sort = new Sort(Sort.Direction.ASC, "name");
