@@ -163,7 +163,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
 
     private void checkIfUserHasTenant(String email) throws UsernameNotFoundException {
         IUser user = userService.getByEmailInAnyTenant(email);
-        if (user == null ||
+        if (user == null || 
                 user.getTenants() == null || user.getTenants().isEmpty()) {
             throw new UsernameNotFoundException(String.format("No user found with email '%s'.", email));
         }
