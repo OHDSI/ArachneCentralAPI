@@ -22,6 +22,8 @@
 
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
+import static com.odysseusinc.arachne.portal.api.v1.controller.util.ControllerUtils.emulateEmailSent;
+
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAuthMethodDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAuthenticationRequest;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAuthenticationResponse;
@@ -29,10 +31,15 @@ import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.api.v1.dto.RemindPasswordDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ResetPasswordDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserInfoDTO;
-import com.odysseusinc.arachne.portal.exception.*;
+import com.odysseusinc.arachne.portal.exception.NotExistException;
+import com.odysseusinc.arachne.portal.exception.PasswordValidationException;
+import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
+import com.odysseusinc.arachne.portal.exception.UserNotActivatedException;
+import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.PasswordReset;
+
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
 import com.odysseusinc.arachne.portal.security.TokenUtils;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordData;
@@ -44,6 +51,10 @@ import com.odysseusinc.arachne.portal.service.PasswordResetService;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
 import edu.vt.middleware.password.Password;
 import io.swagger.annotations.ApiOperation;
+import java.io.IOException;
+import java.security.Principal;
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,13 +71,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-import java.io.IOException;
-import java.security.Principal;
-
-import static com.odysseusinc.arachne.portal.api.v1.controller.util.ControllerUtils.emulateEmailSent;
 
 public abstract class BaseAuthenticationController extends BaseController<DataNode, IUser> {
 
