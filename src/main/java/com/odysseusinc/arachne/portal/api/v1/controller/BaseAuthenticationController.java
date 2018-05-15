@@ -59,13 +59,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.MailSendException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -127,6 +127,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
 
         try {
             checkIfUserBlocked(username);
+            checkIfUserHasTenant(username);
             Authentication authentication = authenticate(authenticationRequest);
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String token = this.tokenUtils.generateToken(username);
@@ -160,6 +161,14 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
 
         if (loginAttemptService.isBlocked(username)) {
             throw new PermissionDeniedException("You have exceeded the number of allowed login attempts. Please try again later.");
+        }
+    }
+
+    private void checkIfUserHasTenant(String email) throws UsernameNotFoundException {
+        IUser user = userService.getByEmailInAnyTenant(email);
+        if (user == null ||
+                user.getTenants() == null || user.getTenants().isEmpty()) {
+            throw new UsernameNotFoundException(String.format("No user found with email '%s'.", email));
         }
     }
 
