@@ -22,8 +22,6 @@
 
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
-import static com.odysseusinc.arachne.portal.api.v1.controller.util.ControllerUtils.emulateEmailSent;
-
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAuthMethodDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAuthenticationRequest;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAuthenticationResponse;
@@ -31,11 +29,7 @@ import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.api.v1.dto.RemindPasswordDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ResetPasswordDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserInfoDTO;
-import com.odysseusinc.arachne.portal.exception.NotExistException;
-import com.odysseusinc.arachne.portal.exception.PasswordValidationException;
-import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
-import com.odysseusinc.arachne.portal.exception.UserNotActivatedException;
-import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
+import com.odysseusinc.arachne.portal.exception.*;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.PasswordReset;
@@ -50,26 +44,29 @@ import com.odysseusinc.arachne.portal.service.PasswordResetService;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
 import edu.vt.middleware.password.Password;
 import io.swagger.annotations.ApiOperation;
-import java.io.IOException;
-import java.security.Principal;
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.MailSendException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+import java.io.IOException;
+import java.security.Principal;
+
+import static com.odysseusinc.arachne.portal.api.v1.controller.util.ControllerUtils.emulateEmailSent;
 
 public abstract class BaseAuthenticationController extends BaseController<DataNode, IUser> {
 
@@ -127,6 +124,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
 
         try {
             checkIfUserBlocked(username);
+            checkIfUserHasTenant(username);
             Authentication authentication = authenticate(authenticationRequest);
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String token = this.tokenUtils.generateToken(username);
@@ -160,6 +158,14 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
 
         if (loginAttemptService.isBlocked(username)) {
             throw new PermissionDeniedException("You have exceeded the number of allowed login attempts. Please try again later.");
+        }
+    }
+
+    private void checkIfUserHasTenant(String email) throws UsernameNotFoundException {
+        IUser user = userService.getByEmailInAnyTenant(email);
+        if (user == null ||
+                user.getTenants() == null || user.getTenants().isEmpty()) {
+            throw new UsernameNotFoundException(String.format("No user found with email '%s'.", email));
         }
     }
 

@@ -45,8 +45,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
         IUser user = userService.getByEmailInAnyTenant(email);
-        if (user == null ||
-                user.getTenants() == null || user.getTenants().isEmpty()) {
+        if (user == null) {
             throw new UsernameNotFoundException(String.format("No user found with email '%s'.", email));
         }
         if (!user.getEnabled()) {
