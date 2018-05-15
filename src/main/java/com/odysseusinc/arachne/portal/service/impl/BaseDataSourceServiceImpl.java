@@ -247,6 +247,9 @@ public abstract class BaseDataSourceServiceImpl<
 
         if (dataSource.getModelType() != null) {
             exist.setModelType(dataSource.getModelType());
+            if (!CommonModelType.CDM.equals(dataSource.getModelType())) {
+                exist.setCdmVersion(null);
+            }
         }
 
         if (dataSource.getCdmVersion() != null) {
