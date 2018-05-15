@@ -48,7 +48,6 @@ public class ArachneMailSender {
 
     @Autowired
     public ArachneMailSender(JavaMailSender mailSender) {
-
         this.mailSender = mailSender;
     }
 
@@ -61,7 +60,7 @@ public class ArachneMailSender {
             helper.setSubject(mailMessage.getSubject());
             helper.setFrom(from, mailMessage.getFromPersonal());
             helper.setTo(mailMessage.getUser().getEmail());
-            helper.setText(buildContent(mailMessage.getTemplate(), mailMessage.getParameters()), true);
+            helper.setText(buildContent(mailMessage.getTemplate() + "_text", mailMessage.getParameters()), buildContent(mailMessage.getTemplate(), mailMessage.getParameters()));
             mailSender.send(message);
 
         } catch (Exception e) {

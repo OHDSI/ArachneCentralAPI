@@ -1,0 +1,7 @@
+Dear [(${userFirstName})],
+
+Thank you for registering at Arachne Collaboration Network.
+Please follow this link [(@{${portalUrl} + '/api/v1/user-management/activation/' + ${registrationCode}(callbackUrl=${callbackUrl})})] to verify your email and start using the Arachne Collaboration Network!
+
+Regards,
+Odysseus Data Services, Inc.

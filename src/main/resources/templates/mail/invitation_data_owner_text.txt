@@ -1,0 +1,8 @@
+Dear [(${userFirstName})],
+
+Access to your dataset was requested for the study [(${studyUrl})] by [(${createdByUrl})].
+To accept this invitation, please follow this link [(@{${invitationUrl}(id=${studyDataSourceLinkId},accepted='true',type='DATA_OWNER',token=${token},userUuid=${userUuid})})].
+Alternatively, please follow this link [(@{${invitationUrl}(id=${studyDataSourceLinkId},accepted='false',type='DATA_OWNER',token=${token},userUuid=${userUuid})})] if you wish to reject this invitation.
+
+Regards,
+Odysseus Data Services, Inc.

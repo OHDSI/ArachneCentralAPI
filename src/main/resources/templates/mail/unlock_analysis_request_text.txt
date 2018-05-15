@@ -1,0 +1,8 @@
+Dear [(${userFirstName})],
+
+You have been requested to unlock analysis for edit [(${analysisUrl})] by [(${createdByUrl})].
+To accept this request, please follow this link [({${invitationUrl}(id=${requestId},accepted='true',type='UNLOCK_ANALYSIS',token=${token},userUuid=${userUuid})})].
+Alternatively, please follow this link [(@{${invitationUrl}(id=${requestId},accepted='false',type='UNLOCK_ANALYSIS',token=${token},userUuid=${userUuid}))] if you wish to reject this invitation.
+
+Regards,
+Odysseus Data Services, Inc.

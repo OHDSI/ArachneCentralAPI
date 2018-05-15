@@ -1,0 +1,7 @@
+Dear [(${userFirstName})],
+
+There is new user registered - [(${userUrl})].
+This notification was sent to you since you are the site's administrator.
+
+Regards,
+Odysseus Data Services, Inc.
