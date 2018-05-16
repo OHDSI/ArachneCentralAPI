@@ -60,12 +60,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -164,11 +164,11 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
         }
     }
 
-    private void checkIfUserHasTenant(String email) throws UsernameNotFoundException {
+    private void checkIfUserHasTenant(String email) throws AuthenticationException {
         IUser user = userService.getByEmailInAnyTenant(email);
         if (user == null ||
                 user.getTenants() == null || user.getTenants().isEmpty()) {
-            throw new UsernameNotFoundException(String.format("No user found with email '%s'.", email));
+            throw new BadCredentialsException("Bad credentials");
         }
     }
 
