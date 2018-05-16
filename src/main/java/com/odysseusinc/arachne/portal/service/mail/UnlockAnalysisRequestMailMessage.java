@@ -41,7 +41,7 @@ public class UnlockAnalysisRequestMailMessage extends InvitationArachneMailMessa
     @Override
     public String getSubject() {
 
-        return "Arachne unlock analysis request";
+        return "${app-title} unlock analysis request";
     }
 
     @Override
