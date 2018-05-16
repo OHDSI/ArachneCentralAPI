@@ -22,8 +22,11 @@
 
 package com.odysseusinc.arachne.portal.service.mail;
 
+import java.io.File;
+import java.net.URL;
 import java.util.Map;
 import javax.mail.internet.MimeMessage;
+import net.htmlparser.jericho.Source;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,7 +71,18 @@ public class ArachneMailSender {
             helper.setSubject(mailMessage.getSubject().replaceAll("\\$\\{app-title\\}", appTitle));
             helper.setFrom(from, mailMessage.getFromPersonal().replaceAll("\\$\\{app-title\\}", appTitle));
             helper.setTo(mailMessage.getUser().getEmail());
-            helper.setText(buildContent(mailMessage.getTemplate(), mailMessage.getParameters()), true);
+            URL templateUrl = this.getClass().getResource("/templates/" + mailMessage.getTemplate() + "_text.txt");
+            String htmlString = buildContent(mailMessage.getTemplate(), mailMessage.getParameters());
+            if (templateUrl != null) {
+                File textTemplate = new File(templateUrl.getPath());
+                if (!textTemplate.isDirectory()) {
+                    helper.setText(buildContent(mailMessage.getTemplate() + "_text", mailMessage.getParameters()), htmlString);
+                }
+            } else {
+                Source source = new Source(htmlString);
+                String textString = source.getRenderer().toString();
+                helper.setText(textString, htmlString);
+            }
             mailSender.send(message);
 
         } catch (Exception e) {
