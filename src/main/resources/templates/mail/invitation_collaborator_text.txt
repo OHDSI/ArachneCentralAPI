@@ -1,8 +1,0 @@
-Dear [(${userFirstName})],
-
-You have been invited to participate in the study [(${studyUrl})] by [(${createdByUrl})].
-To accept this invitation, please follow this link [(@{${invitationUrl}(id=${userStudyId},accepted='true',type='COLLABORATOR',token=${token})})].
-Alternatively, please follow this link [(@{${invitationUrl}(id=${userStudyId},accepted='false',type='COLLABORATOR',token=${token})})] if you wish to reject this invitation.
-
-Regards,
-Odysseus Data Services, Inc.

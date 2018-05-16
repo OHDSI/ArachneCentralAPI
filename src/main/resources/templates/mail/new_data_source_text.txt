@@ -1,7 +1,0 @@
-Dear [(${userFirstName})],
-
-There is new Data Source registered with name [(${dataSourceName})] available by link [(${dataSourceUrl})].
-To review its details please follow this link [(${dataSourceUrl})].
-
-Regards,
-Odysseus Data Services, Inc.

@@ -1,8 +1,0 @@
-Dear [(${userFirstName})],
-
-You have been asked to publish a submission in [(@{${analysisUrl}})] for study [(${studyUrl})].
-To accept this request, please follow this link [(@{${invitationUrl}(id=${submissionId},accepted='true',type='APPROVE_PUBLISH_SUBMISSION',userUuid=${userUuid},token=${token})})].
-Alternatively, please follow this link [(@{${invitationUrl}(id=${submissionId},accepted='false',type='APPROVE_PUBLISH_SUBMISSION',userUuid=${userUuid},token=${token})})] if you wish to reject this request.
-
-Regards,
-Odysseus Data Services, Inc.
