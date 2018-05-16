@@ -22,8 +22,11 @@
 
 package com.odysseusinc.arachne.portal.service.mail;
 
+import java.io.File;
+import java.net.URL;
 import java.util.Map;
 import javax.mail.internet.MimeMessage;
+import net.htmlparser.jericho.Source;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +41,9 @@ import org.thymeleaf.context.Context;
 public class ArachneMailSender {
     private static final Logger LOG = LoggerFactory.getLogger(ArachneMailSender.class);
     private static final String SIGNATURE = "signature";
+    private static final String PATH_TO_TEMPLATES = "/templates/";
+    private static final String NAME = "_text";
+    private static final String EXTENSION = ".txt";
 
     @Autowired
     private TemplateEngine templateEngine;
@@ -68,7 +74,18 @@ public class ArachneMailSender {
             helper.setSubject(mailMessage.getSubject().replaceAll("\\$\\{app-title\\}", appTitle));
             helper.setFrom(from, mailMessage.getFromPersonal().replaceAll("\\$\\{app-title\\}", appTitle));
             helper.setTo(mailMessage.getUser().getEmail());
-            helper.setText(buildContent(mailMessage.getTemplate(), mailMessage.getParameters()), true);
+            URL templateUrl = this.getClass().getResource( PATH_TO_TEMPLATES + mailMessage.getTemplate() + NAME + EXTENSION);
+            String htmlString = buildContent(mailMessage.getTemplate(), mailMessage.getParameters());
+            if (templateUrl != null) {
+                File textTemplate = new File(templateUrl.getPath());
+                if (!textTemplate.isDirectory()) {
+                    helper.setText(buildContent(mailMessage.getTemplate() + NAME, mailMessage.getParameters()), htmlString);
+                }
+            } else {
+                Source source = new Source(htmlString);
+                String textString = source.getRenderer().toString();
+                helper.setText(textString, htmlString);
+            }
             mailSender.send(message);
 
         } catch (Exception e) {
