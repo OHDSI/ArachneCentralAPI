@@ -190,7 +190,6 @@ public abstract class BaseUserController<
             U user = convertRegistrationDTO(dto);
             user.setUsername(user.getEmail());
             user.setOrigin(UserOrigin.NATIVE);
-            user.setEmailConfirmed(false);
             user.setEnabled(false);
             userService.createWithEmailVerification(user, dto.getRegistrantToken(), dto.getCallbackUrl());
         } catch (NotUniqueException ex) {

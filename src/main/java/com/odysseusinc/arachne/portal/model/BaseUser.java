@@ -84,6 +84,9 @@ public class BaseUser implements IUser, Serializable {
     @Column(nullable = false, length = 100)
     protected String lastname;
 
+    @Column(nullable = false, length = 100)
+    protected String organization;
+
     @Column
     protected Boolean enabled;
 
@@ -291,6 +294,18 @@ public class BaseUser implements IUser, Serializable {
     public void setLastname(String lastname) {
 
         this.lastname = lastname;
+    }
+
+    @Override
+    public String getOrganization() {
+
+        return organization;
+    }
+
+    @Override
+    public void setOrganization(String organization) {
+
+        this.organization = organization;
     }
 
     public ProfessionalType getProfessionalType() {
