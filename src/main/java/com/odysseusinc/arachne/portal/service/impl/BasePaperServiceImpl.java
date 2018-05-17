@@ -466,13 +466,16 @@ public abstract class BasePaperServiceImpl<
     
     @Override
     public void indexAllBySolr() throws IOException, NotExistException, SolrServerException, NoSuchFieldException, IllegalAccessException {
+        
         solrService.deleteAll(SolrCollection.PAPERS);
-        final Map<Long, Study> map = studyService.findAllInAnyTenants().stream().collect(Collectors.toMap(Study::getId, Function.identity()));
+        final Map<Long, Study> map = studyService.findWithPapersInAnyTenant()
+                .stream()
+                .collect(Collectors.toMap(Study::getId, Function.identity()));
         final List<P> papers = paperRepository.findAll();
         for (final P paper : papers) {
             paper.setStudy(map.get(paper.getStudy().getId()));
-            indexBySolr(paper);
         }
+        solrService.indexBySolr(papers);
     }
     
     @Override

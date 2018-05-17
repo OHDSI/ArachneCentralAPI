@@ -31,7 +31,6 @@ import static com.odysseusinc.arachne.portal.model.SubmissionStatus.FAILED_REJEC
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
-import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraphUtils;
 import com.google.common.base.Objects;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
@@ -105,8 +104,11 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipOutputStream;
 import org.apache.commons.collections.CollectionUtils;
@@ -908,10 +910,15 @@ public abstract class BaseAnalysisServiceImpl<
     @Override
     public void indexAllBySolr() throws IOException, NotExistException, SolrServerException, NoSuchFieldException, IllegalAccessException {
         solrService.deleteAll(SolrCollection.ANALYSES);
+
+        final Map<Long, Study> map = studyService.findWithAnalysesInAnyTenant()
+                .stream()
+                .collect(Collectors.toMap(Study::getId, Function.identity()));
         final List<A> analyses = analysisRepository.findAll();
         for (final A analysis : analyses) {
-            indexBySolr(analysis);
+            analysis.setStudy(map.get(analysis.getStudy().getId()));
         }
+        solrService.indexBySolr(analyses);
     }
 
     @Override

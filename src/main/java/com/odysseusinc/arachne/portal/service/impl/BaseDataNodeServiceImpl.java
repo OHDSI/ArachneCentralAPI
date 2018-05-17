@@ -131,6 +131,12 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
     }
 
     @Override
+    public List<DN> suggestDataNode(Long userId) {
+
+        return dataNodeRepository.findAllByVirtualIsFalseAndDataNodeUsersUserId(userId);
+    }
+
+    @Override
     public DN getBySid(String uuid) throws NotExistException {
 
         if (uuid != null && !uuid.isEmpty()) {

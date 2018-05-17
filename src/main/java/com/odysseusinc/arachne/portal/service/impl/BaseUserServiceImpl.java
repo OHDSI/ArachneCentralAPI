@@ -922,18 +922,13 @@ public abstract class BaseUserServiceImpl<
         solrService.indexBySolr(user);
     }
 
-    private void indexBySolr(final List<U> users) {
-
-        solrService.indexBySolr(users);
-    }
-
     @Override
     public void indexAllBySolr()
             throws NotExistException {
 
         solrService.deleteAll(SolrCollection.USERS);
         final List<U> userList = getAllEnabledFromAllTenants();
-        EntityUtils.split(this::indexBySolr, userList, 90);
+        solrService.indexBySolr(userList);
     }
 
     protected QueryResponse solrSearch(SolrQuery solrQuery) throws NoSuchFieldException, IOException, SolrServerException {

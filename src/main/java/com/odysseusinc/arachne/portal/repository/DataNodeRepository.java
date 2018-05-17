@@ -37,6 +37,8 @@ public interface DataNodeRepository<DN extends DataNode> extends EntityGraphJpaR
 
     List<DN> findAllByVirtualIsFalse();
 
+    List<DN> findAllByVirtualIsFalseAndDataNodeUsersUserId(Long userId);
+
     DN findByNameAndVirtualIsFalse(String name);
 
 }
