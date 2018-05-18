@@ -40,6 +40,7 @@ public class UserDTOToUserConverter extends BaseConversionServiceAwareConverter<
         user.setMiddlename(dto.getMiddlename());
         user.setFirstname(dto.getFirstname());
         user.setLastname(dto.getLastname());
+        user.setOrganization(dto.getOrganization());
         ProfessionalType professionalType = new ProfessionalType();
         professionalType.setId(dto.getProfessionalTypeId());
         user.setProfessionalType(professionalType);
