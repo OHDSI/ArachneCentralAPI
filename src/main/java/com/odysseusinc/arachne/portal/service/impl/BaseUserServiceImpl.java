@@ -26,6 +26,7 @@ import static com.odysseusinc.arachne.portal.model.ParticipantStatus.APPROVED;
 import static com.odysseusinc.arachne.portal.model.ParticipantStatus.DECLINED;
 import static com.odysseusinc.arachne.portal.repository.UserSpecifications.emailConfirmed;
 import static com.odysseusinc.arachne.portal.repository.UserSpecifications.userEnabled;
+import static com.odysseusinc.arachne.portal.repository.UserSpecifications.usersIn;
 import static com.odysseusinc.arachne.portal.repository.UserSpecifications.withNameOrEmailLike;
 import static com.odysseusinc.arachne.portal.service.RoleService.ROLE_ADMIN;
 import static java.lang.Boolean.TRUE;
@@ -115,6 +116,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.imageio.ImageIO;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
@@ -187,6 +190,9 @@ public abstract class BaseUserServiceImpl<
     protected boolean notifyAdminAboutNewUser;
 
     private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+    @PersistenceContext
+    private EntityManager em;
 
     @Autowired
     public BaseUserServiceImpl(StateProvinceRepository stateProvinceRepository,
@@ -619,6 +625,12 @@ public abstract class BaseUserServiceImpl<
             String pattern = userSearch.getQuery() + "%";
             spec = spec.and(withNameOrEmailLike(pattern));
         }
+
+        final Long[] tenantIds = userSearch.getTenant();
+        if (tenantIds != null && tenantIds.length > 0) {
+            spec = spec.and(usersIn(tenantIds, em));
+        }
+
         return rawUserRepository.findAll(spec, pageable);
     }
 
