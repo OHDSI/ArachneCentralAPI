@@ -23,7 +23,6 @@
 package com.odysseusinc.arachne.portal.repository;
 
 import com.odysseusinc.arachne.portal.model.IUser;
-import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.security.Tenant;
 import javax.persistence.criteria.Path;
 import org.springframework.data.jpa.domain.Specification;
