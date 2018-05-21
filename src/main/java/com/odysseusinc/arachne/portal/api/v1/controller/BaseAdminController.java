@@ -147,19 +147,10 @@ public abstract class BaseAdminController<
             })
                     Pageable pageable,
             UserSearch userSearch)
-            throws PermissionDeniedException, UserNotFoundException {
+            throws UserNotFoundException {
 
-        Pageable search = new PageRequest(pageable.getPageNumber() - 1, pageable.getPageSize(), pageable.getSort());
-        Iterator<Sort.Order> pageIt = pageable.getSort().iterator();
-        Stream<Sort.Order> pageStream = StreamSupport.stream(Spliterators.spliteratorUnknownSize(pageIt, Spliterator.ORDERED), false);
-        if (pageStream.anyMatch(order -> order.getProperty().equals("name"))) {
-            search = new PageRequest(pageable.getPageNumber() - 1, pageable.getPageSize(),
-                    pageable.getSort().getOrderFor("name").getDirection(),
-                    "firstname", "middlename", "lastname");
-        }
-        Page<IUser> users = userService.getAll(search, userSearch);
-        return users
-                .map(user -> conversionService.convert(user, CommonUserDTO.class));
+        Page<IUser> users = userService.getAll(pageable, userSearch);
+        return users.map(user -> conversionService.convert(user, CommonUserDTO.class));
     }
 
 

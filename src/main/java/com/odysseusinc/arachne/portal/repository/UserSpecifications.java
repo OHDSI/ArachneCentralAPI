@@ -24,16 +24,12 @@ package com.odysseusinc.arachne.portal.repository;
 
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.User;
-import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
+import com.odysseusinc.arachne.portal.model.security.Tenant;
+import javax.persistence.criteria.Path;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.Specifications;
 
 public class UserSpecifications {
-
-    private static final String USERS_DATA_JOIN_TENANTS_USERS_IN_QUERY = "SELECT id FROM users_data u JOIN tenants_users tu ON tu.user_id = u.id " + "WHERE tu.tenant_id IN (:tenants) " + "GROUP BY u.id HAVING count(u.id) > :count";
-
     public static <U extends IUser> Specification<U> userEnabled() {
 
         return (root, query, cb) -> cb.equal(root.get("enabled"), true);
@@ -54,16 +50,14 @@ public class UserSpecifications {
         return (root, query, cb) -> cb.like(root.get(field), namePattern);
     }
 
-    public static <U extends IUser> Specification<U> usersIn(final Long[] tenantIds, EntityManager em) {
+    public static <U extends IUser> Specification<U> usersIn(final Long[] tenantIds) {
 
-        return ((root, criteriaQuery, cb) -> {
-            List<Long> tenantList = java.util.Arrays.asList(tenantIds);
-            Query query = em.createNativeQuery(USERS_DATA_JOIN_TENANTS_USERS_IN_QUERY);
-            query.setParameter("tenants", tenantList);
-            query.setParameter("count", tenantList.size() - 1);
-            List<String> userIds = query.getResultList();
+        return ((root, query, cb) -> {
+            final Path<Tenant> tenantIdPath = root.join("tenants").get("id");
+            query.groupBy(root.get("id"));
+            query.having(cb.gt(cb.count(root), tenantIds.length - 1));
 
-            return root.in(userIds);
+            return tenantIdPath.in(tenantIds);
         });
     }
 
