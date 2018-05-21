@@ -54,8 +54,7 @@ public class UserSpecifications {
 
         return ((root, query, cb) -> {
             final Path<Tenant> tenantIdPath = root.join("tenants").get("id");
-            query.groupBy(root.get("id"));
-            query.having(cb.gt(cb.count(root), tenantIds.length - 1));
+            query.distinct(true);
 
             return tenantIdPath.in(tenantIds);
         });
