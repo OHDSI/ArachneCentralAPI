@@ -26,7 +26,6 @@ import static com.odysseusinc.arachne.portal.model.ParticipantStatus.APPROVED;
 import static com.odysseusinc.arachne.portal.model.ParticipantStatus.DECLINED;
 import static com.odysseusinc.arachne.portal.repository.UserSpecifications.emailConfirmed;
 import static com.odysseusinc.arachne.portal.repository.UserSpecifications.userEnabled;
-import static com.odysseusinc.arachne.portal.repository.UserSpecifications.usersIn;
 import static com.odysseusinc.arachne.portal.repository.UserSpecifications.withNameOrEmailLike;
 import static com.odysseusinc.arachne.portal.service.RoleService.ROLE_ADMIN;
 import static java.lang.Boolean.TRUE;
@@ -625,11 +624,6 @@ public abstract class BaseUserServiceImpl<
         if (!StringUtils.isEmpty(userSearch.getQuery())) {
             String pattern = userSearch.getQuery() + "%";
             spec = spec.and(withNameOrEmailLike(pattern));
-        }
-
-        final Long[] tenantIds = userSearch.getTenantIds();
-        if (tenantIds != null && tenantIds.length > 0) {
-            spec = spec.and(usersIn(tenantIds));
         }
 
         return rawUserRepository.findAll(spec, search);
