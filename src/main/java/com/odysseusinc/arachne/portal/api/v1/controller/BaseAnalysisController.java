@@ -355,7 +355,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
 
         JsonResult result = new JsonResult(NO_ERROR);
         Map<String, Object> validationErrors = new HashMap<>();
-        StringBuilder sb = new StringBuilder();
+        List<String> errorFileMessages = new ArrayList<>();
         files.stream()
                 .filter(f -> !CommonAnalysisType.COHORT.equals(analysisType) || !f.getName().endsWith(CommonFileUtils.OHDSI_JSON_EXT))
                 .forEach(f -> {
@@ -366,16 +366,11 @@ public abstract class BaseAnalysisController<T extends Analysis,
                             } catch (AlreadyExistException e) {
                                 LOGGER.error("Failed to save file", e);
                                 result.setErrorCode(ALREADY_EXIST.getCode());
-                                validationErrors.computeIfPresent(dataReference.getGuid(), (k, v) -> {
-                                    sb.append(v);
-                                    sb.append(", ");
-                                    sb.append(e.getMessage());
-                                    return sb.toString();
-                                });
-                                validationErrors.putIfAbsent(dataReference.getGuid(), e.getMessage());
+                                errorFileMessages.add(e.getMessage());
                             }
                         }
                 );
+        validationErrors.put(dataReference.getGuid(), errorFileMessages.toArray(new String[0]));
         result.setValidatorErrors(validationErrors);
         if (analysisType.equals(CommonAnalysisType.COHORT)) {
             final ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -465,35 +460,22 @@ public abstract class BaseAnalysisController<T extends Analysis,
     public JsonResult<List<AnalysisFileDTO>> uploadFile(Principal principal,
                                                         @Valid UploadFileDTO uploadFileDTO,
                                                         @PathVariable("analysisId") Long id)
-            throws PermissionDeniedException, NotExistException, IOException {
+            throws PermissionDeniedException, NotExistException, IOException, AlreadyExistException {
 
         IUser user = getUser(principal);
         T analysis = analysisService.getById(id);
-
         JsonResult<List<AnalysisFileDTO>> result = new JsonResult<>(NO_ERROR);
-
         List<AnalysisFileDTO> createdFiles = new ArrayList<>();
-
-        StringBuilder errorMessage = new StringBuilder();
-        try {
-            if (uploadFileDTO.getFile() != null) {
-                AnalysisFile createdFile = analysisService.saveFile(uploadFileDTO.getFile(), user, analysis, uploadFileDTO.getLabel(), uploadFileDTO.getExecutable(), null);
+        if (uploadFileDTO.getFile() != null) {
+            AnalysisFile createdFile = analysisService.saveFile(uploadFileDTO.getFile(), user, analysis, uploadFileDTO.getLabel(), uploadFileDTO.getExecutable(), null);
+            createdFiles.add(conversionService.convert(createdFile, AnalysisFileDTO.class));
+        } else {
+            if (StringUtils.hasText(uploadFileDTO.getLink())) {
+                AnalysisFile createdFile = analysisService.saveFile(uploadFileDTO.getLink(), user, analysis, uploadFileDTO.getLabel(), uploadFileDTO.getExecutable());
                 createdFiles.add(conversionService.convert(createdFile, AnalysisFileDTO.class));
             } else {
-                if (StringUtils.hasText(uploadFileDTO.getLink())) {
-                    AnalysisFile createdFile = analysisService.saveFile(uploadFileDTO.getLink(), user, analysis, uploadFileDTO.getLabel(), uploadFileDTO.getExecutable());
-                    createdFiles.add(conversionService.convert(createdFile, AnalysisFileDTO.class));
-                } else {
-                    result.setErrorCode(VALIDATION_ERROR.getCode());
-                }
+                result.setErrorCode(VALIDATION_ERROR.getCode());
             }
-        } catch (AlreadyExistException e) {
-            LOGGER.error("Failed to save file", e);
-            errorMessage.append(e.getMessage());
-            errorMessage.append(", ");
-            result.setErrorCode(ALREADY_EXIST.getCode());
-            String error = errorMessage.toString();
-            result.setErrorMessage(error.substring(0, error.length() - 2));
         }
         result.setResult(createdFiles);
         return result;
