@@ -60,10 +60,10 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
     Boolean moveAnalysis(Long id, Integer index);
 
     AnalysisFile saveFile(MultipartFile multipartFile, IUser user, T analysis, String label,
-                          Boolean isExecutable, DataReference dataReference) throws IOException;
+                          Boolean isExecutable, DataReference dataReference) throws IOException, AlreadyExistException;
 
     AnalysisFile saveFile(String link, IUser user, T analysis, String label, Boolean isExecutable)
-            throws IOException;
+            throws IOException, AlreadyExistException;
 
     Path getAnalysisFile(AnalysisFile analysisFile) throws FileNotFoundException;
 

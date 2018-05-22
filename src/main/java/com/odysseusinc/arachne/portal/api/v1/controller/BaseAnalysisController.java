@@ -21,6 +21,7 @@
 
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
+import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.ALREADY_EXIST;
 import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.NO_ERROR;
 import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.PERMISSION_DENIED;
 import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.VALIDATION_ERROR;
@@ -345,14 +346,16 @@ public abstract class BaseAnalysisController<T extends Analysis,
         final T analysis = analysisService.getById(analysisId);
         final DataReference dataReference = dataReferenceService.addOrUpdate(entityReference.getEntityGuid(), dataNode);
         final List<MultipartFile> entityFiles = getEntityFiles(entityReference, dataNode, analysisType);
-        doAddCommonEntityToAnalysis(analysis, dataReference, user, analysisType, entityFiles);
-        return new JsonResult(NO_ERROR);
+        return doAddCommonEntityToAnalysis(analysis, dataReference, user, analysisType, entityFiles);
     }
 
-    protected void doAddCommonEntityToAnalysis(T analysis, DataReference dataReference, IUser user,
-                                               CommonAnalysisType analysisType,
-                                               List<MultipartFile> files) throws IOException {
+    protected JsonResult doAddCommonEntityToAnalysis(T analysis, DataReference dataReference, IUser user,
+                                                     CommonAnalysisType analysisType,
+                                                     List<MultipartFile> files) throws IOException {
 
+        JsonResult result = new JsonResult(NO_ERROR);
+        Map<String, Object> validationErrors = new HashMap<>();
+        StringBuilder sb = new StringBuilder();
         files.stream()
                 .filter(f -> !CommonAnalysisType.COHORT.equals(analysisType) || !f.getName().endsWith(CommonFileUtils.OHDSI_JSON_EXT))
                 .forEach(f -> {
@@ -360,9 +363,20 @@ public abstract class BaseAnalysisController<T extends Analysis,
                                 analysisService.saveFile(f, user, analysis, f.getName(), detectExecutable(analysisType, f), dataReference);
                             } catch (IOException e) {
                                 LOGGER.error("Failed to save file", e);
+                            } catch (AlreadyExistException e) {
+                                LOGGER.error("Failed to save file", e);
+                                result.setErrorCode(ALREADY_EXIST.getCode());
+                                validationErrors.computeIfPresent(dataReference.getGuid(), (k, v) -> {
+                                    sb.append(v);
+                                    sb.append(", ");
+                                    sb.append(e.getMessage());
+                                    return sb.toString();
+                                });
+                                validationErrors.putIfAbsent(dataReference.getGuid(), e.getMessage());
                             }
                         }
                 );
+        result.setValidatorErrors(validationErrors);
         if (analysisType.equals(CommonAnalysisType.COHORT)) {
             final ByteArrayOutputStream out = new ByteArrayOutputStream();
             class StringContainer {
@@ -404,8 +418,13 @@ public abstract class BaseAnalysisController<T extends Analysis,
             String fileName = generatedFileName.value + ".zip";
             final MultipartFile sqlArchive = new MockMultipartFile(fileName, fileName, "application/zip",
                     out.toByteArray());
-            analysisService.saveFile(sqlArchive, user, analysis, fileName, false, dataReference);
+            try {
+                analysisService.saveFile(sqlArchive, user, analysis, fileName, false, dataReference);
+            } catch (AlreadyExistException e) {
+                LOGGER.error("Failed to save file", e);
+            }
         }
+        return result;
     }
 
     protected boolean detectExecutable(CommonAnalysisType type, MultipartFile file) {
@@ -455,19 +474,27 @@ public abstract class BaseAnalysisController<T extends Analysis,
 
         List<AnalysisFileDTO> createdFiles = new ArrayList<>();
 
-        if (uploadFileDTO.getFile() != null) {
-            AnalysisFile createdFile = analysisService.saveFile(uploadFileDTO.getFile(), user, analysis, uploadFileDTO.getLabel(), uploadFileDTO.getExecutable(), null);
-            createdFiles.add(conversionService.convert(createdFile, AnalysisFileDTO.class));
-        } else {
-            if (StringUtils.hasText(uploadFileDTO.getLink())) {
-                AnalysisFile createdFile = analysisService.saveFile(uploadFileDTO.getLink(), user, analysis, uploadFileDTO.getLabel(), uploadFileDTO.getExecutable());
+        StringBuilder errorMessage = new StringBuilder();
+        try {
+            if (uploadFileDTO.getFile() != null) {
+                AnalysisFile createdFile = analysisService.saveFile(uploadFileDTO.getFile(), user, analysis, uploadFileDTO.getLabel(), uploadFileDTO.getExecutable(), null);
                 createdFiles.add(conversionService.convert(createdFile, AnalysisFileDTO.class));
             } else {
-                result.setErrorCode(VALIDATION_ERROR.getCode());
+                if (StringUtils.hasText(uploadFileDTO.getLink())) {
+                    AnalysisFile createdFile = analysisService.saveFile(uploadFileDTO.getLink(), user, analysis, uploadFileDTO.getLabel(), uploadFileDTO.getExecutable());
+                    createdFiles.add(conversionService.convert(createdFile, AnalysisFileDTO.class));
+                } else {
+                    result.setErrorCode(VALIDATION_ERROR.getCode());
+                }
             }
-
+        } catch (AlreadyExistException e) {
+            LOGGER.error("Failed to save file", e);
+            errorMessage.append(e.getMessage());
+            errorMessage.append(", ");
+            result.setErrorCode(ALREADY_EXIST.getCode());
+            String error = errorMessage.toString();
+            result.setErrorMessage(error.substring(0, error.length() - 2));
         }
-
         result.setResult(createdFiles);
         return result;
     }
