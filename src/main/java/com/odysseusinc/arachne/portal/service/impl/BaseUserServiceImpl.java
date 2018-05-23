@@ -37,8 +37,10 @@ import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.MetadataException;
 import com.drew.metadata.exif.ExifIFD0Directory;
+import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserRegistrationDTO;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.commons.utils.UserIdUtils;
+import com.odysseusinc.arachne.portal.api.v1.dto.BulkUsersRegistrationDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchExpertListDTO;
 import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
 import com.odysseusinc.arachne.portal.exception.ArachneSystemRuntimeException;
@@ -61,6 +63,7 @@ import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.StateProvince;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserLink;
+import com.odysseusinc.arachne.portal.model.UserOrigin;
 import com.odysseusinc.arachne.portal.model.UserPublication;
 import com.odysseusinc.arachne.portal.model.UserRegistrant;
 import com.odysseusinc.arachne.portal.model.UserStudy;
@@ -323,8 +326,85 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
+    public List<U> createAll(final @NotNull BulkUsersRegistrationDTO bulkUsersDto)
+            throws PasswordValidationException, ValidationException {
+
+        List<U> users = convertRegistrationDTOs(bulkUsersDto);
+        for (U user : users) {
+            updateFields(user);
+        }
+
+        List<U> createdUsers = userRepository.save(users);
+        if (bulkUsersDto.getEmailConfirmationRequired()) {
+            for (U user: createdUsers) {
+                Optional<CommonUserRegistrationDTO> optionalUser = bulkUsersDto.getUserDtos().stream().findFirst();
+                if (!optionalUser.isPresent()) {
+                    throw new ValidationException("remove user: id must be not null");
+                }
+                Optional<UserRegistrant> userRegistrant = userRegistrantService.findByToken(optionalUser.get().getRegistrantToken());
+                sendRegistrationEmail(user, userRegistrant, optionalUser.get().getCallbackUrl());
+            }
+        }
+
+        return createdUsers;
+    }
+
+    private List<U> convertRegistrationDTOs(BulkUsersRegistrationDTO bulkUsersDto) throws PasswordValidationException {
+        Set<Tenant> tenants = bulkUsersDto.getTenantDtos().stream()
+                .map(tenant -> conversionService.convert(tenant, Tenant.class))
+                .collect(Collectors.toSet());
+
+        List<U> users = bulkUsersDto.getUserDtos().stream()
+                .map(dto -> (U) conversionService.convert(dto, User.class))
+                .collect(Collectors.toList());
+        for (U user : users) {
+            user.setTenants(tenants);
+            user.setOrigin(UserOrigin.NATIVE);
+            if (!bulkUsersDto.getEmailConfirmationRequired()) {
+                user.setEmailConfirmed(true);
+            } else {
+                user.setEmailConfirmed(false);
+                user.setRegistrationCode(UUID.randomUUID().toString());
+            }
+
+            updateFields(user);
+        }
+
+        return users;
+    }
+
+    @Override
     public U create(final @NotNull U user)
             throws NotUniqueException, NotExistException, PasswordValidationException {
+
+        updateFields(user);
+
+        return userRepository.save(user);
+    }
+
+    @Override
+    public U createWithEmailVerification(final @NotNull U user, String registrantToken, String callbackUrl)
+            throws NotUniqueException, NotExistException, PasswordValidationException {
+
+        user.setEmailConfirmed(false);
+        user.setRegistrationCode(UUID.randomUUID().toString());
+        U createdUser = create(user);
+
+        Optional<UserRegistrant> userRegistrant = userRegistrantService.findByToken(registrantToken);
+        sendRegistrationEmail(createdUser, userRegistrant, callbackUrl);
+        return createdUser;
+    }
+
+    private void updateFields(U user) throws PasswordValidationException {
+        // The existing user check should come last:
+        // it is muted in public registration form, so we need to show other errors ahead
+        U byEmail = getByUnverifiedEmailInAnyTenant(user.getEmail());
+        if (byEmail != null) {
+            throw new NotUniqueException(
+                    "email",
+                    messageSource.getMessage("validation.email.already.used", null, null)
+            );
+        }
 
         user.setUsername(user.getEmail());
         if (Objects.isNull(user.getEnabled())) {
@@ -344,35 +424,12 @@ public abstract class BaseUserServiceImpl<
         validatePassword(username, firstName, lastName, middleName, password);
         user.setPassword(passwordEncoder.encode(password));
 
-        user.setTenants(tenantService.getDefault());
+        if (user.getTenants() == null || user.getTenants().isEmpty()) {
+            user.setTenants(tenantService.getDefault());
+        }
         if (user.getTenants().size() > 0) {
             user.setActiveTenant(user.getTenants().iterator().next());
         }
-
-        // The existing user check should come last:
-        // it is muted in public registration form, so we need to show other errors ahead
-        U byEmail = getByUnverifiedEmailInAnyTenant(user.getEmail());
-        if (byEmail != null) {
-            throw new NotUniqueException(
-                    "email",
-                    messageSource.getMessage("validation.email.already.used", null, null)
-            );
-        }
-
-        return userRepository.save(user);
-    }
-
-    @Override
-    public U createWithEmailVerification(final @NotNull U user, String registrantToken, String callbackUrl)
-            throws NotUniqueException, NotExistException, PasswordValidationException {
-
-        user.setEmailConfirmed(false);
-        user.setRegistrationCode(UUID.randomUUID().toString());
-        U createdUser = create(user);
-
-        Optional<UserRegistrant> userRegistrant = userRegistrantService.findByToken(registrantToken);
-        sendRegistrationEmail(createdUser, userRegistrant, callbackUrl);
-        return createdUser;
     }
 
     @Override
