@@ -63,8 +63,6 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 public class ExceptionHandlingController extends BaseController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ExceptionHandlingController.class);
-    private static final String STATIC_CONTENT_FOLDER = "public";
-    private static final String INDEX_FILE = STATIC_CONTENT_FOLDER + "/index.html";
 
     private NoHandlerFoundExceptionUtils noHandlerFoundExceptionUtils;
 
