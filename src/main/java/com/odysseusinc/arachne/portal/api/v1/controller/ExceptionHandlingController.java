@@ -48,7 +48,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -67,8 +66,12 @@ public class ExceptionHandlingController extends BaseController {
     private static final String STATIC_CONTENT_FOLDER = "public";
     private static final String INDEX_FILE = STATIC_CONTENT_FOLDER + "/index.html";
 
-    @Autowired
     private NoHandlerFoundExceptionUtils noHandlerFoundExceptionUtils;
+
+    public ExceptionHandlingController(NoHandlerFoundExceptionUtils noHandlerFoundExceptionUtils) {
+
+        this.noHandlerFoundExceptionUtils = noHandlerFoundExceptionUtils;
+    }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<JsonResult> exceptionHandler(Exception ex) {
