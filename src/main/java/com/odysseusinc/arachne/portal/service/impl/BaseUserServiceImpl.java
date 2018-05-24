@@ -329,19 +329,20 @@ public abstract class BaseUserServiceImpl<
     public List<U> createAll(final @NotNull BulkUsersRegistrationDTO bulkUsersDto)
             throws PasswordValidationException, ValidationException {
 
-        List<U> users = convertRegistrationDTOs(bulkUsersDto);
-        for (U user : users) {
-            updateFields(user);
+        if (bulkUsersDto.getTenantDtos() == null || bulkUsersDto.getTenantDtos().isEmpty()) {
+            throw new ValidationException("tenants: must be not empty");
         }
 
+        List<U> users = convertRegistrationDTOs(bulkUsersDto);
         List<U> createdUsers = userRepository.save(users);
         if (bulkUsersDto.getEmailConfirmationRequired()) {
-            for (U user: createdUsers) {
-                Optional<CommonUserRegistrationDTO> optionalUser = bulkUsersDto.getUserDtos().stream().findFirst();
-                if (!optionalUser.isPresent()) {
-                    throw new ValidationException("remove user: id must be not null");
-                }
-                Optional<UserRegistrant> userRegistrant = userRegistrantService.findByToken(optionalUser.get().getRegistrantToken());
+            Optional<CommonUserRegistrationDTO> optionalUser = bulkUsersDto.getUserDtos().stream().findFirst();
+            if (!optionalUser.isPresent()) {
+                throw new ValidationException("user: must be not null");
+            }
+            Optional<UserRegistrant> userRegistrant = userRegistrantService.findByToken(optionalUser.get().getRegistrantToken());
+
+            for (U user : createdUsers) {
                 sendRegistrationEmail(user, userRegistrant, optionalUser.get().getCallbackUrl());
             }
         }
@@ -350,6 +351,7 @@ public abstract class BaseUserServiceImpl<
     }
 
     private List<U> convertRegistrationDTOs(BulkUsersRegistrationDTO bulkUsersDto) throws PasswordValidationException {
+
         Set<Tenant> tenants = bulkUsersDto.getTenantDtos().stream()
                 .map(tenant -> conversionService.convert(tenant, Tenant.class))
                 .collect(Collectors.toSet());
@@ -357,6 +359,7 @@ public abstract class BaseUserServiceImpl<
         List<U> users = bulkUsersDto.getUserDtos().stream()
                 .map(dto -> (U) conversionService.convert(dto, User.class))
                 .collect(Collectors.toList());
+
         for (U user : users) {
             user.setTenants(tenants);
             user.setOrigin(UserOrigin.NATIVE);
@@ -426,8 +429,7 @@ public abstract class BaseUserServiceImpl<
 
         if (user.getTenants() == null || user.getTenants().isEmpty()) {
             user.setTenants(tenantService.getDefault());
-        }
-        if (user.getTenants().size() > 0) {
+        } else {
             user.setActiveTenant(user.getTenants().iterator().next());
         }
     }
