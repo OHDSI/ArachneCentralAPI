@@ -613,7 +613,8 @@ public abstract class BaseUserServiceImpl<
 
     @Override
     public Page<U> getAll(Pageable pageable, UserSearch userSearch) {
-        Pageable search = convertOrderRequest(pageable);
+        
+        final Pageable pageableWithUpdatedOrder = convertOrderRequest(pageable);
 
         Specifications<U> spec = where(UserSpecifications.hasEmail());
         if (userSearch.getEmailConfirmed() != null && userSearch.getEmailConfirmed()) {
@@ -632,7 +633,7 @@ public abstract class BaseUserServiceImpl<
             spec = spec.and(usersIn(tenantIds));
         }
 
-        return rawUserRepository.findAll(spec, search);
+        return rawUserRepository.findAll(spec, pageableWithUpdatedOrder, EntityUtils.fromAttributePaths("tenants"));
     }
 
     private Pageable convertOrderRequest(Pageable pageable) {

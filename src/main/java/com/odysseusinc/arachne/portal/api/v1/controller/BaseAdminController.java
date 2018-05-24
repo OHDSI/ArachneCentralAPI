@@ -27,6 +27,7 @@ import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.AdminUserDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ArachneConsts;
+import com.odysseusinc.arachne.portal.api.v1.dto.UserWithTenantsDTO;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
@@ -133,7 +134,7 @@ public abstract class BaseAdminController<
 
     @ApiOperation(value = "Get all users.", hidden = true)
     @RequestMapping(value = "/api/v1/admin/users", method = RequestMethod.GET)
-    public Page<CommonUserDTO> getAll(
+    public Page<UserWithTenantsDTO> getAll(
             @PageableDefault(page = 1)
             @SortDefault.SortDefaults({
                     @SortDefault(sort = "name", direction = Sort.Direction.ASC)
@@ -142,8 +143,8 @@ public abstract class BaseAdminController<
             UserSearch userSearch)
             throws UserNotFoundException {
 
-        Page<IUser> users = userService.getAll(pageable, userSearch);
-        return users.map(user -> conversionService.convert(user, CommonUserDTO.class));
+        final Page<IUser> users = userService.getAll(pageable, userSearch);
+        return users.map(user -> conversionService.convert(user, UserWithTenantsDTO.class));
     }
 
 
