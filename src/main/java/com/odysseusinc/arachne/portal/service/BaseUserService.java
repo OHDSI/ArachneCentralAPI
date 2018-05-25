@@ -24,6 +24,7 @@ package com.odysseusinc.arachne.portal.service;
 
 import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.MetadataException;
+import com.odysseusinc.arachne.portal.api.v1.dto.BatchOperationType;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.NotUniqueException;
 import com.odysseusinc.arachne.portal.exception.PasswordValidationException;
@@ -97,6 +98,8 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
 
     void sendRemindPasswordEmail(U user, String token, String registrantToken, String callbackUrl);
 
+    void resendActivationEmail(U user);
+
     U getByIdInAnyTenantAndInitializeCollections(Long id);
 
     U getByUuidInAnyTenantAndInitializeCollections(String uuid);
@@ -131,7 +134,9 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
 
     List<U> getAllEnabledFromAllTenants();
 
-    Page<U> getAll(Pageable pageable, UserSearch userSearch);
+    Page<U> getPage(Pageable pageable, UserSearch userSearch);
+
+    List<U> getList(UserSearch userSearch);
 
     void resetPassword(U user)
             throws UserNotFoundException, IllegalAccessException, NotExistException,
@@ -210,7 +215,7 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
 
     U findOne(Long participantId);
 
-    List<IUser> findUsersByUuidsIn(List<String> dataOwnerIds);
+    List<U> findUsersByUuidsIn(List<String> dataOwnerIds);
 
     List<U> findUsersApprovedInDataSource(Long id);
 
@@ -227,4 +232,6 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
     void revertBackUserToPapers(Long tenantId, Long userId);
 
     List<U> findByIdsInAnyTenant(Set<Long> userIds);
+
+    void performBatchOperation(List<String> ids, BatchOperationType type);
 }
