@@ -53,7 +53,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionGroupDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightUpdateDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdateNotificationDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.UploadFileDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.UploadFilesDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.converters.FileDtoContentHandler;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.NotEmptyException;
@@ -370,8 +370,10 @@ public abstract class BaseAnalysisController<T extends Analysis,
                             }
                         }
                 );
-        validationErrors.put(dataReference.getGuid(), errorFileMessages.toArray(new String[0]));
-        result.setValidatorErrors(validationErrors);
+        if (result.getErrorCode().equals(ALREADY_EXIST.getCode())) {
+            validationErrors.put(dataReference.getGuid(), errorFileMessages.toArray(new String[0]));
+            result.setValidatorErrors(validationErrors);
+        }
         if (analysisType.equals(CommonAnalysisType.COHORT)) {
             final ByteArrayOutputStream out = new ByteArrayOutputStream();
             class StringContainer {
@@ -458,24 +460,55 @@ public abstract class BaseAnalysisController<T extends Analysis,
     @ApiOperation("Upload file to attach to analysis.")
     @RequestMapping(value = "/api/v1/analysis-management/analyses/{analysisId}/upload", method = POST)
     public JsonResult<List<AnalysisFileDTO>> uploadFile(Principal principal,
-                                                        @Valid UploadFileDTO uploadFileDTO,
+                                                        @Valid UploadFilesDTO uploadFilesLinks,
                                                         @PathVariable("analysisId") Long id)
-            throws PermissionDeniedException, NotExistException, IOException, AlreadyExistException {
+            throws PermissionDeniedException, NotExistException {
 
         IUser user = getUser(principal);
         T analysis = analysisService.getById(id);
         JsonResult<List<AnalysisFileDTO>> result = new JsonResult<>(NO_ERROR);
         List<AnalysisFileDTO> createdFiles = new ArrayList<>();
-        if (uploadFileDTO.getFile() != null) {
-            AnalysisFile createdFile = analysisService.saveFile(uploadFileDTO.getFile(), user, analysis, uploadFileDTO.getLabel(), uploadFileDTO.getExecutable(), null);
-            createdFiles.add(conversionService.convert(createdFile, AnalysisFileDTO.class));
-        } else {
-            if (StringUtils.hasText(uploadFileDTO.getLink())) {
-                AnalysisFile createdFile = analysisService.saveFile(uploadFileDTO.getLink(), user, analysis, uploadFileDTO.getLabel(), uploadFileDTO.getExecutable());
+        Map<String, Object> validationErrors = new HashMap<>();
+        List<String> errorFileMessages = new ArrayList<>();
+        uploadFilesLinks.getFiles().forEach(uploadFile -> {
+            if (uploadFile.getFile() != null) {
+                AnalysisFile createdFile = null;
+                try {
+                    createdFile = analysisService.saveFile(uploadFile.getFile(), user, analysis, uploadFile.getLabel(), uploadFile.getExecutable(), null);
+                } catch (IOException e) {
+                    LOGGER.error("Failed to save file", e);
+                } catch (AlreadyExistException e) {
+                    LOGGER.error("Failed to save file", e);
+                    result.setErrorCode(ALREADY_EXIST.getCode());
+                    errorFileMessages.add(e.getMessage());
+                }
                 createdFiles.add(conversionService.convert(createdFile, AnalysisFileDTO.class));
             } else {
                 result.setErrorCode(VALIDATION_ERROR.getCode());
             }
+        });
+
+        uploadFilesLinks.getLinks().forEach(uploadLink -> {
+            if (StringUtils.hasText(uploadLink.getLink())) {
+                AnalysisFile createdFile = null;
+                try {
+                    createdFile = analysisService.saveFile(uploadLink.getLink(), user, analysis, uploadLink.getLabel(), uploadLink.getExecutable());
+                } catch (IOException e) {
+                    LOGGER.error("Failed to save file", e);
+                } catch (AlreadyExistException e) {
+                    LOGGER.error("Failed to save file", e);
+                    result.setErrorCode(ALREADY_EXIST.getCode());
+                    errorFileMessages.add(e.getMessage());
+                }
+                createdFiles.add(conversionService.convert(createdFile, AnalysisFileDTO.class));
+            } else {
+                result.setErrorCode(VALIDATION_ERROR.getCode());
+            }
+        });
+
+        if (result.getErrorCode().equals(ALREADY_EXIST.getCode())) {
+            validationErrors.put("file", errorFileMessages.toArray(new String[0]));
+            result.setValidatorErrors(validationErrors);
         }
         result.setResult(createdFiles);
         return result;

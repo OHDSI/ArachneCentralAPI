@@ -448,7 +448,6 @@ public abstract class BaseAnalysisServiceImpl<
             throws IOException, AlreadyExistException {
 
         throwAccessDeniedExceptionIfLocked(analysis);
-        Study study = analysis.getStudy();
         String fileNameLowerCase = UUID.randomUUID().toString();
         throwDuplicateNameException(label);
         try {
