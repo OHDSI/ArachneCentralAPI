@@ -150,11 +150,11 @@ public abstract class BaseAdminController<
 
     @ApiOperation(value = "Get all users.", hidden = true)
     @RequestMapping(value = "/api/v1/admin/users/ids", method = RequestMethod.GET)
-    public List<Long> getListOfUserIdsByFilter(final UserSearch userSearch)
+    public List<String> getListOfUserIdsByFilter(final UserSearch userSearch)
             throws UserNotFoundException {
 
         final List<IUser> users = userService.getList(userSearch);
-        return users.stream().map(IUser::getId).collect(Collectors.toList());
+        return users.stream().map(IUser::getId).map(UserIdUtils::idToUuid).collect(Collectors.toList());
     }
 
     @ApiOperation(value = "Get all users.", hidden = true)
