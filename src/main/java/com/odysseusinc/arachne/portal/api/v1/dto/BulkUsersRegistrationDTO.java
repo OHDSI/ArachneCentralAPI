@@ -1,15 +1,34 @@
+/*
+ *
+ * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Company: Odysseus Data Services, Inc.
+ * Product Owner/Architecture: Gregory Klebanov
+ * Authors: Sergey Maletsky
+ * Created: May 23, 2018
+ *
+ */
+
 package com.odysseusinc.arachne.portal.api.v1.dto;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserRegistrationDTO;
 import java.util.List;
 
-/**
- * @author SMaletsky
- */
 public class BulkUsersRegistrationDTO {
     private boolean emailConfirmationRequired;
-    private List<TenantBaseDTO> tenantDtos;
-    private List<CommonUserRegistrationDTO> userDtos;
+    private List<TenantBaseDTO> tenants;
+    private List<CommonUserRegistrationDTO> users;
 
     public boolean getEmailConfirmationRequired() {
 
@@ -21,23 +40,23 @@ public class BulkUsersRegistrationDTO {
         this.emailConfirmationRequired = emailConfirmationRequired;
     }
 
-    public List<TenantBaseDTO> getTenantDtos() {
+    public List<TenantBaseDTO> getTenants() {
 
-        return tenantDtos;
+        return tenants;
     }
 
-    public void setTenantDtos(List<TenantBaseDTO> tenantDtos) {
+    public void setTenants(List<TenantBaseDTO> tenants) {
 
-        this.tenantDtos = tenantDtos;
+        this.tenants = tenants;
     }
 
-    public List<CommonUserRegistrationDTO> getUserDtos() {
+    public List<CommonUserRegistrationDTO> getUsers() {
 
-        return userDtos;
+        return users;
     }
 
-    public void setUserDtos(List<CommonUserRegistrationDTO> userDtos) {
+    public void setUsers(List<CommonUserRegistrationDTO> users) {
 
-        this.userDtos = userDtos;
+        this.users = users;
     }
 }

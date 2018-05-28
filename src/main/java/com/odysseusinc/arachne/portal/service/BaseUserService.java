@@ -24,7 +24,6 @@ package com.odysseusinc.arachne.portal.service;
 
 import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.MetadataException;
-import com.odysseusinc.arachne.portal.api.v1.dto.BulkUsersRegistrationDTO;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.NotUniqueException;
 import com.odysseusinc.arachne.portal.exception.PasswordValidationException;
@@ -81,7 +80,7 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
     void remove(Long id)
             throws ValidationException, UserNotFoundException, NotExistException, IOException, SolrServerException;
 
-    List<U> createAll(final @NotNull BulkUsersRegistrationDTO bulkUsersDto) throws PasswordValidationException, ValidationException;
+    List<U> createAll(final @NotNull List<U> users, boolean emailConfirmationRequired, String registrantToken, String callbackUrl) throws PasswordValidationException;
 
     U createWithEmailVerification(final @NotNull U user, String registrantToken, String callbackUrl) throws PasswordValidationException;
 

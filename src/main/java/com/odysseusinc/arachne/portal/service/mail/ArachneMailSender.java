@@ -22,7 +22,6 @@
 
 package com.odysseusinc.arachne.portal.service.mail;
 
-import com.odysseusinc.arachne.portal.service.async.ArachneBackgroundExecutor;
 import java.io.File;
 import java.net.URL;
 import java.util.Map;
@@ -34,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -67,33 +67,36 @@ public class ArachneMailSender {
     }
 
     public void send(ArachneMailMessage mailMessage) {
-        Runnable runnable = () -> {
-            try {
-                MimeMessage message = mailSender.createMimeMessage();
-                MimeMessageHelper helper;
-                helper = new MimeMessageHelper(message, true);
-                helper.setSubject(mailMessage.getSubject().replaceAll("\\$\\{app-title\\}", appTitle));
-                helper.setFrom(from, mailMessage.getFromPersonal().replaceAll("\\$\\{app-title\\}", appTitle));
-                helper.setTo(mailMessage.getUser().getEmail());
-                URL templateUrl = this.getClass().getResource(PATH_TO_TEMPLATES + mailMessage.getTemplate() + NAME + EXTENSION);
-                String htmlString = buildContent(mailMessage.getTemplate(), mailMessage.getParameters());
-                if (templateUrl != null) {
-                    File textTemplate = new File(templateUrl.getPath());
-                    if (!textTemplate.isDirectory()) {
-                        helper.setText(buildContent(mailMessage.getTemplate() + NAME, mailMessage.getParameters()), htmlString);
-                    }
-                } else {
-                    Source source = new Source(htmlString);
-                    String textString = source.getRenderer().toString();
-                    helper.setText(textString, htmlString);
-                }
-                mailSender.send(message);
 
-            } catch (Exception e) {
-                LOG.error(e.getMessage(), e);
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper;
+            helper = new MimeMessageHelper(message, true);
+            helper.setSubject(mailMessage.getSubject().replaceAll("\\$\\{app-title\\}", appTitle));
+            helper.setFrom(from, mailMessage.getFromPersonal().replaceAll("\\$\\{app-title\\}", appTitle));
+            helper.setTo(mailMessage.getUser().getEmail());
+            URL templateUrl = this.getClass().getResource(PATH_TO_TEMPLATES + mailMessage.getTemplate() + NAME + EXTENSION);
+            String htmlString = buildContent(mailMessage.getTemplate(), mailMessage.getParameters());
+            if (templateUrl != null) {
+                File textTemplate = new File(templateUrl.getPath());
+                if (!textTemplate.isDirectory()) {
+                    helper.setText(buildContent(mailMessage.getTemplate() + NAME, mailMessage.getParameters()), htmlString);
+                }
+            } else {
+                Source source = new Source(htmlString);
+                String textString = source.getRenderer().toString();
+                helper.setText(textString, htmlString);
             }
-        };
-        ArachneBackgroundExecutor.getExecutor().execute(runnable);
+            mailSender.send(message);
+
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
+    }
+
+    @Async
+    public void asyncSend(ArachneMailMessage mailMessage) {
+        send(mailMessage);
     }
 
     public String buildContent(String templateName, Map<String, Object> parameters) {

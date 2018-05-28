@@ -23,6 +23,7 @@
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserDTO;
+import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserRegistrationDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.AdminUserDTO;
@@ -41,9 +42,12 @@ import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.Submission;
+import com.odysseusinc.arachne.portal.model.User;
+import com.odysseusinc.arachne.portal.model.UserOrigin;
 import com.odysseusinc.arachne.portal.model.search.PaperSearch;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.model.search.UserSearch;
+import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.service.BaseAdminService;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.BasePaperService;
@@ -56,6 +60,9 @@ import java.security.Principal;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -154,7 +161,45 @@ public abstract class BaseAdminController<
     @RequestMapping(value = "/api/v1/admin/users/registration", method = RequestMethod.POST)
     public void register(@RequestBody BulkUsersRegistrationDTO bulkUsersDto) throws PasswordValidationException, ValidationException {
 
-        userService.createAll(bulkUsersDto);
+        if (bulkUsersDto.getTenants() == null || bulkUsersDto.getTenants().isEmpty()) {
+            throw new ValidationException("tenants: must be not empty");
+        }
+
+        boolean emailConfirmationRequired = bulkUsersDto.getEmailConfirmationRequired();
+
+        Set<Tenant> tenants = bulkUsersDto.getTenants().stream()
+                .map(tenant -> conversionService.convert(tenant, Tenant.class))
+                .collect(Collectors.toSet());
+        List<IUser> users = bulkUsersDto.getUsers().stream()
+                .map(dto -> (IUser) conversionService.convert(dto, User.class))
+                .collect(Collectors.toList());
+        updateFields(users, tenants, emailConfirmationRequired);
+
+        String registrantToken = "";
+        String callbackUrl = "";
+        if (emailConfirmationRequired) {
+            Optional<CommonUserRegistrationDTO> optionalUser = bulkUsersDto.getUsers().stream().findFirst();
+            if (!optionalUser.isPresent()) {
+                throw new ValidationException("user: must be not null");
+            }
+            registrantToken = optionalUser.get().getRegistrantToken();
+            callbackUrl = optionalUser.get().getCallbackUrl();
+        }
+
+        userService.createAll(users, emailConfirmationRequired, registrantToken, callbackUrl);
+    }
+
+    private void updateFields(List<IUser> users, Set<Tenant> tenants, boolean emailConfirmationRequired) {
+        for (IUser user : users) {
+            user.setTenants(tenants);
+            user.setOrigin(UserOrigin.NATIVE);
+            if (!emailConfirmationRequired) {
+                user.setEmailConfirmed(true);
+            } else {
+                user.setEmailConfirmed(false);
+                user.setRegistrationCode(UUID.randomUUID().toString());
+            }
+        }
     }
 
     @ApiOperation(value = "Get all users.", hidden = true)

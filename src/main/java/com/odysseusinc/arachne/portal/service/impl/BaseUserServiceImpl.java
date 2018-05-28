@@ -37,10 +37,8 @@ import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.MetadataException;
 import com.drew.metadata.exif.ExifIFD0Directory;
-import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserRegistrationDTO;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.commons.utils.UserIdUtils;
-import com.odysseusinc.arachne.portal.api.v1.dto.BulkUsersRegistrationDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchExpertListDTO;
 import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
 import com.odysseusinc.arachne.portal.exception.ArachneSystemRuntimeException;
@@ -63,7 +61,6 @@ import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.StateProvince;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserLink;
-import com.odysseusinc.arachne.portal.model.UserOrigin;
 import com.odysseusinc.arachne.portal.model.UserPublication;
 import com.odysseusinc.arachne.portal.model.UserRegistrant;
 import com.odysseusinc.arachne.portal.model.UserStudy;
@@ -326,54 +323,22 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    public List<U> createAll(final @NotNull BulkUsersRegistrationDTO bulkUsersDto)
-            throws PasswordValidationException, ValidationException {
+    public List<U> createAll(final @NotNull List<U> users, boolean emailConfirmationRequired, String registrantToken, String callbackUrl)
+            throws PasswordValidationException {
 
-        if (bulkUsersDto.getTenantDtos() == null || bulkUsersDto.getTenantDtos().isEmpty()) {
-            throw new ValidationException("tenants: must be not empty");
+        for (U user : users) {
+            updateFields(user);
         }
 
-        List<U> users = convertRegistrationDTOs(bulkUsersDto);
         List<U> createdUsers = userRepository.save(users);
-        if (bulkUsersDto.getEmailConfirmationRequired()) {
-            Optional<CommonUserRegistrationDTO> optionalUser = bulkUsersDto.getUserDtos().stream().findFirst();
-            if (!optionalUser.isPresent()) {
-                throw new ValidationException("user: must be not null");
-            }
-            Optional<UserRegistrant> userRegistrant = userRegistrantService.findByToken(optionalUser.get().getRegistrantToken());
-
+        if (emailConfirmationRequired) {
+            Optional<UserRegistrant> userRegistrant = userRegistrantService.findByToken(registrantToken);
             for (U user : createdUsers) {
-                sendRegistrationEmail(user, userRegistrant, optionalUser.get().getCallbackUrl());
+                sendRegistrationEmail(user, userRegistrant, callbackUrl, true);
             }
         }
 
         return createdUsers;
-    }
-
-    private List<U> convertRegistrationDTOs(BulkUsersRegistrationDTO bulkUsersDto) throws PasswordValidationException {
-
-        Set<Tenant> tenants = bulkUsersDto.getTenantDtos().stream()
-                .map(tenant -> conversionService.convert(tenant, Tenant.class))
-                .collect(Collectors.toSet());
-
-        List<U> users = bulkUsersDto.getUserDtos().stream()
-                .map(dto -> (U) conversionService.convert(dto, User.class))
-                .collect(Collectors.toList());
-
-        for (U user : users) {
-            user.setTenants(tenants);
-            user.setOrigin(UserOrigin.NATIVE);
-            if (!bulkUsersDto.getEmailConfirmationRequired()) {
-                user.setEmailConfirmed(true);
-            } else {
-                user.setEmailConfirmed(false);
-                user.setRegistrationCode(UUID.randomUUID().toString());
-            }
-
-            updateFields(user);
-        }
-
-        return users;
     }
 
     @Override
@@ -394,7 +359,7 @@ public abstract class BaseUserServiceImpl<
         U createdUser = create(user);
 
         Optional<UserRegistrant> userRegistrant = userRegistrantService.findByToken(registrantToken);
-        sendRegistrationEmail(createdUser, userRegistrant, callbackUrl);
+        sendRegistrationEmail(createdUser, userRegistrant, callbackUrl, false);
         return createdUser;
     }
 
@@ -711,10 +676,10 @@ public abstract class BaseUserServiceImpl<
 
     private void sendRegistrationEmail(final U user) {
 
-        sendRegistrationEmail(user, Optional.empty(), null);
+        sendRegistrationEmail(user, Optional.empty(), null, false);
     }
 
-    private void sendRegistrationEmail(U user, Optional<UserRegistrant> userRegistrant, String callbackUrl) {
+    private void sendRegistrationEmail(U user, Optional<UserRegistrant> userRegistrant, String callbackUrl, boolean isAsync) {
 
         RegistrationMailMessage mail = new RegistrationMailMessage(
                 user,
@@ -723,7 +688,11 @@ public abstract class BaseUserServiceImpl<
         );
         userRegistrant.ifPresent(registrant ->
                 userRegistrantService.customizeUserRegistrantMailMessage(registrant, callbackUrl, mail));
-        arachneMailSender.send(mail);
+        if (isAsync) {
+            arachneMailSender.asyncSend(mail);
+        } else {
+            arachneMailSender.send(mail);
+        }
     }
 
     @Override
