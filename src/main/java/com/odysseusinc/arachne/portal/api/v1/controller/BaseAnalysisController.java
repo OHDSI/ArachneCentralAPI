@@ -31,6 +31,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
+import com.google.common.collect.ImmutableMap;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonEntityRequestDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.OptionDTO;
@@ -53,6 +54,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightUpdateDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdateNotificationDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UploadFileDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.UploadFilesDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.converters.FileDtoContentHandler;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.NotEmptyException;
@@ -100,6 +102,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import java.util.zip.ZipOutputStream;
 import javax.jms.JMSException;
@@ -345,14 +348,16 @@ public abstract class BaseAnalysisController<T extends Analysis,
         final T analysis = analysisService.getById(analysisId);
         final DataReference dataReference = dataReferenceService.addOrUpdate(entityReference.getEntityGuid(), dataNode);
         final List<MultipartFile> entityFiles = getEntityFiles(entityReference, dataNode, analysisType);
-        doAddCommonEntityToAnalysis(analysis, dataReference, user, analysisType, entityFiles);
-        return new JsonResult(NO_ERROR);
+        return doAddCommonEntityToAnalysis(analysis, dataReference, user, analysisType, entityFiles);
     }
 
-    protected void doAddCommonEntityToAnalysis(T analysis, DataReference dataReference, IUser user,
-                                               CommonAnalysisType analysisType,
-                                               List<MultipartFile> files) throws IOException {
+    protected JsonResult doAddCommonEntityToAnalysis(T analysis, DataReference dataReference, IUser user,
+                                                     CommonAnalysisType analysisType,
+                                                     List<MultipartFile> files) throws IOException {
 
+        JsonResult result = new JsonResult(NO_ERROR);
+        Map<String, Object> validationErrors = new HashMap<>();
+        List<String> errorFileMessages = new ArrayList<>();
         files.stream()
                 .filter(f -> !CommonAnalysisType.COHORT.equals(analysisType) || !f.getName().endsWith(CommonFileUtils.OHDSI_JSON_EXT))
                 .forEach(f -> {
@@ -360,9 +365,17 @@ public abstract class BaseAnalysisController<T extends Analysis,
                                 analysisService.saveFile(f, user, analysis, f.getName(), detectExecutable(analysisType, f), dataReference);
                             } catch (IOException e) {
                                 LOGGER.error("Failed to save file", e);
+                            } catch (AlreadyExistException e) {
+                                LOGGER.error("Failed to save file", e);
+                                result.setErrorCode(VALIDATION_ERROR.getCode());
+                                errorFileMessages.add(e.getMessage());
                             }
                         }
                 );
+        if (result.getErrorCode().equals(VALIDATION_ERROR.getCode())) {
+            validationErrors.put(dataReference.getGuid(), errorFileMessages.toArray(new String[0]));
+            result.setValidatorErrors(validationErrors);
+        }
         if (analysisType.equals(CommonAnalysisType.COHORT)) {
             final ByteArrayOutputStream out = new ByteArrayOutputStream();
             class StringContainer {
@@ -404,8 +417,13 @@ public abstract class BaseAnalysisController<T extends Analysis,
             String fileName = generatedFileName.value + ".zip";
             final MultipartFile sqlArchive = new MockMultipartFile(fileName, fileName, "application/zip",
                     out.toByteArray());
-            analysisService.saveFile(sqlArchive, user, analysis, fileName, false, dataReference);
+            try {
+                analysisService.saveFile(sqlArchive, user, analysis, fileName, false, dataReference);
+            } catch (AlreadyExistException e) {
+                LOGGER.error("Failed to save file", e);
+            }
         }
+        return result;
     }
 
     protected boolean detectExecutable(CommonAnalysisType type, MultipartFile file) {
@@ -444,30 +462,46 @@ public abstract class BaseAnalysisController<T extends Analysis,
     @ApiOperation("Upload file to attach to analysis.")
     @RequestMapping(value = "/api/v1/analysis-management/analyses/{analysisId}/upload", method = POST)
     public JsonResult<List<AnalysisFileDTO>> uploadFile(Principal principal,
-                                                        @Valid UploadFileDTO uploadFileDTO,
+                                                        @Valid UploadFilesDTO uploadFilesLinks,
                                                         @PathVariable("analysisId") Long id)
-            throws PermissionDeniedException, NotExistException, IOException {
+            throws PermissionDeniedException, NotExistException {
 
         IUser user = getUser(principal);
         T analysis = analysisService.getById(id);
+        List<UploadFileDTO> files = Stream.concat(uploadFilesLinks.getFiles().stream(), uploadFilesLinks.getLinks().stream()).collect(Collectors.toList());
+        return saveFiles(files, user, analysis);
+    }
 
-        JsonResult<List<AnalysisFileDTO>> result = new JsonResult<>(NO_ERROR);
+    private JsonResult<List<AnalysisFileDTO>> saveFiles(List<UploadFileDTO> files, IUser user, T analysis) {
 
         List<AnalysisFileDTO> createdFiles = new ArrayList<>();
-
-        if (uploadFileDTO.getFile() != null) {
-            AnalysisFile createdFile = analysisService.saveFile(uploadFileDTO.getFile(), user, analysis, uploadFileDTO.getLabel(), uploadFileDTO.getExecutable(), null);
-            createdFiles.add(conversionService.convert(createdFile, AnalysisFileDTO.class));
-        } else {
-            if (StringUtils.hasText(uploadFileDTO.getLink())) {
-                AnalysisFile createdFile = analysisService.saveFile(uploadFileDTO.getLink(), user, analysis, uploadFileDTO.getLabel(), uploadFileDTO.getExecutable());
-                createdFiles.add(conversionService.convert(createdFile, AnalysisFileDTO.class));
-            } else {
+        List<String> errorFileMessages = new ArrayList<>();
+        JsonResult<List<AnalysisFileDTO>> result = new JsonResult<>(NO_ERROR);
+        files.forEach(uploadFile -> {
+            AnalysisFile createdFile = null;
+            try {
+                if (StringUtils.hasText(uploadFile.getLink())) {
+                    createdFile = analysisService.saveFile(uploadFile.getLink(), user, analysis, uploadFile.getLabel(), uploadFile.getExecutable());
+                } else if (uploadFile.getFile() != null) {
+                    createdFile = analysisService.saveFile(uploadFile.getFile(), user, analysis, uploadFile.getLabel(), uploadFile.getExecutable(), null);
+                } else {
+                    LOGGER.error("Failed to save invalid file: \"" + uploadFile.getLabel() + "\"");
+                    result.setErrorCode(VALIDATION_ERROR.getCode());
+                    errorFileMessages.add("Invalid file: \"" + uploadFile.getLabel() + "\"");
+                    return;
+                }
+            } catch (IOException e) {
+                LOGGER.error("Failed to save file", e);
+            } catch (AlreadyExistException e) {
+                LOGGER.error("Failed to save file", e);
                 result.setErrorCode(VALIDATION_ERROR.getCode());
+                errorFileMessages.add(e.getMessage());
             }
-
+            createdFiles.add(conversionService.convert(createdFile, AnalysisFileDTO.class));
+        });
+        if (result.getErrorCode().equals(VALIDATION_ERROR.getCode())) {
+            result.setValidatorErrors(ImmutableMap.of("file", errorFileMessages.toArray(new String[0])));
         }
-
         result.setResult(createdFiles);
         return result;
     }
