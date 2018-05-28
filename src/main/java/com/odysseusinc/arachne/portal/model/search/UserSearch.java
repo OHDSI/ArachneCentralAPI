@@ -26,6 +26,7 @@ public class UserSearch {
     private Boolean enabled;
     private Boolean emailConfirmed;
     private String query;
+    private Long[] tenantIds;
 
     public Boolean getEnabled() {
 
@@ -55,5 +56,15 @@ public class UserSearch {
     public void setQuery(String query) {
 
         this.query = query;
+    }
+
+    public Long[] getTenantIds() {
+
+        return tenantIds;
+    }
+
+    public void setTenantIds(Long[] tenantIds) {
+
+        this.tenantIds = tenantIds;
     }
 }
