@@ -21,7 +21,6 @@
 
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
-import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.ALREADY_EXIST;
 import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.NO_ERROR;
 import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.PERMISSION_DENIED;
 import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.VALIDATION_ERROR;
@@ -32,6 +31,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
+import com.google.common.collect.ImmutableMap;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonEntityRequestDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.OptionDTO;
@@ -367,12 +367,12 @@ public abstract class BaseAnalysisController<T extends Analysis,
                                 LOGGER.error("Failed to save file", e);
                             } catch (AlreadyExistException e) {
                                 LOGGER.error("Failed to save file", e);
-                                result.setErrorCode(ALREADY_EXIST.getCode());
+                                result.setErrorCode(VALIDATION_ERROR.getCode());
                                 errorFileMessages.add(e.getMessage());
                             }
                         }
                 );
-        if (result.getErrorCode().equals(ALREADY_EXIST.getCode())) {
+        if (result.getErrorCode().equals(VALIDATION_ERROR.getCode())) {
             validationErrors.put(dataReference.getGuid(), errorFileMessages.toArray(new String[0]));
             result.setValidatorErrors(validationErrors);
         }
@@ -474,34 +474,33 @@ public abstract class BaseAnalysisController<T extends Analysis,
 
     private JsonResult<List<AnalysisFileDTO>> saveFiles(List<UploadFileDTO> files, IUser user, T analysis) {
 
-        Map<String, Object> validationErrors = new HashMap<>();
         List<AnalysisFileDTO> createdFiles = new ArrayList<>();
         List<String> errorFileMessages = new ArrayList<>();
         JsonResult<List<AnalysisFileDTO>> result = new JsonResult<>(NO_ERROR);
         files.forEach(uploadFile -> {
             AnalysisFile createdFile = null;
             try {
-                if (uploadFile.getFile() != null) {
-                    createdFile = analysisService.saveFile(uploadFile.getFile(), user, analysis, uploadFile.getLabel(), uploadFile.getExecutable(), null);
-                } else if (StringUtils.hasText(uploadFile.getLink())) {
+                if (StringUtils.hasText(uploadFile.getLink())) {
                     createdFile = analysisService.saveFile(uploadFile.getLink(), user, analysis, uploadFile.getLabel(), uploadFile.getExecutable());
+                } else if (uploadFile.getFile() != null) {
+                    createdFile = analysisService.saveFile(uploadFile.getFile(), user, analysis, uploadFile.getLabel(), uploadFile.getExecutable(), null);
                 } else {
+                    LOGGER.error("Failed to save invalid file: \"" + uploadFile.getLabel() + "\"");
                     result.setErrorCode(VALIDATION_ERROR.getCode());
+                    errorFileMessages.add("Invalid file: \"" + uploadFile.getLabel() + "\"");
                     return;
                 }
             } catch (IOException e) {
                 LOGGER.error("Failed to save file", e);
             } catch (AlreadyExistException e) {
                 LOGGER.error("Failed to save file", e);
-                result.setErrorCode(ALREADY_EXIST.getCode());
+                result.setErrorCode(VALIDATION_ERROR.getCode());
                 errorFileMessages.add(e.getMessage());
             }
             createdFiles.add(conversionService.convert(createdFile, AnalysisFileDTO.class));
         });
-
-        if (result.getErrorCode().equals(ALREADY_EXIST.getCode())) {
-            validationErrors.put("file", errorFileMessages.toArray(new String[0]));
-            result.setValidatorErrors(validationErrors);
+        if (result.getErrorCode().equals(VALIDATION_ERROR.getCode())) {
+            result.setValidatorErrors(ImmutableMap.of("file", errorFileMessages.toArray(new String[0])));
         }
         result.setResult(createdFiles);
         return result;
