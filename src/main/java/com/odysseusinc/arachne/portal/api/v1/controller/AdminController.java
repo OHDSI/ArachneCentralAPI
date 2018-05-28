@@ -23,8 +23,8 @@
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
 import com.odysseusinc.arachne.portal.model.Analysis;
-import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyViewItem;
@@ -43,7 +43,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Api(hidden = true)
 @RestController
-public class AdminController extends BaseAdminController<Study, IDataSource, StudySearch, StudyViewItem, Analysis, Paper, PaperSearch, Submission> {
+public class AdminController extends BaseAdminController<IUser, Study, IDataSource, StudySearch, StudyViewItem, Analysis, Paper, PaperSearch, Submission> {
 
     @Autowired
     public AdminController(final DataSourceService dataSourceService,

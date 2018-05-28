@@ -80,6 +80,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @Secured("ROLE_ADMIN")
 public abstract class BaseAdminController<
+        U extends IUser,
         S extends Study,
         DS extends IDataSource,
         SS extends StudySearch,
@@ -153,7 +154,7 @@ public abstract class BaseAdminController<
             UserSearch userSearch)
             throws UserNotFoundException {
 
-        Page<IUser> users = userService.getAll(pageable, userSearch);
+        Page<U> users = (Page<U>) userService.getAll(pageable, userSearch);
         return users.map(user -> conversionService.convert(user, CommonUserDTO.class));
     }
 
@@ -170,8 +171,8 @@ public abstract class BaseAdminController<
         Set<Tenant> tenants = bulkUsersDto.getTenants().stream()
                 .map(tenant -> conversionService.convert(tenant, Tenant.class))
                 .collect(Collectors.toSet());
-        List<IUser> users = bulkUsersDto.getUsers().stream()
-                .map(dto -> (IUser) conversionService.convert(dto, User.class))
+        List<U> users = bulkUsersDto.getUsers().stream()
+                .map(dto -> (U) conversionService.convert(dto, User.class))
                 .collect(Collectors.toList());
         updateFields(users, tenants, emailConfirmationRequired);
 
@@ -179,18 +180,16 @@ public abstract class BaseAdminController<
         String callbackUrl = "";
         if (emailConfirmationRequired) {
             Optional<CommonUserRegistrationDTO> optionalUser = bulkUsersDto.getUsers().stream().findFirst();
-            if (!optionalUser.isPresent()) {
-                throw new ValidationException("user: must be not null");
-            }
-            registrantToken = optionalUser.get().getRegistrantToken();
-            callbackUrl = optionalUser.get().getCallbackUrl();
+            CommonUserRegistrationDTO userDto = optionalUser.orElseThrow(() -> new ValidationException("user: must be not null"));
+            registrantToken = userDto.getRegistrantToken();
+            callbackUrl = userDto.getCallbackUrl();
         }
 
-        userService.createAll(users, emailConfirmationRequired, registrantToken, callbackUrl);
+        userService.createAll((List<IUser>) users, emailConfirmationRequired, registrantToken, callbackUrl);
     }
 
-    private void updateFields(List<IUser> users, Set<Tenant> tenants, boolean emailConfirmationRequired) {
-        for (IUser user : users) {
+    private void updateFields(List<U> users, Set<Tenant> tenants, boolean emailConfirmationRequired) {
+        for (U user : users) {
             user.setTenants(tenants);
             user.setOrigin(UserOrigin.NATIVE);
             if (!emailConfirmationRequired) {
