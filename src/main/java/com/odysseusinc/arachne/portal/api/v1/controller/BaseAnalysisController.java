@@ -102,6 +102,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import java.util.zip.ZipOutputStream;
 import javax.jms.JMSException;
@@ -467,22 +468,16 @@ public abstract class BaseAnalysisController<T extends Analysis,
 
         IUser user = getUser(principal);
         T analysis = analysisService.getById(id);
-        JsonResult<List<AnalysisFileDTO>> result = new JsonResult<>(NO_ERROR);
-        List<AnalysisFileDTO> createdFiles = new ArrayList<>();
-        Map<String, Object> validationErrors = new HashMap<>();
-        List<String> errorFileMessages = new ArrayList<>();
-        List<UploadFileDTO> files = uploadFilesLinks.getFiles().size() > 0 ? uploadFilesLinks.getFiles() : uploadFilesLinks.getLinks();
-        saveFiles(files, user, analysis, result, createdFiles, errorFileMessages);
-        if (result.getErrorCode().equals(ALREADY_EXIST.getCode())) {
-            validationErrors.put("file", errorFileMessages.toArray(new String[0]));
-            result.setValidatorErrors(validationErrors);
-        }
-        result.setResult(createdFiles);
-        return result;
+        List<UploadFileDTO> files = Stream.concat(uploadFilesLinks.getFiles().stream(), uploadFilesLinks.getLinks().stream()).collect(Collectors.toList());
+        return saveFiles(files, user, analysis);
     }
 
-    private void saveFiles(List<UploadFileDTO> files, IUser user, T analysis, JsonResult<List<AnalysisFileDTO>> result, List<AnalysisFileDTO> createdFiles, List<String> errorFileMessages) {
+    private JsonResult<List<AnalysisFileDTO>> saveFiles(List<UploadFileDTO> files, IUser user, T analysis) {
 
+        Map<String, Object> validationErrors = new HashMap<>();
+        List<AnalysisFileDTO> createdFiles = new ArrayList<>();
+        List<String> errorFileMessages = new ArrayList<>();
+        JsonResult<List<AnalysisFileDTO>> result = new JsonResult<>(NO_ERROR);
         files.forEach(uploadFile -> {
             AnalysisFile createdFile = null;
             try {
@@ -503,6 +498,13 @@ public abstract class BaseAnalysisController<T extends Analysis,
             }
             createdFiles.add(conversionService.convert(createdFile, AnalysisFileDTO.class));
         });
+
+        if (result.getErrorCode().equals(ALREADY_EXIST.getCode())) {
+            validationErrors.put("file", errorFileMessages.toArray(new String[0]));
+            result.setValidatorErrors(validationErrors);
+        }
+        result.setResult(createdFiles);
+        return result;
     }
 
     @ApiOperation("Replace file in analysis.")
