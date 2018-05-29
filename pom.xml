@@ -118,6 +118,12 @@
             <type>jar</type>
         </dependency>
         <dependency>
+            <groupId>com.odysseusinc.arachne</groupId>
+            <artifactId>arachne-no-handler-found-exception-util</artifactId>
+            <version>${project.version}</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
             <artifactId>arachne-sys-settings</artifactId>
             <groupId>com.odysseusinc.arachne</groupId>
             <version>${project.version}</version>
