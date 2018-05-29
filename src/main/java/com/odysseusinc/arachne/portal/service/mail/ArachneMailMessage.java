@@ -29,7 +29,7 @@ import java.util.Map;
 
 public abstract class ArachneMailMessage {
 
-    private String fromPersonal = "Arachne";
+    private String fromPersonal = "${app-title}";
     protected Map<String, Object> parameters = new HashMap<>();
     protected IUser user;
 

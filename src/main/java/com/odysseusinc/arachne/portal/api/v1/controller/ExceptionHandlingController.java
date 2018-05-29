@@ -42,8 +42,11 @@ import com.odysseusinc.arachne.portal.exception.ServiceNotAvailableException;
 import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.exception.WrongFileFormatException;
+import com.odysseusinc.arachne.portal.security.LoginRequestContext;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Objects;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -70,6 +73,7 @@ public class ExceptionHandlingController extends BaseController {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExceptionHandlingController.class);
     private static final String STATIC_CONTENT_FOLDER = "public";
     private static final String INDEX_FILE = STATIC_CONTENT_FOLDER + "/index.html";
+    private static final String COOKIE_USER_REQUEST = "Arachne-User-Request";
 
     @Autowired
     private WebApplicationContext webApplicationContext;
@@ -254,6 +258,12 @@ public class ExceptionHandlingController extends BaseController {
                 ClassPathResource resource = new ClassPathResource(STATIC_CONTENT_FOLDER + requestPath);
                 if (!resource.exists()) {
                     resource = new ClassPathResource(INDEX_FILE);
+                }
+
+                if (Objects.nonNull(LoginRequestContext.getUserName())) {
+                    Cookie cookie = new Cookie(COOKIE_USER_REQUEST, LoginRequestContext.getUserName());
+                    cookie.setPath("/");
+                    response.addCookie(cookie);
                 }
 
                 return resource;
