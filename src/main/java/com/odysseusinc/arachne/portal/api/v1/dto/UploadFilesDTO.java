@@ -15,26 +15,37 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: November 26, 2016
+ * Authors: Anastasiia Klochkova
+ * Created: May 24, 2018
  *
  */
 
-package com.odysseusinc.arachne.portal.repository;
+package com.odysseusinc.arachne.portal.api.v1.dto;
 
-import com.odysseusinc.arachne.portal.model.AnalysisFile;
+import java.util.LinkedList;
 import java.util.List;
-import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface AnalysisFileRepository extends JpaRepository<AnalysisFile, Long> {
+public class UploadFilesDTO {
+    private List<UploadFileDTO> files = new LinkedList<>();
+    private List<UploadFileDTO> links = new LinkedList<>();
 
-    AnalysisFile findByUuid(String uuid);
+    public List<UploadFileDTO> getFiles() {
 
-    List<AnalysisFile> findAllByAnalysisIdAndRealName(Long analysisId, String name);
+        return files;
+    }
 
-    List<AnalysisFile> findAllByAnalysisIdAndDataReferenceId(Long analysisId, Long dataReferenceId);
+    public void setFiles(LinkedList<UploadFileDTO> files) {
 
-    List<AnalysisFile> findByIdIn(List<Long> ids);
+        this.files = files;
+    }
 
-    List<AnalysisFile> findByLabel(String label);
+    public List<UploadFileDTO> getLinks() {
+
+        return links;
+    }
+
+    public void setLinks(List<UploadFileDTO> links) {
+
+        this.links = links;
+    }
 }
