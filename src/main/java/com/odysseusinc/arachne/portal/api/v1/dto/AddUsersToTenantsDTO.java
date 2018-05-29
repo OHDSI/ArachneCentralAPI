@@ -25,7 +25,7 @@ import java.util.List;
 
 public class AddUsersToTenantsDTO {
     private List<String> userIds = new ArrayList<>();
-    private List<String> tenantIds = new ArrayList<>();
+    private List<Long> tenantIds = new ArrayList<>();
 
     public List<String> getUserIds() {
 
@@ -37,12 +37,12 @@ public class AddUsersToTenantsDTO {
         this.userIds = userIds;
     }
 
-    public List<String> getTenantIds() {
+    public List<Long> getTenantIds() {
 
         return tenantIds;
     }
 
-    public void setTenantIds(final List<String> tenantIds) {
+    public void setTenantIds(final List<Long> tenantIds) {
 
         this.tenantIds = tenantIds;
     }

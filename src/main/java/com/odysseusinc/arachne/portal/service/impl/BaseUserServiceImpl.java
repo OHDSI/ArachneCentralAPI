@@ -311,6 +311,14 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
+    @PreAuthorize("hasRole('ROLE_ADMIN') || #dataNode == authentication.principal || hasPermission(#id, 'RawUser', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_USER)")
+    public List<U> getByIdsInAnyTenant(final List<Long> ids) {
+
+        return rawUserRepository.findByIdIn(ids);
+    }
+
+    @Override
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Transactional(rollbackOn = Exception.class)
     public void remove(Long id) throws ValidationException, UserNotFoundException, NotExistException, IOException, SolrServerException {
@@ -628,7 +636,11 @@ public abstract class BaseUserServiceImpl<
 
         Specifications<U> spec = buildSpecification(userSearch);
 
-        return rawUserRepository.findAll(spec, pageableWithUpdatedOrder, EntityUtils.fromAttributePaths("tenants"));
+        final Page<U> page = rawUserRepository.findAll(spec, pageableWithUpdatedOrder);
+        
+//        enrichUserPageByTenants(page);
+        
+        return page;
     }
 
     @Override

@@ -79,6 +79,10 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
 
     U getByUsernameInAnyTenant(final String username, boolean includeDeleted);
 
+    @PreAuthorize("hasRole('ROLE_ADMIN') || #dataNode == authentication.principal || hasPermission(#id, 'RawUser', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_USER)")
+    List<U> getByIdsInAnyTenant(List<Long> ids);
+
     void remove(Long id)
             throws ValidationException, UserNotFoundException, NotExistException, IOException, SolrServerException;
 
