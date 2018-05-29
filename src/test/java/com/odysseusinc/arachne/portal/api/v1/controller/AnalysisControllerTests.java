@@ -264,7 +264,7 @@ public class AnalysisControllerTests extends BaseControllerTest {
     public void testUploadCodeFile() throws Exception {
 
         FileInputStream fileInputStream = new FileInputStream(this.getClass().getResource("/test.jpg").getPath());
-        MockMultipartFile multipartFile = new MockMultipartFile("files", "test.jpg", "application/octet-stream", fileInputStream);
+        MockMultipartFile multipartFile = new MockMultipartFile("files", "test.jpg", "image/jpeg", fileInputStream);
         this.mvc.perform(
                 fileUpload("/api/v1/analysis-management/analyses/{analysisId}/upload", ANALYSIS_ID)
                         .file(multipartFile)
