@@ -69,7 +69,7 @@ public class ExceptionHandlingController extends BaseController {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExceptionHandlingController.class);
     private static final String COOKIE_USER_REQUEST = "Arachne-User-Request";
 
-    private final Consumer<HttpServletResponse> ADD_COOKIE_FUNCTION = response -> {
+    private static final Consumer<HttpServletResponse> ADD_COOKIE_FUNCTION = response -> {
 
         if (Objects.nonNull(LoginRequestContext.getUserName())) {
             Cookie cookie = new Cookie(COOKIE_USER_REQUEST, LoginRequestContext.getUserName());
