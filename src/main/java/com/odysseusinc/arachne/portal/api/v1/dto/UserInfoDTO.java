@@ -27,6 +27,7 @@ import java.util.List;
 public class UserInfoDTO extends DTO {
     private String id;
     private String email;
+    private String username;
     private String firstname;
     private String lastname;
     private String middlename;
@@ -49,6 +50,14 @@ public class UserInfoDTO extends DTO {
     public void setId(String id) {
 
         this.id = id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getEmail() {

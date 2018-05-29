@@ -44,6 +44,7 @@ import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.exception.WrongFileFormatException;
 import java.io.IOException;
+import java.util.Collections;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;

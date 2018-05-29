@@ -6,7 +6,7 @@
 
     <artifactId>portal</artifactId>
     <groupId>com.odysseusinc.arachne</groupId>
-    <version>1.12.2-QA</version>
+    <version>1.13.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -114,12 +114,6 @@
         <dependency>
             <groupId>com.odysseusinc.arachne</groupId>
             <artifactId>arachne-commons</artifactId>
-            <version>${project.version}</version>
-            <type>jar</type>
-        </dependency>
-        <dependency>
-            <groupId>com.odysseusinc.arachne</groupId>
-            <artifactId>arachne-no-handler-found-exception-util</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
         </dependency>
