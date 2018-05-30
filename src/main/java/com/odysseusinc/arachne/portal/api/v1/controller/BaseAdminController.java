@@ -148,7 +148,7 @@ public abstract class BaseAdminController<
         return users.map(user -> conversionService.convert(user, UserWithTenantsDTO.class));
     }
 
-    @ApiOperation(value = "Get all users.", hidden = true)
+    @ApiOperation(value = "Get user ids.", hidden = true)
     @RequestMapping(value = "/api/v1/admin/users/ids", method = RequestMethod.GET)
     public List<String> getListOfUserIdsByFilter(final UserSearch userSearch)
             throws UserNotFoundException {
