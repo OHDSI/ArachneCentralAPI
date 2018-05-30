@@ -27,7 +27,8 @@ import java.util.List;
 
 public class BulkUsersRegistrationDTO {
     private boolean emailConfirmationRequired;
-    private List<TenantBaseDTO> tenants;
+    private List<Long> tenantIds;
+    private String password;
     private List<CommonUserRegistrationDTO> users;
 
     public boolean getEmailConfirmationRequired() {
@@ -40,14 +41,24 @@ public class BulkUsersRegistrationDTO {
         this.emailConfirmationRequired = emailConfirmationRequired;
     }
 
-    public List<TenantBaseDTO> getTenants() {
+    public List<Long> getTenantIds() {
 
-        return tenants;
+        return tenantIds;
     }
 
-    public void setTenants(List<TenantBaseDTO> tenants) {
+    public void setTenantIds(List<Long> tenantIds) {
 
-        this.tenants = tenants;
+        this.tenantIds = tenantIds;
+    }
+
+    public String getPassword() {
+
+        return password;
+    }
+
+    public void setPassword(String password) {
+
+        this.password = password;
     }
 
     public List<CommonUserRegistrationDTO> getUsers() {

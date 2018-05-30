@@ -159,22 +159,22 @@ public abstract class BaseAdminController<
     }
 
     @ApiOperation("Register new users")
-    @RequestMapping(value = "/api/v1/admin/users/registration", method = RequestMethod.POST)
+    @RequestMapping(value = "/api/v1/admin/users/batch", method = RequestMethod.POST)
     public void register(@RequestBody BulkUsersRegistrationDTO bulkUsersDto) throws PasswordValidationException, ValidationException {
 
-        if (bulkUsersDto.getTenants() == null || bulkUsersDto.getTenants().isEmpty()) {
+        if (bulkUsersDto.getTenantIds() == null || bulkUsersDto.getTenantIds().isEmpty()) {
             throw new ValidationException("tenants: must be not empty");
         }
 
         boolean emailConfirmationRequired = bulkUsersDto.getEmailConfirmationRequired();
 
-        Set<Tenant> tenants = bulkUsersDto.getTenants().stream()
-                .map(tenant -> conversionService.convert(tenant, Tenant.class))
+        Set<Tenant> tenants = bulkUsersDto.getTenantIds().stream()
+                .map(tenantId -> conversionService.convert(tenantId, Tenant.class))
                 .collect(Collectors.toSet());
         List<U> users = bulkUsersDto.getUsers().stream()
                 .map(dto -> (U) conversionService.convert(dto, User.class))
                 .collect(Collectors.toList());
-        updateFields(users, tenants, emailConfirmationRequired);
+        updateFields(users, tenants, emailConfirmationRequired, bulkUsersDto.getPassword());
 
         String registrantToken = "";
         String callbackUrl = "";
@@ -188,8 +188,9 @@ public abstract class BaseAdminController<
         userService.createAll((List<IUser>) users, emailConfirmationRequired, registrantToken, callbackUrl);
     }
 
-    private void updateFields(List<U> users, Set<Tenant> tenants, boolean emailConfirmationRequired) {
+    private void updateFields(List<U> users, Set<Tenant> tenants, boolean emailConfirmationRequired, String password) {
         for (U user : users) {
+            user.setPassword(password);
             user.setTenants(tenants);
             user.setOrigin(UserOrigin.NATIVE);
             if (!emailConfirmationRequired) {
