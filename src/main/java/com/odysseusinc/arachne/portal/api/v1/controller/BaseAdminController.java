@@ -152,7 +152,7 @@ public abstract class BaseAdminController<
     @RequestMapping(value = "/api/v1/admin/users/ids", method = RequestMethod.GET)
     public List<String> getListOfUserIdsByFilter(final UserSearch userSearch)
             throws UserNotFoundException {
-
+        
         final List<IUser> users = userService.getList(userSearch);
         return users.stream().map(IUser::getId).map(UserIdUtils::idToUuid).collect(Collectors.toList());
     }

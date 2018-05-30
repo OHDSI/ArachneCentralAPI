@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UserWithTenantsDTO extends CommonUserDTO {
+    
+    private TenantBaseDTO activeTenant;
     private List<TenantBaseDTO> tenants = new ArrayList<>();
 
     public List<TenantBaseDTO> getTenants() {
@@ -36,5 +38,15 @@ public class UserWithTenantsDTO extends CommonUserDTO {
     public void setTenants(final List<TenantBaseDTO> tenants) {
 
         this.tenants = tenants;
+    }
+
+    public TenantBaseDTO getActiveTenant() {
+
+        return activeTenant;
+    }
+
+    public void setActiveTenant(final TenantBaseDTO activeTenant) {
+
+        this.activeTenant = activeTenant;
     }
 }

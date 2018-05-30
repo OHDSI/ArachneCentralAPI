@@ -630,15 +630,13 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    public Page<U> getPage(Pageable pageable, UserSearch userSearch) {
+    public Page<U> getPage(final Pageable pageable, final UserSearch userSearch) {
         
         final Pageable pageableWithUpdatedOrder = convertOrderRequest(pageable);
 
-        Specifications<U> spec = buildSpecification(userSearch);
+        final Specifications<U> spec = buildSpecification(userSearch);
 
         final Page<U> page = rawUserRepository.findAll(spec, pageableWithUpdatedOrder);
-        
-//        enrichUserPageByTenants(page);
         
         return page;
     }

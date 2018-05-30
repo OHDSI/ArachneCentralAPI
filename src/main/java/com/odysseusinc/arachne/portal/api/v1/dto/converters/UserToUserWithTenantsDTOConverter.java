@@ -23,6 +23,7 @@ package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 import com.odysseusinc.arachne.portal.api.v1.dto.TenantBaseDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserWithTenantsDTO;
 import com.odysseusinc.arachne.portal.model.IUser;
+import com.odysseusinc.arachne.portal.model.security.Tenant;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
@@ -37,12 +38,19 @@ public class UserToUserWithTenantsDTOConverter extends BaseUserToCommonUserDTOCo
 
         final List<TenantBaseDTO> convertedTenantList = user.getTenants()
                 .stream()
-                .map(v -> conversionService.convert(v, TenantBaseDTO.class))
+                .map(this::convertTenant)
                 .collect(Collectors.toList());
 
         dto.setTenants(convertedTenantList);
+
+        dto.setActiveTenant(convertTenant(user.getActiveTenant()));
         
         return dto;
+    }
+    
+    private TenantBaseDTO convertTenant(final Tenant tenant) {
+        
+        return conversionService.convert(tenant, TenantBaseDTO.class);
     }
 
     @Override
