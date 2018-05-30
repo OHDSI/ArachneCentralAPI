@@ -18,16 +18,35 @@
  * Created: May 24, 2018
  */
 
-package com.odysseusinc.arachne.portal.api.v1.dto.converters;
+package com.odysseusinc.arachne.portal.api.v1.dto;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserDTO;
-import org.springframework.stereotype.Component;
+import com.odysseusinc.arachne.portal.api.v1.dto.TenantBaseDTO;
+import java.util.ArrayList;
+import java.util.List;
 
-@Component
-public class UserToCommonUserDTOConverter extends BaseUserToCommonUserDTOConverter<CommonUserDTO> {
-    @Override
-    protected CommonUserDTO createResultObject() {
+public class UserWithTenantsDTO extends CommonUserDTO {
+    
+    private TenantBaseDTO activeTenant;
+    private List<TenantBaseDTO> tenants = new ArrayList<>();
 
-        return new CommonUserDTO();
+    public List<TenantBaseDTO> getTenants() {
+
+        return tenants;
+    }
+
+    public void setTenants(final List<TenantBaseDTO> tenants) {
+
+        this.tenants = tenants;
+    }
+
+    public TenantBaseDTO getActiveTenant() {
+
+        return activeTenant;
+    }
+
+    public void setActiveTenant(final TenantBaseDTO activeTenant) {
+
+        this.activeTenant = activeTenant;
     }
 }

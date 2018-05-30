@@ -18,16 +18,33 @@
  * Created: May 24, 2018
  */
 
-package com.odysseusinc.arachne.portal.api.v1.dto.converters;
+package com.odysseusinc.arachne.portal.api.v1.dto;
 
-import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserDTO;
-import org.springframework.stereotype.Component;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import java.util.ArrayList;
+import java.util.List;
 
-@Component
-public class UserToCommonUserDTOConverter extends BaseUserToCommonUserDTOConverter<CommonUserDTO> {
-    @Override
-    protected CommonUserDTO createResultObject() {
+public class BatchOperationDTO {
+    private BatchOperationType type;
+    private List<String> ids = new ArrayList<>();
 
-        return new CommonUserDTO();
+    public BatchOperationType getType() {
+
+        return type;
+    }
+
+    public void setType(final BatchOperationType type) {
+
+        this.type = type;
+    }
+
+    public List<String> getIds() {
+
+        return ids;
+    }
+
+    public void setIds(final List<String> ids) {
+
+        this.ids = ids;
     }
 }

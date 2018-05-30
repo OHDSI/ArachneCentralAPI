@@ -18,16 +18,32 @@
  * Created: May 24, 2018
  */
 
-package com.odysseusinc.arachne.portal.api.v1.dto.converters;
+package com.odysseusinc.arachne.portal.api.v1.dto;
 
-import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserDTO;
-import org.springframework.stereotype.Component;
+public enum BatchOperationType {
+    
+    DELETE("delete"),
+    CONFIRM("confirm"),
+    ENABLE("enable"),
+    RESEND("resend");
 
-@Component
-public class UserToCommonUserDTOConverter extends BaseUserToCommonUserDTOConverter<CommonUserDTO> {
-    @Override
-    protected CommonUserDTO createResultObject() {
 
-        return new CommonUserDTO();
+    private String operationType;
+    
+    
+
+    BatchOperationType(final String operationType) {
+
+        this.operationType = operationType;
+    }
+
+    public String getOperationType() {
+
+        return operationType;
+    }
+
+    public void setOperationType(final String operationType) {
+
+        this.operationType = operationType;
     }
 }

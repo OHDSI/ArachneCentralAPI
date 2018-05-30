@@ -22,11 +22,12 @@
 
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
-import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.AdminUserDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ArachneConsts;
+import com.odysseusinc.arachne.portal.api.v1.dto.BatchOperationDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.UserWithTenantsDTO;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
@@ -63,6 +64,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.SortDefault;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -133,7 +135,7 @@ public abstract class BaseAdminController<
 
     @ApiOperation(value = "Get all users.", hidden = true)
     @RequestMapping(value = "/api/v1/admin/users", method = RequestMethod.GET)
-    public Page<CommonUserDTO> getAll(
+    public Page<UserWithTenantsDTO> getAll(
             @PageableDefault(page = 1)
             @SortDefault.SortDefaults({
                     @SortDefault(sort = "name", direction = Sort.Direction.ASC)
@@ -142,10 +144,18 @@ public abstract class BaseAdminController<
             UserSearch userSearch)
             throws UserNotFoundException {
 
-        Page<IUser> users = userService.getAll(pageable, userSearch);
-        return users.map(user -> conversionService.convert(user, CommonUserDTO.class));
+        final Page<IUser> users = userService.getPage(pageable, userSearch);
+        return users.map(user -> conversionService.convert(user, UserWithTenantsDTO.class));
     }
 
+    @ApiOperation(value = "Get user ids.", hidden = true)
+    @RequestMapping(value = "/api/v1/admin/users/ids", method = RequestMethod.GET)
+    public List<String> getListOfUserIdsByFilter(final UserSearch userSearch)
+            throws UserNotFoundException {
+        
+        final List<IUser> users = userService.getList(userSearch);
+        return users.stream().map(IUser::getId).map(UserIdUtils::idToUuid).collect(Collectors.toList());
+    }
 
     @ApiOperation(value = "Get all users.", hidden = true)
     @RequestMapping(value = "/api/v1/admin/admins", method = RequestMethod.GET)
@@ -221,6 +231,13 @@ public abstract class BaseAdminController<
                 throw new UnsupportedOperationException("Reindex isn't allowed for domain: " + domain);
         }
 
+        return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
+    }
+    
+    @RequestMapping(value = "/api/v1/admin/users/batch", method = RequestMethod.POST)
+    public JsonResult doBatchOperation(@RequestBody BatchOperationDTO dto) {
+
+        userService.performBatchOperation(dto.getIds(), dto.getType());
         return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
     }
 }
