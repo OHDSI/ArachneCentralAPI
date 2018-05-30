@@ -632,7 +632,7 @@ public abstract class BaseUserServiceImpl<
     @Override
     public Page<U> getPage(final Pageable pageable, final UserSearch userSearch) {
         
-        final Pageable pageableWithUpdatedOrder = convertOrderRequest(pageable);
+        final Pageable pageableWithUpdatedOrder = new PageRequest(pageable.getPageNumber() - 1, pageable.getPageSize(), pageable.getSort());
 
         final Specifications<U> spec = buildSpecification(userSearch);
 
@@ -667,21 +667,6 @@ public abstract class BaseUserServiceImpl<
             spec = spec.and(usersIn(tenantIds));
         }
         return spec;
-    }
-
-    private Pageable convertOrderRequest(Pageable pageable) {
-        Pageable search;
-        Iterator<Sort.Order> pageIt = pageable.getSort().iterator();
-        Stream<Sort.Order> pageStream = StreamSupport.stream(Spliterators.spliteratorUnknownSize(pageIt, Spliterator.ORDERED), false);
-        if (pageStream.anyMatch(order -> order.getProperty().equals("name"))) {
-            search = new PageRequest(pageable.getPageNumber() - 1, pageable.getPageSize(),
-                    pageable.getSort().getOrderFor("name").getDirection(),
-                    "firstname", "middlename", "lastname");
-        } else {
-            search = new PageRequest(pageable.getPageNumber() - 1, pageable.getPageSize(), pageable.getSort());
-        }
-
-        return search;
     }
 
     private void sendRegistrationEmail(final U user) {
