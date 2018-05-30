@@ -42,6 +42,7 @@ public class UserToUserInfoDTOConverter<T extends UserInfoDTO> extends BaseConve
         final T userInfoDTO = createResultObject();
         userInfoDTO.setId(source.getUuid());
         userInfoDTO.setEmail(source.getEmail());
+        userInfoDTO.setUsername(source.getUsername());
         final boolean isAdmin = source.getRoles().stream()
                 .anyMatch(r -> r.getName().equals("ROLE_ADMIN"));
         userInfoDTO.setIsAdmin(isAdmin);

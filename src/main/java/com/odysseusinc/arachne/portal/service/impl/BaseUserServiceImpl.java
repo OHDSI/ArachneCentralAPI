@@ -26,6 +26,7 @@ import static com.odysseusinc.arachne.portal.model.ParticipantStatus.APPROVED;
 import static com.odysseusinc.arachne.portal.model.ParticipantStatus.DECLINED;
 import static com.odysseusinc.arachne.portal.repository.UserSpecifications.emailConfirmed;
 import static com.odysseusinc.arachne.portal.repository.UserSpecifications.userEnabled;
+import static com.odysseusinc.arachne.portal.repository.UserSpecifications.usersIn;
 import static com.odysseusinc.arachne.portal.repository.UserSpecifications.withNameOrEmailLike;
 import static com.odysseusinc.arachne.portal.service.RoleService.ROLE_ADMIN;
 import static java.lang.Boolean.TRUE;
@@ -105,15 +106,19 @@ import java.security.Principal;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
@@ -133,6 +138,7 @@ import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specifications;
@@ -607,6 +613,7 @@ public abstract class BaseUserServiceImpl<
 
     @Override
     public Page<U> getAll(Pageable pageable, UserSearch userSearch) {
+        Pageable search = convertOrderRequest(pageable);
 
         Specifications<U> spec = where(UserSpecifications.hasEmail());
         if (userSearch.getEmailConfirmed() != null && userSearch.getEmailConfirmed()) {
@@ -619,7 +626,28 @@ public abstract class BaseUserServiceImpl<
             String pattern = userSearch.getQuery() + "%";
             spec = spec.and(withNameOrEmailLike(pattern));
         }
-        return rawUserRepository.findAll(spec, pageable);
+
+        final Long[] tenantIds = userSearch.getTenantIds();
+        if (tenantIds != null && tenantIds.length > 0) {
+            spec = spec.and(usersIn(tenantIds));
+        }
+
+        return rawUserRepository.findAll(spec, search);
+    }
+
+    private Pageable convertOrderRequest(Pageable pageable) {
+        Pageable search;
+        Iterator<Sort.Order> pageIt = pageable.getSort().iterator();
+        Stream<Sort.Order> pageStream = StreamSupport.stream(Spliterators.spliteratorUnknownSize(pageIt, Spliterator.ORDERED), false);
+        if (pageStream.anyMatch(order -> order.getProperty().equals("name"))) {
+            search = new PageRequest(pageable.getPageNumber() - 1, pageable.getPageSize(),
+                    pageable.getSort().getOrderFor("name").getDirection(),
+                    "firstname", "middlename", "lastname");
+        } else {
+            search = new PageRequest(pageable.getPageNumber() - 1, pageable.getPageSize(), pageable.getSort());
+        }
+
+        return search;
     }
 
     private void sendRegistrationEmail(final U user) {
