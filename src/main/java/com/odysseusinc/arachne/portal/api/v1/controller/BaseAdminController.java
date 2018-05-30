@@ -60,7 +60,6 @@ import java.security.Principal;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -179,8 +178,9 @@ public abstract class BaseAdminController<
         String registrantToken = "";
         String callbackUrl = "";
         if (emailConfirmationRequired) {
-            Optional<CommonUserRegistrationDTO> optionalUser = bulkUsersDto.getUsers().stream().findFirst();
-            CommonUserRegistrationDTO userDto = optionalUser.orElseThrow(() -> new ValidationException("user: must be not null"));
+            CommonUserRegistrationDTO userDto = bulkUsersDto.getUsers().stream()
+                    .findFirst()
+                    .orElseThrow(() -> new ValidationException("user: must be not null"));
             registrantToken = userDto.getRegistrantToken();
             callbackUrl = userDto.getCallbackUrl();
         }
