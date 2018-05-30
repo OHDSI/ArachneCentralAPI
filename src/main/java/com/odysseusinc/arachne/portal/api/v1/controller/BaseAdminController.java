@@ -88,7 +88,7 @@ public abstract class BaseAdminController<
         A extends Analysis,
         P extends Paper,
         PS extends PaperSearch,
-        SB extends Submission> extends BaseController<DataNode, IUser> {
+        SB extends Submission> extends BaseController<DataNode, U> {
 
     private final BaseDataSourceService<DS> dataSourceService;
     protected final ProfessionalTypeService professionalTypeService;
@@ -128,7 +128,7 @@ public abstract class BaseAdminController<
             NoSuchFieldException {
 
         JsonResult<Boolean> result;
-        IUser user = userService.getByIdInAnyTenant(UserIdUtils.uuidToId(uuid));
+        U user = userService.getByIdInAnyTenant(UserIdUtils.uuidToId(uuid));
         user.setEnabled(isEnabled);
         userService.updateInAnyTenant(user);
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
@@ -154,7 +154,7 @@ public abstract class BaseAdminController<
             UserSearch userSearch)
             throws UserNotFoundException {
 
-        Page<U> users = (Page<U>) userService.getAll(pageable, userSearch);
+        Page<U> users = userService.getAll(pageable, userSearch);
         return users.map(user -> conversionService.convert(user, CommonUserDTO.class));
     }
 
@@ -185,7 +185,7 @@ public abstract class BaseAdminController<
             callbackUrl = userDto.getCallbackUrl();
         }
 
-        userService.createAll((List<IUser>) users, emailConfirmationRequired, registrantToken, callbackUrl);
+        userService.createAll(users, emailConfirmationRequired, registrantToken, callbackUrl);
     }
 
     private void updateFields(List<U> users, Set<Tenant> tenants, boolean emailConfirmationRequired, String password) {
@@ -211,7 +211,7 @@ public abstract class BaseAdminController<
     ) throws PermissionDeniedException {
 
         JsonResult<List<AdminUserDTO>> result;
-        List<IUser> users = userService.getAllAdmins(sortBy, sortAsc);
+        List<U> users = userService.getAllAdmins(sortBy, sortAsc);
         List<AdminUserDTO> dtos = users.stream()
                 .map(user -> conversionService.convert(user, AdminUserDTO.class))
                 .collect(Collectors.toList());
@@ -235,9 +235,9 @@ public abstract class BaseAdminController<
     ) {
 
         JsonResult<List<AdminUserDTO>> result;
-        List<IUser> users = userService.suggestNotAdmin(query, limit == null ? 10 : limit);
+        List<U> users = userService.suggestNotAdmin(query, limit == null ? 10 : limit);
         List<AdminUserDTO> userDTOs = new LinkedList<>();
-        for (IUser user : users) {
+        for (U user : users) {
             userDTOs.add(conversionService.convert(user, AdminUserDTO.class));
         }
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);

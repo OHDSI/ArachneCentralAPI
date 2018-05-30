@@ -28,13 +28,12 @@ import com.odysseusinc.arachne.portal.model.User;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UserDTOToUserConverter extends BaseConversionServiceAwareConverter<CommonUserRegistrationDTO, User> {
-
+public class UserDTOToUserConverter<U extends User> extends BaseConversionServiceAwareConverter<CommonUserRegistrationDTO, U> {
 
     @Override
-    public User convert(CommonUserRegistrationDTO dto) {
+    public U convert(CommonUserRegistrationDTO dto) {
 
-        User user = new User();
+        U user = createResultObject();
         user.setEmail(dto.getEmail());
         user.setPassword(dto.getPassword());
         user.setMiddlename(dto.getMiddlename());
@@ -45,5 +44,11 @@ public class UserDTOToUserConverter extends BaseConversionServiceAwareConverter<
         professionalType.setId(dto.getProfessionalTypeId());
         user.setProfessionalType(professionalType);
         return user;
+    }
+
+    @Override
+    protected U createResultObject() {
+
+        return (U)new User();
     }
 }
