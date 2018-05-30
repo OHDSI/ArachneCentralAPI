@@ -5,7 +5,7 @@
             real_name="test.jpg"
             executable="false"
             content_type="image"
-            label="newCodeFile"
+            label="test.jpg"
             author_id="1"
             version="1"
             updated_by="1"
