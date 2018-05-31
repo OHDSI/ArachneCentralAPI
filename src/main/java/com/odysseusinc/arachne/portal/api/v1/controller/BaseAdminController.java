@@ -73,6 +73,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.SortDefault;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -162,7 +163,7 @@ public abstract class BaseAdminController<
     @RequestMapping(value = "/api/v1/admin/users/group", method = RequestMethod.POST)
     public void register(@RequestBody BulkUsersRegistrationDTO bulkUsersDto) throws PasswordValidationException, ValidationException {
 
-        if (bulkUsersDto.getTenantIds() == null || bulkUsersDto.getTenantIds().isEmpty()) {
+        if (CollectionUtils.isEmpty(bulkUsersDto.getTenantIds())) {
             throw new ValidationException("tenants: must be not empty");
         }
 
@@ -174,10 +175,10 @@ public abstract class BaseAdminController<
 
         List<U> createdUsers = userService.createAll(users);
 
-        final Map<String, CommonUserRegistrationDTO> mailUserDtoMap = bulkUsersDto.getUsers().stream()
-                .collect(Collectors.toMap(CommonUserRegistrationDTO::getEmail, Function.identity()));
-
         if (emailConfirmationRequired) {
+            final Map<String, CommonUserRegistrationDTO> mailUserDtoMap = bulkUsersDto.getUsers().stream()
+                    .collect(Collectors.toMap(CommonUserRegistrationDTO::getEmail, Function.identity()));
+
             createdUsers.stream().forEach(user -> {
                 if (mailUserDtoMap.containsKey(user.getEmail())) {
                     CommonUserRegistrationDTO userDto = mailUserDtoMap.get(user.getEmail());
