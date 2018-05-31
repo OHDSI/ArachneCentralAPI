@@ -22,12 +22,13 @@
 
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
+import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserRegistrationDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.AdminUserDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ArachneConsts;
-import com.odysseusinc.arachne.portal.api.v1.dto.BulkUsersRegistrationDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.BatchOperationDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.BulkUsersRegistrationDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserWithTenantsDTO;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PasswordValidationException;
@@ -59,8 +60,10 @@ import java.security.Principal;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -171,13 +174,15 @@ public abstract class BaseAdminController<
 
         List<U> createdUsers = userService.createAll(users);
 
+        Map<String, CommonUserRegistrationDTO> mailUserDtoMap = bulkUsersDto.getUsers().stream()
+                .collect(Collectors.toMap(CommonUserRegistrationDTO::getEmail, Function.identity()));
+
         if (emailConfirmationRequired) {
             for (U user : createdUsers) {
-                bulkUsersDto.getUsers().stream()
-                        .filter(userDto -> userDto.getEmail().equals(user.getEmail()))
-                        .forEach(userDto ->
-                                userService.sendRegistrationEmail(user, userDto.getRegistrantToken(), userDto.getCallbackUrl(), true)
-                );
+                if (mailUserDtoMap.containsKey(user.getEmail())) {
+                    CommonUserRegistrationDTO userDto = mailUserDtoMap.get(user.getEmail());
+                    userService.sendRegistrationEmail(user, userDto.getRegistrantToken(), userDto.getCallbackUrl(), true);
+                }
             }
         }
     }
