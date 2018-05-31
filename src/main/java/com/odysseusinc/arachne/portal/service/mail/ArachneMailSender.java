@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -74,7 +75,7 @@ public class ArachneMailSender {
             helper.setSubject(mailMessage.getSubject().replaceAll("\\$\\{app-title\\}", appTitle));
             helper.setFrom(from, mailMessage.getFromPersonal().replaceAll("\\$\\{app-title\\}", appTitle));
             helper.setTo(mailMessage.getUser().getEmail());
-            URL templateUrl = this.getClass().getResource( PATH_TO_TEMPLATES + mailMessage.getTemplate() + NAME + EXTENSION);
+            URL templateUrl = this.getClass().getResource(PATH_TO_TEMPLATES + mailMessage.getTemplate() + NAME + EXTENSION);
             String htmlString = buildContent(mailMessage.getTemplate(), mailMessage.getParameters());
             if (templateUrl != null) {
                 File textTemplate = new File(templateUrl.getPath());
@@ -91,6 +92,11 @@ public class ArachneMailSender {
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
+    }
+
+    @Async
+    public void asyncSend(ArachneMailMessage mailMessage) {
+        send(mailMessage);
     }
 
     public String buildContent(String templateName, Map<String, Object> parameters) {

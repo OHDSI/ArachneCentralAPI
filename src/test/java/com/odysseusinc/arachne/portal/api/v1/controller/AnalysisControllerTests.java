@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -264,13 +264,11 @@ public class AnalysisControllerTests extends BaseControllerTest {
     public void testUploadCodeFile() throws Exception {
 
         FileInputStream fileInputStream = new FileInputStream(this.getClass().getResource("/test.jpg").getPath());
-        MockMultipartFile multipartFile = new MockMultipartFile("file", "test.jpg", "image/jpeg", fileInputStream);
-
+        MockMultipartFile multipartFile = new MockMultipartFile("files", "test.jpg", "image/jpeg", fileInputStream);
         this.mvc.perform(
                 fileUpload("/api/v1/analysis-management/analyses/{analysisId}/upload", ANALYSIS_ID)
                         .file(multipartFile)
-                        .contentType(MULTIPART_FORM_DATA)
-                        .param("label", "newCodeFile"))
+                        .contentType(MULTIPART_FORM_DATA))
                 .andExpect(NO_ERROR_CODE)
                 .andExpect(OK_STATUS);
     }

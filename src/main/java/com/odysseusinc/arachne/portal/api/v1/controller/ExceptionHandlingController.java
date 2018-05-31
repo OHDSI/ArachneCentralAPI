@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -30,6 +30,7 @@ import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCo
 
 import com.odysseusinc.arachne.commons.api.v1.dto.ArachnePasswordInfoDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
+import com.odysseusinc.arachne.nohandlerfoundexception.NoHandlerFoundExceptionUtils;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.IORuntimeException;
@@ -44,16 +45,13 @@ import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.exception.WrongFileFormatException;
 import com.odysseusinc.arachne.portal.security.LoginRequestContext;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Objects;
+import java.util.function.Consumer;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -63,20 +61,29 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.NoHandlerFoundException;
-import org.springframework.web.servlet.resource.ResourceHttpRequestHandler;
 
 @ControllerAdvice
 public class ExceptionHandlingController extends BaseController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ExceptionHandlingController.class);
-    private static final String STATIC_CONTENT_FOLDER = "public";
-    private static final String INDEX_FILE = STATIC_CONTENT_FOLDER + "/index.html";
     private static final String COOKIE_USER_REQUEST = "Arachne-User-Request";
 
-    @Autowired
-    private WebApplicationContext webApplicationContext;
+    private static final Consumer<HttpServletResponse> ADD_COOKIE_FUNCTION = response -> {
+
+        if (Objects.nonNull(LoginRequestContext.getUserName())) {
+            Cookie cookie = new Cookie(COOKIE_USER_REQUEST, LoginRequestContext.getUserName());
+            cookie.setPath("/");
+            response.addCookie(cookie);
+        }
+    };
+
+    private NoHandlerFoundExceptionUtils noHandlerFoundExceptionUtils;
+
+    public ExceptionHandlingController(NoHandlerFoundExceptionUtils noHandlerFoundExceptionUtils) {
+
+        this.noHandlerFoundExceptionUtils = noHandlerFoundExceptionUtils;
+    }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<JsonResult> exceptionHandler(Exception ex) {
@@ -249,31 +256,6 @@ public class ExceptionHandlingController extends BaseController {
     @ExceptionHandler({NoHandlerFoundException.class})
     public void handleNotFoundError(HttpServletRequest request, HttpServletResponse response) throws Exception {
 
-        ResourceHttpRequestHandler handler = new ResourceHttpRequestHandler() {
-            @Override
-            protected Resource getResource(HttpServletRequest request) throws IOException {
-
-                String requestPath = request.getRequestURI().substring(request.getContextPath().length());
-
-                ClassPathResource resource = new ClassPathResource(STATIC_CONTENT_FOLDER + requestPath);
-                if (!resource.exists()) {
-                    resource = new ClassPathResource(INDEX_FILE);
-                }
-
-                if (Objects.nonNull(LoginRequestContext.getUserName())) {
-                    Cookie cookie = new Cookie(COOKIE_USER_REQUEST, LoginRequestContext.getUserName());
-                    cookie.setPath("/");
-                    response.addCookie(cookie);
-                }
-
-                return resource;
-            }
-        };
-
-        handler.setServletContext(webApplicationContext.getServletContext());
-        handler.setLocations(Collections.singletonList(new ClassPathResource("classpath:/" + STATIC_CONTENT_FOLDER + "/")));
-        handler.afterPropertiesSet();
-
-        handler.handleRequest(request, response);
+        noHandlerFoundExceptionUtils.handleNotFoundError(request, response, ADD_COOKIE_FUNCTION);
     }
 }

@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,17 +24,23 @@ package com.odysseusinc.arachne.portal.api.v1.controller;
 
 import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.VALIDATION_ERROR;
 
+import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserRegistrationDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Skill;
+import com.odysseusinc.arachne.portal.model.User;
+import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.security.DataNodeAuthenticationToken;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
 import java.security.Principal;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.validation.BindingResult;
@@ -48,6 +54,20 @@ public abstract class BaseController<DN extends DataNode, U extends IUser> {
     @Autowired
     protected GenericConversionService conversionService;
 
+    protected List<U> convert(List<CommonUserRegistrationDTO> userDtos) {
+
+        return userDtos.stream()
+                .map(dto -> (U) conversionService.convert(dto, User.class))
+                .collect(Collectors.toList());
+    }
+
+    protected Set<Tenant> convertToTenants(List<Long> tenantIds) {
+
+        return tenantIds.stream()
+                .map(tenantId -> conversionService.convert(tenantId, Tenant.class))
+                .collect(Collectors.toSet());
+
+    }
 
     protected U getUser(Principal principal) throws PermissionDeniedException {
 
