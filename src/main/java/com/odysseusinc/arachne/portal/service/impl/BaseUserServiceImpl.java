@@ -669,25 +669,9 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    public Page<U> getAll(Pageable pageable, UserSearch userSearch) {
-        Pageable search = convertOrderRequest(pageable);
-
-        Specifications<U> spec = where(UserSpecifications.hasEmail());
-        if (userSearch.getEmailConfirmed() != null && userSearch.getEmailConfirmed()) {
-            spec = spec.and(emailConfirmed());
-        }
-        if (userSearch.getEnabled() != null && userSearch.getEnabled()) {
-            spec = spec.and(userEnabled());
-        }
-        if (!StringUtils.isEmpty(userSearch.getQuery())) {
-            String pattern = userSearch.getQuery() + "%";
-            spec = spec.and(withNameOrEmailLike(pattern));
-        }
-
-        final Long[] tenantIds = userSearch.getTenantIds();
-        if (tenantIds != null && tenantIds.length > 0) {
-            spec = spec.and(usersIn(tenantIds));
-        }
+    public Page<U> getAll(final Pageable pageable, final UserSearch userSearch) {
+        final Pageable search = convertOrderRequest(pageable);
+        final Specifications<U> spec = buildSpecification(userSearch);
 
         return rawUserRepository.findAll(spec, search);
     }

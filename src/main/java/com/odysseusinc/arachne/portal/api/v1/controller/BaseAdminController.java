@@ -41,7 +41,6 @@ import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.Submission;
-import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserOrigin;
 import com.odysseusinc.arachne.portal.model.search.PaperSearch;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
@@ -165,23 +164,19 @@ public abstract class BaseAdminController<
 
         boolean emailConfirmationRequired = bulkUsersDto.getEmailConfirmationRequired();
 
-        Set<Tenant> tenants = bulkUsersDto.getTenantIds().stream()
-                .map(tenantId -> conversionService.convert(tenantId, Tenant.class))
-                .collect(Collectors.toSet());
-        List<U> users = bulkUsersDto.getUsers().stream()
-                .map(dto -> (U) conversionService.convert(dto, User.class))
-                .collect(Collectors.toList());
+        List<U> users = convert(bulkUsersDto.getUsers());
+        Set<Tenant> tenants = convertToTenants(bulkUsersDto.getTenantIds());
         updateFields(users, tenants, emailConfirmationRequired, bulkUsersDto.getPassword());
 
         List<U> createdUsers = userService.createAll(users);
 
         if (emailConfirmationRequired) {
             for (U user : createdUsers) {
-                bulkUsersDto.getUsers().stream().forEach(userDto -> {
-                    if (userDto.getEmail().equals(user.getEmail())) {
-                        userService.sendRegistrationEmail(user, userDto.getRegistrantToken(), userDto.getCallbackUrl(), true);
-                    }
-                });
+                bulkUsersDto.getUsers().stream()
+                        .filter(userDto -> userDto.getEmail().equals(user.getEmail()))
+                        .forEach(userDto ->
+                                userService.sendRegistrationEmail(user, userDto.getRegistrantToken(), userDto.getCallbackUrl(), true)
+                );
             }
         }
     }
