@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -194,7 +194,7 @@ public class AnalysisServiceImpl extends BaseAnalysisServiceImpl<Analysis, Study
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).UPLOAD_ANALYSIS_FILES)")
     public AnalysisFile saveFile(MultipartFile multipartFile, IUser user, Analysis analysis,
                                  String label, Boolean isExecutable, DataReference dataReference)
-            throws IOException {
+            throws IOException, AlreadyExistException {
 
         return super.saveFile(multipartFile, user, analysis, label, isExecutable, dataReference);
     }
@@ -203,7 +203,7 @@ public class AnalysisServiceImpl extends BaseAnalysisServiceImpl<Analysis, Study
     @PreAuthorize("hasPermission(#analysis, "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).UPLOAD_ANALYSIS_FILES)")
     public AnalysisFile saveFile(String link, IUser user, Analysis analysis, String label,
-                                 Boolean isExecutable) throws IOException {
+                                 Boolean isExecutable) throws IOException, AlreadyExistException {
 
         return super.saveFile(link, user, analysis, label, isExecutable);
     }

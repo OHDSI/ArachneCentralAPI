@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -252,7 +252,7 @@ public abstract class BaseAnalysisServiceImpl<
         afterCreate(saved);
 
         solrService.indexBySolr(analysis);
-        
+
         return saved;
     }
 
@@ -365,11 +365,11 @@ public abstract class BaseAnalysisServiceImpl<
 
     @Override
     public AnalysisFile saveFile(MultipartFile multipartFile, IUser user, A analysis, String label,
-                                 Boolean isExecutable, DataReference dataReference) throws IOException {
+                                 Boolean isExecutable, DataReference dataReference) throws IOException, AlreadyExistException {
 
         String originalFilename = multipartFile.getOriginalFilename();
-
         String fileNameLowerCase = UUID.randomUUID().toString();
+        throwDuplicateNameException(label);
         try {
             Path analysisPath = getAnalysisPath(analysis);
             Path targetPath = Paths.get(analysisPath.toString(), fileNameLowerCase);
@@ -445,11 +445,11 @@ public abstract class BaseAnalysisServiceImpl<
 
     @Override
     public AnalysisFile saveFile(String link, IUser user, A analysis, String label, Boolean isExecutable)
-            throws IOException {
+            throws IOException, AlreadyExistException {
 
         throwAccessDeniedExceptionIfLocked(analysis);
-        Study study = analysis.getStudy();
         String fileNameLowerCase = UUID.randomUUID().toString();
+        throwDuplicateNameException(label);
         try {
             if (link == null) {
                 throw new IORuntimeException("wrong url");
@@ -851,6 +851,13 @@ public abstract class BaseAnalysisServiceImpl<
             final String ANALYSIS_LOCKE_EXCEPTION = "Analysis with id='%s' is locked, file access forbidden";
             final String message = String.format(ANALYSIS_LOCKE_EXCEPTION, analysis.getId());
             throw new AccessDeniedException(message);
+        }
+    }
+
+    private void throwDuplicateNameException(String label) throws AlreadyExistException {
+
+        if (!analysisFileRepository.findByLabel(label).isEmpty()) {
+            throw new AlreadyExistException("File with such name " + label + " already exists");
         }
     }
 

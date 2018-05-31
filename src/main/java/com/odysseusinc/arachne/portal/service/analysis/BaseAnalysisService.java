@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -60,10 +60,10 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
     Boolean moveAnalysis(Long id, Integer index);
 
     AnalysisFile saveFile(MultipartFile multipartFile, IUser user, T analysis, String label,
-                          Boolean isExecutable, DataReference dataReference) throws IOException;
+                          Boolean isExecutable, DataReference dataReference) throws IOException, AlreadyExistException;
 
     AnalysisFile saveFile(String link, IUser user, T analysis, String label, Boolean isExecutable)
-            throws IOException;
+            throws IOException, AlreadyExistException;
 
     Path getAnalysisFile(AnalysisFile analysisFile) throws FileNotFoundException;
 

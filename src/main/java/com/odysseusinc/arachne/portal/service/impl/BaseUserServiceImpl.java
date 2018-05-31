@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -37,8 +37,10 @@ import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.MetadataException;
 import com.drew.metadata.exif.ExifIFD0Directory;
+import com.google.common.base.Predicates;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.commons.utils.UserIdUtils;
+import com.odysseusinc.arachne.portal.api.v1.dto.BatchOperationType;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchExpertListDTO;
 import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
 import com.odysseusinc.arachne.portal.exception.ArachneSystemRuntimeException;
@@ -116,6 +118,8 @@ import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.UUID;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -308,6 +312,14 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
+    @PreAuthorize("hasRole('ROLE_ADMIN') || #dataNode == authentication.principal || hasPermission(#id, 'RawUser', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_USER)")
+    public List<U> getByIdsInAnyTenant(final List<Long> ids) {
+
+        return rawUserRepository.findByIdIn(ids);
+    }
+
+    @Override
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Transactional(rollbackOn = Exception.class)
     public void remove(Long id) throws ValidationException, UserNotFoundException, NotExistException, IOException, SolrServerException {
@@ -433,11 +445,17 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    public void resendActivationEmail(String email) throws UserNotFoundException {
+    public void resendActivationEmail(final String email) throws UserNotFoundException {
 
         final U user = userRepository.findByEmailAndEnabledFalse(email);
+        resendActivationEmail(user);
+    }
+
+    @Override
+    public void resendActivationEmail(final U user) {
+
         if (user == null) {
-            throw new UserNotFoundException("email", "not enabled user is not found by email " + email);
+            throw new UserNotFoundException("email", "not enabled user is not found by email " + user.getEmail());
         }
         sendRegistrationEmail(user);
     }
@@ -674,21 +692,6 @@ public abstract class BaseUserServiceImpl<
         final Specifications<U> spec = buildSpecification(userSearch);
 
         return rawUserRepository.findAll(spec, search);
-    }
-
-    private Pageable convertOrderRequest(Pageable pageable) {
-        Pageable search;
-        Iterator<Sort.Order> pageIt = pageable.getSort().iterator();
-        Stream<Sort.Order> pageStream = StreamSupport.stream(Spliterators.spliteratorUnknownSize(pageIt, Spliterator.ORDERED), false);
-        if (pageStream.anyMatch(order -> order.getProperty().equals("name"))) {
-            search = new PageRequest(pageable.getPageNumber() - 1, pageable.getPageSize(),
-                    pageable.getSort().getOrderFor("name").getDirection(),
-                    "firstname", "middlename", "lastname");
-        } else {
-            search = new PageRequest(pageable.getPageNumber() - 1, pageable.getPageSize(), pageable.getSort());
-        }
-
-        return search;
     }
 
     private void sendRegistrationEmail(final U user) {
@@ -1158,9 +1161,9 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    public List<IUser> findUsersByUuidsIn(List<String> ids) {
+    public List<U> findUsersByUuidsIn(List<String> ids) {
 
-        return (List<IUser>) userRepository.findByIdIn(UserIdUtils.uuidsToIds(ids));
+        return userRepository.findByIdIn(UserIdUtils.uuidsToIds(ids));
     }
 
     @Override
@@ -1246,6 +1249,40 @@ public abstract class BaseUserServiceImpl<
         return rawUserRepository.findByIdInAndEnabledTrue(userIds);
     }
 
+    @Override
+    public void performBatchOperation(final List<String> ids, final BatchOperationType type) {
+
+        final List<U> users = rawUserRepository.findByIdIn(UserIdUtils.uuidsToIds(ids));
+
+        switch (type) {
+            case CONFIRM:
+                toggleFlag(users, U::getEmailConfirmed, U::setEmailConfirmed);
+                break;
+            case DELETE:
+                rawUserRepository.deleteInBatch(users);
+                break;
+            case ENABLE:
+                toggleFlag(users, U::getEnabled, U::setEnabled);
+                break;
+            case RESEND:
+                users.forEach(this::resendActivationEmail);
+                break;
+            default:
+                throw new IllegalArgumentException("Batch operation type " + type + " isn't supported");
+        }
+    }
+
+    private void toggleFlag(
+            final List<U> entities, 
+            final Function<U, Boolean> getter,
+            final BiConsumer<U, Boolean> setter) {
+
+        for (final U entity : entities) {
+            setter.accept(entity, !getter.apply(entity));
+        }
+        rawUserRepository.save(entities);
+    }
+    
     private class AvatarResolver implements AutoCloseable {
 
         final private String contentType;
