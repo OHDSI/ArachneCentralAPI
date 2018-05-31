@@ -174,18 +174,7 @@ public abstract class BaseAdminController<
         updateFields(users, tenants, emailConfirmationRequired, bulkUsersDto.getPassword());
 
         List<U> createdUsers = userService.createAll(users);
-
-        if (emailConfirmationRequired) {
-            final Map<String, CommonUserRegistrationDTO> mailUserDtoMap = bulkUsersDto.getUsers().stream()
-                    .collect(Collectors.toMap(CommonUserRegistrationDTO::getEmail, Function.identity()));
-
-            createdUsers.stream().forEach(user -> {
-                if (mailUserDtoMap.containsKey(user.getEmail())) {
-                    CommonUserRegistrationDTO userDto = mailUserDtoMap.get(user.getEmail());
-                    userService.sendRegistrationEmail(user, userDto.getRegistrantToken(), userDto.getCallbackUrl(), true);
-                }
-            });
-        }
+        sendRegistrationEmail(emailConfirmationRequired, createdUsers, bulkUsersDto);
     }
 
     private void updateFields(List<U> users, Set<Tenant> tenants, boolean emailConfirmationRequired, String password) {
@@ -199,6 +188,20 @@ public abstract class BaseAdminController<
                 user.setEmailConfirmed(false);
                 user.setRegistrationCode(UUID.randomUUID().toString());
             }
+        }
+    }
+
+    private void sendRegistrationEmail(boolean emailConfirmationRequired, List<U> createdUsers, BulkUsersRegistrationDTO bulkUsersDto) {
+        if (emailConfirmationRequired) {
+            final Map<String, CommonUserRegistrationDTO> mailUserDtoMap = bulkUsersDto.getUsers().stream()
+                    .collect(Collectors.toMap(CommonUserRegistrationDTO::getEmail, Function.identity()));
+
+            createdUsers.stream()
+                    .filter(user -> mailUserDtoMap.containsKey(user.getEmail()))
+                    .forEach(user -> {
+                        CommonUserRegistrationDTO userDto = mailUserDtoMap.get(user.getEmail());
+                        userService.sendRegistrationEmail(user, userDto.getRegistrantToken(), userDto.getCallbackUrl(), true);
+                    });
         }
     }
 
