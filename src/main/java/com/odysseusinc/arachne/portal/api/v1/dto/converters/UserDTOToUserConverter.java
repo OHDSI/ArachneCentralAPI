@@ -23,32 +23,15 @@
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserRegistrationDTO;
-import com.odysseusinc.arachne.portal.model.ProfessionalType;
 import com.odysseusinc.arachne.portal.model.User;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UserDTOToUserConverter<U extends User> extends BaseConversionServiceAwareConverter<CommonUserRegistrationDTO, U> {
+public class UserDTOToUserConverter extends BaseUserDtoToUserConverter<CommonUserRegistrationDTO, User> {
 
     @Override
-    public U convert(CommonUserRegistrationDTO dto) {
+    protected User newUser() {
 
-        U user = createResultObject();
-        user.setEmail(dto.getEmail());
-        user.setPassword(dto.getPassword());
-        user.setMiddlename(dto.getMiddlename());
-        user.setFirstname(dto.getFirstname());
-        user.setLastname(dto.getLastname());
-        user.setOrganization(dto.getOrganization());
-        ProfessionalType professionalType = new ProfessionalType();
-        professionalType.setId(dto.getProfessionalTypeId());
-        user.setProfessionalType(professionalType);
-        return user;
-    }
-
-    @Override
-    protected U createResultObject() {
-
-        return (U)new User();
+        return new User();
     }
 }

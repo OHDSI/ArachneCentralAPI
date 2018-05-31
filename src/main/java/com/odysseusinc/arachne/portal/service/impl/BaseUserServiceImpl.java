@@ -123,6 +123,7 @@ import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -323,22 +324,13 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    public List<U> createAll(final @NotNull List<U> users, boolean emailConfirmationRequired, String registrantToken, String callbackUrl)
-            throws PasswordValidationException {
+    public List<U> createAll(final @NotNull List<U> users) throws PasswordValidationException {
 
         for (U user : users) {
             updateFields(user);
         }
 
-        List<U> createdUsers = userRepository.save(users);
-        if (emailConfirmationRequired) {
-            Optional<UserRegistrant> userRegistrant = userRegistrantService.findByToken(registrantToken);
-            for (U user : createdUsers) {
-                sendRegistrationEmail(user, userRegistrant, callbackUrl, true);
-            }
-        }
-
-        return createdUsers;
+        return userRepository.save(users);
     }
 
     @Override
@@ -364,15 +356,6 @@ public abstract class BaseUserServiceImpl<
     }
 
     private void updateFields(U user) throws PasswordValidationException {
-        // The existing user check should come last:
-        // it is muted in public registration form, so we need to show other errors ahead
-        U byEmail = getByUnverifiedEmailInAnyTenant(user.getEmail());
-        if (byEmail != null) {
-            throw new NotUniqueException(
-                    "email",
-                    messageSource.getMessage("validation.email.already.used", null, null)
-            );
-        }
 
         user.setUsername(user.getEmail());
         if (Objects.isNull(user.getEnabled())) {
@@ -392,10 +375,20 @@ public abstract class BaseUserServiceImpl<
         validatePassword(username, firstName, lastName, middleName, password);
         user.setPassword(passwordEncoder.encode(password));
 
-        if (user.getTenants() == null || user.getTenants().isEmpty()) {
+        if (CollectionUtils.isEmpty(user.getTenants())) {
             user.setTenants(tenantService.getDefault());
         } else {
             user.setActiveTenant(user.getTenants().iterator().next());
+        }
+
+        // The existing user check should come last:
+        // it is muted in public registration form, so we need to show other errors ahead
+        U byEmail = getByUnverifiedEmailInAnyTenant(user.getEmail());
+        if (byEmail != null) {
+            throw new NotUniqueException(
+                    "email",
+                    messageSource.getMessage("validation.email.already.used", null, null)
+            );
         }
     }
 
@@ -493,7 +486,7 @@ public abstract class BaseUserServiceImpl<
         forUpdate.setEnabled(user.getEnabled() != null ? user.getEnabled() : forUpdate.getEnabled());
         forUpdate.setUpdated(date);
         if (user.getProfessionalType() != null) {
-            if (user.getProfessionalType().getId() == null){
+            if (user.getProfessionalType().getId() == null) {
                 throw new NotEmptyException("professional type is empty");
             }
             ProfessionalType professionalType = professionalTypeService.getById(user.getProfessionalType().getId());
@@ -636,6 +629,46 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
+    public Page<U> getPage(final Pageable pageable, final UserSearch userSearch) {
+
+        final Pageable pageableWithUpdatedOrder = new PageRequest(pageable.getPageNumber() - 1, pageable.getPageSize(), pageable.getSort());
+
+        final Specifications<U> spec = buildSpecification(userSearch);
+
+        final Page<U> page = rawUserRepository.findAll(spec, pageableWithUpdatedOrder);
+
+        return page;
+    }
+
+    @Override
+    public List<U> getList(final UserSearch userSearch) {
+
+        final Specifications<U> spec = buildSpecification(userSearch);
+        return rawUserRepository.findAll(spec);
+    }
+
+    private Specifications<U> buildSpecification(final UserSearch userSearch) {
+
+        Specifications<U> spec = where(UserSpecifications.hasEmail());
+        if (userSearch.getEmailConfirmed() != null && userSearch.getEmailConfirmed()) {
+            spec = spec.and(emailConfirmed());
+        }
+        if (userSearch.getEnabled() != null && userSearch.getEnabled()) {
+            spec = spec.and(userEnabled());
+        }
+        if (!StringUtils.isEmpty(userSearch.getQuery())) {
+            String pattern = userSearch.getQuery() + "%";
+            spec = spec.and(withNameOrEmailLike(pattern));
+        }
+
+        final Long[] tenantIds = userSearch.getTenantIds();
+        if (tenantIds != null && tenantIds.length > 0) {
+            spec = spec.and(usersIn(tenantIds));
+        }
+        return spec;
+    }
+
+    @Override
     public Page<U> getAll(Pageable pageable, UserSearch userSearch) {
         Pageable search = convertOrderRequest(pageable);
 
@@ -677,6 +710,12 @@ public abstract class BaseUserServiceImpl<
     private void sendRegistrationEmail(final U user) {
 
         sendRegistrationEmail(user, Optional.empty(), null, false);
+    }
+
+    @Override
+    public void sendRegistrationEmail(U user, String registrantToken, String callbackUrl, boolean isAsync) {
+        Optional<UserRegistrant> userRegistrant = userRegistrantService.findByToken(registrantToken);
+        sendRegistrationEmail(user, userRegistrant, callbackUrl, isAsync);
     }
 
     private void sendRegistrationEmail(U user, Optional<UserRegistrant> userRegistrant, String callbackUrl, boolean isAsync) {

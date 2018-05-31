@@ -23,7 +23,6 @@
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserDTO;
-import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserRegistrationDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.AdminUserDTO;
@@ -96,7 +95,6 @@ public abstract class BaseAdminController<
     private final BaseAnalysisService<A> analysisService;
     private final BasePaperService<P, PS, S, DS, SS, SU> paperService;
 
-
     @Autowired
     public BaseAdminController(final BaseDataSourceService<DS> dataSourceService,
                                final ProfessionalTypeService professionalTypeService,
@@ -158,7 +156,7 @@ public abstract class BaseAdminController<
     }
 
     @ApiOperation("Register new users")
-    @RequestMapping(value = "/api/v1/admin/users/batch", method = RequestMethod.POST)
+    @RequestMapping(value = "/api/v1/admin/users/group", method = RequestMethod.POST)
     public void register(@RequestBody BulkUsersRegistrationDTO bulkUsersDto) throws PasswordValidationException, ValidationException {
 
         if (bulkUsersDto.getTenantIds() == null || bulkUsersDto.getTenantIds().isEmpty()) {
@@ -175,17 +173,17 @@ public abstract class BaseAdminController<
                 .collect(Collectors.toList());
         updateFields(users, tenants, emailConfirmationRequired, bulkUsersDto.getPassword());
 
-        String registrantToken = "";
-        String callbackUrl = "";
-        if (emailConfirmationRequired) {
-            CommonUserRegistrationDTO userDto = bulkUsersDto.getUsers().stream()
-                    .findFirst()
-                    .orElseThrow(() -> new ValidationException("user: must be not null"));
-            registrantToken = userDto.getRegistrantToken();
-            callbackUrl = userDto.getCallbackUrl();
-        }
+        List<U> createdUsers = userService.createAll(users);
 
-        userService.createAll(users, emailConfirmationRequired, registrantToken, callbackUrl);
+        if (emailConfirmationRequired) {
+            for (U user : createdUsers) {
+                bulkUsersDto.getUsers().stream().forEach(userDto -> {
+                    if (userDto.getEmail().equals(user.getEmail())) {
+                        userService.sendRegistrationEmail(user, userDto.getRegistrantToken(), userDto.getCallbackUrl(), true);
+                    }
+                });
+            }
+        }
     }
 
     private void updateFields(List<U> users, Set<Tenant> tenants, boolean emailConfirmationRequired, String password) {
@@ -200,6 +198,15 @@ public abstract class BaseAdminController<
                 user.setRegistrationCode(UUID.randomUUID().toString());
             }
         }
+    }
+
+    @ApiOperation(value = "Get user ids.", hidden = true)
+    @RequestMapping(value = "/api/v1/admin/users/ids", method = RequestMethod.GET)
+    public List<String> getListOfUserIdsByFilter(final UserSearch userSearch)
+            throws UserNotFoundException {
+
+        final List<U> users = userService.getList(userSearch);
+        return users.stream().map(IUser::getId).map(UserIdUtils::idToUuid).collect(Collectors.toList());
     }
 
     @ApiOperation(value = "Get all users.", hidden = true)

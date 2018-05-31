@@ -80,7 +80,7 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
     void remove(Long id)
             throws ValidationException, UserNotFoundException, NotExistException, IOException, SolrServerException;
 
-    List<U> createAll(final @NotNull List<U> users, boolean emailConfirmationRequired, String registrantToken, String callbackUrl) throws PasswordValidationException;
+    List<U> createAll(final @NotNull List<U> users) throws PasswordValidationException;
 
     U createWithEmailVerification(final @NotNull U user, String registrantToken, String callbackUrl) throws PasswordValidationException;
 
@@ -91,6 +91,8 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
     void confirmUserEmail(String activateCode)
             throws UserNotFoundException, IOException, NotExistException,
             SolrServerException, NoSuchFieldException, IllegalAccessException;
+
+    void sendRegistrationEmail(U user, String registrantToken, String callbackUrl, boolean isAsync);
 
     void resendActivationEmail(String email) throws UserNotFoundException;
 
@@ -133,6 +135,10 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
     List<U> getAllEnabledFromAllTenants();
 
     Page<U> getAll(Pageable pageable, UserSearch userSearch);
+
+    Page<U> getPage(Pageable pageable, UserSearch userSearch);
+
+    List<U> getList(UserSearch userSearch);
 
     void resetPassword(U user)
             throws UserNotFoundException, IllegalAccessException, NotExistException,
@@ -220,7 +226,7 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
     void setActiveTenant(U user, Long tenantId);
 
     void makeLinksWithStudiesDeleted(Long tenantId, Long userId);
-    
+
     U getRawUser(Long userId);
 
     void makeLinksWithPapersDeleted(Long tenantId, Long userId);
