@@ -174,16 +174,16 @@ public abstract class BaseAdminController<
 
         List<U> createdUsers = userService.createAll(users);
 
-        Map<String, CommonUserRegistrationDTO> mailUserDtoMap = bulkUsersDto.getUsers().stream()
+        final Map<String, CommonUserRegistrationDTO> mailUserDtoMap = bulkUsersDto.getUsers().stream()
                 .collect(Collectors.toMap(CommonUserRegistrationDTO::getEmail, Function.identity()));
 
         if (emailConfirmationRequired) {
-            for (U user : createdUsers) {
+            createdUsers.stream().forEach(user -> {
                 if (mailUserDtoMap.containsKey(user.getEmail())) {
                     CommonUserRegistrationDTO userDto = mailUserDtoMap.get(user.getEmail());
                     userService.sendRegistrationEmail(user, userDto.getRegistrantToken(), userDto.getCallbackUrl(), true);
                 }
-            }
+            });
         }
     }
 
