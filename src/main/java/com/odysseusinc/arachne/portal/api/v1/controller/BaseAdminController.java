@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,12 +22,13 @@
 
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
-import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.AdminUserDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ArachneConsts;
 import com.odysseusinc.arachne.portal.api.v1.dto.BulkUsersRegistrationDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.BatchOperationDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.UserWithTenantsDTO;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PasswordValidationException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
@@ -142,7 +143,7 @@ public abstract class BaseAdminController<
 
     @ApiOperation(value = "Get all users.", hidden = true)
     @RequestMapping(value = "/api/v1/admin/users", method = RequestMethod.GET)
-    public Page<CommonUserDTO> getAll(
+    public Page<UserWithTenantsDTO> getAll(
             @PageableDefault(page = 1)
             @SortDefault.SortDefaults({
                     @SortDefault(sort = "name", direction = Sort.Direction.ASC)
@@ -150,9 +151,9 @@ public abstract class BaseAdminController<
                     Pageable pageable,
             UserSearch userSearch)
             throws UserNotFoundException {
-
-        Page<U> users = userService.getAll(pageable, userSearch);
-        return users.map(user -> conversionService.convert(user, CommonUserDTO.class));
+      
+        final Page<U> users = userService.getPage(pageable, userSearch);
+        return users.map(user -> conversionService.convert(user, UserWithTenantsDTO.class));
     }
 
     @ApiOperation("Register new users")
@@ -204,7 +205,7 @@ public abstract class BaseAdminController<
     @RequestMapping(value = "/api/v1/admin/users/ids", method = RequestMethod.GET)
     public List<String> getListOfUserIdsByFilter(final UserSearch userSearch)
             throws UserNotFoundException {
-
+  
         final List<U> users = userService.getList(userSearch);
         return users.stream().map(IUser::getId).map(UserIdUtils::idToUuid).collect(Collectors.toList());
     }
@@ -283,6 +284,13 @@ public abstract class BaseAdminController<
                 throw new UnsupportedOperationException("Reindex isn't allowed for domain: " + domain);
         }
 
+        return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
+    }
+    
+    @RequestMapping(value = "/api/v1/admin/users/batch", method = RequestMethod.POST)
+    public JsonResult doBatchOperation(@RequestBody BatchOperationDTO dto) {
+
+        userService.performBatchOperation(dto.getIds(), dto.getType());
         return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
     }
 }
