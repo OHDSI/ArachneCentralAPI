@@ -145,10 +145,6 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
 
     List<U> getList(UserSearch userSearch);
 
-    Page<U> getPage(Pageable pageable, UserSearch userSearch);
-
-    List<U> getList(UserSearch userSearch);
-
     void resetPassword(U user)
             throws UserNotFoundException, IllegalAccessException, NotExistException,
             NoSuchFieldException, SolrServerException, IOException;

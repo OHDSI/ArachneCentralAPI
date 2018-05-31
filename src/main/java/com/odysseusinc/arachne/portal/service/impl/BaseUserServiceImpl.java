@@ -37,7 +37,6 @@ import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.MetadataException;
 import com.drew.metadata.exif.ExifIFD0Directory;
-import com.google.common.base.Predicates;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.BatchOperationType;
@@ -108,21 +107,17 @@ import java.security.Principal;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.Spliterator;
-import java.util.Spliterators;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
@@ -684,14 +679,6 @@ public abstract class BaseUserServiceImpl<
             spec = spec.and(usersIn(tenantIds));
         }
         return spec;
-    }
-
-    @Override
-    public Page<U> getAll(final Pageable pageable, final UserSearch userSearch) {
-        final Pageable search = convertOrderRequest(pageable);
-        final Specifications<U> spec = buildSpecification(userSearch);
-
-        return rawUserRepository.findAll(spec, search);
     }
 
     private void sendRegistrationEmail(final U user) {
