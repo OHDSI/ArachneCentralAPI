@@ -54,21 +54,6 @@ public abstract class BaseController<DN extends DataNode, U extends IUser> {
     @Autowired
     protected GenericConversionService conversionService;
 
-    protected List<U> convert(List<CommonUserRegistrationDTO> userDtos) {
-
-        return userDtos.stream()
-                .map(dto -> (U) conversionService.convert(dto, User.class))
-                .collect(Collectors.toList());
-    }
-
-    protected Set<Tenant> convertToTenants(List<Long> tenantIds) {
-
-        return tenantIds.stream()
-                .map(tenantId -> conversionService.convert(tenantId, Tenant.class))
-                .collect(Collectors.toSet());
-
-    }
-
     protected U getUser(Principal principal) throws PermissionDeniedException {
 
         return userService.getUser(principal);

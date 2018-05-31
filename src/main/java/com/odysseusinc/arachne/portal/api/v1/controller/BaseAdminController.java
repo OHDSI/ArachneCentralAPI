@@ -22,6 +22,9 @@
 
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
+import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.NO_ERROR;
+import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.VALIDATION_ERROR;
+
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserRegistrationDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.commons.utils.UserIdUtils;
@@ -31,7 +34,6 @@ import com.odysseusinc.arachne.portal.api.v1.dto.BatchOperationDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.BulkUsersRegistrationDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserWithTenantsDTO;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
-import com.odysseusinc.arachne.portal.exception.PasswordValidationException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
@@ -57,8 +59,9 @@ import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -66,6 +69,8 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -74,6 +79,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.SortDefault;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.util.CollectionUtils;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -91,6 +97,8 @@ public abstract class BaseAdminController<
         P extends Paper,
         PS extends PaperSearch,
         SB extends Submission> extends BaseController<DataNode, U> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(AdminController.class);
 
     private final BaseDataSourceService<DS> dataSourceService;
     protected final ProfessionalTypeService professionalTypeService;
@@ -132,7 +140,7 @@ public abstract class BaseAdminController<
         U user = userService.getByIdInAnyTenant(UserIdUtils.uuidToId(uuid));
         user.setEnabled(isEnabled);
         userService.updateInAnyTenant(user);
-        result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
+        result = new JsonResult<>(NO_ERROR);
         result.setResult(isEnabled);
         return result;
     }
@@ -161,21 +169,64 @@ public abstract class BaseAdminController<
 
     @ApiOperation("Register new users")
     @RequestMapping(value = "/api/v1/admin/users/group", method = RequestMethod.POST)
-    public void register(@RequestBody BulkUsersRegistrationDTO bulkUsersDto) throws PasswordValidationException, ValidationException {
+    public JsonResult<List<AdminUserDTO>> register(
+            @RequestBody BulkUsersRegistrationDTO bulkUsersDto,
+            BindingResult binding
+    ) throws ValidationException {
 
         if (CollectionUtils.isEmpty(bulkUsersDto.getTenantIds())) {
             throw new ValidationException("tenants: must be not empty");
         }
 
+        if (binding.hasErrors()) {
+            return setValidationErrors(binding);
+        }
+
         boolean emailConfirmationRequired = bulkUsersDto.getEmailConfirmationRequired();
 
-        List<U> users = convert(bulkUsersDto.getUsers());
-        Set<Tenant> tenants = convertToTenants(bulkUsersDto.getTenantIds());
+        List<U> users = bulkUsersDto.getUsers().stream()
+                .map(this::convert)
+                .collect(Collectors.toList());
+        Set<Tenant> tenants = bulkUsersDto.getTenantIds().stream()
+                .map(tenantId -> conversionService.convert(tenantId, Tenant.class))
+                .collect(Collectors.toSet());
         updateFields(users, tenants, emailConfirmationRequired, bulkUsersDto.getPassword());
 
-        List<U> createdUsers = userService.createAll(users);
-        sendRegistrationEmail(emailConfirmationRequired, createdUsers, bulkUsersDto);
+        return saveUsers(users, bulkUsersDto.getUsers(), emailConfirmationRequired);
     }
+
+    private JsonResult<List<AdminUserDTO>> saveUsers(List<U> users, List<CommonUserRegistrationDTO> userDtos, boolean emailConfirmationRequired) {
+        JsonResult<List<AdminUserDTO>> result = new JsonResult<>(NO_ERROR);
+        List<AdminUserDTO> createdUsers = new ArrayList<>();
+        Map<String, Object> errorMessages = new HashMap<>();
+
+        final Map<String, CommonUserRegistrationDTO> mailUserDtoMap = userDtos.stream()
+                .collect(Collectors.toMap(CommonUserRegistrationDTO::getEmail, Function.identity()));
+        users.forEach(user -> {
+            try {
+                U createdUser = userService.create(user);
+                if (emailConfirmationRequired) {
+                    CommonUserRegistrationDTO userDto = mailUserDtoMap.get(createdUser.getEmail());
+                    userService.sendRegistrationEmail(createdUser, userDto.getRegistrantToken(), userDto.getCallbackUrl(), true);
+                }
+
+                createdUsers.add(conversionService.convert(createdUser, AdminUserDTO.class));
+            } catch (Exception ex) {
+                LOGGER.error("Failed to save user with " + user.getEmail(), ex);
+                result.setErrorCode(VALIDATION_ERROR.getCode());
+                errorMessages.put(user.getEmail(), ex.getMessage());
+            }
+        });
+
+        result.setResult(createdUsers);
+        if (result.getErrorCode().equals(VALIDATION_ERROR.getCode())) {
+            result.setValidatorErrors(errorMessages);
+        }
+
+        return result;
+    }
+
+    protected abstract U convert(CommonUserRegistrationDTO dto);
 
     private void updateFields(List<U> users, Set<Tenant> tenants, boolean emailConfirmationRequired, String password) {
         for (U user : users) {
@@ -188,20 +239,6 @@ public abstract class BaseAdminController<
                 user.setEmailConfirmed(false);
                 user.setRegistrationCode(UUID.randomUUID().toString());
             }
-        }
-    }
-
-    private void sendRegistrationEmail(boolean emailConfirmationRequired, List<U> createdUsers, BulkUsersRegistrationDTO bulkUsersDto) {
-        if (emailConfirmationRequired) {
-            final Map<String, CommonUserRegistrationDTO> mailUserDtoMap = bulkUsersDto.getUsers().stream()
-                    .collect(Collectors.toMap(CommonUserRegistrationDTO::getEmail, Function.identity()));
-
-            createdUsers.stream()
-                    .filter(user -> mailUserDtoMap.containsKey(user.getEmail()))
-                    .forEach(user -> {
-                        CommonUserRegistrationDTO userDto = mailUserDtoMap.get(user.getEmail());
-                        userService.sendRegistrationEmail(user, userDto.getRegistrantToken(), userDto.getCallbackUrl(), true);
-                    });
         }
     }
 
@@ -227,7 +264,7 @@ public abstract class BaseAdminController<
         List<AdminUserDTO> dtos = users.stream()
                 .map(user -> conversionService.convert(user, AdminUserDTO.class))
                 .collect(Collectors.toList());
-        result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
+        result = new JsonResult<>(NO_ERROR);
         result.setResult(dtos);
         return result;
     }
@@ -236,7 +273,7 @@ public abstract class BaseAdminController<
     public JsonResult addAdminRole(@PathVariable Long id) {
 
         userService.addUserToAdmins(id);
-        return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
+        return new JsonResult<>(NO_ERROR);
     }
 
     @ApiOperation("Suggests user according to query to add admin role.")
@@ -248,11 +285,11 @@ public abstract class BaseAdminController<
 
         JsonResult<List<AdminUserDTO>> result;
         List<U> users = userService.suggestNotAdmin(query, limit == null ? 10 : limit);
-        List<AdminUserDTO> userDTOs = new LinkedList<>();
-        for (U user : users) {
-            userDTOs.add(conversionService.convert(user, AdminUserDTO.class));
-        }
-        result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
+        List<AdminUserDTO> userDTOs = users.stream()
+                .map(user -> conversionService
+                        .convert(user, AdminUserDTO.class))
+                .collect(Collectors.toList());
+        result = new JsonResult<>(NO_ERROR);
         result.setResult(userDTOs);
         return result;
     }
@@ -261,7 +298,7 @@ public abstract class BaseAdminController<
     public JsonResult removeAdminRole(@PathVariable Long id) {
 
         userService.removeUserFromAdmins(id);
-        return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
+        return new JsonResult<>(NO_ERROR);
     }
 
     @RequestMapping(value = "/api/v1/admin/{domain}/reindex-solr", method = RequestMethod.POST)
@@ -288,13 +325,13 @@ public abstract class BaseAdminController<
                 throw new UnsupportedOperationException("Reindex isn't allowed for domain: " + domain);
         }
 
-        return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
+        return new JsonResult<>(NO_ERROR);
     }
     
     @RequestMapping(value = "/api/v1/admin/users/batch", method = RequestMethod.POST)
     public JsonResult doBatchOperation(@RequestBody BatchOperationDTO dto) {
 
         userService.performBatchOperation(dto.getIds(), dto.getType());
-        return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
+        return new JsonResult<>(NO_ERROR);
     }
 }

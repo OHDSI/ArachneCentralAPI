@@ -331,16 +331,6 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    public List<U> createAll(final @NotNull List<U> users) throws PasswordValidationException {
-
-        for (U user : users) {
-            updateFields(user);
-        }
-
-        return userRepository.save(users);
-    }
-
-    @Override
     public U create(final @NotNull U user)
             throws NotUniqueException, NotExistException, PasswordValidationException {
 

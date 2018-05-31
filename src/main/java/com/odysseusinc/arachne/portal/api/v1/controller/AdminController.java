@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
+import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserRegistrationDTO;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
@@ -29,6 +30,7 @@ import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyViewItem;
 import com.odysseusinc.arachne.portal.model.Submission;
+import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.PaperSearch;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.service.AdminService;
@@ -54,5 +56,11 @@ public class AdminController extends BaseAdminController<IUser, Study, IDataSour
                            final PaperService paperService) {
 
         super(dataSourceService, professionalTypeService, adminService, studyService, analysisService, paperService);
+    }
+
+    @Override
+    protected User convert(CommonUserRegistrationDTO dto) {
+
+        return conversionService.convert(dto, User.class);
     }
 }
