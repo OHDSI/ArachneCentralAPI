@@ -22,6 +22,10 @@
 
 package com.odysseusinc.arachne.portal.model.search;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 public class UserSearch {
     private Boolean enabled;
     private Boolean emailConfirmed;
@@ -61,6 +65,16 @@ public class UserSearch {
     public Long[] getTenantIds() {
 
         return tenantIds;
+    }
+
+    public Set<Long> getTenantIdsSet() {
+
+        Set<Long> idsSet = new HashSet<>();
+        if (tenantIds != null) {
+            idsSet = new HashSet<>(Arrays.asList(tenantIds));
+        }
+
+        return idsSet;
     }
 
     public void setTenantIds(Long[] tenantIds) {

@@ -25,6 +25,7 @@ package com.odysseusinc.arachne.portal.service.impl;
 import static com.odysseusinc.arachne.portal.model.ParticipantStatus.APPROVED;
 import static com.odysseusinc.arachne.portal.model.ParticipantStatus.DECLINED;
 import static com.odysseusinc.arachne.portal.repository.UserSpecifications.emailConfirmed;
+import static com.odysseusinc.arachne.portal.repository.UserSpecifications.noTenants;
 import static com.odysseusinc.arachne.portal.repository.UserSpecifications.userEnabled;
 import static com.odysseusinc.arachne.portal.repository.UserSpecifications.usersIn;
 import static com.odysseusinc.arachne.portal.repository.UserSpecifications.withNameOrEmailLike;
@@ -674,9 +675,12 @@ public abstract class BaseUserServiceImpl<
             spec = spec.and(withNameOrEmailLike(pattern));
         }
 
-        final Long[] tenantIds = userSearch.getTenantIds();
-        if (tenantIds != null && tenantIds.length > 0) {
+        Set<Long> tenantIds = userSearch.getTenantIdsSet();
+        if (!CollectionUtils.isEmpty(tenantIds)) {
             spec = spec.and(usersIn(tenantIds));
+            if (tenantIds.contains(-1L)) {
+                spec = spec.or(noTenants());
+            }
         }
         return spec;
     }
