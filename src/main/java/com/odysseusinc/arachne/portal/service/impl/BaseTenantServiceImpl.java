@@ -52,6 +52,6 @@ public abstract class BaseTenantServiceImpl<T extends Tenant> implements BaseTen
     @Override
     public List<T> findByIdsIn(List<Long> tenantIds) {
 
-        return tenantRepository.findAll(tenantIds);
+        return tenantRepository.findByIdIn(tenantIds);
     }
 }
