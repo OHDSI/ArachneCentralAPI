@@ -24,23 +24,17 @@ package com.odysseusinc.arachne.portal.api.v1.controller;
 
 import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.VALIDATION_ERROR;
 
-import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserRegistrationDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Skill;
-import com.odysseusinc.arachne.portal.model.User;
-import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.security.DataNodeAuthenticationToken;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
 import java.security.Principal;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.validation.BindingResult;

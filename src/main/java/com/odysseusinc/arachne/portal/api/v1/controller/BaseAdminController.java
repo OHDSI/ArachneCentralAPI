@@ -67,6 +67,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import javax.validation.Valid;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,7 +79,6 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.SortDefault;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.util.CollectionUtils;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -87,7 +87,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @Secured("ROLE_ADMIN")
 public abstract class BaseAdminController<
-        T extends Tenant,
         U extends IUser,
         S extends Study,
         DS extends IDataSource,
@@ -109,7 +108,7 @@ public abstract class BaseAdminController<
     private final BaseStudyService<S, DS, SS, SU> studyService;
     private final BaseAnalysisService<A> analysisService;
     private final BasePaperService<P, PS, S, DS, SS, SU> paperService;
-    private final BaseTenantService<T> tenantService;
+    private final BaseTenantService tenantService;
 
     @Autowired
     public BaseAdminController(final BaseDataSourceService<DS> dataSourceService,
@@ -118,7 +117,7 @@ public abstract class BaseAdminController<
                                final BaseStudyService<S, DS, SS, SU> studyService,
                                final BaseAnalysisService<A> analysisService, 
                                final BasePaperService<P, PS, S, DS, SS, SU> paperService,
-                               final BaseTenantService<T> tenantService) {
+                               final BaseTenantService tenantService) {
 
         this.dataSourceService = dataSourceService;
         this.professionalTypeService = professionalTypeService;
@@ -176,12 +175,8 @@ public abstract class BaseAdminController<
     @ApiOperation("Register new users")
     @RequestMapping(value = "/api/v1/admin/users/group", method = RequestMethod.POST)
     public JsonResult<List<AdminUserDTO>> register(
-            @RequestBody BulkUsersRegistrationDTO bulkUsersDto,
-            BindingResult binding) {
-
-        if (binding.hasErrors()) {
-            return setValidationErrors(binding);
-        }
+            @RequestBody @Valid BulkUsersRegistrationDTO bulkUsersDto
+    ) {
 
         return saveUsers(bulkUsersDto);
     }
@@ -201,9 +196,10 @@ public abstract class BaseAdminController<
         final boolean emailConfirmationRequired = bulkUsersDto.getEmailConfirmationRequired();
         List<AdminUserDTO> createdUsers = bulkUsersDto.getUsers().stream()
                 .map(userDto -> {
+                    int index = bulkUsersDto.getUsers().indexOf(userDto);
                     U user = convert(userDto);
                     updateFields(user, tenants, emailConfirmationRequired, bulkUsersDto.getPassword());
-                    U createdUser = createUserAndSetValidationError(user, result, errorMessages);
+                    U createdUser = createUserAndSetValidationError(user, index, result, errorMessages);
                     sendRegistrationEmail(emailConfirmationRequired, userDto, createdUser);
                     return createdUser;
                 })
@@ -218,7 +214,7 @@ public abstract class BaseAdminController<
         return result;
     }
 
-    private U createUserAndSetValidationError(U user, JsonResult<List<AdminUserDTO>> result, Map<String, Object> errorMessages) {
+    private U createUserAndSetValidationError(U user, int index, JsonResult<List<AdminUserDTO>> result, Map<String, Object> errorMessages) {
 
         U createdUser = null;
         try {
@@ -226,7 +222,7 @@ public abstract class BaseAdminController<
         } catch (Exception ex) {
             LOGGER.error("Failed to save user with " + user.getEmail(), ex);
             result.setErrorCode(VALIDATION_ERROR.getCode());
-            errorMessages.put(String.valueOf(user.getId()), ex.getMessage());
+            errorMessages.put("users[" + index + "].email", ex.getMessage());
         }
 
         return createdUser;
