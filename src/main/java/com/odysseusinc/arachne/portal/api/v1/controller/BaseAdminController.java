@@ -67,6 +67,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import javax.validation.Valid;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
@@ -194,9 +195,10 @@ public abstract class BaseAdminController<
 
         final Set<Tenant> tenants = new HashSet<>(tenantService.findByIdsIn(bulkUsersDto.getTenantIds()));
         final boolean emailConfirmationRequired = bulkUsersDto.getEmailConfirmationRequired();
-        List<AdminUserDTO> createdUsers = bulkUsersDto.getUsers().stream()
-                .map(userDto -> {
-                    int index = bulkUsersDto.getUsers().indexOf(userDto);
+        List<CommonUserRegistrationDTO> userDtos = bulkUsersDto.getUsers();
+        List<AdminUserDTO> createdUsers = IntStream.range(0, bulkUsersDto.getUsers().size())
+                .mapToObj(index -> {
+                    CommonUserRegistrationDTO userDto = userDtos.get(index);
                     U user = convert(userDto);
                     updateFields(user, tenants, emailConfirmationRequired, bulkUsersDto.getPassword());
                     U createdUser = createUserAndSetValidationError(user, index, result, errorMessages);
