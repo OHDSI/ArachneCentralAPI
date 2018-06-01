@@ -33,11 +33,13 @@ import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.PaperSearch;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
+import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.service.AdminService;
 import com.odysseusinc.arachne.portal.service.DataSourceService;
 import com.odysseusinc.arachne.portal.service.PaperService;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
 import com.odysseusinc.arachne.portal.service.StudyService;
+import com.odysseusinc.arachne.portal.service.TenantService;
 import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +47,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Api(hidden = true)
 @RestController
-public class AdminController extends BaseAdminController<IUser, Study, IDataSource, StudySearch, StudyViewItem, Analysis, Paper, PaperSearch, Submission> {
+public class AdminController extends BaseAdminController<Tenant, IUser, Study, IDataSource, StudySearch, StudyViewItem, Analysis, Paper, PaperSearch, Submission> {
 
     @Autowired
     public AdminController(final DataSourceService dataSourceService,
@@ -53,9 +55,10 @@ public class AdminController extends BaseAdminController<IUser, Study, IDataSour
                            final AdminService adminService,
                            final StudyService studyService,
                            final AnalysisService analysisService,
-                           final PaperService paperService) {
+                           final PaperService paperService,
+                           final TenantService tenantService) {
 
-        super(dataSourceService, professionalTypeService, adminService, studyService, analysisService, paperService);
+        super(dataSourceService, professionalTypeService, adminService, studyService, analysisService, paperService, tenantService);
     }
 
     @Override
