@@ -196,9 +196,9 @@ public abstract class BaseAdminController<
         final Set<Tenant> tenants = new HashSet<>(tenantService.findByIdsIn(bulkUsersDto.getTenantIds()));
         final boolean emailConfirmationRequired = bulkUsersDto.getEmailConfirmationRequired();
         List<CommonUserRegistrationDTO> userDtos = bulkUsersDto.getUsers();
-        List<AdminUserDTO> createdUsers = IntStream.range(0, bulkUsersDto.getUsers().size())
+        List<AdminUserDTO> createdUsers = IntStream.range(0, userDtos.size())
                 .mapToObj(index -> {
-                    CommonUserRegistrationDTO userDto = userDtos.get(index);
+                    final CommonUserRegistrationDTO userDto = userDtos.get(index);
                     U user = convert(userDto);
                     updateFields(user, tenants, emailConfirmationRequired, bulkUsersDto.getPassword());
                     U createdUser = createUserAndSetValidationError(user, index, result, errorMessages);
