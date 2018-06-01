@@ -36,7 +36,6 @@ import com.odysseusinc.arachne.portal.api.v1.dto.UserWithTenantsDTO;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
-import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.DataNode;
@@ -54,19 +53,19 @@ import com.odysseusinc.arachne.portal.service.BaseAdminService;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.BasePaperService;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
+import com.odysseusinc.arachne.portal.service.BaseTenantService;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
 import java.security.Principal;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
@@ -88,6 +87,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @Secured("ROLE_ADMIN")
 public abstract class BaseAdminController<
+        T extends Tenant,
         U extends IUser,
         S extends Study,
         DS extends IDataSource,
@@ -100,12 +100,16 @@ public abstract class BaseAdminController<
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AdminController.class);
 
+    private static final String MUST_NOT_EMPTY_MESSAGE_ERROR = "must be not empty";
+    private static final String TENANTS_KEY_MESSAGE_ERROR = "tenants";
+
     private final BaseDataSourceService<DS> dataSourceService;
     protected final ProfessionalTypeService professionalTypeService;
     private final BaseAdminService<S, DS, SS, SU, A, P, PS, SB> adminService;
     private final BaseStudyService<S, DS, SS, SU> studyService;
     private final BaseAnalysisService<A> analysisService;
     private final BasePaperService<P, PS, S, DS, SS, SU> paperService;
+    private final BaseTenantService<T> tenantService;
 
     @Autowired
     public BaseAdminController(final BaseDataSourceService<DS> dataSourceService,
@@ -113,7 +117,8 @@ public abstract class BaseAdminController<
                                final BaseAdminService<S, DS, SS, SU, A, P, PS, SB> adminService,
                                final BaseStudyService<S, DS, SS, SU> studyService,
                                final BaseAnalysisService<A> analysisService, 
-                               final BasePaperService<P, PS, S, DS, SS, SU> paperService) {
+                               final BasePaperService<P, PS, S, DS, SS, SU> paperService,
+                               final BaseTenantService<T> tenantService) {
 
         this.dataSourceService = dataSourceService;
         this.professionalTypeService = professionalTypeService;
@@ -121,6 +126,7 @@ public abstract class BaseAdminController<
         this.studyService = studyService;
         this.analysisService = analysisService;
         this.paperService = paperService;
+        this.tenantService = tenantService;
     }
 
     @ApiOperation(value = "Enable user.", hidden = true)
@@ -171,52 +177,38 @@ public abstract class BaseAdminController<
     @RequestMapping(value = "/api/v1/admin/users/group", method = RequestMethod.POST)
     public JsonResult<List<AdminUserDTO>> register(
             @RequestBody BulkUsersRegistrationDTO bulkUsersDto,
-            BindingResult binding
-    ) throws ValidationException {
-
-        if (CollectionUtils.isEmpty(bulkUsersDto.getTenantIds())) {
-            throw new ValidationException("tenants: must be not empty");
-        }
+            BindingResult binding) {
 
         if (binding.hasErrors()) {
             return setValidationErrors(binding);
         }
 
-        boolean emailConfirmationRequired = bulkUsersDto.getEmailConfirmationRequired();
-
-        List<U> users = bulkUsersDto.getUsers().stream()
-                .map(this::convert)
-                .collect(Collectors.toList());
-        Set<Tenant> tenants = bulkUsersDto.getTenantIds().stream()
-                .map(tenantId -> conversionService.convert(tenantId, Tenant.class))
-                .collect(Collectors.toSet());
-        updateFields(users, tenants, emailConfirmationRequired, bulkUsersDto.getPassword());
-
-        return saveUsers(users, bulkUsersDto.getUsers(), emailConfirmationRequired);
+        return saveUsers(bulkUsersDto);
     }
 
-    private JsonResult<List<AdminUserDTO>> saveUsers(List<U> users, List<CommonUserRegistrationDTO> userDtos, boolean emailConfirmationRequired) {
-        JsonResult<List<AdminUserDTO>> result = new JsonResult<>(NO_ERROR);
-        List<AdminUserDTO> createdUsers = new ArrayList<>();
-        Map<String, Object> errorMessages = new HashMap<>();
+    private JsonResult<List<AdminUserDTO>> saveUsers(final BulkUsersRegistrationDTO bulkUsersDto) {
 
-        final Map<String, CommonUserRegistrationDTO> mailUserDtoMap = userDtos.stream()
-                .collect(Collectors.toMap(CommonUserRegistrationDTO::getEmail, Function.identity()));
-        users.forEach(user -> {
-            try {
-                U createdUser = userService.create(user);
-                if (emailConfirmationRequired) {
-                    CommonUserRegistrationDTO userDto = mailUserDtoMap.get(createdUser.getEmail());
-                    userService.sendRegistrationEmail(createdUser, userDto.getRegistrantToken(), userDto.getCallbackUrl(), true);
-                }
+        final JsonResult<List<AdminUserDTO>> result = new JsonResult<>(NO_ERROR);
+        final Map<String, Object> errorMessages = new HashMap<>();
+        if (CollectionUtils.isEmpty(bulkUsersDto.getTenantIds())) {
+            result.setErrorCode(VALIDATION_ERROR.getCode());
+            errorMessages.put(TENANTS_KEY_MESSAGE_ERROR, MUST_NOT_EMPTY_MESSAGE_ERROR);
+            result.setValidatorErrors(errorMessages);
+            return result;
+        }
 
-                createdUsers.add(conversionService.convert(createdUser, AdminUserDTO.class));
-            } catch (Exception ex) {
-                LOGGER.error("Failed to save user with " + user.getEmail(), ex);
-                result.setErrorCode(VALIDATION_ERROR.getCode());
-                errorMessages.put(user.getEmail(), ex.getMessage());
-            }
-        });
+        final Set<Tenant> tenants = new HashSet<>(tenantService.findByIdsIn(bulkUsersDto.getTenantIds()));
+        final boolean emailConfirmationRequired = bulkUsersDto.getEmailConfirmationRequired();
+        List<AdminUserDTO> createdUsers = bulkUsersDto.getUsers().stream()
+                .map(userDto -> {
+                    U user = convert(userDto);
+                    updateFields(user, tenants, emailConfirmationRequired, bulkUsersDto.getPassword());
+                    U createdUser = createUserAndSetValidationError(user, result, errorMessages);
+                    sendRegistrationEmail(emailConfirmationRequired, userDto, createdUser);
+                    return createdUser;
+                })
+                .map(createdUser -> conversionService.convert(createdUser, AdminUserDTO.class))
+                .collect(Collectors.toList());
 
         result.setResult(createdUsers);
         if (result.getErrorCode().equals(VALIDATION_ERROR.getCode())) {
@@ -226,19 +218,40 @@ public abstract class BaseAdminController<
         return result;
     }
 
+    private U createUserAndSetValidationError(U user, JsonResult<List<AdminUserDTO>> result, Map<String, Object> errorMessages) {
+
+        U createdUser = null;
+        try {
+            createdUser = userService.create(user);
+        } catch (Exception ex) {
+            LOGGER.error("Failed to save user with " + user.getEmail(), ex);
+            result.setErrorCode(VALIDATION_ERROR.getCode());
+            errorMessages.put(String.valueOf(user.getId()), ex.getMessage());
+        }
+
+        return createdUser;
+    }
+
     protected abstract U convert(CommonUserRegistrationDTO dto);
 
-    private void updateFields(List<U> users, Set<Tenant> tenants, boolean emailConfirmationRequired, String password) {
-        for (U user : users) {
-            user.setPassword(password);
-            user.setTenants(tenants);
-            user.setOrigin(UserOrigin.NATIVE);
-            if (!emailConfirmationRequired) {
-                user.setEmailConfirmed(true);
-            } else {
-                user.setEmailConfirmed(false);
-                user.setRegistrationCode(UUID.randomUUID().toString());
-            }
+    private void sendRegistrationEmail(
+            final boolean emailConfirmationRequired,
+            final CommonUserRegistrationDTO userDto,
+            final U createdUser) {
+        if (emailConfirmationRequired) {
+            userService.sendRegistrationEmail(createdUser, userDto.getRegistrantToken(), userDto.getCallbackUrl(), true);
+        }
+    }
+
+    private void updateFields(U user, Set<Tenant> tenants, boolean emailConfirmationRequired, String password) {
+        user.setPassword(password);
+        user.setTenants(tenants);
+        user.setOrigin(UserOrigin.NATIVE);
+        if (!emailConfirmationRequired) {
+            user.setEmailConfirmed(true);
+        } else {
+            user.setEmailConfirmed(false);
+            user.setRegistrationCode(UUID.randomUUID().toString());
         }
     }
 
