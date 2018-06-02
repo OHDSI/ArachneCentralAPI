@@ -128,8 +128,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
         try {
             checkIfUserBlocked(username);
             checkIfUserHasTenant(username);
-            Authentication authentication = authenticate(authenticationRequest);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            authenticate(authenticationRequest);
             String token = this.tokenUtils.generateToken(username);
             CommonAuthenticationResponse authenticationResponse = new CommonAuthenticationResponse(token);
             jsonResult = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, authenticationResponse);
@@ -164,7 +163,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
         }
     }
 
-    private void checkIfUserHasTenant(String email) throws AuthenticationException {
+    protected void checkIfUserHasTenant(String email) throws AuthenticationException {
         IUser user = userService.getByEmailInAnyTenant(email);
         if (user == null ||
                 user.getTenants() == null || user.getTenants().isEmpty()) {
@@ -172,19 +171,16 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
         }
     }
 
-    private Authentication authenticate(CommonAuthenticationRequest authenticationRequest) {
+    protected Authentication authenticate(CommonAuthenticationRequest authenticationRequest) {
 
-        return this.authenticationManager.authenticate(
+        Authentication authentication = this.authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         authenticationRequest.getUsername(),
                         authenticationRequest.getPassword()
                 )
         );
-    }
-
-    protected IUser getUser(String userName) {
-
-        return userService.getByUsername(userName);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        return authentication;
     }
 
     @ApiOperation("Logout.")
