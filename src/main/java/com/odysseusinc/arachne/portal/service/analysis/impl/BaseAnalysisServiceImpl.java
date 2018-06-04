@@ -369,7 +369,7 @@ public abstract class BaseAnalysisServiceImpl<
 
         String originalFilename = multipartFile.getOriginalFilename();
         String fileNameLowerCase = UUID.randomUUID().toString();
-        throwDuplicateNameException(label);
+        ensureOriginalNameIsUnique(analysis.getId(), originalFilename);
         try {
             Path analysisPath = getAnalysisPath(analysis);
             Path targetPath = Paths.get(analysisPath.toString(), fileNameLowerCase);
@@ -448,8 +448,7 @@ public abstract class BaseAnalysisServiceImpl<
             throws IOException, AlreadyExistException {
 
         throwAccessDeniedExceptionIfLocked(analysis);
-        String fileNameLowerCase = UUID.randomUUID().toString();
-        throwDuplicateNameException(label);
+        String uuid = UUID.randomUUID().toString();
         try {
             if (link == null) {
                 throw new IORuntimeException("wrong url");
@@ -459,6 +458,7 @@ public abstract class BaseAnalysisServiceImpl<
             HttpEntity<String> entity = new HttpEntity<>(headers);
             URL url = new URL(link);
             String fileName = FilenameUtils.getName(url.getPath());
+            ensureOriginalNameIsUnique(analysis.getId(), fileName);
 
             ResponseEntity<byte[]> response = restTemplate.exchange(
                     link,
@@ -473,14 +473,13 @@ public abstract class BaseAnalysisServiceImpl<
                 Files.copy(new ByteArrayInputStream(response.getBody()),
                         pathToAnalysis, REPLACE_EXISTING);
                 AnalysisFile analysisFile = new AnalysisFile();
-                analysisFile.setUuid(fileNameLowerCase);
+                analysisFile.setUuid(uuid);
                 analysisFile.setAnalysis(analysis);
                 analysisFile.setContentType(contentType);
                 analysisFile.setLabel(label);
                 analysisFile.setAuthor(user);
                 analysisFile.setExecutable(Boolean.TRUE.equals(isExecutable));
                 analysisFile.setRealName(fileName);
-
                 analysisFile.setEntryPoint(fileName);
 
                 Date created = new Date();
@@ -490,7 +489,7 @@ public abstract class BaseAnalysisServiceImpl<
                 return analysisFileRepository.save(analysisFile);
             }
         } catch (IOException | RuntimeException ex) {
-            String message = "error save file to disk, filename=" + fileNameLowerCase + " ex=" + ex.toString();
+            String message = "error save file to disk, filename=" + uuid + " ex=" + ex.toString();
             LOGGER.error(message, ex);
             throw new IOException(message);
         }
@@ -854,10 +853,10 @@ public abstract class BaseAnalysisServiceImpl<
         }
     }
 
-    private void throwDuplicateNameException(String label) throws AlreadyExistException {
+    private void ensureOriginalNameIsUnique(Long analysisId, String originalFileName) throws AlreadyExistException {
 
-        if (!analysisFileRepository.findByLabel(label).isEmpty()) {
-            throw new AlreadyExistException("File with such name " + label + " already exists");
+        if (!analysisFileRepository.findAllByAnalysisIdAndRealName(analysisId, originalFileName).isEmpty()) {
+            throw new AlreadyExistException("File with such name " + originalFileName + " already exists");
         }
     }
 
