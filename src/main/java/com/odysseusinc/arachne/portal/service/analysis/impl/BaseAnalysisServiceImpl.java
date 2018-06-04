@@ -369,7 +369,7 @@ public abstract class BaseAnalysisServiceImpl<
 
         String originalFilename = multipartFile.getOriginalFilename();
         String fileNameLowerCase = UUID.randomUUID().toString();
-        throwDuplicateNameException(analysis.getId(), originalFilename);
+        ensureOriginalNameIsUnique(analysis.getId(), originalFilename);
         try {
             Path analysisPath = getAnalysisPath(analysis);
             Path targetPath = Paths.get(analysisPath.toString(), fileNameLowerCase);
@@ -385,7 +385,7 @@ public abstract class BaseAnalysisServiceImpl<
             analysisFile.setAuthor(user);
             analysisFile.setUpdatedBy(user);
             analysisFile.setExecutable(false);
-            analysisFile.setRealName(originalFilename.toLowerCase());
+            analysisFile.setRealName(originalFilename);
             Date created = new Date();
             analysisFile.setCreated(created);
             analysisFile.setUpdated(created);
@@ -458,7 +458,7 @@ public abstract class BaseAnalysisServiceImpl<
             HttpEntity<String> entity = new HttpEntity<>(headers);
             URL url = new URL(link);
             String fileName = FilenameUtils.getName(url.getPath());
-            throwDuplicateNameException(analysis.getId(), fileName);
+            ensureOriginalNameIsUnique(analysis.getId(), fileName);
 
             ResponseEntity<byte[]> response = restTemplate.exchange(
                     link,
@@ -479,7 +479,7 @@ public abstract class BaseAnalysisServiceImpl<
                 analysisFile.setLabel(label);
                 analysisFile.setAuthor(user);
                 analysisFile.setExecutable(Boolean.TRUE.equals(isExecutable));
-                analysisFile.setRealName(fileName.toLowerCase());
+                analysisFile.setRealName(fileName);
                 analysisFile.setEntryPoint(fileName);
 
                 Date created = new Date();
@@ -853,9 +853,9 @@ public abstract class BaseAnalysisServiceImpl<
         }
     }
 
-    private void throwDuplicateNameException(Long analysisId, String originalFileName) throws AlreadyExistException {
+    private void ensureOriginalNameIsUnique(Long analysisId, String originalFileName) throws AlreadyExistException {
 
-        if (!analysisFileRepository.findAllByAnalysisIdAndRealName(analysisId, originalFileName.toLowerCase()).isEmpty()) {
+        if (!analysisFileRepository.findAllByAnalysisIdAndRealName(analysisId, originalFileName).isEmpty()) {
             throw new AlreadyExistException("File with such name " + originalFileName + " already exists");
         }
     }
