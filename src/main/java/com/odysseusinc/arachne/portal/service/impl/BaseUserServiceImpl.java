@@ -62,6 +62,7 @@ import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.StateProvince;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserLink;
+import com.odysseusinc.arachne.portal.model.UserOrigin;
 import com.odysseusinc.arachne.portal.model.UserPublication;
 import com.odysseusinc.arachne.portal.model.UserRegistrant;
 import com.odysseusinc.arachne.portal.model.UserStudy;
@@ -260,9 +261,9 @@ public abstract class BaseUserServiceImpl<
     public U getByUsernameInAnyTenant(final String username, boolean includeDeleted) {
 
         if (includeDeleted) {
-            return rawUserRepository.findByEmail(username);
+            return rawUserRepository.findByOriginAndUsername(this.userOrigin, username);
         } else {
-            return rawUserRepository.findByEmailAndEnabledTrue(username);
+            return rawUserRepository.findByOriginAndUsernameAndEnabledTrue(this.userOrigin, username);
         }
     }
 
@@ -333,7 +334,7 @@ public abstract class BaseUserServiceImpl<
     @Override
     public U create(final @NotNull U user)
             throws NotUniqueException, NotExistException, PasswordValidationException {
-
+      
         updateFields(user);
 
         return userRepository.save(user);
@@ -354,7 +355,9 @@ public abstract class BaseUserServiceImpl<
 
     private void updateFields(U user) throws PasswordValidationException {
 
-        user.setUsername(user.getEmail());
+        if (userOrigin.equals(UserOrigin.NATIVE)) {
+            user.setUsername(user.getEmail());
+        }
         if (Objects.isNull(user.getEnabled())) {
             user.setEnabled(userEnableDefault);
         }
@@ -553,7 +556,7 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    @Secured({"ROLE_ADMIN"})
+    @PreAuthorize("@rawUserRepository.findOne(#user.id)?.getUsername() == authentication.principal.username || hasRole('ROLE_ADMIN')")
     public U updateInAnyTenant(U user) throws NotExistException {
 
         U forUpdate = getByIdInAnyTenant(user.getId());

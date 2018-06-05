@@ -164,7 +164,7 @@ public abstract class BaseAdminController<
     public Page<UserWithTenantsDTO> getAll(
             @PageableDefault(page = 1)
             @SortDefault.SortDefaults({
-                    @SortDefault(sort = "name", direction = Sort.Direction.ASC)
+                    @SortDefault(sort = "firstname", direction = Sort.Direction.ASC)
             })
                     Pageable pageable,
             UserSearch userSearch)
