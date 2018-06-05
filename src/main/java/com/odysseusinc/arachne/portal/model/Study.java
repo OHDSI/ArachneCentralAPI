@@ -52,6 +52,7 @@ import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import org.hibernate.annotations.DiscriminatorFormula;
+import org.hibernate.annotations.NamedQuery;
 
 @Entity
 @Table(name = "studies")
@@ -65,7 +66,6 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
     }
 
     public Study(Study study) {
-
         this.title = study.title;
         this.description = study.description;
         this.type = study.type;
@@ -80,6 +80,7 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
         this.startDate = study.startDate;
         this.endDate = study.endDate;
         this.privacy = study.getPrivacy();
+        this.kind = study.kind;
     }
 
     @Id
@@ -103,6 +104,9 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
 
     @Column
     private Date updated;
+
+    @Column
+    private String kind;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private StudyStatus status;
@@ -364,5 +368,15 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
     public int hashCode() {
 
         return java.util.Objects.hashCode(this.id);
+    }
+
+    public String getKind() {
+
+        return kind;
+    }
+
+    public void setKind(String kind) {
+
+        this.kind = kind;
     }
 }

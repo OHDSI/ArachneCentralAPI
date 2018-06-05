@@ -55,6 +55,7 @@ import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceComment;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
 import com.odysseusinc.arachne.portal.model.StudyFile;
+import com.odysseusinc.arachne.portal.model.StudyKind;
 import com.odysseusinc.arachne.portal.model.SuggestSearchRegion;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserStudy;
@@ -115,6 +116,7 @@ import javax.annotation.PostConstruct;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.hibernate.Hibernate;
+import org.hibernate.annotations.NamedQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -281,6 +283,9 @@ public abstract class BaseStudyServiceImpl<
         study.setType(studyTypeService.getById(study.getType().getId()));
         study.setStatus(studyStatusService.findByName("Initiate"));
         study.setTenant(owner.getActiveTenant());
+        if (study.getKind() == null) {
+            study.setKind(StudyKind.REGULAR.toString());
+        }
 
         if (study.getPrivacy() == null) {
             study.setPrivacy(true);
@@ -1008,5 +1013,10 @@ public abstract class BaseStudyServiceImpl<
     public T findByIdInAnyTenant(final Long studyId) {
 
         return studyRepository.findByIdInAnyTenant(studyId);
+    }
+
+    @Override
+    public T findWorkspaceForUser(Long userId, Long tenantId) {
+        return studyRepository.findWorkspaceForUser(userId, tenantId);
     }
 }

@@ -25,7 +25,9 @@ package com.odysseusinc.arachne.portal.repository;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.statemachine.ObjectRepository;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import org.hibernate.annotations.NamedQuery;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -48,8 +50,8 @@ public interface BaseStudyRepository<T extends Study> extends JpaRepository<T, L
                     + " AND studies_users.user_id=:ownerId AND lower(title) SIMILAR TO :suggestRequest"
                     + " AND lower(studies_users.status) = 'approved'")
     Iterable<T> suggestByParticipantId(@Param("suggestRequest") String suggestRequest,
-                                           @Param("ownerId") Long id,
-                                           @Param("participantId") Long participantId);
+                                       @Param("ownerId") Long id,
+                                       @Param("participantId") Long participantId);
 
     @Query(nativeQuery = true,
             value = "SELECT studies.* " +
@@ -61,8 +63,8 @@ public interface BaseStudyRepository<T extends Study> extends JpaRepository<T, L
                     + " AND studies_users.user_id=:ownerId AND lower(title) SIMILAR TO :suggestRequest"
                     + " AND lower(studies_users.status) = 'approved'")
     Iterable<T> suggestByDatasourceId(@Param("suggestRequest") String suggestRequest,
-                                          @Param("ownerId") Long id,
-                                          @Param("datasourceId") Long datasourceId);
+                                      @Param("ownerId") Long id,
+                                      @Param("datasourceId") Long datasourceId);
 
     List<T> findByIdIn(List<Long> ids);
 
@@ -77,4 +79,8 @@ public interface BaseStudyRepository<T extends Study> extends JpaRepository<T, L
 
     @Query(nativeQuery = true, value = "SELECT * FROM studies_data WHERE id IN :studyIds")
     List<T> findByIdsInAnyTenant(@Param("studyIds") Collection<Long> ids);
+
+    @Query(nativeQuery = true, value = "SELECT * FROM studies_data JOIN studies_users u on studies_data.id = u.study_id\n" +
+            "WHERE studies_data.kind = 'WORKSPACE' AND user_id = :userId AND tenant_id = :tenantId")
+    T findWorkspaceForUser(@Param("userId") Long userId, @Param("tenantId") Long tenantId);
 }

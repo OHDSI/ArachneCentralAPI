@@ -149,4 +149,6 @@ public interface BaseStudyService<
     List<T> findByIdsInAnyTenant(Set<Long> studyIds);
     
     T findByIdInAnyTenant(Long studyId);
+
+    T findWorkspaceForUser(Long userId, Long tenantId);
 }
