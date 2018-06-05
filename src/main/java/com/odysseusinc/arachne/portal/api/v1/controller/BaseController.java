@@ -48,7 +48,6 @@ public abstract class BaseController<DN extends DataNode, U extends IUser> {
     @Autowired
     protected GenericConversionService conversionService;
 
-
     protected U getUser(Principal principal) throws PermissionDeniedException {
 
         return userService.getUser(principal);

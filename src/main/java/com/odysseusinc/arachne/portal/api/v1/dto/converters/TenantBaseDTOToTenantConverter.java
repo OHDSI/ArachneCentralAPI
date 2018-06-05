@@ -15,23 +15,27 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: January 13, 2017
+ * Authors: Sergey Maletsky
+ * Created: May 24, 2018
  *
  */
 
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
-import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserRegistrationDTO;
-import com.odysseusinc.arachne.portal.model.User;
+import com.odysseusinc.arachne.portal.api.v1.dto.TenantBaseDTO;
+import com.odysseusinc.arachne.portal.model.security.Tenant;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UserDTOToUserConverter extends BaseUserDtoToUserConverter<CommonUserRegistrationDTO, User> {
+public class TenantBaseDTOToTenantConverter extends BaseConversionServiceAwareConverter<TenantBaseDTO, Tenant> {
 
     @Override
-    protected User newUser() {
+    public Tenant convert(TenantBaseDTO source) {
 
-        return new User();
+        Tenant tenant = new Tenant();
+        tenant.setId(source.getId());
+        tenant.setName(source.getName());
+        tenant.setDefault(source.getDefault());
+        return tenant;
     }
 }

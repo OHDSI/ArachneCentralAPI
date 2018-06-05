@@ -37,7 +37,6 @@ import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.MetadataException;
 import com.drew.metadata.exif.ExifIFD0Directory;
-import com.google.common.base.Predicates;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.BatchOperationType;
@@ -109,25 +108,22 @@ import java.security.Principal;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.Spliterator;
-import java.util.Spliterators;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -338,6 +334,26 @@ public abstract class BaseUserServiceImpl<
     @Override
     public U create(final @NotNull U user)
             throws NotUniqueException, NotExistException, PasswordValidationException {
+      
+        updateFields(user);
+
+        return userRepository.save(user);
+    }
+
+    @Override
+    public U createWithEmailVerification(final @NotNull U user, String registrantToken, String callbackUrl)
+            throws NotUniqueException, NotExistException, PasswordValidationException {
+
+        user.setEmailConfirmed(false);
+        user.setRegistrationCode(UUID.randomUUID().toString());
+        U createdUser = create(user);
+
+        Optional<UserRegistrant> userRegistrant = userRegistrantService.findByToken(registrantToken);
+        sendRegistrationEmail(createdUser, userRegistrant, callbackUrl, false);
+        return createdUser;
+    }
+
+    private void updateFields(U user) throws PasswordValidationException {
 
         if (userOrigin.equals(UserOrigin.NATIVE)) {
             user.setUsername(user.getEmail());
@@ -359,8 +375,9 @@ public abstract class BaseUserServiceImpl<
         validatePassword(username, firstName, lastName, middleName, password);
         user.setPassword(passwordEncoder.encode(password));
 
-        user.setTenants(tenantService.getDefault());
-        if (user.getTenants().size() > 0) {
+        if (CollectionUtils.isEmpty(user.getTenants())) {
+            user.setTenants(tenantService.getDefault());
+        } else {
             user.setActiveTenant(user.getTenants().iterator().next());
         }
 
@@ -373,21 +390,6 @@ public abstract class BaseUserServiceImpl<
                     messageSource.getMessage("validation.email.already.used", null, null)
             );
         }
-
-        return userRepository.save(user);
-    }
-
-    @Override
-    public U createWithEmailVerification(final @NotNull U user, String registrantToken, String callbackUrl)
-            throws NotUniqueException, NotExistException, PasswordValidationException {
-
-        user.setEmailConfirmed(false);
-        user.setRegistrationCode(UUID.randomUUID().toString());
-        U createdUser = create(user);
-
-        Optional<UserRegistrant> userRegistrant = userRegistrantService.findByToken(registrantToken);
-        sendRegistrationEmail(createdUser, userRegistrant, callbackUrl);
-        return createdUser;
     }
 
     @Override
@@ -490,7 +492,7 @@ public abstract class BaseUserServiceImpl<
         forUpdate.setEnabled(user.getEnabled() != null ? user.getEnabled() : forUpdate.getEnabled());
         forUpdate.setUpdated(date);
         if (user.getProfessionalType() != null) {
-            if (user.getProfessionalType().getId() == null){
+            if (user.getProfessionalType().getId() == null) {
                 throw new NotEmptyException("professional type is empty");
             }
             ProfessionalType professionalType = professionalTypeService.getById(user.getProfessionalType().getId());
@@ -634,13 +636,13 @@ public abstract class BaseUserServiceImpl<
 
     @Override
     public Page<U> getPage(final Pageable pageable, final UserSearch userSearch) {
-        
+
         final Pageable pageableWithUpdatedOrder = new PageRequest(pageable.getPageNumber() - 1, pageable.getPageSize(), pageable.getSort());
 
         final Specifications<U> spec = buildSpecification(userSearch);
 
         final Page<U> page = rawUserRepository.findAll(spec, pageableWithUpdatedOrder);
-        
+
         return page;
     }
 
@@ -674,10 +676,17 @@ public abstract class BaseUserServiceImpl<
 
     private void sendRegistrationEmail(final U user) {
 
-        sendRegistrationEmail(user, Optional.empty(), null);
+        sendRegistrationEmail(user, Optional.empty(), null, false);
     }
 
-    private void sendRegistrationEmail(U user, Optional<UserRegistrant> userRegistrant, String callbackUrl) {
+    @Override
+    public void sendRegistrationEmail(U user, String registrantToken, String callbackUrl, boolean isAsync) {
+
+        Optional<UserRegistrant> userRegistrant = userRegistrantService.findByToken(registrantToken);
+        sendRegistrationEmail(user, userRegistrant, callbackUrl, isAsync);
+    }
+
+    private void sendRegistrationEmail(U user, Optional<UserRegistrant> userRegistrant, String callbackUrl, boolean isAsync) {
 
         RegistrationMailMessage mail = new RegistrationMailMessage(
                 user,
@@ -686,7 +695,11 @@ public abstract class BaseUserServiceImpl<
         );
         userRegistrant.ifPresent(registrant ->
                 userRegistrantService.customizeUserRegistrantMailMessage(registrant, callbackUrl, mail));
-        arachneMailSender.send(mail);
+        if (isAsync) {
+            arachneMailSender.asyncSend(mail);
+        } else {
+            arachneMailSender.send(mail);
+        }
     }
 
     @Override

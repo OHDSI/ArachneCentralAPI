@@ -23,6 +23,7 @@
 package com.odysseusinc.arachne.portal.service;
 
 import com.odysseusinc.arachne.portal.model.security.Tenant;
+import java.util.List;
 import java.util.Set;
 
 public interface BaseTenantService<T extends Tenant> {
@@ -30,4 +31,6 @@ public interface BaseTenantService<T extends Tenant> {
     Set<T> getDefault();
 
     T findById(Long tenantId);
+
+    List<T> findByIdsIn(List<Long> tenantIds);
 }

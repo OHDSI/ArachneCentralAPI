@@ -35,7 +35,6 @@ import com.odysseusinc.arachne.portal.exception.WrongFileFormatException;
 import com.odysseusinc.arachne.portal.model.Country;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Invitationable;
-import com.odysseusinc.arachne.portal.model.RawUser;
 import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.StateProvince;
 import com.odysseusinc.arachne.portal.model.UserLink;
@@ -95,6 +94,8 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
     void confirmUserEmail(String activateCode)
             throws UserNotFoundException, IOException, NotExistException,
             SolrServerException, NoSuchFieldException, IllegalAccessException;
+
+    void sendRegistrationEmail(U user, String registrantToken, String callbackUrl, boolean isAsync);
 
     void resendActivationEmail(String email) throws UserNotFoundException;
 
@@ -228,7 +229,7 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
     void setActiveTenant(U user, Long tenantId);
 
     void makeLinksWithStudiesDeleted(Long tenantId, Long userId);
-    
+
     U getRawUser(Long userId);
 
     void makeLinksWithPapersDeleted(Long tenantId, Long userId);
