@@ -35,6 +35,4 @@ public interface AnalysisFileRepository extends JpaRepository<AnalysisFile, Long
     List<AnalysisFile> findAllByAnalysisIdAndDataReferenceId(Long analysisId, Long dataReferenceId);
 
     List<AnalysisFile> findByIdIn(List<Long> ids);
-
-    List<AnalysisFile> findByLabel(String label);
 }
