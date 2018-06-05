@@ -86,6 +86,4 @@ public interface BaseSubmissionRepository<T extends Submission> extends EntityGr
     Integer findSubmissionPositionInAnalysis(@Param("analysisId") Long analysisId, @Param("submissionId") Long submissionid);
 
     List<T> findByIdIn(List<Long> ids);
-
-    List<T> findByIdIn(List<Long> ids, EntityGraph entityGraph);
 }
