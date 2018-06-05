@@ -64,6 +64,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -209,7 +210,7 @@ public abstract class BaseAdminController<
                 .collect(Collectors.toList());
 
         result.setResult(createdUsers);
-        if (result.getErrorCode().equals(VALIDATION_ERROR.getCode())) {
+        if (Objects.equals(result.getErrorCode(), VALIDATION_ERROR.getCode())) {
             result.setValidatorErrors(errorMessages);
         }
 
@@ -236,12 +237,14 @@ public abstract class BaseAdminController<
             final boolean emailConfirmationRequired,
             final CommonUserRegistrationDTO userDto,
             final U createdUser) {
+
         if (emailConfirmationRequired) {
             userService.sendRegistrationEmail(createdUser, userDto.getRegistrantToken(), userDto.getCallbackUrl(), true);
         }
     }
 
     private void updateFields(U user, Set<Tenant> tenants, boolean emailConfirmationRequired, String password) {
+
         user.setPassword(password);
         user.setTenants(tenants);
         user.setOrigin(UserOrigin.NATIVE);

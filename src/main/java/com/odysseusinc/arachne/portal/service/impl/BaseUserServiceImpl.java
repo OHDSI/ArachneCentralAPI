@@ -678,6 +678,7 @@ public abstract class BaseUserServiceImpl<
 
     @Override
     public void sendRegistrationEmail(U user, String registrantToken, String callbackUrl, boolean isAsync) {
+
         Optional<UserRegistrant> userRegistrant = userRegistrantService.findByToken(registrantToken);
         sendRegistrationEmail(user, userRegistrant, callbackUrl, isAsync);
     }
