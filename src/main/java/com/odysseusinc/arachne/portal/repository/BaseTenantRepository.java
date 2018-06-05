@@ -49,4 +49,5 @@ public interface BaseTenantRepository<T extends Tenant> extends EntityGraphJpaRe
 
     Set<T> findAllByIsDefaultTrue();
 
+    List<T> findByIdIn(List<Long> tenantIds);
 }
