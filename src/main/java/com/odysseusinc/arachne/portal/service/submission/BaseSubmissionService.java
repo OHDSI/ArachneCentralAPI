@@ -82,8 +82,6 @@ public interface BaseSubmissionService<T extends Submission, A extends Analysis>
 
     T moveSubmissionToNewStatus(T submission, SubmissionStatus status, IUser user, String comment);
 
-    T changeSubmissionState(Long id, String status);
-
     T getSubmissionByIdUnsecured(Long id) throws NotExistException;
 
     T getSubmissionById(Long id) throws NotExistException;

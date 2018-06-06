@@ -311,17 +311,6 @@ public abstract class BaseSubmissionServiceImpl<
     }
 
     @Override
-    public T changeSubmissionState(Long id, String status) {
-
-        T submission = submissionRepository.findOne(id);
-        SubmissionStatus submissionStatus = valueOf(status);
-        List<SubmissionStatusHistoryElement> statusHistory = submission.getStatusHistory();
-        statusHistory.add(new SubmissionStatusHistoryElement(new Date(), submissionStatus, null, submission, null));
-        submission.setStatusHistory(statusHistory);
-        return saveSubmission(submission);
-    }
-
-    @Override
     public T getSubmissionByIdUnsecured(Long id) throws NotExistException {
 
         T submission = submissionRepository.findOne(id);
