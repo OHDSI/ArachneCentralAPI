@@ -94,13 +94,14 @@ CREATE TRIGGER lead_user_in_workspace
   ON studies_users
   FOR EACH ROW EXECUTE PROCEDURE lead_user_in_workspace();
 
-
+-- Recreates view with original definition to update "studies_data" reference
 
 CREATE OR REPLACE VIEW studies AS
   SELECT *
   FROM studies_data
   WHERE tenant_id = current_setting('app.tenant_id')::BIGINT;
 
+-- Recreates view-with-original-definition dependent on "studies" view
 
 CREATE OR REPLACE VIEW studies_view AS WITH study_x_user AS (
     SELECT

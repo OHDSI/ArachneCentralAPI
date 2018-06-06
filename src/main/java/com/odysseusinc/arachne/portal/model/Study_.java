@@ -30,4 +30,5 @@ public class Study_ {
     public static volatile SingularAttribute<Study, StudyStatus> status;
     public static volatile SingularAttribute<Study, StudyType> type;
     public static volatile SingularAttribute<Study, Boolean> privacy;
+    public static volatile SingularAttribute<Study, String> kind;
 }

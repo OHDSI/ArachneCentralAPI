@@ -172,7 +172,7 @@ public abstract class BaseStudyController<
             Principal principal,
             @RequestBody @Valid CreateStudyDTO studyDTO,
             BindingResult binding)
-            throws NotExistException, NotUniqueException, PermissionDeniedException {
+            throws NotExistException, NotUniqueException {
 
         JsonResult<SD> result;
         IUser user = userService.getByEmail(principal.getName());
@@ -191,7 +191,7 @@ public abstract class BaseStudyController<
         return result;
     }
 
-    @ApiOperation("Get existing ot create new workspace.")
+    @ApiOperation("Get existing or create new workspace.")
     @RequestMapping(value = "/api/v1/workspace", method = GET)
     public JsonResult<WD> getOrCreateWorkspace(Principal principal) throws PermissionDeniedException {
 
@@ -204,7 +204,7 @@ public abstract class BaseStudyController<
             studyType.setId(studyTypeService.findByName(OTHER_STUDY_TYPE).getId());
             workspace.setType(studyType);
             workspace.setKind(StudyKind.WORKSPACE.toString());
-            workspace.setTitle("Workspace" + user.getActiveTenant().getId());
+            workspace.setTitle("WS" + user.getEmail() + user.getActiveTenant().getId());
             studyService.create(user, workspace);
         }
         result = new JsonResult<>(NO_ERROR);
@@ -258,6 +258,7 @@ public abstract class BaseStudyController<
     }
 
     protected abstract SD convertStudyToStudyDTO(T study);
+
     protected abstract WD convertStudyToWorkspaceDTO(T study);
 
     @RequestMapping(value = "/api/v1/study-management/studies/{studyId}/favourite", method = PUT)

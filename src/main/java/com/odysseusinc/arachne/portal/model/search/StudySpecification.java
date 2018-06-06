@@ -68,6 +68,7 @@ public class StudySpecification<T extends AbstractUserStudyListItem> implements 
         final Path<String> studyTypeName = studyType.get(StudyType_.name);
         final Path<Long> studyTypeId = studyType.get(StudyType_.id);
         final Path<Boolean> favourite = root.get(AbstractUserStudyListItem_.favourite);
+        final Path<String> studyKind = study.get(Study_.kind);
 
         final List<Predicate> predicates = new LinkedList<>();
         if (criteria.getUserId() != null) {
@@ -93,8 +94,12 @@ public class StudySpecification<T extends AbstractUserStudyListItem> implements 
             predicates.add(cb.or(
                     isQuerySimiliarTo(cb, title),
                     isQuerySimiliarTo(cb, studyTypeName)
-                )
+                    )
             );
+        }
+        final String kind = criteria.getKind();
+        if (kind != null) {
+            predicates.add(cb.and(cb.equal(studyKind, kind)));
         }
 
         final Boolean privacy = criteria.getPrivacy();
