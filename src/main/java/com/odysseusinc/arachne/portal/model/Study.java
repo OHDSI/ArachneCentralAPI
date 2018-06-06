@@ -52,7 +52,6 @@ import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import org.hibernate.annotations.DiscriminatorFormula;
-import org.hibernate.annotations.NamedQuery;
 
 @Entity
 @Table(name = "studies")
@@ -60,12 +59,13 @@ import org.hibernate.annotations.NamedQuery;
 @SolrFieldAnno(name = BaseSolrService.TITLE, postfix = false, extractor = StudySolrExtractors.TitleExtractor.class)
 @SolrFieldAnno(name = BaseSolrService.PARTICIPANTS, postfix = false, extractor = StudySolrExtractors.ParticipantsExtractor.class, filter = true)
 public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyStatus>, SolrEntity {
-    
+
     public Study() {
 
     }
 
     public Study(Study study) {
+
         this.title = study.title;
         this.description = study.description;
         this.type = study.type;
@@ -313,11 +313,13 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
 
     @Override
     public StudyStatus getState() {
+
         return getStatus();
     }
 
     @Override
     public void setState(StudyStatus state) {
+
         setStatus(state);
     }
 

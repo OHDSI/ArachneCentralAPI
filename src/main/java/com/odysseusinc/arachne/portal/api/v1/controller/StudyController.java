@@ -78,12 +78,6 @@ public class StudyController extends BaseStudyController<Study, IDataSource, Ana
     }
 
     @Override
-    public Study createWorkspace() {
-
-        return new Study();
-    }
-
-    @Override
     protected StudyDTO convert(StudyViewItem myStudy) {
 
         return conversionService.convert(myStudy, StudyDTO.class);

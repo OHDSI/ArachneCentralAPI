@@ -97,7 +97,7 @@ public class StudySpecification<T extends AbstractUserStudyListItem> implements 
                     )
             );
         }
-        final String kind = criteria.getKind();
+        final String kind = criteria.getKind().toString();
         if (kind != null) {
             predicates.add(cb.and(cb.equal(studyKind, kind)));
         }

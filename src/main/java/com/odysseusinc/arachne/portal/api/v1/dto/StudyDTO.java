@@ -23,6 +23,7 @@
 package com.odysseusinc.arachne.portal.api.v1.dto;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.dictionary.StudyStatusDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.dictionary.StudyTypeDTO;
 import java.util.Date;
 
 public class StudyDTO extends WorkspaceDTO{
@@ -44,6 +45,20 @@ public class StudyDTO extends WorkspaceDTO{
     private Boolean favourite;
 
     private Long paperId;
+
+    private Boolean privacy;
+
+    private StudyTypeDTO type;
+
+    public StudyTypeDTO getType() {
+
+        return type;
+    }
+
+    public void setType(StudyTypeDTO type) {
+
+        this.type = type;
+    }
 
     public Date getCreated() {
 
@@ -133,5 +148,15 @@ public class StudyDTO extends WorkspaceDTO{
     public void setPaperId(Long paperId) {
 
         this.paperId = paperId;
+    }
+
+    public Boolean getPrivacy() {
+
+        return privacy;
+    }
+
+    public void setPrivacy(Boolean privacy) {
+
+        this.privacy = privacy;
     }
 }

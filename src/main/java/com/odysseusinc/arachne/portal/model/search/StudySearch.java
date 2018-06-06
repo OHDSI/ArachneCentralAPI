@@ -22,6 +22,8 @@
 
 package com.odysseusinc.arachne.portal.model.search;
 
+import com.odysseusinc.arachne.portal.model.StudyKind;
+
 public class StudySearch {
     private String query;
     private Long userId;
@@ -34,7 +36,7 @@ public class StudySearch {
     private Integer pagesize;
     private Boolean my = Boolean.FALSE;
     private Boolean privacy;
-    private String kind;
+    private StudyKind kind;
 
     public String getSortBy() {
 
@@ -146,12 +148,12 @@ public class StudySearch {
         this.privacy = privacy;
     }
 
-    public String getKind() {
+    public StudyKind getKind() {
 
         return kind;
     }
 
-    public void setKind(String kind) {
+    public void setKind(StudyKind kind) {
 
         this.kind = kind;
     }

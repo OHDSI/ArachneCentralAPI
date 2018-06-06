@@ -22,7 +22,7 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto;
 
-import com.odysseusinc.arachne.portal.api.v1.dto.dictionary.StudyTypeDTO;
+import com.odysseusinc.arachne.portal.model.StudyKind;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -39,11 +39,7 @@ public class WorkspaceDTO {
 
     private List<StudyFileDTO> files = new LinkedList<>();
 
-    private String kind;
-
-    private StudyTypeDTO type;
-
-    private Boolean privacy;
+    private StudyKind kind;
 
     private String description;
 
@@ -119,34 +115,13 @@ public class WorkspaceDTO {
         this.files = files;
     }
 
-    public String getKind() {
+    public StudyKind getKind() {
 
         return kind;
     }
 
-    public void setKind(String kind) {
+    public void setKind(StudyKind kind) {
 
         this.kind = kind;
-    }
-
-    public StudyTypeDTO getType() {
-
-        return type;
-    }
-
-    public void setType(StudyTypeDTO type) {
-
-        this.type = type;
-    }
-
-
-    public Boolean getPrivacy() {
-
-        return privacy;
-    }
-
-    public void setPrivacy(Boolean privacy) {
-
-        this.privacy = privacy;
     }
 }

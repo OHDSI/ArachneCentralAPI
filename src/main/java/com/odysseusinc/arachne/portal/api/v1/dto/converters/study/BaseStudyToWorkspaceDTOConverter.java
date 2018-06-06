@@ -28,7 +28,6 @@ import com.odysseusinc.arachne.portal.api.v1.dto.ParticipantDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.StudyFileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.WorkspaceDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
-import com.odysseusinc.arachne.portal.api.v1.dto.dictionary.StudyTypeDTO;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
@@ -37,6 +36,7 @@ import com.odysseusinc.arachne.portal.model.UserStudyExtended;
 import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
+import com.odysseusinc.arachne.portal.util.ArachneConverterUtils;
 import com.odysseusinc.arachne.portal.util.EntityUtils;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +44,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class BaseStudyToWorkspaceDTOConverter<S extends Study, DTO extends WorkspaceDTO> extends BaseConversionServiceAwareConverter<S, DTO> {
     private final BaseStudyService studyService;
     protected final AnalysisService analysisService;
+
+    @Autowired
+    private ArachneConverterUtils converterUtils;
 
     @Autowired
     public BaseStudyToWorkspaceDTOConverter(BaseStudyService studyService, AnalysisService analysisService) {
@@ -54,10 +57,9 @@ public class BaseStudyToWorkspaceDTOConverter<S extends Study, DTO extends Works
 
     @Override
     public DTO convert(S source) {
+
         final DTO workspaceDTO = createResultObject();
         workspaceDTO.setTitle(source.getTitle());
-        workspaceDTO.setType(conversionService.convert(source.getType(), StudyTypeDTO.class));
-        workspaceDTO.setDescription(source.getDescription());
 
         final Tenant studyTenant = source.getTenant();
         for (final UserStudyExtended studyUserLink : source.getParticipants()) {
@@ -82,21 +84,16 @@ public class BaseStudyToWorkspaceDTOConverter<S extends Study, DTO extends Works
             }
             workspaceDTO.getDataSources().add(dataSourceDTO);
         }
-        List<Analysis> analyses = getAnalyses(source);
-        for (final Analysis analysis : analyses) {
-            workspaceDTO.getAnalyses().add(conversionService.convert(analysis, BaseAnalysisDTO.class));
-        }
+        workspaceDTO.setAnalyses(converterUtils.convertList(getAnalyses(source), BaseAnalysisDTO.class));
         List<StudyFile> files = studyService.getFilesByStudyId(
                 source.getId(),
                 EntityUtils.fromAttributePaths("author")
         );
-        for (final StudyFile studyFile : files) {
-            workspaceDTO.getFiles().add(conversionService.convert(studyFile, StudyFileDTO.class));
-        }
+        workspaceDTO.setFiles(converterUtils.convertList(files, StudyFileDTO.class));
         workspaceDTO.setId(source.getId());
-        workspaceDTO.setPrivacy(source.getPrivacy());
         return workspaceDTO;
     }
+
     protected List<Analysis> getAnalyses(S source) {
 
         return analysisService.getByStudyId(

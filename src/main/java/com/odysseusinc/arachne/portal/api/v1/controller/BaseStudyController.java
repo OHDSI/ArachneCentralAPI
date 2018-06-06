@@ -135,7 +135,6 @@ public abstract class BaseStudyController<
     private SimpMessagingTemplate wsTemplate;
     private SubmissionInsightService submissionInsightService;
     private StudyTypeService studyTypeService;
-    private final static String OTHER_STUDY_TYPE = "Other";
 
     @Autowired
     private ToPdfConverter toPdfConverter;
@@ -164,8 +163,6 @@ public abstract class BaseStudyController<
 
     public abstract T convert(SD studyDto);
 
-    public abstract T createWorkspace();
-
     @ApiOperation("Create study.")
     @RequestMapping(value = "/api/v1/study-management/studies", method = POST)
     public JsonResult<SD> create(
@@ -188,6 +185,11 @@ public abstract class BaseStudyController<
         } else {
             result = new JsonResult<>(PERMISSION_DENIED);
         }
+        try {
+            getOrCreateWorkspace(principal);
+        } catch (PermissionDeniedException e) {
+            e.printStackTrace();
+        }
         return result;
     }
 
@@ -197,16 +199,7 @@ public abstract class BaseStudyController<
 
         JsonResult<WD> result;
         IUser user = getUser(principal);
-        T workspace = studyService.findWorkspaceForUser(user.getId(), user.getActiveTenant().getId());
-        if (workspace == null) {
-            workspace = createWorkspace();
-            StudyType studyType = new StudyType();
-            studyType.setId(studyTypeService.findByName(OTHER_STUDY_TYPE).getId());
-            workspace.setType(studyType);
-            workspace.setKind(StudyKind.WORKSPACE.toString());
-            workspace.setTitle("WS" + user.getEmail() + user.getActiveTenant().getId());
-            studyService.create(user, workspace);
-        }
+        T workspace = studyService.findWorkspaceForUser(user, user.getActiveTenant().getId());
         result = new JsonResult<>(NO_ERROR);
         result.setResult(convertStudyToWorkspaceDTO(workspace));
         return result;
@@ -313,7 +306,6 @@ public abstract class BaseStudyController<
         handleInputSearchParams(studySearch);
         final IUser user = getUser(principal);
         studySearch.setUserId(user.getId());
-        studySearch.setKind(StudyKind.REGULAR.toString());
         Page<SL> converted =
                 studyService.findStudies(studySearch)
                         .map(this::convertListItem);
@@ -330,6 +322,7 @@ public abstract class BaseStudyController<
         if (studyViewSearchParams.getPagesize() == null) {
             studyViewSearchParams.setPagesize(Integer.MAX_VALUE);
         }
+        studyViewSearchParams.setKind(StudyKind.REGULAR);
     }
 
     @ApiOperation("Add participant to the study.")

@@ -56,6 +56,7 @@ import com.odysseusinc.arachne.portal.model.StudyDataSourceComment;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
 import com.odysseusinc.arachne.portal.model.StudyFile;
 import com.odysseusinc.arachne.portal.model.StudyKind;
+import com.odysseusinc.arachne.portal.model.StudyType;
 import com.odysseusinc.arachne.portal.model.SuggestSearchRegion;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserStudy;
@@ -116,7 +117,6 @@ import javax.annotation.PostConstruct;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.NamedQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -163,6 +163,7 @@ public abstract class BaseStudyServiceImpl<
     private static final String DATASOURCE_NOT_EXIST_EXCEPTION = "DataSource with id='%s' does not exist";
     private static final String VIRTUAL_DATASOURCE_OWNERS_IS_EMPTY_EXC = "Virtual Data Source must have at least one Data Owner";
     private static final String PENDING_USER_CANNOT_BE_DATASOURCE_OWNER = "Pending user cannot be a Data Owner";
+    private final static String OTHER_STUDY_TYPE = "Other";
 
     private final JavaMailSender javaMailSender;
     private final UserStudyExtendedRepository userStudyExtendedRepository;
@@ -266,6 +267,17 @@ public abstract class BaseStudyServiceImpl<
         return new HashMap<String, String[]>() {{
             put("privacy", new String[]{"study.privacy"});
         }};
+    }
+
+    @Override
+    public T createWorkspace(IUser owner, T workspace){
+        StudyType studyType = new StudyType();
+        studyType.setId(studyTypeService.findByName(OTHER_STUDY_TYPE).getId());
+        workspace.setType(studyType);
+        workspace.setKind(StudyKind.WORKSPACE.toString());
+        workspace.setTitle("WS" + owner.getEmail() + owner.getActiveTenant().getId());
+        workspace.setPrivacy(true);
+        return create(owner, workspace);
     }
 
     @Override
@@ -766,7 +778,7 @@ public abstract class BaseStudyServiceImpl<
                 .map(link -> link.getUser().getId())
                 .collect(Collectors.toSet());
 
-          boolean containsPending = dataOwners.stream().map(IUser::getId).anyMatch(pendingUserIdsSet::contains);
+        boolean containsPending = dataOwners.stream().map(IUser::getId).anyMatch(pendingUserIdsSet::contains);
 
         if (containsPending) {
             throw new IllegalArgumentException(PENDING_USER_CANNOT_BE_DATASOURCE_OWNER);
@@ -984,6 +996,7 @@ public abstract class BaseStudyServiceImpl<
 
     @Override
     public void indexAllBySolr() throws IOException, NotExistException, SolrServerException, NoSuchFieldException, IllegalAccessException {
+
         solrService.deleteAll(SolrCollection.STUDIES);
         final List<T> studies = studyRepository.findAll();
         for (final T study : studies) {
@@ -1016,7 +1029,12 @@ public abstract class BaseStudyServiceImpl<
     }
 
     @Override
-    public T findWorkspaceForUser(Long userId, Long tenantId) {
-        return studyRepository.findWorkspaceForUser(userId, tenantId);
+    public T findWorkspaceForUser(IUser user, Long tenantId) {
+
+       T workspace = studyRepository.findWorkspaceForUser(user.getId(), tenantId);
+        if (workspace == null) {
+            workspace = createWorkspace(user);
+        }
+        return workspace;
     }
 }
