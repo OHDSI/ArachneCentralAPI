@@ -96,6 +96,7 @@ public class ArachneMailSender {
 
     @Async
     public void asyncSend(ArachneMailMessage mailMessage) {
+
         send(mailMessage);
     }
 

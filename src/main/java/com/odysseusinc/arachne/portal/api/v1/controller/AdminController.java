@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
+import com.odysseusinc.arachne.commons.utils.ConverterUtils;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
@@ -29,6 +30,7 @@ import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyViewItem;
 import com.odysseusinc.arachne.portal.model.Submission;
+import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.PaperSearch;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.service.AdminService;
@@ -36,10 +38,13 @@ import com.odysseusinc.arachne.portal.service.DataSourceService;
 import com.odysseusinc.arachne.portal.service.PaperService;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
 import com.odysseusinc.arachne.portal.service.StudyService;
+import com.odysseusinc.arachne.portal.service.TenantService;
 import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.validation.Validator;
 
 @Api(hidden = true)
 @RestController
@@ -51,8 +56,17 @@ public class AdminController extends BaseAdminController<IUser, Study, IDataSour
                            final AdminService adminService,
                            final StudyService studyService,
                            final AnalysisService analysisService,
-                           final PaperService paperService) {
+                           final PaperService paperService,
+                           final TenantService tenantService,
+                           final ConverterUtils converterUtils,
+                           final Validator validator) {
 
-        super(dataSourceService, professionalTypeService, adminService, studyService, analysisService, paperService);
+        super(dataSourceService, professionalTypeService, adminService, studyService, analysisService, paperService, tenantService, converterUtils, validator);
+    }
+
+    @Override
+    protected Class getUser() {
+
+        return User.class;
     }
 }

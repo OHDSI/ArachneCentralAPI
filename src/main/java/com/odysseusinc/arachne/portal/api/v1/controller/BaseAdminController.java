@@ -22,18 +22,19 @@
 
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
+import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.NO_ERROR;
+
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
+import com.odysseusinc.arachne.commons.utils.ConverterUtils;
 import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.AdminUserDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ArachneConsts;
-import com.odysseusinc.arachne.portal.api.v1.dto.BulkUsersRegistrationDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.BatchOperationDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.BulkUsersRegistrationDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserWithTenantsDTO;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
-import com.odysseusinc.arachne.portal.exception.PasswordValidationException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
-import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.DataNode;
@@ -51,18 +52,29 @@ import com.odysseusinc.arachne.portal.service.BaseAdminService;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.BasePaperService;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
+import com.odysseusinc.arachne.portal.service.BaseTenantService;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+import javax.validation.Valid;
+import javax.validation.Validator;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -70,6 +82,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.SortDefault;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -88,12 +101,17 @@ public abstract class BaseAdminController<
         PS extends PaperSearch,
         SB extends Submission> extends BaseController<DataNode, U> {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(AdminController.class);
+
     private final BaseDataSourceService<DS> dataSourceService;
     protected final ProfessionalTypeService professionalTypeService;
     private final BaseAdminService<S, DS, SS, SU, A, P, PS, SB> adminService;
     private final BaseStudyService<S, DS, SS, SU> studyService;
     private final BaseAnalysisService<A> analysisService;
     private final BasePaperService<P, PS, S, DS, SS, SU> paperService;
+    private final BaseTenantService tenantService;
+    private final ConverterUtils converterUtils;
+    private final Validator validator;
 
     @Autowired
     public BaseAdminController(final BaseDataSourceService<DS> dataSourceService,
@@ -101,7 +119,10 @@ public abstract class BaseAdminController<
                                final BaseAdminService<S, DS, SS, SU, A, P, PS, SB> adminService,
                                final BaseStudyService<S, DS, SS, SU> studyService,
                                final BaseAnalysisService<A> analysisService, 
-                               final BasePaperService<P, PS, S, DS, SS, SU> paperService) {
+                               final BasePaperService<P, PS, S, DS, SS, SU> paperService,
+                               final BaseTenantService tenantService,
+                               final ConverterUtils converterUtils,
+                               final Validator validator) {
 
         this.dataSourceService = dataSourceService;
         this.professionalTypeService = professionalTypeService;
@@ -109,6 +130,9 @@ public abstract class BaseAdminController<
         this.studyService = studyService;
         this.analysisService = analysisService;
         this.paperService = paperService;
+        this.tenantService = tenantService;
+        this.converterUtils = converterUtils;
+        this.validator = validator;
     }
 
     @ApiOperation(value = "Enable user.", hidden = true)
@@ -128,7 +152,7 @@ public abstract class BaseAdminController<
         U user = userService.getByIdInAnyTenant(UserIdUtils.uuidToId(uuid));
         user.setEnabled(isEnabled);
         userService.updateInAnyTenant(user);
-        result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
+        result = new JsonResult<>(NO_ERROR);
         result.setResult(isEnabled);
         return result;
     }
@@ -145,7 +169,7 @@ public abstract class BaseAdminController<
     public Page<UserWithTenantsDTO> getAll(
             @PageableDefault(page = 1)
             @SortDefault.SortDefaults({
-                    @SortDefault(sort = "name", direction = Sort.Direction.ASC)
+                    @SortDefault(sort = "firstname", direction = Sort.Direction.ASC)
             })
                     Pageable pageable,
             UserSearch userSearch)
@@ -157,44 +181,24 @@ public abstract class BaseAdminController<
 
     @ApiOperation("Register new users")
     @RequestMapping(value = "/api/v1/admin/users/group", method = RequestMethod.POST)
-    public void register(@RequestBody BulkUsersRegistrationDTO bulkUsersDto) throws PasswordValidationException, ValidationException {
+    public void register(
+            @RequestBody BulkUsersRegistrationDTO bulkUsersDto
+    ) {
 
-        if (bulkUsersDto.getTenantIds() == null || bulkUsersDto.getTenantIds().isEmpty()) {
-            throw new ValidationException("tenants: must be not empty");
+        bulkUsersDto.getUsers().forEach(u -> u.setPassword(bulkUsersDto.getPassword()));
+
+        Set<ConstraintViolation<BulkUsersRegistrationDTO>> constraintViolations = validator.validate(bulkUsersDto);
+        if (!constraintViolations.isEmpty()) {
+            throw new ConstraintViolationException(constraintViolations);
         }
 
-        boolean emailConfirmationRequired = bulkUsersDto.getEmailConfirmationRequired();
+        Set<Tenant> tenants = new HashSet<>(tenantService.findByIdsIn(bulkUsersDto.getTenantIds()));
+        List<U> users = converterUtils.convertList(bulkUsersDto.getUsers(), getUser());
 
-        List<U> users = convert(bulkUsersDto.getUsers());
-        Set<Tenant> tenants = convertToTenants(bulkUsersDto.getTenantIds());
-        updateFields(users, tenants, emailConfirmationRequired, bulkUsersDto.getPassword());
-
-        List<U> createdUsers = userService.createAll(users);
-
-        if (emailConfirmationRequired) {
-            for (U user : createdUsers) {
-                bulkUsersDto.getUsers().stream()
-                        .filter(userDto -> userDto.getEmail().equals(user.getEmail()))
-                        .forEach(userDto ->
-                                userService.sendRegistrationEmail(user, userDto.getRegistrantToken(), userDto.getCallbackUrl(), true)
-                );
-            }
-        }
+        userService.saveUsers(users, tenants, bulkUsersDto.getEmailConfirmationRequired());
     }
 
-    private void updateFields(List<U> users, Set<Tenant> tenants, boolean emailConfirmationRequired, String password) {
-        for (U user : users) {
-            user.setPassword(password);
-            user.setTenants(tenants);
-            user.setOrigin(UserOrigin.NATIVE);
-            if (!emailConfirmationRequired) {
-                user.setEmailConfirmed(true);
-            } else {
-                user.setEmailConfirmed(false);
-                user.setRegistrationCode(UUID.randomUUID().toString());
-            }
-        }
-    }
+    protected abstract Class getUser();
 
     @ApiOperation(value = "Get user ids.", hidden = true)
     @RequestMapping(value = "/api/v1/admin/users/ids", method = RequestMethod.GET)
@@ -218,7 +222,7 @@ public abstract class BaseAdminController<
         List<AdminUserDTO> dtos = users.stream()
                 .map(user -> conversionService.convert(user, AdminUserDTO.class))
                 .collect(Collectors.toList());
-        result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
+        result = new JsonResult<>(NO_ERROR);
         result.setResult(dtos);
         return result;
     }
@@ -227,7 +231,7 @@ public abstract class BaseAdminController<
     public JsonResult addAdminRole(@PathVariable Long id) {
 
         userService.addUserToAdmins(id);
-        return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
+        return new JsonResult<>(NO_ERROR);
     }
 
     @ApiOperation("Suggests user according to query to add admin role.")
@@ -239,11 +243,11 @@ public abstract class BaseAdminController<
 
         JsonResult<List<AdminUserDTO>> result;
         List<U> users = userService.suggestNotAdmin(query, limit == null ? 10 : limit);
-        List<AdminUserDTO> userDTOs = new LinkedList<>();
-        for (U user : users) {
-            userDTOs.add(conversionService.convert(user, AdminUserDTO.class));
-        }
-        result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
+        List<AdminUserDTO> userDTOs = users.stream()
+                .map(user -> conversionService
+                        .convert(user, AdminUserDTO.class))
+                .collect(Collectors.toList());
+        result = new JsonResult<>(NO_ERROR);
         result.setResult(userDTOs);
         return result;
     }
@@ -252,7 +256,7 @@ public abstract class BaseAdminController<
     public JsonResult removeAdminRole(@PathVariable Long id) {
 
         userService.removeUserFromAdmins(id);
-        return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
+        return new JsonResult<>(NO_ERROR);
     }
 
     @RequestMapping(value = "/api/v1/admin/{domain}/reindex-solr", method = RequestMethod.POST)
@@ -279,13 +283,13 @@ public abstract class BaseAdminController<
                 throw new UnsupportedOperationException("Reindex isn't allowed for domain: " + domain);
         }
 
-        return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
+        return new JsonResult<>(NO_ERROR);
     }
     
     @RequestMapping(value = "/api/v1/admin/users/batch", method = RequestMethod.POST)
     public JsonResult doBatchOperation(@RequestBody BatchOperationDTO dto) {
 
         userService.performBatchOperation(dto.getIds(), dto.getType());
-        return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
+        return new JsonResult<>(NO_ERROR);
     }
 }
