@@ -24,7 +24,7 @@ package com.odysseusinc.arachne.portal.exception;
 
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordInfo;
 
-public class PasswordValidationException extends Exception {
+public class PasswordValidationException extends RuntimeException {
 
     private final ArachnePasswordInfo passwordInfo;
 

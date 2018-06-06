@@ -23,12 +23,18 @@
 package com.odysseusinc.arachne.portal.api.v1.dto;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserRegistrationDTO;
+import org.hibernate.validator.constraints.NotEmpty;
+
+import javax.validation.Valid;
 import java.util.List;
 
 public class BulkUsersRegistrationDTO {
     private boolean emailConfirmationRequired;
+    @NotEmpty
     private List<Long> tenantIds;
+    @NotEmpty
     private String password;
+    @Valid
     private List<CommonUserRegistrationDTO> users;
 
     public boolean getEmailConfirmationRequired() {

@@ -50,6 +50,8 @@ import java.util.function.Consumer;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.ConstraintViolationException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -110,6 +112,17 @@ public class ExceptionHandlingController extends BaseController {
         JsonResult result = new JsonResult<>(VALIDATION_ERROR);
         if (ex.getBindingResult().hasErrors()) {
             result = setValidationErrors(ex.getBindingResult());
+        }
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<JsonResult> exceptionHandler(ConstraintViolationException ex) {
+
+        LOGGER.warn(ex.getMessage());
+        JsonResult result = new JsonResult<>(VALIDATION_ERROR);
+        if (!ex.getConstraintViolations().isEmpty()) {
+            result = setValidationErrors(ex.getConstraintViolations());
         }
         return new ResponseEntity<>(result, HttpStatus.OK);
     }

@@ -568,6 +568,27 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @Transactional(rollbackOn = Exception.class)
+    public void saveUsers(List<U> users, Set<Tenant> tenants, boolean emailConfirmationRequired) {
+
+        users.forEach(user -> {
+            user.setTenants(tenants);
+            user.setOrigin(UserOrigin.NATIVE);
+            if (!emailConfirmationRequired) {
+                user.setEmailConfirmed(true);
+            } else {
+                user.setEmailConfirmed(false);
+                user.setRegistrationCode(UUID.randomUUID().toString());
+            }
+            U createdUser = create(user);
+            if (emailConfirmationRequired) {
+                sendRegistrationEmail(createdUser, Optional.empty(), null, true);
+            }
+        });
+    }
+
+    @Override
     public U getByUuid(String uuid) {
 
         if (uuid != null && !uuid.isEmpty()) {
