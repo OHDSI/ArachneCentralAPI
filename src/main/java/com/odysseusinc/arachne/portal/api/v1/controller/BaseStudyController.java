@@ -53,6 +53,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.UpdateParticipantDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UploadFileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.WorkspaceDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.converters.FileDtoContentHandler;
+import com.odysseusinc.arachne.portal.config.tenancy.TenantContext;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
@@ -199,9 +200,19 @@ public abstract class BaseStudyController<
 
         JsonResult<WD> result;
         IUser user = getUser(principal);
-        T workspace = studyService.findWorkspaceForUser(user, user.getActiveTenant().getId());
+        T workspace = studyService.findWorkspaceForUser(user);
         result = new JsonResult<>(NO_ERROR);
         result.setResult(convertStudyToWorkspaceDTO(workspace));
+        return result;
+    }
+
+    @ApiOperation("Get workspace for specific user.")
+    @RequestMapping(value = "/api/v1/workspace/{userId}", method = GET)
+    public JsonResult<WD> getWorkspaceForUser(@PathVariable Long userId) {
+
+        JsonResult<WD> result = new JsonResult<>(NO_ERROR);
+        WD workspaceDTO = convertStudyToWorkspaceDTO(studyService.findWorkspaceForUser(userId, TenantContext.getCurrentTenant()));
+        result.setResult(workspaceDTO);
         return result;
     }
 

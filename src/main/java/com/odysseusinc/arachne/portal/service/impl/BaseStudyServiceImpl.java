@@ -1029,12 +1029,17 @@ public abstract class BaseStudyServiceImpl<
     }
 
     @Override
-    public T findWorkspaceForUser(IUser user, Long tenantId) {
+    public T findWorkspaceForUser(IUser user) {
 
-       T workspace = studyRepository.findWorkspaceForUser(user.getId(), tenantId);
+       T workspace = studyRepository.findWorkspaceForUser(user.getId(), user.getActiveTenant().getId());
         if (workspace == null) {
             workspace = createWorkspace(user);
         }
         return workspace;
+    }
+
+    @Override
+    public T findWorkspaceForUser(Long userId, Long tenantId) {
+        return studyRepository.findWorkspaceForUser(userId, tenantId);
     }
 }
