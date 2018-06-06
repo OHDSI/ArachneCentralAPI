@@ -154,7 +154,5 @@ public interface BaseStudyService<
     
     T findByIdInAnyTenant(Long studyId);
 
-    T findWorkspaceForUser(IUser user);
-
-    T findWorkspaceForUser(Long userId, Long tenantId);
+    T findWorkspaceForUser(Long userId);
 }

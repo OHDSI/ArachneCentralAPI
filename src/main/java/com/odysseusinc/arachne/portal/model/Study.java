@@ -40,6 +40,8 @@ import java.util.List;
 import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -106,7 +108,8 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
     private Date updated;
 
     @Column
-    private String kind;
+    @Enumerated(EnumType.STRING)
+    private StudyKind kind;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private StudyStatus status;
@@ -372,12 +375,12 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
         return java.util.Objects.hashCode(this.id);
     }
 
-    public String getKind() {
+    public StudyKind getKind() {
 
         return kind;
     }
 
-    public void setKind(String kind) {
+    public void setKind(StudyKind kind) {
 
         this.kind = kind;
     }

@@ -200,7 +200,10 @@ public abstract class BaseStudyController<
 
         JsonResult<WD> result;
         IUser user = getUser(principal);
-        T workspace = studyService.findWorkspaceForUser(user);
+        T workspace = studyService.findWorkspaceForUser(user.getId());
+        if (workspace == null) {
+            workspace = studyService.createWorkspace(user);
+        }
         result = new JsonResult<>(NO_ERROR);
         result.setResult(convertStudyToWorkspaceDTO(workspace));
         return result;
@@ -211,7 +214,7 @@ public abstract class BaseStudyController<
     public JsonResult<WD> getWorkspaceForUser(@PathVariable Long userId) {
 
         JsonResult<WD> result = new JsonResult<>(NO_ERROR);
-        WD workspaceDTO = convertStudyToWorkspaceDTO(studyService.findWorkspaceForUser(userId, TenantContext.getCurrentTenant()));
+        WD workspaceDTO = convertStudyToWorkspaceDTO(studyService.findWorkspaceForUser(userId));
         result.setResult(workspaceDTO);
         return result;
     }

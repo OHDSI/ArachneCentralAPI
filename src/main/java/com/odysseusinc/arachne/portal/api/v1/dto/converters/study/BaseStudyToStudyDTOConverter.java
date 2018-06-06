@@ -39,6 +39,7 @@ import com.odysseusinc.arachne.portal.model.UserStudyExtended;
 import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
+import com.odysseusinc.arachne.portal.util.ArachneConverterUtils;
 import com.odysseusinc.arachne.portal.util.EntityUtils;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +49,9 @@ public abstract class BaseStudyToStudyDTOConverter<S extends Study, DTO extends 
 
     private final BaseStudyService studyService;
     protected final AnalysisService analysisService;
+
+    @Autowired
+    private ArachneConverterUtils converterUtils;
 
     @Autowired
     public BaseStudyToStudyDTOConverter(BaseStudyService studyService, AnalysisService analysisService) {
@@ -100,18 +104,13 @@ public abstract class BaseStudyToStudyDTOConverter<S extends Study, DTO extends 
             studyDTO.getDataSources().add(dataSourceDTO);
         }
 
-        List<Analysis> analyses = getAnalyses(source);
-        for (final Analysis analysis : analyses) {
-            studyDTO.getAnalyses().add(conversionService.convert(analysis, BaseAnalysisDTO.class));
-        }
+        studyDTO.setAnalyses(converterUtils.convertList(getAnalyses(source), BaseAnalysisDTO.class));
 
         List<StudyFile> files = studyService.getFilesByStudyId(
                 source.getId(),
                 EntityUtils.fromAttributePaths("author")
         );
-        for (final StudyFile studyFile : files) {
-            studyDTO.getFiles().add(conversionService.convert(studyFile, StudyFileDTO.class));
-        }
+        studyDTO.setFiles(converterUtils.convertList(files, StudyFileDTO.class));
 
         studyDTO.setCreated(source.getCreated());
         studyDTO.setUpdated(source.getUpdated());

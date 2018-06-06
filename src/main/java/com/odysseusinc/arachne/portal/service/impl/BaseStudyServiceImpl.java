@@ -274,7 +274,7 @@ public abstract class BaseStudyServiceImpl<
         StudyType studyType = new StudyType();
         studyType.setId(studyTypeService.findByName(OTHER_STUDY_TYPE).getId());
         workspace.setType(studyType);
-        workspace.setKind(StudyKind.WORKSPACE.toString());
+        workspace.setKind(StudyKind.WORKSPACE);
         workspace.setTitle("WS" + owner.getEmail() + owner.getActiveTenant().getId());
         workspace.setPrivacy(true);
         return create(owner, workspace);
@@ -296,7 +296,7 @@ public abstract class BaseStudyServiceImpl<
         study.setStatus(studyStatusService.findByName("Initiate"));
         study.setTenant(owner.getActiveTenant());
         if (study.getKind() == null) {
-            study.setKind(StudyKind.REGULAR.toString());
+            study.setKind(StudyKind.REGULAR);
         }
 
         if (study.getPrivacy() == null) {
@@ -1029,17 +1029,8 @@ public abstract class BaseStudyServiceImpl<
     }
 
     @Override
-    public T findWorkspaceForUser(IUser user) {
+    public T findWorkspaceForUser(Long userId) {
 
-       T workspace = studyRepository.findWorkspaceForUser(user.getId(), user.getActiveTenant().getId());
-        if (workspace == null) {
-            workspace = createWorkspace(user);
-        }
-        return workspace;
-    }
-
-    @Override
-    public T findWorkspaceForUser(Long userId, Long tenantId) {
-        return studyRepository.findWorkspaceForUser(userId, tenantId);
+        return studyRepository.findWorkspaceForUser(userId);
     }
 }

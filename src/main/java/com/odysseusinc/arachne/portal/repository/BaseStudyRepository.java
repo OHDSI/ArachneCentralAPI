@@ -79,6 +79,6 @@ public interface BaseStudyRepository<T extends Study> extends JpaRepository<T, L
     List<T> findByIdsInAnyTenant(@Param("studyIds") Collection<Long> ids);
 
     @Query(nativeQuery = true, value = "SELECT * FROM studies_data JOIN studies_users u on studies_data.id = u.study_id\n" +
-            "WHERE studies_data.kind = 'WORKSPACE' AND user_id = :userId AND tenant_id = :tenantId")
-    T findWorkspaceForUser(@Param("userId") Long userId, @Param("tenantId") Long tenantId);
+            "WHERE studies_data.kind = 'WORKSPACE' AND user_id = :userId AND tenant_id = CAST(current_setting('app.tenant_id') AS BIGINT)")
+    T findWorkspaceForUser(@Param("userId") Long userId);
 }
