@@ -41,6 +41,7 @@ import com.odysseusinc.arachne.portal.model.UserLink;
 import com.odysseusinc.arachne.portal.model.UserPublication;
 import com.odysseusinc.arachne.portal.model.UserStudy;
 import com.odysseusinc.arachne.portal.model.search.UserSearch;
+import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
 import java.io.IOException;
@@ -120,6 +121,8 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
             NoSuchFieldException;
 
     U updateInAnyTenant(U user) throws NotExistException;
+
+    void saveUsers(List<U> users, Set<Tenant> tenants, boolean emailConfirmationRequired);
 
     @PreAuthorize("hasPermission(#uuid, 'User', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_USER)")

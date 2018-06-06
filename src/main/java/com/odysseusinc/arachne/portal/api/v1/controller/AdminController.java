@@ -22,7 +22,7 @@
 
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
-import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserRegistrationDTO;
+import com.odysseusinc.arachne.commons.utils.ConverterUtils;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
@@ -44,6 +44,8 @@ import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Validator;
+
 @Api(hidden = true)
 @RestController
 public class AdminController extends BaseAdminController<IUser, Study, IDataSource, StudySearch, StudyViewItem, Analysis, Paper, PaperSearch, Submission> {
@@ -55,14 +57,16 @@ public class AdminController extends BaseAdminController<IUser, Study, IDataSour
                            final StudyService studyService,
                            final AnalysisService analysisService,
                            final PaperService paperService,
-                           final TenantService tenantService) {
+                           final TenantService tenantService,
+                           final ConverterUtils converterUtils,
+                           final Validator validator) {
 
-        super(dataSourceService, professionalTypeService, adminService, studyService, analysisService, paperService, tenantService);
+        super(dataSourceService, professionalTypeService, adminService, studyService, analysisService, paperService, tenantService, converterUtils, validator);
     }
 
     @Override
-    protected User convert(CommonUserRegistrationDTO dto) {
+    protected Class getUser() {
 
-        return conversionService.convert(dto, User.class);
+        return User.class;
     }
 }
