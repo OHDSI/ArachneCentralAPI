@@ -689,7 +689,7 @@ public abstract class BaseUserServiceImpl<
             spec = spec.and(withNameOrEmailLike(pattern));
         }
 
-        Set<Long> tenantIds = userSearch.getTenantIdsSet();
+        Set<Long> tenantIds = userSearch.getTenantIds();
         if (!CollectionUtils.isEmpty(tenantIds)) {
             spec = spec.and(usersIn(tenantIds));
             if (tenantIds.contains(-1L)) {
