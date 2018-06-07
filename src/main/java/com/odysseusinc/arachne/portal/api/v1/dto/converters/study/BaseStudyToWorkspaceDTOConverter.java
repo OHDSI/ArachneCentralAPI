@@ -22,83 +22,28 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto.converters.study;
 
-import com.odysseusinc.arachne.portal.api.v1.dto.BaseAnalysisDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.DataSourceDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ParticipantDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.StudyFileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.WorkspaceDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
-import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.Study;
-import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
-import com.odysseusinc.arachne.portal.model.StudyFile;
-import com.odysseusinc.arachne.portal.model.UserStudyExtended;
-import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
-import com.odysseusinc.arachne.portal.util.ArachneConverterUtils;
-import com.odysseusinc.arachne.portal.util.EntityUtils;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class BaseStudyToWorkspaceDTOConverter<S extends Study, DTO extends WorkspaceDTO> extends BaseConversionServiceAwareConverter<S, DTO> {
-    protected final BaseStudyService studyService;
-    protected final AnalysisService analysisService;
-
-    @Autowired
-    private ArachneConverterUtils converterUtils;
+public abstract class BaseStudyToWorkspaceDTOConverter<S extends Study, DTO extends WorkspaceDTO> extends CommonBaseStudyToWorkspaceDTOConverter<S, DTO> {
 
     @Autowired
     public BaseStudyToWorkspaceDTOConverter(BaseStudyService studyService, AnalysisService analysisService) {
 
-        this.studyService = studyService;
-        this.analysisService = analysisService;
+        super(studyService, analysisService);
     }
+
 
     @Override
-    public DTO convert(S source) {
+    protected void setParticipants(DTO workspaceDTO, List<ParticipantDTO> sourceParticipants) {
 
-        final DTO workspaceDTO = createResultObject();
-        workspaceDTO.setTitle(source.getTitle());
-
-        final Tenant studyTenant = source.getTenant();
-        for (final UserStudyExtended studyUserLink : source.getParticipants()) {
-            final ParticipantDTO participantDTO = conversionService.convert(studyUserLink, ParticipantDTO.class);
-            if (!studyUserLink.getUser().getTenants().contains(studyTenant)) {
-                participantDTO.setCanBeRecreated(Boolean.FALSE);
-            }
-            workspaceDTO.getParticipants().add(participantDTO);
+        if (sourceParticipants.size() > 0) {
+            workspaceDTO.setLeadParticipant(sourceParticipants.get(0));
         }
-
-        final List<StudyDataSourceLink> foundLinks = studyService.getLinksByStudyId(
-                source.getId(),
-                EntityUtils.fromAttributePaths(
-                        "dataSource.dataNode.dataNodeUsers.user"
-                )
-        );
-        for (final StudyDataSourceLink studyDataSourceLink : foundLinks) {
-            final DataSourceDTO dataSourceDTO = conversionService.convert(studyDataSourceLink,
-                    DataSourceDTO.class);
-            if (!studyDataSourceLink.getDataSource().getTenants().contains(studyTenant)) {
-                dataSourceDTO.setCanBeRecreated(Boolean.FALSE);
-            }
-            workspaceDTO.getDataSources().add(dataSourceDTO);
-        }
-        workspaceDTO.setAnalyses(converterUtils.convertList(getAnalyses(source), BaseAnalysisDTO.class));
-        List<StudyFile> files = studyService.getFilesByStudyId(
-                source.getId(),
-                EntityUtils.fromAttributePaths("author")
-        );
-        workspaceDTO.setFiles(converterUtils.convertList(files, StudyFileDTO.class));
-        workspaceDTO.setId(source.getId());
-        return workspaceDTO;
-    }
-
-    protected List<Analysis> getAnalyses(S source) {
-
-        return analysisService.getByStudyId(
-                source.getId(),
-                EntityUtils.fromAttributePaths("author")
-        );
     }
 }

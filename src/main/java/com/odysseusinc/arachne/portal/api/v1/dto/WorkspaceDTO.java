@@ -23,7 +23,6 @@
 package com.odysseusinc.arachne.portal.api.v1.dto;
 
 import com.odysseusinc.arachne.portal.model.StudyKind;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -43,7 +42,7 @@ public class WorkspaceDTO {
 
     private String description;
 
-    private List<ParticipantDTO> participants = new ArrayList<>();
+    private ParticipantDTO leadParticipant;
 
     public Long getId() {
 
@@ -53,16 +52,6 @@ public class WorkspaceDTO {
     public void setId(Long id) {
 
         this.id = id;
-    }
-
-    public List<ParticipantDTO> getParticipants() {
-
-        return participants;
-    }
-
-    public void setParticipants(List<ParticipantDTO> participants) {
-
-        this.participants = participants;
     }
 
     public String getDescription() {
@@ -123,5 +112,15 @@ public class WorkspaceDTO {
     public void setKind(StudyKind kind) {
 
         this.kind = kind;
+    }
+
+    public ParticipantDTO getLeadParticipant() {
+
+        return leadParticipant;
+    }
+
+    public void setLeadParticipant(ParticipantDTO leadParticipant) {
+
+        this.leadParticipant = leadParticipant;
     }
 }

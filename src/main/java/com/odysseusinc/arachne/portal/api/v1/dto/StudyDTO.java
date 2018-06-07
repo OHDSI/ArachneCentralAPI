@@ -24,7 +24,9 @@ package com.odysseusinc.arachne.portal.api.v1.dto;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.dictionary.StudyStatusDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.dictionary.StudyTypeDTO;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class StudyDTO extends WorkspaceDTO{
 
@@ -49,6 +51,18 @@ public class StudyDTO extends WorkspaceDTO{
     private Boolean privacy;
 
     private StudyTypeDTO type;
+
+    private List<ParticipantDTO> participants = new ArrayList<>();
+
+    public List<ParticipantDTO> getParticipants() {
+
+        return participants;
+    }
+
+    public void setParticipants(List<ParticipantDTO> participants) {
+
+        this.participants = participants;
+    }
 
     public StudyTypeDTO getType() {
 
