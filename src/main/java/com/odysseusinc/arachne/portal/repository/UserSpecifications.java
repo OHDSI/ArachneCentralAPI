@@ -27,6 +27,7 @@ import com.odysseusinc.arachne.portal.model.security.Tenant;
 import java.util.Set;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.Specifications;
 
@@ -51,17 +52,20 @@ public class UserSpecifications {
         return (root, query, cb) -> cb.like(root.get(field), namePattern);
     }
 
-    public static <U extends IUser> Specification<U> noTenants() {
-        return ((root, query, cb) -> cb.isNull(root.get("activeTenant")));
-    }
-
     public static <U extends IUser> Specification<U> usersIn(final Set<Long> tenantIds) {
 
         return ((root, query, cb) -> {
             final Path<Tenant> tenantIdPath = root.join("tenants", JoinType.LEFT).get("id");
             query.distinct(true);
 
-            return tenantIdPath.in(tenantIds);
+            Predicate predicate;
+            if (tenantIds.contains(-1L)) {
+                predicate = cb.or(tenantIdPath.in(tenantIds), cb.isNull(root.get("activeTenant")));
+            } else {
+                predicate = tenantIdPath.in(tenantIds);
+            }
+
+            return predicate;
         });
     }
 
