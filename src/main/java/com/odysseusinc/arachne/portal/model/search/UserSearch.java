@@ -22,11 +22,13 @@
 
 package com.odysseusinc.arachne.portal.model.search;
 
+import java.util.Set;
+
 public class UserSearch {
     private Boolean enabled;
     private Boolean emailConfirmed;
     private String query;
-    private Long[] tenantIds;
+    private Set<Long> tenantIds;
 
     public Boolean getEnabled() {
 
@@ -58,12 +60,12 @@ public class UserSearch {
         this.query = query;
     }
 
-    public Long[] getTenantIds() {
+    public Set<Long> getTenantIds() {
 
         return tenantIds;
     }
 
-    public void setTenantIds(Long[] tenantIds) {
+    public void setTenantIds(Set<Long> tenantIds) {
 
         this.tenantIds = tenantIds;
     }
