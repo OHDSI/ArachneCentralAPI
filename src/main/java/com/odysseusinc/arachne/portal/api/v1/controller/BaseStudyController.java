@@ -186,11 +186,6 @@ public abstract class BaseStudyController<
         } else {
             result = new JsonResult<>(PERMISSION_DENIED);
         }
-        try {
-            getOrCreateWorkspace(principal);
-        } catch (PermissionDeniedException e) {
-            e.printStackTrace();
-        }
         return result;
     }
 
@@ -210,11 +205,11 @@ public abstract class BaseStudyController<
     }
 
     @ApiOperation("Get workspace for specific user.")
-    @RequestMapping(value = "/api/v1/workspace/{userId}", method = GET)
-    public JsonResult<WD> getWorkspaceForUser(@PathVariable Long userId) {
+    @RequestMapping(value = "/api/v1/workspace/{userUuid}", method = GET)
+    public JsonResult<WD> getWorkspaceForUser(@PathVariable("userUuid") String userUuid) {
 
         JsonResult<WD> result = new JsonResult<>(NO_ERROR);
-        WD workspaceDTO = convertStudyToWorkspaceDTO(studyService.findWorkspaceForUser(userId));
+        WD workspaceDTO = convertStudyToWorkspaceDTO(studyService.findWorkspaceForUser(UserIdUtils.uuidToId(userUuid)));
         result.setResult(workspaceDTO);
         return result;
     }

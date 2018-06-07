@@ -22,114 +22,38 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto.converters.study;
 
-import com.odysseusinc.arachne.portal.api.v1.dto.BaseAnalysisDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.DataSourceDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.ParticipantDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.PermissionsDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.StudyDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.StudyFileDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
 import com.odysseusinc.arachne.portal.api.v1.dto.dictionary.StudyStatusDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.dictionary.StudyTypeDTO;
-import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.Study;
-import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
-import com.odysseusinc.arachne.portal.model.StudyFile;
-import com.odysseusinc.arachne.portal.model.UserStudyExtended;
-import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
-import com.odysseusinc.arachne.portal.util.ArachneConverterUtils;
-import com.odysseusinc.arachne.portal.util.EntityUtils;
-import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public abstract class BaseStudyToStudyDTOConverter<S extends Study, DTO extends StudyDTO> extends BaseConversionServiceAwareConverter<S, DTO> {
-
-
-    private final BaseStudyService studyService;
-    protected final AnalysisService analysisService;
-
-    @Autowired
-    private ArachneConverterUtils converterUtils;
+public abstract class BaseStudyToStudyDTOConverter<S extends Study, DTO extends StudyDTO> extends BaseStudyToWorkspaceDTOConverter<S, DTO> {
 
     @Autowired
     public BaseStudyToStudyDTOConverter(BaseStudyService studyService, AnalysisService analysisService) {
 
-        this.studyService = studyService;
-        this.analysisService = analysisService;
+        super(studyService, analysisService);
     }
 
     @Override
     public DTO convert(final S source) {
 
-        final DTO studyDTO = createResultObject();
+        final DTO studyDTO = super.convert(source);
         studyDTO.setStatus(conversionService.convert(source.getStatus(), StudyStatusDTO.class));
-        studyDTO.setTitle(source.getTitle());
         studyDTO.setType(conversionService.convert(source.getType(), StudyTypeDTO.class));
         studyDTO.setEndDate(source.getEndDate());
         studyDTO.setStartDate(source.getStartDate());
         studyDTO.setDescription(source.getDescription());
-        
-        final Tenant studyTenant = source.getTenant();
-
-        for (final UserStudyExtended studyUserLink : source.getParticipants()) {
-            
-            final ParticipantDTO participantDTO = conversionService.convert(studyUserLink, ParticipantDTO.class);
-            
-            if (!studyUserLink.getUser().getTenants().contains(studyTenant)) {
-                participantDTO.setCanBeRecreated(Boolean.FALSE);
-            }
-            
-            studyDTO.getParticipants().add(participantDTO);
-        }
-        
-        final List<StudyDataSourceLink> foundLinks = studyService.getLinksByStudyId(
-                source.getId(),
-                EntityUtils.fromAttributePaths(
-                    "dataSource.dataNode.dataNodeUsers.user"
-                )
-        );
-
-        
-        for (final StudyDataSourceLink studyDataSourceLink : foundLinks) {
-            
-            final DataSourceDTO dataSourceDTO = conversionService.convert(studyDataSourceLink,
-                    DataSourceDTO.class);
-            
-            if (!studyDataSourceLink.getDataSource().getTenants().contains(studyTenant)) {
-                dataSourceDTO.setCanBeRecreated(Boolean.FALSE);
-            }
-
-            studyDTO.getDataSources().add(dataSourceDTO);
-        }
-
-        studyDTO.setAnalyses(converterUtils.convertList(getAnalyses(source), BaseAnalysisDTO.class));
-
-        List<StudyFile> files = studyService.getFilesByStudyId(
-                source.getId(),
-                EntityUtils.fromAttributePaths("author")
-        );
-        studyDTO.setFiles(converterUtils.convertList(files, StudyFileDTO.class));
-
         studyDTO.setCreated(source.getCreated());
         studyDTO.setUpdated(source.getUpdated());
-        studyDTO.setId(source.getId());
         studyDTO.setPermissions(conversionService.convert(source, PermissionsDTO.class));
-
         studyDTO.setPaperId(source.getPaper() == null ? null : source.getPaper().getId());
         studyDTO.setPrivacy(source.getPrivacy());
-
         proceedAdditionalFields(studyDTO, source);
-
         return studyDTO;
-    }
-
-    protected List<Analysis> getAnalyses(S source) {
-
-        return analysisService.getByStudyId(
-                source.getId(),
-                EntityUtils.fromAttributePaths("author")
-        );
     }
 }

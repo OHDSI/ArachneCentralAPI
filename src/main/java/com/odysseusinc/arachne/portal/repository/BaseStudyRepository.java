@@ -78,7 +78,6 @@ public interface BaseStudyRepository<T extends Study> extends JpaRepository<T, L
     @Query(nativeQuery = true, value = "SELECT * FROM studies_data WHERE id IN :studyIds")
     List<T> findByIdsInAnyTenant(@Param("studyIds") Collection<Long> ids);
 
-    @Query(nativeQuery = true, value = "SELECT * FROM studies_data JOIN studies_users u on studies_data.id = u.study_id\n" +
-            "WHERE studies_data.kind = 'WORKSPACE' AND user_id = :userId AND tenant_id = CAST(current_setting('app.tenant_id') AS BIGINT)")
+    @Query("SELECT s, u FROM Study s JOIN UserStudy u ON s.id = u.study.id WHERE s.kind = com.odysseusinc.arachne.portal.model.StudyKind.WORKSPACE AND u.user.id = :userId")
     T findWorkspaceForUser(@Param("userId") Long userId);
 }

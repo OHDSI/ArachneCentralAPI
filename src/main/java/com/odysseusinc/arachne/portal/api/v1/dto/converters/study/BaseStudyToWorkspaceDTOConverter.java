@@ -42,7 +42,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class BaseStudyToWorkspaceDTOConverter<S extends Study, DTO extends WorkspaceDTO> extends BaseConversionServiceAwareConverter<S, DTO> {
-    private final BaseStudyService studyService;
+    protected final BaseStudyService studyService;
     protected final AnalysisService analysisService;
 
     @Autowired

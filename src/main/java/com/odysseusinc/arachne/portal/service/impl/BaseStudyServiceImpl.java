@@ -270,12 +270,13 @@ public abstract class BaseStudyServiceImpl<
     }
 
     @Override
-    public T createWorkspace(IUser owner, T workspace){
+    public T createWorkspace(IUser owner, T workspace) {
+
         StudyType studyType = new StudyType();
         studyType.setId(studyTypeService.findByName(OTHER_STUDY_TYPE).getId());
         workspace.setType(studyType);
         workspace.setKind(StudyKind.WORKSPACE);
-        workspace.setTitle("WS" + owner.getEmail() + owner.getActiveTenant().getId());
+        workspace.setTitle(owner.getFullName() + " workspace");
         workspace.setPrivacy(true);
         return create(owner, workspace);
     }

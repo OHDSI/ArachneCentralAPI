@@ -1,11 +1,12 @@
 ALTER TABLE studies_data
   ADD COLUMN kind VARCHAR(100) NOT NULL DEFAULT 'REGULAR';
 
+DROP INDEX IF EXISTS title_uk;
+
 DROP INDEX IF EXISTS studies_data_unique_title_if_kind_is_regular;
 
 CREATE UNIQUE INDEX studies_data_unique_title_if_kind_is_regular
-  ON studies_data (title)
-  WHERE (kind = 'REGULAR');
+  ON studies_data (title, tenant_id);
 
 CREATE OR REPLACE FUNCTION single_workspace_per_user_in_tenant()
   RETURNS TRIGGER
