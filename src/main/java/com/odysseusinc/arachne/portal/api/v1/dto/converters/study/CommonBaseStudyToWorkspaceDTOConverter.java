@@ -38,41 +38,34 @@ import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
 import com.odysseusinc.arachne.portal.util.ArachneConverterUtils;
 import com.odysseusinc.arachne.portal.util.EntityUtils;
-import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class CommonBaseStudyToWorkspaceDTOConverter<S extends Study, DTO extends WorkspaceDTO> extends BaseConversionServiceAwareConverter<S, DTO> {
     protected final BaseStudyService studyService;
     protected final AnalysisService analysisService;
+    protected final ArachneConverterUtils converterUtils;
 
     @Autowired
-    private ArachneConverterUtils converterUtils;
-
-    @Autowired
-    public CommonBaseStudyToWorkspaceDTOConverter(BaseStudyService studyService, AnalysisService analysisService) {
+    public CommonBaseStudyToWorkspaceDTOConverter(BaseStudyService studyService, AnalysisService analysisService, ArachneConverterUtils converterUtils) {
 
         this.studyService = studyService;
         this.analysisService = analysisService;
+        this.converterUtils = converterUtils;
     }
 
     @Override
     public DTO convert(S source) {
-
         final DTO workspaceDTO = createResultObject();
         workspaceDTO.setTitle(source.getTitle());
-
         final Tenant studyTenant = source.getTenant();
-        List<ParticipantDTO> sourceParticipants = new ArrayList<>();
         for (final UserStudyExtended studyUserLink : source.getParticipants()) {
             final ParticipantDTO participantDTO = conversionService.convert(studyUserLink, ParticipantDTO.class);
             if (!studyUserLink.getUser().getTenants().contains(studyTenant)) {
                 participantDTO.setCanBeRecreated(Boolean.FALSE);
             }
-            sourceParticipants.add(participantDTO);
+            workspaceDTO.getParticipants().add(participantDTO);
         }
-        setParticipants(workspaceDTO, sourceParticipants);
-
         final List<StudyDataSourceLink> foundLinks = studyService.getLinksByStudyId(
                 source.getId(),
                 EntityUtils.fromAttributePaths(
@@ -104,6 +97,4 @@ public abstract class CommonBaseStudyToWorkspaceDTOConverter<S extends Study, DT
                 EntityUtils.fromAttributePaths("author")
         );
     }
-
-    protected abstract void setParticipants(DTO target, List<ParticipantDTO> sourceParticipants);
 }

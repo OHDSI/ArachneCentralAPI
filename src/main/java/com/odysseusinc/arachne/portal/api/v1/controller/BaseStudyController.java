@@ -195,10 +195,7 @@ public abstract class BaseStudyController<
 
         JsonResult<WD> result;
         IUser user = getUser(principal);
-        T workspace = studyService.findWorkspaceForUser(user.getId());
-        if (workspace == null) {
-            workspace = studyService.createWorkspace(user);
-        }
+        T workspace = studyService.findOrCreateWorkspaceForUser(user.getId());
         result = new JsonResult<>(NO_ERROR);
         result.setResult(convertStudyToWorkspaceDTO(workspace));
         return result;
@@ -206,7 +203,7 @@ public abstract class BaseStudyController<
 
     @ApiOperation("Get workspace for specific user.")
     @RequestMapping(value = "/api/v1/workspace/{userUuid}", method = GET)
-    public JsonResult<WD> getWorkspaceForUser(@PathVariable("userUuid") String userUuid) {
+    public JsonResult<WD> getWorkspaceForUser(@PathVariable("userUuid") String userUuid) throws NotExistException {
 
         JsonResult<WD> result = new JsonResult<>(NO_ERROR);
         WD workspaceDTO = convertStudyToWorkspaceDTO(studyService.findWorkspaceForUser(UserIdUtils.uuidToId(userUuid)));

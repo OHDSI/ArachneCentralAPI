@@ -109,7 +109,7 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
 
     @Column
     @Enumerated(EnumType.STRING)
-    private StudyKind kind;
+    private StudyKind kind = StudyKind.REGULAR;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private StudyStatus status;

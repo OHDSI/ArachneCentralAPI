@@ -270,11 +270,10 @@ public abstract class BaseStudyServiceImpl<
     }
 
     @Override
-    public T createWorkspace(IUser owner, T workspace) {
+    public T createWorkspace(Long ownerId, T workspace) {
 
-        StudyType studyType = new StudyType();
-        studyType.setId(studyTypeService.findByName(OTHER_STUDY_TYPE).getId());
-        workspace.setType(studyType);
+        IUser owner = userService.getById(ownerId);
+        workspace.setType(studyTypeService.findByName(OTHER_STUDY_TYPE));
         workspace.setKind(StudyKind.WORKSPACE);
         workspace.setTitle(owner.getFullName() + " workspace");
         workspace.setPrivacy(true);
@@ -296,13 +295,6 @@ public abstract class BaseStudyServiceImpl<
         study.setType(studyTypeService.getById(study.getType().getId()));
         study.setStatus(studyStatusService.findByName("Initiate"));
         study.setTenant(owner.getActiveTenant());
-        if (study.getKind() == null) {
-            study.setKind(StudyKind.REGULAR);
-        }
-
-        if (study.getPrivacy() == null) {
-            study.setPrivacy(true);
-        }
         T savedStudy = studyRepository.save(study);
         solrService.indexBySolr(study);
 
@@ -1029,9 +1021,26 @@ public abstract class BaseStudyServiceImpl<
         return studyRepository.findByIdInAnyTenant(studyId);
     }
 
+    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
     @Override
-    public T findWorkspaceForUser(Long userId) {
+    public T findWorkspaceForUser(Long userId) throws NotExistException {
 
-        return studyRepository.findWorkspaceForUser(userId);
+        T workspace = studyRepository.findWorkspaceForUser(userId);
+        if (workspace == null) {
+            throw new NotExistException(getType());
+        }
+        return workspace;
+    }
+
+    @Override
+    public T findOrCreateWorkspaceForUser(Long userId) {
+
+        T workspace;
+        try {
+            workspace = findWorkspaceForUser(userId);
+        } catch (NotExistException e) {
+            workspace = createWorkspace(userId);
+        }
+        return workspace;
     }
 }

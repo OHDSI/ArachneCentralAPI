@@ -22,7 +22,6 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto.converters.study;
 
-import com.odysseusinc.arachne.portal.api.v1.dto.ParticipantDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.PermissionsDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.StudyDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.dictionary.StudyStatusDTO;
@@ -30,15 +29,15 @@ import com.odysseusinc.arachne.portal.api.v1.dto.dictionary.StudyTypeDTO;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
-import java.util.List;
+import com.odysseusinc.arachne.portal.util.ArachneConverterUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class BaseStudyToStudyDTOConverter<S extends Study, DTO extends StudyDTO> extends CommonBaseStudyToWorkspaceDTOConverter<S, DTO> {
 
     @Autowired
-    public BaseStudyToStudyDTOConverter(BaseStudyService studyService, AnalysisService analysisService) {
+    public BaseStudyToStudyDTOConverter(BaseStudyService studyService, AnalysisService analysisService, ArachneConverterUtils converterUtils) {
 
-        super(studyService, analysisService);
+        super(studyService, analysisService, converterUtils);
     }
 
     @Override
@@ -57,11 +56,5 @@ public abstract class BaseStudyToStudyDTOConverter<S extends Study, DTO extends 
         studyDTO.setPrivacy(source.getPrivacy());
         proceedAdditionalFields(studyDTO, source);
         return studyDTO;
-    }
-
-    @Override
-    protected void setParticipants(DTO studyDTO, List<ParticipantDTO> sourceParticipants) {
-
-        studyDTO.setParticipants(sourceParticipants);
     }
 }

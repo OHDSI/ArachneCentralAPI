@@ -149,8 +149,9 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
     }
 
     @Override
-    public Study createWorkspace(IUser owner){
-        return createWorkspace(owner, new Study());
+    public Study createWorkspace(Long ownerId) {
+
+        return createWorkspace(ownerId, new Study());
     }
 
     @Override

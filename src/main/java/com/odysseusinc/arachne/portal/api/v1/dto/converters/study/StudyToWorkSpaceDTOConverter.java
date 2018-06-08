@@ -26,14 +26,15 @@ import com.odysseusinc.arachne.portal.api.v1.dto.WorkspaceDTO;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
+import com.odysseusinc.arachne.portal.util.ArachneConverterUtils;
 import org.springframework.stereotype.Component;
 
 @Component
 public class StudyToWorkSpaceDTOConverter extends BaseStudyToWorkspaceDTOConverter<Study, WorkspaceDTO> {
 
-    public StudyToWorkSpaceDTOConverter(BaseStudyService studyService, AnalysisService analysisService) {
+    public StudyToWorkSpaceDTOConverter(BaseStudyService studyService, AnalysisService analysisService, ArachneConverterUtils converterUtils) {
 
-        super(studyService, analysisService);
+        super(studyService, analysisService, converterUtils);
     }
 
     @Override

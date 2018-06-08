@@ -24,26 +24,33 @@ package com.odysseusinc.arachne.portal.api.v1.dto.converters.study;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.ParticipantDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.WorkspaceDTO;
+import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
-import java.util.List;
+import com.odysseusinc.arachne.portal.util.ArachneConverterUtils;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class BaseStudyToWorkspaceDTOConverter<S extends Study, DTO extends WorkspaceDTO> extends CommonBaseStudyToWorkspaceDTOConverter<S, DTO> {
 
     @Autowired
-    public BaseStudyToWorkspaceDTOConverter(BaseStudyService studyService, AnalysisService analysisService) {
+    public BaseStudyToWorkspaceDTOConverter(BaseStudyService studyService, AnalysisService analysisService, ArachneConverterUtils converterUtils) {
 
-        super(studyService, analysisService);
+        super(studyService, analysisService, converterUtils);
     }
 
-
     @Override
-    protected void setParticipants(DTO workspaceDTO, List<ParticipantDTO> sourceParticipants) {
+    public DTO convert(S source) {
 
-        if (sourceParticipants.size() > 0) {
-            workspaceDTO.setLeadParticipant(sourceParticipants.get(0));
+        final DTO workspaceDTO = super.convert(source);
+        if (!workspaceDTO.getParticipants().isEmpty()) {
+            Optional<ParticipantDTO> leadOptional = workspaceDTO.getParticipants()
+                    .stream()
+                    .filter(dto -> dto.getRole().getId().equals(ParticipantRole.LEAD_INVESTIGATOR.name()))
+                    .findFirst();
+            leadOptional.ifPresent(lead -> workspaceDTO.setLeadParticipant(leadOptional.get()));
         }
+        return workspaceDTO;
     }
 }
