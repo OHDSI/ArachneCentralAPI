@@ -15,31 +15,31 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: September 08, 2017
+ * Authors: Anastasiia Klochkova
+ * Created: June 5, 2018
  *
  */
 
 package com.odysseusinc.arachne.portal.api.v1.dto.converters.study;
 
-import com.odysseusinc.arachne.portal.api.v1.dto.StudyDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.WorkspaceDTO;
 import com.odysseusinc.arachne.portal.model.Study;
-import com.odysseusinc.arachne.portal.service.StudyService;
+import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
 import com.odysseusinc.arachne.portal.util.ArachneConverterUtils;
 import org.springframework.stereotype.Component;
 
 @Component
-public class StudyToStudyDTOConverter extends BaseStudyToStudyDTOConverter<Study, StudyDTO> {
+public class StudyToWorkSpaceDTOConverter extends BaseStudyToWorkspaceDTOConverter<Study, WorkspaceDTO> {
 
-    public StudyToStudyDTOConverter(StudyService studyService, AnalysisService analysisService, ArachneConverterUtils converterUtils) {
+    public StudyToWorkSpaceDTOConverter(BaseStudyService studyService, AnalysisService analysisService, ArachneConverterUtils converterUtils) {
 
         super(studyService, analysisService, converterUtils);
     }
 
     @Override
-    protected StudyDTO createResultObject() {
+    protected WorkspaceDTO createResultObject() {
 
-        return new StudyDTO();
+        return new WorkspaceDTO();
     }
 }

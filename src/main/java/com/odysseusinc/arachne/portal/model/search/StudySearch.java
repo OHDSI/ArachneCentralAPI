@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.model.search;
 
+import com.odysseusinc.arachne.portal.model.StudyKind;
 
 public class StudySearch {
     private String query;
@@ -35,6 +36,7 @@ public class StudySearch {
     private Integer pagesize;
     private Boolean my = Boolean.FALSE;
     private Boolean privacy;
+    private StudyKind kind;
 
     public String getSortBy() {
 
@@ -144,5 +146,15 @@ public class StudySearch {
     public void setPrivacy(Boolean privacy) {
 
         this.privacy = privacy;
+    }
+
+    public StudyKind getKind() {
+
+        return kind;
+    }
+
+    public void setKind(StudyKind kind) {
+
+        this.kind = kind;
     }
 }

@@ -58,6 +58,10 @@ public interface BaseStudyService<
 
     T create(IUser owner, T study) throws NotUniqueException, NotExistException;
 
+    T createWorkspace(Long ownerId, T workspace);
+
+    T createWorkspace(Long ownerId);
+
     void delete(Long id) throws NotExistException;
 
     T getById(Long id) throws NotExistException;
@@ -149,4 +153,8 @@ public interface BaseStudyService<
     List<T> findByIdsInAnyTenant(Set<Long> studyIds);
     
     T findByIdInAnyTenant(Long studyId);
+
+    T findWorkspaceForUser(Long userId) throws NotExistException;
+
+    T findOrCreateWorkspaceForUser(Long userId);
 }

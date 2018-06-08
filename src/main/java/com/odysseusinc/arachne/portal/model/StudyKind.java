@@ -1,4 +1,5 @@
 /*
+ *
  * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +15,13 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Anton Gackovka
- * Created: October 24, 2017
+ * Authors: Anastasiia Klochkova
+ * Created: June 4, 2018
+ *
  */
 
 package com.odysseusinc.arachne.portal.model;
 
-import javax.persistence.metamodel.SingularAttribute;
-import javax.persistence.metamodel.StaticMetamodel;
-
-@StaticMetamodel(Study.class)
-public class Study_ {
-    public static volatile SingularAttribute<Study, Long> id;
-    public static volatile SingularAttribute<Study, String> title;
-    public static volatile SingularAttribute<Study, StudyStatus> status;
-    public static volatile SingularAttribute<Study, StudyType> type;
-    public static volatile SingularAttribute<Study, Boolean> privacy;
-    public static volatile SingularAttribute<Study, StudyKind> kind;
+public enum StudyKind {
+    REGULAR, WORKSPACE
 }

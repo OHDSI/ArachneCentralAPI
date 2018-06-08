@@ -149,6 +149,12 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
     }
 
     @Override
+    public Study createWorkspace(Long ownerId) {
+
+        return createWorkspace(ownerId, new Study());
+    }
+
+    @Override
     @PreAuthorize("hasPermission(#studyId, 'Study', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_STUDY)")
     public void delete(Long studyId) throws NotExistException {
