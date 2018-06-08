@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class StudyDTO extends WorkspaceDTO {
+public class StudyDTO extends CommonStudyDTO {
 
     private String role;
 
