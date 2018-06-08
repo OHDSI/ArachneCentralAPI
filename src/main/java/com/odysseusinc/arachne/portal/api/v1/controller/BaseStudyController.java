@@ -193,12 +193,9 @@ public abstract class BaseStudyController<
     @RequestMapping(value = "/api/v1/workspace", method = GET)
     public JsonResult<WD> getOrCreateWorkspace(Principal principal) throws PermissionDeniedException {
 
-        JsonResult<WD> result;
         IUser user = getUser(principal);
         T workspace = studyService.findOrCreateWorkspaceForUser(user.getId());
-        result = new JsonResult<>(NO_ERROR);
-        result.setResult(convertStudyToWorkspaceDTO(workspace));
-        return result;
+        return new JsonResult<>(NO_ERROR, convertStudyToWorkspaceDTO(workspace));
     }
 
     @ApiOperation("Get workspace for specific user.")

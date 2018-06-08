@@ -22,17 +22,20 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto.converters.study;
 
+import com.odysseusinc.arachne.portal.api.v1.dto.ParticipantDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.PermissionsDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.StudyDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.dictionary.StudyStatusDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.dictionary.StudyTypeDTO;
 import com.odysseusinc.arachne.portal.model.Study;
+import com.odysseusinc.arachne.portal.model.UserStudyExtended;
+import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
 import com.odysseusinc.arachne.portal.util.ArachneConverterUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public abstract class BaseStudyToStudyDTOConverter<S extends Study, DTO extends StudyDTO> extends CommonBaseStudyToWorkspaceDTOConverter<S, DTO> {
+public abstract class BaseStudyToStudyDTOConverter<S extends Study, DTO extends StudyDTO> extends BaseStudyToCommonStudyDTOConverter<S, DTO> {
 
     @Autowired
     public BaseStudyToStudyDTOConverter(BaseStudyService studyService, AnalysisService analysisService, ArachneConverterUtils converterUtils) {
@@ -44,6 +47,14 @@ public abstract class BaseStudyToStudyDTOConverter<S extends Study, DTO extends 
     public DTO convert(final S source) {
 
         final DTO studyDTO = super.convert(source);
+        final Tenant studyTenant = source.getTenant();
+        for (final UserStudyExtended studyUserLink : source.getParticipants()) {
+            final ParticipantDTO participantDTO = conversionService.convert(studyUserLink, ParticipantDTO.class);
+            if (!studyUserLink.getUser().getTenants().contains(studyTenant)) {
+                participantDTO.setCanBeRecreated(Boolean.FALSE);
+            }
+            studyDTO.getParticipants().add(participantDTO);
+        }
         studyDTO.setStatus(conversionService.convert(source.getStatus(), StudyStatusDTO.class));
         studyDTO.setType(conversionService.convert(source.getType(), StudyTypeDTO.class));
         studyDTO.setEndDate(source.getEndDate());

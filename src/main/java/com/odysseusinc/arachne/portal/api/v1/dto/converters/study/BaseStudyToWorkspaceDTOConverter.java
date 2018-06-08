@@ -24,15 +24,17 @@ package com.odysseusinc.arachne.portal.api.v1.dto.converters.study;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.ParticipantDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.WorkspaceDTO;
+import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import com.odysseusinc.arachne.portal.model.Study;
+import com.odysseusinc.arachne.portal.model.UserStudyExtended;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
 import com.odysseusinc.arachne.portal.util.ArachneConverterUtils;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public abstract class BaseStudyToWorkspaceDTOConverter<S extends Study, DTO extends WorkspaceDTO> extends CommonBaseStudyToWorkspaceDTOConverter<S, DTO> {
+public abstract class BaseStudyToWorkspaceDTOConverter<S extends Study, DTO extends WorkspaceDTO> extends BaseStudyToCommonStudyDTOConverter<S, DTO> {
 
     @Autowired
     public BaseStudyToWorkspaceDTOConverter(BaseStudyService studyService, AnalysisService analysisService, ArachneConverterUtils converterUtils) {
@@ -44,12 +46,15 @@ public abstract class BaseStudyToWorkspaceDTOConverter<S extends Study, DTO exte
     public DTO convert(S source) {
 
         final DTO workspaceDTO = super.convert(source);
-        if (!workspaceDTO.getParticipants().isEmpty()) {
-            Optional<ParticipantDTO> leadOptional = workspaceDTO.getParticipants()
+        if (!source.getParticipants().isEmpty()) {
+            Optional<UserStudyExtended> leadOptional = source.getParticipants()
                     .stream()
-                    .filter(dto -> dto.getRole().getId().equals(ParticipantRole.LEAD_INVESTIGATOR.name()))
+                    .filter(participant -> participant.getRole().equals(ParticipantRole.LEAD_INVESTIGATOR))
                     .findFirst();
-            leadOptional.ifPresent(lead -> workspaceDTO.setLeadParticipant(leadOptional.get()));
+            workspaceDTO.setLeadParticipant(conversionService.convert(leadOptional.orElseThrow(() -> {
+                final String message = "Lead investigator for workspace id = " + workspaceDTO.getId() + " doesn't exist";
+                return new NotExistException(message, UserStudyExtended.class);
+            }), ParticipantDTO.class));
         }
         return workspaceDTO;
     }

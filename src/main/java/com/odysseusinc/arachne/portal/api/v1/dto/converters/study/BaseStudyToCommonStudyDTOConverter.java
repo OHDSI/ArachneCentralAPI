@@ -23,16 +23,14 @@
 package com.odysseusinc.arachne.portal.api.v1.dto.converters.study;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.BaseAnalysisDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.CommonStudyDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.DataSourceDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.ParticipantDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.StudyFileDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.WorkspaceDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
 import com.odysseusinc.arachne.portal.model.StudyFile;
-import com.odysseusinc.arachne.portal.model.UserStudyExtended;
 import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
@@ -41,13 +39,13 @@ import com.odysseusinc.arachne.portal.util.EntityUtils;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public abstract class CommonBaseStudyToWorkspaceDTOConverter<S extends Study, DTO extends WorkspaceDTO> extends BaseConversionServiceAwareConverter<S, DTO> {
+public abstract class BaseStudyToCommonStudyDTOConverter<S extends Study, DTO extends CommonStudyDTO> extends BaseConversionServiceAwareConverter<S, DTO> {
     protected final BaseStudyService studyService;
     protected final AnalysisService analysisService;
     protected final ArachneConverterUtils converterUtils;
 
     @Autowired
-    public CommonBaseStudyToWorkspaceDTOConverter(BaseStudyService studyService, AnalysisService analysisService, ArachneConverterUtils converterUtils) {
+    public BaseStudyToCommonStudyDTOConverter(BaseStudyService studyService, AnalysisService analysisService, ArachneConverterUtils converterUtils) {
 
         this.studyService = studyService;
         this.analysisService = analysisService;
@@ -56,16 +54,10 @@ public abstract class CommonBaseStudyToWorkspaceDTOConverter<S extends Study, DT
 
     @Override
     public DTO convert(S source) {
-        final DTO workspaceDTO = createResultObject();
-        workspaceDTO.setTitle(source.getTitle());
+
+        final DTO commonDTO = createResultObject();
+        commonDTO.setTitle(source.getTitle());
         final Tenant studyTenant = source.getTenant();
-        for (final UserStudyExtended studyUserLink : source.getParticipants()) {
-            final ParticipantDTO participantDTO = conversionService.convert(studyUserLink, ParticipantDTO.class);
-            if (!studyUserLink.getUser().getTenants().contains(studyTenant)) {
-                participantDTO.setCanBeRecreated(Boolean.FALSE);
-            }
-            workspaceDTO.getParticipants().add(participantDTO);
-        }
         final List<StudyDataSourceLink> foundLinks = studyService.getLinksByStudyId(
                 source.getId(),
                 EntityUtils.fromAttributePaths(
@@ -78,16 +70,17 @@ public abstract class CommonBaseStudyToWorkspaceDTOConverter<S extends Study, DT
             if (!studyDataSourceLink.getDataSource().getTenants().contains(studyTenant)) {
                 dataSourceDTO.setCanBeRecreated(Boolean.FALSE);
             }
-            workspaceDTO.getDataSources().add(dataSourceDTO);
+            commonDTO.getDataSources().add(dataSourceDTO);
         }
-        workspaceDTO.setAnalyses(converterUtils.convertList(getAnalyses(source), BaseAnalysisDTO.class));
+        commonDTO.setAnalyses(converterUtils.convertList(getAnalyses(source), BaseAnalysisDTO.class));
         List<StudyFile> files = studyService.getFilesByStudyId(
                 source.getId(),
                 EntityUtils.fromAttributePaths("author")
         );
-        workspaceDTO.setFiles(converterUtils.convertList(files, StudyFileDTO.class));
-        workspaceDTO.setId(source.getId());
-        return workspaceDTO;
+        commonDTO.setFiles(converterUtils.convertList(files, StudyFileDTO.class));
+        commonDTO.setId(source.getId());
+        commonDTO.setKind(source.getKind());
+        return commonDTO;
     }
 
     protected List<Analysis> getAnalyses(S source) {

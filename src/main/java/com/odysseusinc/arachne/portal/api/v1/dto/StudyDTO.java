@@ -52,6 +52,30 @@ public class StudyDTO extends WorkspaceDTO {
 
     private StudyTypeDTO type;
 
+    private List<ParticipantDTO> participants = new ArrayList<>();
+
+    private String description;
+
+    public String getDescription() {
+
+        return description;
+    }
+
+    public void setDescription(String description) {
+
+        this.description = description;
+    }
+
+    public List<ParticipantDTO> getParticipants() {
+
+        return participants;
+    }
+
+    public void setParticipants(List<ParticipantDTO> participants) {
+
+        this.participants = participants;
+    }
+
     public StudyTypeDTO getType() {
 
         return type;
