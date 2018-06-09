@@ -1,12 +1,13 @@
 ALTER TABLE studies_data
-  ADD COLUMN kind VARCHAR(100) NOT NULL DEFAULT 'REGULAR';
+  ADD COLUMN kind VARCHAR NOT NULL DEFAULT 'REGULAR';
 
 DROP INDEX IF EXISTS title_uk;
 
 DROP INDEX IF EXISTS studies_data_unique_title_if_kind_is_regular;
 
 CREATE UNIQUE INDEX studies_data_unique_title_if_kind_is_regular
-  ON studies_data (title, tenant_id);
+  ON studies_data (title, tenant_id)
+  WHERE (kind = 'REGULAR');
 
 CREATE OR REPLACE FUNCTION single_workspace_per_user_in_tenant()
   RETURNS TRIGGER
@@ -47,13 +48,12 @@ CREATE TRIGGER single_lead_user_in_workspace
   ON studies_users
   FOR EACH ROW EXECUTE PROCEDURE single_workspace_per_user_in_tenant();
 
-
 CREATE OR REPLACE FUNCTION papers_in_workspace_are_prohibited()
   RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
 DECLARE
-  kind_of_study VARCHAR(100);
+  kind_of_study VARCHAR;
 BEGIN
   kind_of_study := (SELECT kind
                     FROM studies_data
@@ -76,12 +76,20 @@ CREATE OR REPLACE FUNCTION lead_user_in_workspace()
   RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
-DECLARE user_role VARCHAR(100);
+DECLARE user_role      VARCHAR;
+        ws_users_count INTEGER;
 BEGIN
-  user_role := (SELECT role
-                FROM studies_users
-                  JOIN studies_data ON studies_users.study_id = studies_data.id
-                WHERE kind = 'WORKSPACE' AND study_id = NEW.study_id);
+  SELECT
+    NEW.role,
+    COUNT(*)
+  into user_role, ws_users_count
+  FROM studies_users
+    JOIN studies_data ON studies_users.study_id = studies_data.id
+  WHERE kind = 'WORKSPACE' AND study_id = NEW.study_id;
+  IF (ws_users_count > 1)
+  THEN
+    RAISE EXCEPTION 'There can be only one user in workspace';
+  END IF;
   IF (user_role = 'CONTRIBUTOR')
   THEN
     RAISE EXCEPTION 'Only LEAD_INVESTIGATOR user role is allowed in workspace';
