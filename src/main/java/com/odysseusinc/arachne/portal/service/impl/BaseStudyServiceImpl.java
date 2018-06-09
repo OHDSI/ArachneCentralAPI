@@ -1021,7 +1021,6 @@ public abstract class BaseStudyServiceImpl<
         return studyRepository.findByIdInAnyTenant(studyId);
     }
 
-    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
     @Override
     public T findWorkspaceForUser(Long userId) throws NotExistException {
 

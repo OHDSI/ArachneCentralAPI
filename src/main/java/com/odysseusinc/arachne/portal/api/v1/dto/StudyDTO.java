@@ -42,8 +42,6 @@ public class StudyDTO extends CommonStudyDTO {
 
     private Date endDate;
 
-    private PermissionsDTO permissions;
-
     private Boolean favourite;
 
     private Long paperId;
@@ -144,16 +142,6 @@ public class StudyDTO extends CommonStudyDTO {
     public void setRole(String role) {
 
         this.role = role;
-    }
-
-    public PermissionsDTO getPermissions() {
-
-        return permissions;
-    }
-
-    public void setPermissions(PermissionsDTO permissions) {
-
-        this.permissions = permissions;
     }
 
     public Boolean getFavourite() {

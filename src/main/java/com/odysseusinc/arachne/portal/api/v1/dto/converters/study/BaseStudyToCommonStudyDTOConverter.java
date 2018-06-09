@@ -25,6 +25,7 @@ package com.odysseusinc.arachne.portal.api.v1.dto.converters.study;
 import com.odysseusinc.arachne.portal.api.v1.dto.BaseAnalysisDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.CommonStudyDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.DataSourceDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.PermissionsDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.StudyFileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
 import com.odysseusinc.arachne.portal.model.Analysis;
@@ -80,6 +81,7 @@ public abstract class BaseStudyToCommonStudyDTOConverter<S extends Study, DTO ex
         commonDTO.setFiles(converterUtils.convertList(files, StudyFileDTO.class));
         commonDTO.setId(source.getId());
         commonDTO.setKind(source.getKind());
+        commonDTO.setPermissions(conversionService.convert(source, PermissionsDTO.class));
         return commonDTO;
     }
 

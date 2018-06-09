@@ -293,4 +293,18 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
 
         super.getAllStudyFilesExceptLinks(studyId, archiveName, os);
     }
+
+    @Override
+    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject)")
+    public Study findWorkspaceForUser(final Long userId) throws NotExistException {
+        
+        return super.findWorkspaceForUser(userId);
+    }
+
+    @Override
+    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
+    public Study findOrCreateWorkspaceForUser(Long userId) {
+
+        return super.findOrCreateWorkspaceForUser(userId);
+    }
 }
