@@ -213,18 +213,14 @@ public abstract class BaseStudyController<
     }
 
     @RequestMapping(value = "/api/v1/study-management/studies/{studyId}", method = GET)
-    public JsonResult<SD> get(
-            @PathVariable("studyId") Long id,
-            Principal principal)
+    public SD get(
+            @PathVariable("studyId") final Long id,
+            final Principal principal)
             throws PermissionDeniedException, NotExistException {
 
-        JsonResult<SD> result;
-        IUser user = getUser(principal);
-        SU myStudy = studyService.getStudy(user, id);
-        result = new JsonResult<>(NO_ERROR);
-        SD studyDTO = convert(myStudy);
-        result.setResult(studyDTO);
-        return result;
+        final IUser user = getUser(principal);
+        final SU myStudy = studyService.getStudy(user, id);
+        return convert(myStudy);
     }
 
     protected abstract SD convert(SU myStudy);
