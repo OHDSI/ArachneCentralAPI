@@ -1,11 +1,11 @@
 ALTER TABLE studies_data
-  ADD COLUMN kind VARCHAR NOT NULL DEFAULT 'REGULAR';
+  ADD COLUMN IF NOT EXISTS kind VARCHAR NOT NULL DEFAULT 'REGULAR';
 
 DROP INDEX IF EXISTS title_uk;
 
 DROP INDEX IF EXISTS studies_data_unique_title_if_kind_is_regular;
 
-CREATE UNIQUE INDEX studies_data_unique_title_if_kind_is_regular
+CREATE UNIQUE INDEX IF NOT EXISTS studies_data_unique_title_if_kind_is_regular
   ON studies_data (title, tenant_id)
   WHERE (kind = 'REGULAR');
 
@@ -38,10 +38,16 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS single_study_with_type_workspace
+ON studies_data;
+
 CREATE TRIGGER single_study_with_type_workspace
   AFTER INSERT OR UPDATE
   ON studies_data
   FOR EACH ROW EXECUTE PROCEDURE single_workspace_per_user_in_tenant();
+
+DROP TRIGGER IF EXISTS single_lead_user_in_workspace
+ON studies_users;
 
 CREATE TRIGGER single_lead_user_in_workspace
   AFTER INSERT OR UPDATE
@@ -66,6 +72,9 @@ BEGIN
   RETURN NEW;
 END;
 $$;
+
+DROP TRIGGER IF EXISTS papers_in_workspace_are_prohibited
+ON papers;
 
 CREATE TRIGGER papers_in_workspace_are_prohibited
   AFTER INSERT OR UPDATE
@@ -97,6 +106,9 @@ BEGIN
   RETURN NEW;
 END;
 $$;
+
+DROP TRIGGER IF EXISTS lead_user_in_workspace
+ON studies_users;
 
 CREATE TRIGGER lead_user_in_workspace
   AFTER INSERT OR UPDATE
