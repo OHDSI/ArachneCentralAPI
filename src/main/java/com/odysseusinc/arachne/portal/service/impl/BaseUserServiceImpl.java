@@ -37,6 +37,7 @@ import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.MetadataException;
 import com.drew.metadata.exif.ExifIFD0Directory;
+import com.google.common.collect.Sets;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.BatchOperationType;
@@ -108,6 +109,7 @@ import java.security.Principal;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -688,11 +690,20 @@ public abstract class BaseUserServiceImpl<
             spec = spec.and(withNameOrEmailLike(pattern));
         }
 
-        Set<Long> tenantIds = userSearch.getTenantIds();
+        Set<Long> tenantIds = getTenantIdsSet(userSearch.getTenantIds());
         if (!CollectionUtils.isEmpty(tenantIds)) {
             spec = spec.and(usersIn(tenantIds));
         }
         return spec;
+    }
+
+    private Set<Long> getTenantIdsSet(Long[] tenantIds){
+        Set<Long> idsSet = new HashSet<>();
+        if (tenantIds != null) {
+            idsSet = Sets.newHashSet(tenantIds);
+        }
+
+        return idsSet;
     }
 
     private void sendRegistrationEmail(final U user) {
