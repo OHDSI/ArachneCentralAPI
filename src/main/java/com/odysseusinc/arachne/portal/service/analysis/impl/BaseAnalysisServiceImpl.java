@@ -201,7 +201,7 @@ public abstract class BaseAnalysisServiceImpl<
                                    final ToPdfConverter docToPdfConverter,
                                    final ApplicationEventPublisher eventPublisher,
                                    final BaseSolrService solrService
-                                   ) {
+    ) {
 
         this.docToPdfConverter = docToPdfConverter;
 
@@ -369,7 +369,7 @@ public abstract class BaseAnalysisServiceImpl<
 
         String originalFilename = multipartFile.getOriginalFilename();
         String fileNameLowerCase = UUID.randomUUID().toString();
-        ensureOriginalNameIsUnique(analysis.getId(), originalFilename);
+        ensureLabelIsUnique(analysis.getId(), label);
         try {
             Path analysisPath = getAnalysisPath(analysis);
             Path targetPath = Paths.get(analysisPath.toString(), fileNameLowerCase);
@@ -448,7 +448,7 @@ public abstract class BaseAnalysisServiceImpl<
             throws IOException, AlreadyExistException {
 
         throwAccessDeniedExceptionIfLocked(analysis);
-        String uuid = UUID.randomUUID().toString();
+        String fileNameLowerCase = UUID.randomUUID().toString();
         try {
             if (link == null) {
                 throw new IORuntimeException("wrong url");
@@ -457,8 +457,8 @@ public abstract class BaseAnalysisServiceImpl<
             headers.setAccept(Collections.singletonList(MediaType.APPLICATION_OCTET_STREAM));
             HttpEntity<String> entity = new HttpEntity<>(headers);
             URL url = new URL(link);
-            String fileName = FilenameUtils.getName(url.getPath());
-            ensureOriginalNameIsUnique(analysis.getId(), fileName);
+            ensureLabelIsUnique(analysis.getId(), label);
+            String originalFileName = FilenameUtils.getName(url.getPath());
 
             ResponseEntity<byte[]> response = restTemplate.exchange(
                     link,
@@ -469,18 +469,19 @@ public abstract class BaseAnalysisServiceImpl<
                 final String contentType = response.getHeaders().getContentType().toString();
 
                 Path pathToAnalysis = getAnalysisPath(analysis);
+                Path targetPath = Paths.get(pathToAnalysis.toString(), fileNameLowerCase);
 
                 Files.copy(new ByteArrayInputStream(response.getBody()),
-                        pathToAnalysis, REPLACE_EXISTING);
+                        targetPath, REPLACE_EXISTING);
                 AnalysisFile analysisFile = new AnalysisFile();
-                analysisFile.setUuid(uuid);
+                analysisFile.setUuid(fileNameLowerCase);
                 analysisFile.setAnalysis(analysis);
                 analysisFile.setContentType(contentType);
                 analysisFile.setLabel(label);
                 analysisFile.setAuthor(user);
                 analysisFile.setExecutable(Boolean.TRUE.equals(isExecutable));
-                analysisFile.setRealName(fileName);
-                analysisFile.setEntryPoint(fileName);
+                analysisFile.setRealName(originalFileName);
+                analysisFile.setEntryPoint(originalFileName);
 
                 Date created = new Date();
                 analysisFile.setCreated(created);
@@ -489,7 +490,7 @@ public abstract class BaseAnalysisServiceImpl<
                 return analysisFileRepository.save(analysisFile);
             }
         } catch (IOException | RuntimeException ex) {
-            String message = "error save file to disk, filename=" + uuid + " ex=" + ex.toString();
+            String message = "error save file to disk, filename=" + fileNameLowerCase + " ex=" + ex.toString();
             LOGGER.error(message, ex);
             throw new IOException(message);
         }
@@ -565,7 +566,7 @@ public abstract class BaseAnalysisServiceImpl<
         }
         analysisUnlockRequest.setAnalysis(analysis);
         final AnalysisUnlockRequest savedUnlockRequest = analysisUnlockRequestRepository.save(analysisUnlockRequest);
-        studyService.findLeads((S)savedUnlockRequest.getAnalysis().getStudy()).forEach(lead ->
+        studyService.findLeads((S) savedUnlockRequest.getAnalysis().getStudy()).forEach(lead ->
                 mailSender.send(new UnlockAnalysisRequestMailMessage(
                         WebSecurityConfig.getDefaultPortalURI(), lead, savedUnlockRequest)
                 )
@@ -841,7 +842,7 @@ public abstract class BaseAnalysisServiceImpl<
     @Override
     public List<IUser> findLeads(Analysis analysis) {
 
-        return studyService.findLeads((S)analysis.getStudy());
+        return studyService.findLeads((S) analysis.getStudy());
     }
 
     private void throwAccessDeniedExceptionIfLocked(Analysis analysis) {
@@ -853,10 +854,10 @@ public abstract class BaseAnalysisServiceImpl<
         }
     }
 
-    private void ensureOriginalNameIsUnique(Long analysisId, String originalFileName) throws AlreadyExistException {
+    private void ensureLabelIsUnique(Long analysisId, String label) throws AlreadyExistException {
 
-        if (!analysisFileRepository.findAllByAnalysisIdAndRealName(analysisId, originalFileName).isEmpty()) {
-            throw new AlreadyExistException("File with such name " + originalFileName + " already exists");
+        if (!analysisFileRepository.findAllByAnalysisIdAndLabel(analysisId, label).isEmpty()) {
+            throw new AlreadyExistException("File with such name " + label + " already exists");
         }
     }
 
@@ -915,6 +916,7 @@ public abstract class BaseAnalysisServiceImpl<
 
     @Override
     public void indexAllBySolr() throws IOException, NotExistException, SolrServerException, NoSuchFieldException, IllegalAccessException {
+
         solrService.deleteAll(SolrCollection.ANALYSES);
 
         final Map<Long, Study> map = studyService.findWithAnalysesInAnyTenant()
