@@ -54,6 +54,7 @@ import javax.validation.ConstraintViolationException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -70,6 +71,8 @@ public class ExceptionHandlingController extends BaseController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ExceptionHandlingController.class);
     private static final String COOKIE_USER_REQUEST = "Arachne-User-Request";
+
+    private static final String ERROR_MESSAGE = "An error has occurred. Please contact system administrator";
 
     private static final Consumer<HttpServletResponse> ADD_COOKIE_FUNCTION = response -> {
 
@@ -124,6 +127,15 @@ public class ExceptionHandlingController extends BaseController {
         if (!ex.getConstraintViolations().isEmpty()) {
             result = setValidationErrors(ex.getConstraintViolations());
         }
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<JsonResult> exceptionHandler(final DataAccessException ex) {
+
+        LOGGER.error(ex.getMessage(), ex);
+        final JsonResult result = new JsonResult<>(SYSTEM_ERROR);
+        result.setErrorMessage(ERROR_MESSAGE);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
