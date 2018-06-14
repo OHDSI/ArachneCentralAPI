@@ -56,7 +56,6 @@ import com.odysseusinc.arachne.portal.model.StudyDataSourceComment;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
 import com.odysseusinc.arachne.portal.model.StudyFile;
 import com.odysseusinc.arachne.portal.model.StudyKind;
-import com.odysseusinc.arachne.portal.model.StudyType;
 import com.odysseusinc.arachne.portal.model.SuggestSearchRegion;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserStudy;
@@ -191,6 +190,8 @@ public abstract class BaseStudyServiceImpl<
     private final Map<String, String[]> studySortPaths = new HashMap<>();
     protected final ApplicationEventPublisher eventPublisher;
     private final BaseSolrService<SF> solrService;
+    
+    public BaseStudyService<T, DS, SS, SU> proxy;
 
     public BaseStudyServiceImpl(final UserStudyExtendedRepository userStudyExtendedRepository,
                                 final StudyFileService fileService,
@@ -1025,8 +1026,8 @@ public abstract class BaseStudyServiceImpl<
     public T findWorkspaceForUser(IUser user, Long userId) throws NotExistException {
 
         T workspace = studyRepository.findWorkspaceForUser(userId);
-        
-        workspace = (T)this.getStudy(user, workspace.getId()).getStudy();
+        final BaseStudyService proxiedThis = getProxy();
+        workspace = (T)proxiedThis.getStudy(user, workspace.getId()).getStudy();
         
         if (workspace == null) {
             throw new NotExistException(getType());
@@ -1044,5 +1045,16 @@ public abstract class BaseStudyServiceImpl<
             workspace = createWorkspace(userId);
         }
         return workspace;
+    }
+
+    protected BaseStudyService<T, DS, SS, SU> getProxy() {
+        
+        return this.proxy;
+    }
+    
+    @Override
+    public void setProxy(final Object proxy) {
+        
+        this.proxy = (BaseStudyService<T, DS, SS, SU>)proxy;
     }
 }

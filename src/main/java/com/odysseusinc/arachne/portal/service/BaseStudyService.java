@@ -40,6 +40,7 @@ import com.odysseusinc.arachne.portal.model.SuggestSearchRegion;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserStudy;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
+import com.odysseusinc.arachne.portal.component.SelfReferencingBean;
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobStudyFileResponseEvent;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -54,7 +55,7 @@ public interface BaseStudyService<
         T extends Study,
         DS extends IDataSource,
         SS extends StudySearch,
-        SU extends AbstractUserStudyListItem> {
+        SU extends AbstractUserStudyListItem> extends SelfReferencingBean {
 
     T create(IUser owner, T study) throws NotUniqueException, NotExistException;
 
