@@ -48,7 +48,9 @@ import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.validation.Valid;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -74,6 +76,21 @@ public abstract class BaseDataSourceController<
     protected final BaseDataSourceService<DS> dataSourceService;
     protected final ArachneConverterUtils converterUtils;
     protected final StudyDataSourceService studyDataSourceService;
+    protected final Map<String, String> dsFields;
+
+    protected final static String ORGANIZATION = "organization";
+    protected static final String MODEL_TYPE = "modelType";
+    protected static final String MODEL_TYPE_UNDERSCORE = "model_type";
+    protected static final String CDM_VERSION = "cdmVersion";
+    protected static final String CDM_VERSION_UNDERSCORE = "cdm_version";
+    protected static final String ACCESS_TYPE = "accessType";
+    protected static final String ACCESS_TYPE_UNDERSCORE = "access_type";
+    protected static final String EXECUTION_POLICY = "executionPolicy";
+    protected static final String EXECUTION_POLICY_UNDERSCORE = "execution_policy";
+    protected static final String PUBLISHED_LABEL = "publishedLabel";
+    protected static final String PUBLISHED = "published";
+    protected static final String NAME = "name";
+    protected static final String DATA_NODE_NAME = "dn.name";
 
     public BaseDataSourceController(GenericConversionService conversionService,
                                     BaseDataSourceService<DS> dataSourceService,
@@ -84,6 +101,14 @@ public abstract class BaseDataSourceController<
         this.dataSourceService = dataSourceService;
         this.converterUtils = converterUtils;
         this.studyDataSourceService = studyDataSourceService;
+        dsFields = new HashMap<>();
+        dsFields.put(ORGANIZATION, ORGANIZATION);
+        dsFields.put(MODEL_TYPE, MODEL_TYPE_UNDERSCORE);
+        dsFields.put(CDM_VERSION, CDM_VERSION_UNDERSCORE);
+        dsFields.put(ACCESS_TYPE, ACCESS_TYPE_UNDERSCORE);
+        dsFields.put(EXECUTION_POLICY, EXECUTION_POLICY_UNDERSCORE);
+        dsFields.put(PUBLISHED_LABEL, PUBLISHED);
+        dsFields.put(NAME, DATA_NODE_NAME);
     }
 
     @RequestMapping(value = "/api/v1/data-sources/{id}", method = RequestMethod.PUT)
@@ -179,11 +204,16 @@ public abstract class BaseDataSourceController<
     @RequestMapping(value = "/api/v1/data-sources/my", method = RequestMethod.GET)
     public Page<DS_DTO> getUserDataSources(Principal principal,
                                            @RequestParam(name = "query", required = false, defaultValue = "") String query,
+                                           @RequestParam(name = "sort", required = false, defaultValue = NAME) String sortBy,
+                                           @RequestParam(name = "order", required = false, defaultValue = "asc") String order,
                                            @ModelAttribute PageDTO pageDTO
     ) throws PermissionDeniedException {
 
         final IUser user = getUser(principal);
-        PageRequest pageRequest = getPageRequest(pageDTO);
+
+        String dsSortBy = dsFields.get(sortBy);
+        Sort sort = new Sort(Sort.Direction.fromString(order), dsSortBy);
+        PageRequest pageRequest = getPageRequest(pageDTO, sort);
 
         Page<DS> dataSources = dataSourceService.getUserDataSources(query, user.getId(), pageRequest);
         List<DS_DTO> dataSourceDTOs = converterUtils.convertList(dataSources.getContent(), getDataSourceDTOClass());
@@ -192,7 +222,13 @@ public abstract class BaseDataSourceController<
 
     private PageRequest getPageRequest(PageDTO pageDTO) throws PermissionDeniedException {
 
-        Sort sort = new Sort(Sort.Direction.ASC, "name");
+
+        Sort sort = new Sort(Sort.Direction.ASC, DATA_NODE_NAME);
+        return getPageRequest(pageDTO, sort);
+    }
+
+    private PageRequest getPageRequest(PageDTO pageDTO, Sort sort) throws PermissionDeniedException {
+
         return new PageRequest(pageDTO.getPage() - 1, pageDTO.getPageSize(), sort);
     }
 
@@ -245,9 +281,9 @@ public abstract class BaseDataSourceController<
     @ApiOperation("Publish data source")
     @RequestMapping(value = "/api/v1/data-sources/{id}/registration", method = RequestMethod.POST)
     public JsonResult<DTO> publishDataSource(Principal principal,
-                                 @PathVariable("id") Long dataSourceId,
-                                 @RequestBody @Valid DTO commonDataSourceDTO,
-                                 BindingResult bindingResult
+                                             @PathVariable("id") Long dataSourceId,
+                                             @RequestBody @Valid DTO commonDataSourceDTO,
+                                             BindingResult bindingResult
     ) throws NotExistException,
             PermissionDeniedException,
             FieldException,
