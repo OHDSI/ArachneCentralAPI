@@ -62,7 +62,6 @@ public abstract class BaseStudyToStudyDTOConverter<S extends Study, DTO extends 
         studyDTO.setDescription(source.getDescription());
         studyDTO.setCreated(source.getCreated());
         studyDTO.setUpdated(source.getUpdated());
-        studyDTO.setPermissions(conversionService.convert(source, PermissionsDTO.class));
         studyDTO.setPaperId(source.getPaper() == null ? null : source.getPaper().getId());
         studyDTO.setPrivacy(source.getPrivacy());
         proceedAdditionalFields(studyDTO, source);

@@ -191,18 +191,19 @@ public abstract class BaseStudyController<
 
     @ApiOperation("Get existing or create new workspace.")
     @RequestMapping(value = "/api/v1/workspace", method = GET)
-    public WD getOrCreateWorkspace(Principal principal) throws PermissionDeniedException {
+    public WD getOrCreateWorkspace(final Principal principal) throws PermissionDeniedException {
 
-        IUser user = getUser(principal);
-        T workspace = studyService.findOrCreateWorkspaceForUser(user.getId());
+        final IUser user = getUser(principal);
+        final T workspace = studyService.findOrCreateWorkspaceForUser(user, user.getId());
         return convertStudyToWorkspaceDTO(workspace);
     }
 
     @ApiOperation("Get workspace for specific user.")
     @RequestMapping(value = "/api/v1/workspace/{userUuid}", method = GET)
-    public WD getWorkspaceForUser(@PathVariable("userUuid") String userUuid) throws NotExistException {
+    public WD getWorkspaceForUser(@PathVariable("userUuid") final String userUuid, final Principal principal) throws NotExistException, PermissionDeniedException {
 
-        return convertStudyToWorkspaceDTO(studyService.findWorkspaceForUser(UserIdUtils.uuidToId(userUuid)));
+        final IUser currentUser = getUser(principal);
+        return convertStudyToWorkspaceDTO(studyService.findWorkspaceForUser(currentUser, UserIdUtils.uuidToId(userUuid)));
     }
 
     @ApiOperation("List study statuses.")
@@ -213,18 +214,14 @@ public abstract class BaseStudyController<
     }
 
     @RequestMapping(value = "/api/v1/study-management/studies/{studyId}", method = GET)
-    public JsonResult<SD> get(
-            @PathVariable("studyId") Long id,
-            Principal principal)
+    public SD get(
+            @PathVariable("studyId") final Long id,
+            final Principal principal)
             throws PermissionDeniedException, NotExistException {
 
-        JsonResult<SD> result;
-        IUser user = getUser(principal);
-        SU myStudy = studyService.getStudy(user, id);
-        result = new JsonResult<>(NO_ERROR);
-        SD studyDTO = convert(myStudy);
-        result.setResult(studyDTO);
-        return result;
+        final IUser user = getUser(principal);
+        final SU myStudy = studyService.getStudy(user, id);
+        return convert(myStudy);
     }
 
     protected abstract SD convert(SU myStudy);

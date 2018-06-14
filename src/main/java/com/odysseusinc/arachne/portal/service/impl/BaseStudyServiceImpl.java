@@ -56,7 +56,6 @@ import com.odysseusinc.arachne.portal.model.StudyDataSourceComment;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
 import com.odysseusinc.arachne.portal.model.StudyFile;
 import com.odysseusinc.arachne.portal.model.StudyKind;
-import com.odysseusinc.arachne.portal.model.StudyType;
 import com.odysseusinc.arachne.portal.model.SuggestSearchRegion;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserStudy;
@@ -191,6 +190,8 @@ public abstract class BaseStudyServiceImpl<
     private final Map<String, String[]> studySortPaths = new HashMap<>();
     protected final ApplicationEventPublisher eventPublisher;
     private final BaseSolrService<SF> solrService;
+    
+    public BaseStudyService<T, DS, SS, SU> proxy;
 
     public BaseStudyServiceImpl(final UserStudyExtendedRepository userStudyExtendedRepository,
                                 final StudyFileService fileService,
@@ -1021,26 +1022,39 @@ public abstract class BaseStudyServiceImpl<
         return studyRepository.findByIdInAnyTenant(studyId);
     }
 
-    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
     @Override
-    public T findWorkspaceForUser(Long userId) throws NotExistException {
+    public T findWorkspaceForUser(IUser user, Long userId) throws NotExistException {
 
-        T workspace = studyRepository.findWorkspaceForUser(userId);
+        final T workspace = studyRepository.findWorkspaceForUser(userId);
+        
         if (workspace == null) {
             throw new NotExistException(getType());
         }
+        // here permissions will be checked
+        getProxy().getStudy(user, workspace.getId());
         return workspace;
     }
 
     @Override
-    public T findOrCreateWorkspaceForUser(Long userId) {
+    public T findOrCreateWorkspaceForUser(IUser user, Long userId) {
 
         T workspace;
         try {
-            workspace = findWorkspaceForUser(userId);
+            workspace = findWorkspaceForUser(user, userId);
         } catch (NotExistException e) {
             workspace = createWorkspace(userId);
         }
         return workspace;
+    }
+
+    protected BaseStudyService<T, DS, SS, SU> getProxy() {
+        
+        return this.proxy;
+    }
+    
+    @Override
+    public void setProxy(final Object proxy) {
+        
+        this.proxy = (BaseStudyService<T, DS, SS, SU>)proxy;
     }
 }

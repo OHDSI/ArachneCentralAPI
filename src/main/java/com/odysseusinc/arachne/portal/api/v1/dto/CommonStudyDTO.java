@@ -39,6 +39,8 @@ public class CommonStudyDTO {
 
     private StudyKind kind;
 
+    private PermissionsDTO permissions;
+
     public Long getId() {
 
         return id;
@@ -97,5 +99,15 @@ public class CommonStudyDTO {
     public void setKind(StudyKind kind) {
 
         this.kind = kind;
+    }
+
+    public PermissionsDTO getPermissions() {
+
+        return permissions;
+    }
+
+    public void setPermissions(final PermissionsDTO permissions) {
+
+        this.permissions = permissions;
     }
 }
