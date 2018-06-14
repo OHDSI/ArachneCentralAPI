@@ -1022,9 +1022,12 @@ public abstract class BaseStudyServiceImpl<
     }
 
     @Override
-    public T findWorkspaceForUser(Long userId) throws NotExistException {
+    public T findWorkspaceForUser(IUser user, Long userId) throws NotExistException {
 
         T workspace = studyRepository.findWorkspaceForUser(userId);
+        
+        workspace = (T)this.getStudy(user, workspace.getId()).getStudy();
+        
         if (workspace == null) {
             throw new NotExistException(getType());
         }
@@ -1032,11 +1035,11 @@ public abstract class BaseStudyServiceImpl<
     }
 
     @Override
-    public T findOrCreateWorkspaceForUser(Long userId) {
+    public T findOrCreateWorkspaceForUser(IUser user, Long userId) {
 
         T workspace;
         try {
-            workspace = findWorkspaceForUser(userId);
+            workspace = findWorkspaceForUser(user, userId);
         } catch (NotExistException e) {
             workspace = createWorkspace(userId);
         }

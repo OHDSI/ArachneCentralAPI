@@ -296,15 +296,15 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
 
     @Override
     @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject)")
-    public Study findWorkspaceForUser(final Long userId) throws NotExistException {
+    public Study findWorkspaceForUser(IUser user, final Long userId) throws NotExistException {
         
-        return super.findWorkspaceForUser(userId);
+        return super.findWorkspaceForUser(user, userId);
     }
 
     @Override
     @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
-    public Study findOrCreateWorkspaceForUser(Long userId) {
+    public Study findOrCreateWorkspaceForUser(IUser user, Long userId) {
 
-        return super.findOrCreateWorkspaceForUser(userId);
+        return super.findOrCreateWorkspaceForUser(user, userId);
     }
 }

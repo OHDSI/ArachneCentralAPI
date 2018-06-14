@@ -191,18 +191,19 @@ public abstract class BaseStudyController<
 
     @ApiOperation("Get existing or create new workspace.")
     @RequestMapping(value = "/api/v1/workspace", method = GET)
-    public WD getOrCreateWorkspace(Principal principal) throws PermissionDeniedException {
+    public WD getOrCreateWorkspace(final Principal principal) throws PermissionDeniedException {
 
-        IUser user = getUser(principal);
-        T workspace = studyService.findOrCreateWorkspaceForUser(user.getId());
+        final IUser user = getUser(principal);
+        final T workspace = studyService.findOrCreateWorkspaceForUser(user, user.getId());
         return convertStudyToWorkspaceDTO(workspace);
     }
 
     @ApiOperation("Get workspace for specific user.")
     @RequestMapping(value = "/api/v1/workspace/{userUuid}", method = GET)
-    public WD getWorkspaceForUser(@PathVariable("userUuid") String userUuid) throws NotExistException {
+    public WD getWorkspaceForUser(@PathVariable("userUuid") final String userUuid, final Principal principal) throws NotExistException, PermissionDeniedException {
 
-        return convertStudyToWorkspaceDTO(studyService.findWorkspaceForUser(UserIdUtils.uuidToId(userUuid)));
+        final IUser currentUser = getUser(principal);
+        return convertStudyToWorkspaceDTO(studyService.findWorkspaceForUser(currentUser, UserIdUtils.uuidToId(userUuid)));
     }
 
     @ApiOperation("List study statuses.")

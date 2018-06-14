@@ -154,7 +154,7 @@ public interface BaseStudyService<
     
     T findByIdInAnyTenant(Long studyId);
 
-    T findWorkspaceForUser(Long userId) throws NotExistException;
+    T findWorkspaceForUser(IUser user, Long userId) throws NotExistException;
 
-    T findOrCreateWorkspaceForUser(Long userId);
+    T findOrCreateWorkspaceForUser(IUser user, Long userId);
 }
