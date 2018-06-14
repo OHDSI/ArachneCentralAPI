@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -42,6 +42,7 @@ public class UserToUserInfoDTOConverter<T extends UserInfoDTO> extends BaseConve
         final T userInfoDTO = createResultObject();
         userInfoDTO.setId(source.getUuid());
         userInfoDTO.setEmail(source.getEmail());
+        userInfoDTO.setUsername(source.getUsername());
         final boolean isAdmin = source.getRoles().stream()
                 .anyMatch(r -> r.getName().equals("ROLE_ADMIN"));
         userInfoDTO.setIsAdmin(isAdmin);

@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -149,6 +149,12 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
     }
 
     @Override
+    public Study createWorkspace(Long ownerId) {
+
+        return createWorkspace(ownerId, new Study());
+    }
+
+    @Override
     @PreAuthorize("hasPermission(#studyId, 'Study', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_STUDY)")
     public void delete(Long studyId) throws NotExistException {
@@ -286,5 +292,19 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
     public void getAllStudyFilesExceptLinks(Long studyId, String archiveName, OutputStream os) throws IOException {
 
         super.getAllStudyFilesExceptLinks(studyId, archiveName, os);
+    }
+
+    @Override
+    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject)")
+    public Study findWorkspaceForUser(IUser user, final Long userId) throws NotExistException {
+        
+        return super.findWorkspaceForUser(user, userId);
+    }
+
+    @Override
+    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
+    public Study findOrCreateWorkspaceForUser(IUser user, Long userId) {
+
+        return super.findOrCreateWorkspaceForUser(user, userId);
     }
 }

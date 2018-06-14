@@ -16,7 +16,7 @@ To accept this request, please follow this
 <a th:href="@{${invitationUrl}(id=${submissionId},accepted='true',type='APPROVE_EXECUTE_SUBMISSION',userUuid=${userUuid},token=${token})}">link</a>. Alternatively, please follow this
 <a th:href="@{${invitationUrl}(id=${submissionId},accepted='false',type='APPROVE_EXECUTE_SUBMISSION',userUuid=${userUuid},token=${token})}">link</a>
 if you wish to reject this request.</div>
-<p>
+<p th:utext="${signature}">
     Regards,<br/>
     Odysseus Data Services, Inc.
 </p>

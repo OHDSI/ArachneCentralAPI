@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -43,9 +43,15 @@ import com.odysseusinc.arachne.portal.exception.ServiceNotAvailableException;
 import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.exception.WrongFileFormatException;
+import com.odysseusinc.arachne.portal.security.LoginRequestContext;
 import java.io.IOException;
+import java.util.Objects;
+import java.util.function.Consumer;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.ConstraintViolationException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -63,6 +69,16 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 public class ExceptionHandlingController extends BaseController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ExceptionHandlingController.class);
+    private static final String COOKIE_USER_REQUEST = "Arachne-User-Request";
+
+    private static final Consumer<HttpServletResponse> ADD_COOKIE_FUNCTION = response -> {
+
+        if (Objects.nonNull(LoginRequestContext.getUserName())) {
+            Cookie cookie = new Cookie(COOKIE_USER_REQUEST, LoginRequestContext.getUserName());
+            cookie.setPath("/");
+            response.addCookie(cookie);
+        }
+    };
 
     private NoHandlerFoundExceptionUtils noHandlerFoundExceptionUtils;
 
@@ -96,6 +112,17 @@ public class ExceptionHandlingController extends BaseController {
         JsonResult result = new JsonResult<>(VALIDATION_ERROR);
         if (ex.getBindingResult().hasErrors()) {
             result = setValidationErrors(ex.getBindingResult());
+        }
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<JsonResult> exceptionHandler(ConstraintViolationException ex) {
+
+        LOGGER.warn(ex.getMessage());
+        JsonResult result = new JsonResult<>(VALIDATION_ERROR);
+        if (!ex.getConstraintViolations().isEmpty()) {
+            result = setValidationErrors(ex.getConstraintViolations());
         }
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
@@ -242,6 +269,6 @@ public class ExceptionHandlingController extends BaseController {
     @ExceptionHandler({NoHandlerFoundException.class})
     public void handleNotFoundError(HttpServletRequest request, HttpServletResponse response) throws Exception {
 
-        noHandlerFoundExceptionUtils.handleNotFoundError(request, response);
+        noHandlerFoundExceptionUtils.handleNotFoundError(request, response, ADD_COOKIE_FUNCTION);
     }
 }
