@@ -334,11 +334,10 @@ public class StudyControllerTests extends BaseControllerTest {
         MvcResult mvcResult = mvc.perform(
                 get("/api/v1/study-management/studies/" + STUDY_ID)
         )
-                .andExpect(NO_ERROR_CODE)
-                .andExpect(jsonPath("$.result.id").isNotEmpty())
+                .andExpect(jsonPath("$.id").isNotEmpty())
                 .andReturn();
 
-        JSONAssert.assertEquals(UPDATED_STUDY_JSON_OBJECT, getResultJSONObject(mvcResult), false);
+        JSONAssert.assertEquals(UPDATED_STUDY_JSON_OBJECT, getResponse(mvcResult), false);
     }
 
     @Test
