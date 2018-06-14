@@ -1025,13 +1025,13 @@ public abstract class BaseStudyServiceImpl<
     @Override
     public T findWorkspaceForUser(IUser user, Long userId) throws NotExistException {
 
-        T workspace = studyRepository.findWorkspaceForUser(userId);
-        final BaseStudyService proxiedThis = getProxy();
-        workspace = (T)proxiedThis.getStudy(user, workspace.getId()).getStudy();
+        final T workspace = studyRepository.findWorkspaceForUser(userId);
         
         if (workspace == null) {
             throw new NotExistException(getType());
         }
+        // here permissions will be checked
+        getProxy().getStudy(user, workspace.getId());
         return workspace;
     }
 
