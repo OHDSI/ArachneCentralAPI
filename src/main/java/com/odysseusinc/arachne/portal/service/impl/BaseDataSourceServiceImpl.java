@@ -23,12 +23,15 @@
 package com.odysseusinc.arachne.portal.service.impl;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonModelType;
+import com.odysseusinc.arachne.portal.api.v1.dto.PageDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchDataCatalogDTO;
 import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
 import com.odysseusinc.arachne.portal.config.tenancy.TenantContext;
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
+import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.DataSourceFields;
 import com.odysseusinc.arachne.portal.model.DataSourceStatus;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
@@ -77,6 +80,7 @@ import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
@@ -236,7 +240,8 @@ public abstract class BaseDataSourceServiceImpl<
     public DS updateWithoutMetadataInAnyTenant(DS dataSource)
             throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
-        return updateInAnyTenant(dataSource, pair -> {});
+        return updateInAnyTenant(dataSource, pair -> {
+        });
     }
 
     private DS baseUpdate(DS exist, DS dataSource) {
@@ -435,6 +440,25 @@ public abstract class BaseDataSourceServiceImpl<
     protected List<SF> getExtraSolrFields() {
 
         return Collections.emptyList();
+    }
+
+    @Override
+    public PageRequest getPageRequest(PageDTO pageDTO) throws PermissionDeniedException {
+
+        return getPageRequest(pageDTO, DataSourceFields.UI_NAME, "asc");
+    }
+
+    @Override
+    public PageRequest getPageRequest(PageDTO pageDTO, String sortBy, String order) throws PermissionDeniedException {
+
+        String dsSortBy = DataSourceFields.getFields().get(sortBy);
+        List<String> sortingFields = new ArrayList<>();
+        sortingFields.add(dsSortBy);
+        if (DataSourceFields.UI_NAME.equals(sortBy)) {
+            sortingFields.add(sortBy);
+        }
+        Sort sort = new Sort(Sort.Direction.fromString(order), sortingFields);
+        return new PageRequest(pageDTO.getPage() - 1, pageDTO.getPageSize(), sort);
     }
 
     @Override
