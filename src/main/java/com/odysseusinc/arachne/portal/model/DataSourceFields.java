@@ -22,24 +22,27 @@
 
 package com.odysseusinc.arachne.portal.model;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class DataSourceFields {
-    private static Map<String, String> fields = new HashMap<>();
+    private static Map<String, List<String>> fields = new HashMap<>();
     public static final String UI_NAME = "name";
 
     static {
-        fields.put("organization", "organization");
-        fields.put("modelType", "model_type");
-        fields.put("cdmVersion", "cdm_version");
-        fields.put("accessType", "access_type");
-        fields.put("executionPolicy", "execution_policy");
-        fields.put("publishedLabel", "published");
-        fields.put(UI_NAME, "dn.name");
+        fields.put("organization", Collections.singletonList("organization"));
+        fields.put("modelType", Collections.singletonList("model_type"));
+        fields.put("cdmVersion", Collections.singletonList("cdm_version"));
+        fields.put("accessType", Collections.singletonList("access_type"));
+        fields.put("executionPolicy", Collections.singletonList("execution_policy"));
+        fields.put("publishedLabel", Collections.singletonList("published"));
+        fields.put(UI_NAME, Arrays.asList("dn.name", UI_NAME));
     }
 
-    public static Map<String, String> getFields() {
+    public static Map<String, List<String>> getFields() {
 
         return fields;
     }

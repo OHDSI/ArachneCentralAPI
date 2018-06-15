@@ -451,13 +451,8 @@ public abstract class BaseDataSourceServiceImpl<
     @Override
     public PageRequest getPageRequest(PageDTO pageDTO, String sortBy, String order) throws PermissionDeniedException {
 
-        String dsSortBy = DataSourceFields.getFields().get(sortBy);
-        List<String> sortingFields = new ArrayList<>();
-        sortingFields.add(dsSortBy);
-        if (DataSourceFields.UI_NAME.equals(sortBy)) {
-            sortingFields.add(sortBy);
-        }
-        Sort sort = new Sort(Sort.Direction.fromString(order), sortingFields);
+        List<String> dsSortBy = DataSourceFields.getFields().get(sortBy);
+        Sort sort = new Sort(Sort.Direction.fromString(order), dsSortBy);
         return new PageRequest(pageDTO.getPage() - 1, pageDTO.getPageSize(), sort);
     }
 
