@@ -36,6 +36,7 @@ import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.ApproveDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.FileDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.UploadFileDTO;
 import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.IORuntimeException;
@@ -101,6 +102,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -363,13 +365,85 @@ public abstract class BaseAnalysisServiceImpl<
         return true;
     }
 
+    protected boolean detectExecutable(CommonAnalysisType type, MultipartFile file) {
+
+        return false;
+    }
+
+    @Override
+    public List<AnalysisFile> saveFiles(List<UploadFileDTO> files, IUser user, A analysis, List<String> errorFileMessages) {
+
+        files.forEach(f -> {
+            if (!StringUtils.hasText(f.getLink()) && f.getFile() == null) {
+                LOGGER.error("Failed to save invalid file: \"" + f.getLabel() + "\"");
+                errorFileMessages.add("Invalid file: \"" + f.getLabel() + "\"");
+            }
+            try {
+                ensureLabelIsUnique(analysis.getId(), f.getLabel());
+            } catch (AlreadyExistException e) {
+                LOGGER.error("Failed to save file", e);
+                errorFileMessages.add(e.getMessage());
+            }
+        });
+
+        List<AnalysisFile> savedFiles = new ArrayList<>();
+        if (errorFileMessages.isEmpty()) {
+            files.forEach(f -> {
+                try {
+                    if (StringUtils.hasText(f.getLink())) {
+                        savedFiles.add(saveFileByLinkWithoutChecking(f.getLink(), user, analysis, f.getLabel(), f.getExecutable()));
+                    } else if (f.getFile() != null) {
+                        savedFiles.add(saveFileWithoutChecking(f.getFile(), user, analysis, f.getLabel(), f.getExecutable(), null));
+                    }
+                } catch (IOException e) {
+                    LOGGER.error("Failed to save file", e);
+                }
+            });
+        }
+        return savedFiles;
+    }
+
+    @Override
+    public List<AnalysisFile> saveFiles(List<MultipartFile> multipartFiles, IUser user, A analysis, CommonAnalysisType analysisType,
+                                        DataReference dataReference, List<String> errorFileMessages) {
+
+        List<MultipartFile> filteredFiles = multipartFiles.stream()
+                .filter(f -> !CommonAnalysisType.COHORT.equals(analysisType) || !f.getName().endsWith(CommonFileUtils.OHDSI_JSON_EXT))
+                .collect(Collectors.toList());
+        filteredFiles.forEach(f -> {
+            try {
+                ensureLabelIsUnique(analysis.getId(), f.getName());
+            } catch (AlreadyExistException e) {
+                LOGGER.error("Failed to save file", e);
+                errorFileMessages.add(e.getMessage());
+            }
+        });
+        List<AnalysisFile> savedFiles = new ArrayList<>();
+        if (errorFileMessages.isEmpty()) {
+            filteredFiles.forEach(f -> {
+                try {
+                    savedFiles.add(saveFileWithoutChecking(f, user, analysis, f.getName(), detectExecutable(analysisType, f), dataReference));
+                } catch (IOException e) {
+                    LOGGER.error("Failed to save file", e);
+                }
+            });
+        }
+        return savedFiles;
+    }
+
     @Override
     public AnalysisFile saveFile(MultipartFile multipartFile, IUser user, A analysis, String label,
                                  Boolean isExecutable, DataReference dataReference) throws IOException, AlreadyExistException {
 
+        ensureLabelIsUnique(analysis.getId(), label);
+        return saveFileWithoutChecking(multipartFile, user, analysis, label, isExecutable, dataReference);
+    }
+
+    private AnalysisFile saveFileWithoutChecking(MultipartFile multipartFile, IUser user, A analysis, String label,
+                                                 Boolean isExecutable, DataReference dataReference) throws IOException {
+
         String originalFilename = multipartFile.getOriginalFilename();
         String fileNameLowerCase = UUID.randomUUID().toString();
-        ensureLabelIsUnique(analysis.getId(), label);
         try {
             Path analysisPath = getAnalysisPath(analysis);
             Path targetPath = Paths.get(analysisPath.toString(), fileNameLowerCase);
@@ -444,8 +518,15 @@ public abstract class BaseAnalysisServiceImpl<
     }
 
     @Override
-    public AnalysisFile saveFile(String link, IUser user, A analysis, String label, Boolean isExecutable)
+    public AnalysisFile saveFileByLink(String link, IUser user, A analysis, String label, Boolean isExecutable)
             throws IOException, AlreadyExistException {
+
+        ensureLabelIsUnique(analysis.getId(), label);
+        return saveFileByLinkWithoutChecking(link, user, analysis, label, isExecutable);
+    }
+
+    private AnalysisFile saveFileByLinkWithoutChecking(String link, IUser user, A analysis, String label, Boolean isExecutable)
+            throws IOException {
 
         throwAccessDeniedExceptionIfLocked(analysis);
         String fileNameLowerCase = UUID.randomUUID().toString();
@@ -457,7 +538,7 @@ public abstract class BaseAnalysisServiceImpl<
             headers.setAccept(Collections.singletonList(MediaType.APPLICATION_OCTET_STREAM));
             HttpEntity<String> entity = new HttpEntity<>(headers);
             URL url = new URL(link);
-            ensureLabelIsUnique(analysis.getId(), label);
+
             String originalFileName = FilenameUtils.getName(url.getPath());
 
             ResponseEntity<byte[]> response = restTemplate.exchange(

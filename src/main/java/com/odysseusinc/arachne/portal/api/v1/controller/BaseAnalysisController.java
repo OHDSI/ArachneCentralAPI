@@ -358,23 +358,13 @@ public abstract class BaseAnalysisController<T extends Analysis,
         JsonResult result = new JsonResult(NO_ERROR);
         Map<String, Object> validationErrors = new HashMap<>();
         List<String> errorFileMessages = new ArrayList<>();
-        files.stream()
-                .filter(f -> !CommonAnalysisType.COHORT.equals(analysisType) || !f.getName().endsWith(CommonFileUtils.OHDSI_JSON_EXT))
-                .forEach(f -> {
-                            try {
-                                analysisService.saveFile(f, user, analysis, f.getName(), detectExecutable(analysisType, f), dataReference);
-                            } catch (IOException e) {
-                                LOGGER.error("Failed to save file", e);
-                            } catch (AlreadyExistException e) {
-                                LOGGER.error("Failed to save file", e);
-                                result.setErrorCode(VALIDATION_ERROR.getCode());
-                                errorFileMessages.add(e.getMessage());
-                            }
-                        }
-                );
-        if (result.getErrorCode().equals(VALIDATION_ERROR.getCode())) {
+
+        analysisService.saveFiles(files, user, analysis, analysisType, dataReference, errorFileMessages);
+        if (!errorFileMessages.isEmpty()) {
+            result.setErrorCode(VALIDATION_ERROR.getCode());
             validationErrors.put(dataReference.getGuid(), errorFileMessages.toArray(new String[0]));
             result.setValidatorErrors(validationErrors);
+            return result;
         }
         if (analysisType.equals(CommonAnalysisType.COHORT)) {
             final ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -426,11 +416,6 @@ public abstract class BaseAnalysisController<T extends Analysis,
         return result;
     }
 
-    protected boolean detectExecutable(CommonAnalysisType type, MultipartFile file) {
-
-        return false;
-    }
-
     @ApiOperation("update common entity in analysis")
     @RequestMapping(value = "/api/v1/analysis-management/analyses/{analysisId}/entities/{fileUuid}", method = PUT)
     public JsonResult updateCommonEntityInAnalysis(@PathVariable("analysisId") Long analysisId,
@@ -477,30 +462,12 @@ public abstract class BaseAnalysisController<T extends Analysis,
         List<AnalysisFileDTO> createdFiles = new ArrayList<>();
         List<String> errorFileMessages = new ArrayList<>();
         JsonResult<List<AnalysisFileDTO>> result = new JsonResult<>(NO_ERROR);
-        files.forEach(uploadFile -> {
-            AnalysisFile createdFile = null;
-            try {
-                if (StringUtils.hasText(uploadFile.getLink())) {
-                    createdFile = analysisService.saveFile(uploadFile.getLink(), user, analysis, uploadFile.getLabel(), uploadFile.getExecutable());
-                } else if (uploadFile.getFile() != null) {
-                    createdFile = analysisService.saveFile(uploadFile.getFile(), user, analysis, uploadFile.getLabel(), uploadFile.getExecutable(), null);
-                } else {
-                    LOGGER.error("Failed to save invalid file: \"" + uploadFile.getLabel() + "\"");
-                    result.setErrorCode(VALIDATION_ERROR.getCode());
-                    errorFileMessages.add("Invalid file: \"" + uploadFile.getLabel() + "\"");
-                    return;
-                }
-            } catch (IOException e) {
-                LOGGER.error("Failed to save file", e);
-            } catch (AlreadyExistException e) {
-                LOGGER.error("Failed to save file", e);
-                result.setErrorCode(VALIDATION_ERROR.getCode());
-                errorFileMessages.add(e.getMessage());
-            }
-            createdFiles.add(conversionService.convert(createdFile, AnalysisFileDTO.class));
-        });
-        if (result.getErrorCode().equals(VALIDATION_ERROR.getCode())) {
+        analysisService.saveFiles(files, user, analysis, errorFileMessages)
+                .forEach(createdFile -> createdFiles.add(conversionService.convert(createdFile, AnalysisFileDTO.class)));
+        if (!errorFileMessages.isEmpty()) {
+            result.setErrorCode(VALIDATION_ERROR.getCode());
             result.setValidatorErrors(ImmutableMap.of("file", errorFileMessages.toArray(new String[0])));
+            return result;
         }
         result.setResult(createdFiles);
         return result;
