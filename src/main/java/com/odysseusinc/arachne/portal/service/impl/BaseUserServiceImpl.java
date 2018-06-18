@@ -44,6 +44,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.BatchOperationType;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchExpertListDTO;
 import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
 import com.odysseusinc.arachne.portal.exception.ArachneSystemRuntimeException;
+import com.odysseusinc.arachne.portal.exception.EmailNotUniqueException;
 import com.odysseusinc.arachne.portal.exception.NotEmptyException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.NotUniqueException;
@@ -109,6 +110,7 @@ import java.security.Principal;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -120,6 +122,7 @@ import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletResponse;
@@ -336,7 +339,7 @@ public abstract class BaseUserServiceImpl<
     @Override
     public U create(final @NotNull U user)
             throws NotUniqueException, NotExistException, PasswordValidationException {
-      
+
         updateFields(user);
 
         return userRepository.save(user);
@@ -574,6 +577,11 @@ public abstract class BaseUserServiceImpl<
     @Transactional(rollbackOn = Exception.class)
     public void saveUsers(List<U> users, Set<Tenant> tenants, boolean emailConfirmationRequired) {
 
+        Map<String, String> emailValidationErrors = getEmailValidationErrors(users);
+        if (!emailValidationErrors.isEmpty()) {
+            throw new EmailNotUniqueException(emailValidationErrors);
+        }
+
         users.forEach(user -> {
             user.setTenants(tenants);
             user.setOrigin(UserOrigin.NATIVE);
@@ -588,6 +596,21 @@ public abstract class BaseUserServiceImpl<
                 sendRegistrationEmail(createdUser, Optional.empty(), null, true);
             }
         });
+    }
+
+    private Map<String, String> getEmailValidationErrors(List<U> users) {
+
+        Map<String, String> emailValidationErrors = new HashMap<>();
+        IntStream.range(0, users.size())
+                .forEach(index -> {
+                    U user = users.get(index);
+                    U byEmail = getByUnverifiedEmailInAnyTenant(user.getEmail());
+                    if (byEmail != null) {
+                        emailValidationErrors.put("users[" + index + "].email", messageSource.getMessage("validation.email.already.used", null, null));
+                    }
+                });
+
+        return emailValidationErrors;
     }
 
     @Override
