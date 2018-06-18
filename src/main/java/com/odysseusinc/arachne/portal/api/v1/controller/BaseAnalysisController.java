@@ -707,18 +707,16 @@ public abstract class BaseAnalysisController<T extends Analysis,
     @RequestMapping(value = "/api/v1/analysis-management/analyses/{analysisId}/code-files/{fileUuid}",
             method = PUT)
     public JsonResult<Boolean> putFileContent(
-            Principal principal,
-            @RequestBody FileDTO fileContentDTO,
-            @PathVariable("analysisId") Long analysisId,
-            @PathVariable("fileUuid") String uuid)
+            final Principal principal,
+            final @RequestBody FileDTO fileDTO,
+            final @PathVariable("analysisId") Long analysisId,
+            final @PathVariable("fileUuid") String uuid)
             throws PermissionDeniedException, NotExistException, IOException, URISyntaxException {
 
         final IUser user = getUser(principal);
-        AnalysisFile analysisFile = analysisService.getAnalysisFile(analysisId, uuid);
-        analysisService.writeToFile(analysisFile, fileContentDTO, user);
-        JsonResult<Boolean> result = new JsonResult<>(NO_ERROR);
-        result.setResult(Boolean.TRUE);
-        return result;
+        final AnalysisFile analysisFile = analysisService.getAnalysisFile(analysisId, uuid);
+        analysisService.updateCodeFile(analysisFile, fileDTO, user);
+        return new JsonResult<>(NO_ERROR, Boolean.TRUE);
     }
 
     protected List<MultipartFile> getEntityFiles(DataReferenceDTO entityReference, DataNode dataNode, CommonAnalysisType entityType)

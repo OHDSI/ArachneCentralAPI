@@ -93,8 +93,8 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
     void updateFile(String uuid, MultipartFile file, Long analysisId, Boolean isExecutable)
             throws IOException;
 
-    void writeToFile(AnalysisFile analysisFile,
-                     FileDTO fileContentDTO, IUser updatedBy) throws IOException;
+    void updateCodeFile(AnalysisFile analysisFile,
+                        FileDTO fileContentDTO, IUser updatedBy) throws IOException;
 
     AnalysisFile saveAnalysisFile(AnalysisFile file);
 
