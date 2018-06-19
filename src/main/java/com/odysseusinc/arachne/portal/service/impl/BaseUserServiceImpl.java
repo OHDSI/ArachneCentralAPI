@@ -163,6 +163,7 @@ public abstract class BaseUserServiceImpl<
     private static final String USERS_DIR = "users";
     private static final String AVATAR_FILE_NAME = "avatar.jpg";
     private static final String PASSWORD_NOT_MATCH_EXC = "Old password is incorrect";
+
     private final MessageSource messageSource;
     protected final ProfessionalTypeService professionalTypeService;
     private final JavaMailSender javaMailSender;
@@ -334,10 +335,18 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    public U create(final @NotNull U user)
+    public U createWithValidation(final @NotNull U user)
             throws NotUniqueException, NotExistException, PasswordValidationException {
-      
+
         updateFields(user);
+
+        return userRepository.save(user);
+    }
+
+    @Override
+    public U create(final @NotNull U user) throws PasswordValidationException  {
+
+        setFields(user);
 
         return userRepository.save(user);
     }
@@ -348,7 +357,7 @@ public abstract class BaseUserServiceImpl<
 
         user.setEmailConfirmed(false);
         user.setRegistrationCode(UUID.randomUUID().toString());
-        U createdUser = create(user);
+        U createdUser = createWithValidation(user);
 
         Optional<UserRegistrant> userRegistrant = userRegistrantService.findByToken(registrantToken);
         sendRegistrationEmail(createdUser, userRegistrant, callbackUrl, false);
@@ -357,6 +366,20 @@ public abstract class BaseUserServiceImpl<
 
     private void updateFields(U user) throws PasswordValidationException {
 
+        setFields(user);
+
+        // The existing user check should come last:
+        // it is muted in public registration form, so we need to show other errors ahead
+        U byEmail = getByUnverifiedEmailInAnyTenant(user.getEmail());
+        if (byEmail != null) {
+            throw new NotUniqueException(
+                    "email",
+                    messageSource.getMessage("validation.email.already.used", null, null)
+            );
+        }
+    }
+
+    private void setFields(U user) {
         if (userOrigin.equals(UserOrigin.NATIVE)) {
             user.setUsername(user.getEmail());
         }
@@ -381,16 +404,6 @@ public abstract class BaseUserServiceImpl<
             user.setTenants(tenantService.getDefault());
         } else {
             user.setActiveTenant(user.getTenants().iterator().next());
-        }
-
-        // The existing user check should come last:
-        // it is muted in public registration form, so we need to show other errors ahead
-        U byEmail = getByUnverifiedEmailInAnyTenant(user.getEmail());
-        if (byEmail != null) {
-            throw new NotUniqueException(
-                    "email",
-                    messageSource.getMessage("validation.email.already.used", null, null)
-            );
         }
     }
 
@@ -674,6 +687,12 @@ public abstract class BaseUserServiceImpl<
 
         final Specifications<U> spec = buildSpecification(userSearch);
         return rawUserRepository.findAll(spec);
+    }
+
+    @Override
+    public List<U> findUsersInAnyTenantByEmailIn(List<String> emails) {
+
+        return rawUserRepository.findByEmailIn(emails);
     }
 
     private Specifications<U> buildSpecification(final UserSearch userSearch) {

@@ -84,6 +84,15 @@ public abstract class BaseController<DN extends DataNode, U extends IUser> {
         return result;
     }
 
+    protected <T> JsonResult<T> setEmailValidationErrors(Map<String, String> emailErrors) {
+
+        JsonResult<T> result;
+        result = new JsonResult<>(VALIDATION_ERROR);
+        result.getValidatorErrors().putAll(emailErrors);
+
+        return result;
+    }
+
     protected <T> JsonResult<T> setValidationErrors(FieldException ex, String scope) {
 
         JsonResult<T> result = new JsonResult<>(VALIDATION_ERROR);

@@ -32,6 +32,7 @@ import com.odysseusinc.arachne.commons.api.v1.dto.ArachnePasswordInfoDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.nohandlerfoundexception.NoHandlerFoundExceptionUtils;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
+import com.odysseusinc.arachne.portal.exception.EmailNotUniqueException;
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.IORuntimeException;
 import com.odysseusinc.arachne.portal.exception.NoExecutableFileException;
@@ -126,6 +127,17 @@ public class ExceptionHandlingController extends BaseController {
         JsonResult result = new JsonResult<>(VALIDATION_ERROR);
         if (!ex.getConstraintViolations().isEmpty()) {
             result = setValidationErrors(ex.getConstraintViolations());
+        }
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @ExceptionHandler(EmailNotUniqueException.class)
+    public ResponseEntity<JsonResult> exceptionHandler(EmailNotUniqueException ex) {
+
+        LOGGER.warn(ex.getMessage());
+        JsonResult result = new JsonResult<>(VALIDATION_ERROR);
+        if (!ex.getEmailNotUniqueErrors().isEmpty()) {
+            result = setEmailValidationErrors(ex.getEmailNotUniqueErrors());
         }
         return new ResponseEntity<>(result, HttpStatus.OK);
     }

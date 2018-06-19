@@ -100,7 +100,9 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
 
     void resendActivationEmail(String email) throws UserNotFoundException;
 
-    U create(U user) throws NotUniqueException, NotExistException, PasswordValidationException;
+    U createWithValidation(@NotNull U user) throws NotUniqueException, NotExistException, PasswordValidationException;
+
+    U create(@NotNull U user) throws PasswordValidationException;
 
     void sendRemindPasswordEmail(U user, String token, String registrantToken, String callbackUrl);
 
@@ -145,6 +147,8 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
     Page<U> getPage(Pageable pageable, UserSearch userSearch);
 
     List<U> getList(UserSearch userSearch);
+
+    List<U> findUsersInAnyTenantByEmailIn(List<String> emails);
 
     void resetPassword(U user)
             throws UserNotFoundException, IllegalAccessException, NotExistException,

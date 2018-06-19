@@ -32,6 +32,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.ArachneConsts;
 import com.odysseusinc.arachne.portal.api.v1.dto.BatchOperationDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.BulkUsersRegistrationDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserWithTenantsDTO;
+import com.odysseusinc.arachne.portal.exception.EmailNotUniqueException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
@@ -43,7 +44,6 @@ import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.Submission;
-import com.odysseusinc.arachne.portal.model.UserOrigin;
 import com.odysseusinc.arachne.portal.model.search.PaperSearch;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.model.search.UserSearch;
@@ -65,24 +65,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
-import javax.validation.Valid;
 import javax.validation.Validator;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.SortDefault;
 import org.springframework.security.access.annotation.Secured;
-import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -112,6 +110,7 @@ public abstract class BaseAdminController<
     private final BaseTenantService tenantService;
     private final ConverterUtils converterUtils;
     private final Validator validator;
+    private final MessageSource messageSource;
 
     @Autowired
     public BaseAdminController(final BaseDataSourceService<DS> dataSourceService,
@@ -122,7 +121,8 @@ public abstract class BaseAdminController<
                                final BasePaperService<P, PS, S, DS, SS, SU> paperService,
                                final BaseTenantService tenantService,
                                final ConverterUtils converterUtils,
-                               final Validator validator) {
+                               final Validator validator,
+                               final MessageSource messageSource) {
 
         this.dataSourceService = dataSourceService;
         this.professionalTypeService = professionalTypeService;
@@ -133,6 +133,7 @@ public abstract class BaseAdminController<
         this.tenantService = tenantService;
         this.converterUtils = converterUtils;
         this.validator = validator;
+        this.messageSource = messageSource;
     }
 
     @ApiOperation(value = "Enable user.", hidden = true)
@@ -194,6 +195,14 @@ public abstract class BaseAdminController<
 
         Set<Tenant> tenants = new HashSet<>(tenantService.findByIdsIn(bulkUsersDto.getTenantIds()));
         List<U> users = converterUtils.convertList(bulkUsersDto.getUsers(), getUser());
+
+        Map<String, String> emailValidationErrors = getEmailValidationErrors(users);
+        if (!emailValidationErrors.isEmpty()) {
+            String message = emailValidationErrors.entrySet().stream()
+                    .map(entry -> entry.getKey() + " " + entry.getValue())
+                    .collect(Collectors.joining("; "));
+            throw new EmailNotUniqueException(message, emailValidationErrors);
+        }
 
         userService.saveUsers(users, tenants, bulkUsersDto.getEmailConfirmationRequired());
     }
@@ -291,5 +300,22 @@ public abstract class BaseAdminController<
 
         userService.performBatchOperation(dto.getIds(), dto.getType());
         return new JsonResult<>(NO_ERROR);
+    }
+
+    private Map<String, String> getEmailValidationErrors(List<U> users) {
+
+        List<U> persistentUsers = userService.findUsersInAnyTenantByEmailIn(users.stream()
+                .map(user -> user.getEmail())
+                .collect(Collectors.toList()));
+        Map<String, U> mailUserMap = persistentUsers.stream()
+                .collect(Collectors.toMap(U::getEmail, Function.identity()));
+        Map<String, String> emailValidationErrors = new HashMap<>();
+        for (int i = 0; i < users.size(); i++) {
+            if (!Objects.isNull(mailUserMap.get(users.get(i).getEmail()))) {
+                emailValidationErrors.put("users[" + i + "].email", messageSource.getMessage("validation.email.already.used", null, null));
+            }
+        }
+
+        return emailValidationErrors;
     }
 }

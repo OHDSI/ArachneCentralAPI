@@ -42,6 +42,7 @@ import com.odysseusinc.arachne.portal.service.TenantService;
 import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Validator;
@@ -59,9 +60,13 @@ public class AdminController extends BaseAdminController<IUser, Study, IDataSour
                            final PaperService paperService,
                            final TenantService tenantService,
                            final ConverterUtils converterUtils,
-                           final Validator validator) {
+                           final Validator validator,
+                           final MessageSource messageSource) {
 
-        super(dataSourceService, professionalTypeService, adminService, studyService, analysisService, paperService, tenantService, converterUtils, validator);
+        super(dataSourceService, professionalTypeService, adminService,
+                studyService, analysisService, paperService,
+                tenantService, converterUtils, validator,
+                messageSource);
     }
 
     @Override
