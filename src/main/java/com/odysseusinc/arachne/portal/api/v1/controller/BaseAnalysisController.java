@@ -356,16 +356,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
                                                      List<MultipartFile> files) throws IOException {
 
         JsonResult result = new JsonResult(NO_ERROR);
-        Map<String, Object> validationErrors = new HashMap<>();
-        List<String> errorFileMessages = new ArrayList<>();
-
-        analysisService.saveFiles(files, user, analysis, analysisType, dataReference, errorFileMessages);
-        if (!errorFileMessages.isEmpty()) {
-            result.setErrorCode(VALIDATION_ERROR.getCode());
-            validationErrors.put(dataReference.getGuid(), errorFileMessages.toArray(new String[0]));
-            result.setValidatorErrors(validationErrors);
-            return result;
-        }
+        analysisService.saveFiles(files, user, analysis, analysisType, dataReference);
         if (analysisType.equals(CommonAnalysisType.COHORT)) {
             final ByteArrayOutputStream out = new ByteArrayOutputStream();
             class StringContainer {
@@ -449,7 +440,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
     public JsonResult<List<AnalysisFileDTO>> uploadFile(Principal principal,
                                                         @Valid UploadFilesDTO uploadFilesLinks,
                                                         @PathVariable("analysisId") Long id)
-            throws PermissionDeniedException, NotExistException {
+            throws PermissionDeniedException, NotExistException, IOException {
 
         IUser user = getUser(principal);
         T analysis = analysisService.getById(id);
@@ -457,18 +448,12 @@ public abstract class BaseAnalysisController<T extends Analysis,
         return saveFiles(files, user, analysis);
     }
 
-    private JsonResult<List<AnalysisFileDTO>> saveFiles(List<UploadFileDTO> files, IUser user, T analysis) {
+    private JsonResult<List<AnalysisFileDTO>> saveFiles(List<UploadFileDTO> files, IUser user, T analysis) throws IOException {
 
         List<AnalysisFileDTO> createdFiles = new ArrayList<>();
-        List<String> errorFileMessages = new ArrayList<>();
         JsonResult<List<AnalysisFileDTO>> result = new JsonResult<>(NO_ERROR);
-        analysisService.saveFiles(files, user, analysis, errorFileMessages)
+        analysisService.saveFiles(files, user, analysis)
                 .forEach(createdFile -> createdFiles.add(conversionService.convert(createdFile, AnalysisFileDTO.class)));
-        if (!errorFileMessages.isEmpty()) {
-            result.setErrorCode(VALIDATION_ERROR.getCode());
-            result.setValidatorErrors(ImmutableMap.of("file", errorFileMessages.toArray(new String[0])));
-            return result;
-        }
         result.setResult(createdFiles);
         return result;
     }

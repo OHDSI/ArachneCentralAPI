@@ -61,10 +61,10 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
 
     Boolean moveAnalysis(Long id, Integer index);
 
-    List<AnalysisFile> saveFiles(List<UploadFileDTO> files, IUser user, T analysis, List<String> errorFileMessages);
+    List<AnalysisFile> saveFiles(List<UploadFileDTO> files, IUser user, T analysis) throws IOException;
 
     List<AnalysisFile> saveFiles(List<MultipartFile> multipartFiles, IUser user, T analysis, CommonAnalysisType analysisType,
-                                 DataReference dataReference, List<String> errorFileMessages);
+                                 DataReference dataReference) throws IOException;
 
     AnalysisFile saveFile(MultipartFile multipartFile, IUser user, T analysis, String label,
                           Boolean isExecutable, DataReference dataReference) throws IOException, AlreadyExistException;
