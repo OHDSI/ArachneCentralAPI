@@ -166,6 +166,8 @@ public abstract class BaseUserServiceImpl<
     private static final String USERS_DIR = "users";
     private static final String AVATAR_FILE_NAME = "avatar.jpg";
     private static final String PASSWORD_NOT_MATCH_EXC = "Old password is incorrect";
+    private static final String SHOULD_BE_UNIQUE_EXCEPTION = "Should be unique";
+
     private final MessageSource messageSource;
     protected final ProfessionalTypeService professionalTypeService;
     private final JavaMailSender javaMailSender;
@@ -346,6 +348,14 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
+    public U bulkCreate(final @NotNull U user) throws PasswordValidationException  {
+
+        setFields(user);
+
+        return userRepository.save(user);
+    }
+
+    @Override
     public U createWithEmailVerification(final @NotNull U user, String registrantToken, String callbackUrl)
             throws NotUniqueException, NotExistException, PasswordValidationException {
 
@@ -360,6 +370,20 @@ public abstract class BaseUserServiceImpl<
 
     private void updateFields(U user) throws PasswordValidationException {
 
+        setFields(user);
+
+        // The existing user check should come last:
+        // it is muted in public registration form, so we need to show other errors ahead
+        U byEmail = getByUnverifiedEmailInAnyTenant(user.getEmail());
+        if (byEmail != null) {
+            throw new NotUniqueException(
+                    "email",
+                    messageSource.getMessage("validation.email.already.used", null, null)
+            );
+        }
+    }
+
+    private void setFields(U user) {
         if (userOrigin.equals(UserOrigin.NATIVE)) {
             user.setUsername(user.getEmail());
         }
@@ -384,16 +408,6 @@ public abstract class BaseUserServiceImpl<
             user.setTenants(tenantService.getDefault());
         } else {
             user.setActiveTenant(user.getTenants().iterator().next());
-        }
-
-        // The existing user check should come last:
-        // it is muted in public registration form, so we need to show other errors ahead
-        U byEmail = getByUnverifiedEmailInAnyTenant(user.getEmail());
-        if (byEmail != null) {
-            throw new NotUniqueException(
-                    "email",
-                    messageSource.getMessage("validation.email.already.used", null, null)
-            );
         }
     }
 
@@ -579,7 +593,7 @@ public abstract class BaseUserServiceImpl<
 
         Map<String, String> emailValidationErrors = getEmailValidationErrors(users);
         if (!emailValidationErrors.isEmpty()) {
-            throw new EmailNotUniqueException(emailValidationErrors);
+            throw new EmailNotUniqueException(SHOULD_BE_UNIQUE_EXCEPTION, emailValidationErrors);
         }
 
         users.forEach(user -> {
@@ -591,7 +605,7 @@ public abstract class BaseUserServiceImpl<
                 user.setEmailConfirmed(false);
                 user.setRegistrationCode(UUID.randomUUID().toString());
             }
-            U createdUser = create(user);
+            U createdUser = bulkCreate(user);
             if (emailConfirmationRequired) {
                 sendRegistrationEmail(createdUser, Optional.empty(), null, true);
             }
@@ -600,15 +614,15 @@ public abstract class BaseUserServiceImpl<
 
     private Map<String, String> getEmailValidationErrors(List<U> users) {
 
+        List<U> persistentUsers = getAllInAnyTenant();
         Map<String, String> emailValidationErrors = new HashMap<>();
-        IntStream.range(0, users.size())
-                .forEach(index -> {
-                    U user = users.get(index);
-                    U byEmail = getByUnverifiedEmailInAnyTenant(user.getEmail());
-                    if (byEmail != null) {
-                        emailValidationErrors.put("users[" + index + "].email", messageSource.getMessage("validation.email.already.used", null, null));
-                    }
-                });
+        for (int i = 0; i < users.size(); i++) {
+            for (U persistentUser : persistentUsers) {
+                if (persistentUser.getEmail().equals(users.get(i).getEmail())) {
+                    emailValidationErrors.put("users[" + i + "].email", messageSource.getMessage("validation.email.already.used", null, null));
+                }
+            }
+        }
 
         return emailValidationErrors;
     }
@@ -697,6 +711,12 @@ public abstract class BaseUserServiceImpl<
 
         final Specifications<U> spec = buildSpecification(userSearch);
         return rawUserRepository.findAll(spec);
+    }
+
+    @Override
+    public List<U> getAllInAnyTenant() {
+
+        return rawUserRepository.findAll();
     }
 
     private Specifications<U> buildSpecification(final UserSearch userSearch) {
