@@ -32,12 +32,7 @@ public class EmailNotUniqueException extends ValidationException {
     public EmailNotUniqueException(String message, Map<String, String> emailNotUniqueErrors) {
 
         super(message);
-        if (emailNotUniqueErrors == null) {
-            this.emailNotUniqueErrors = null;
-        } else {
-            this.emailNotUniqueErrors = ImmutableMap.copyOf(emailNotUniqueErrors);
-        }
-
+        this.emailNotUniqueErrors = emailNotUniqueErrors;
     }
 
     public EmailNotUniqueException(Map<String, String> emailNotUniqueErrors) {
