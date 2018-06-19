@@ -47,6 +47,7 @@ import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.search.PaperSearch;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.model.search.UserSearch;
+import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.service.BaseAdminService;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.BasePaperService;
@@ -63,8 +64,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
 import javax.validation.Validator;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
@@ -184,12 +188,12 @@ public abstract class BaseAdminController<
 
         bulkUsersDto.getUsers().forEach(u -> u.setPassword(bulkUsersDto.getPassword()));
 
-/*        Set<ConstraintViolation<BulkUsersRegistrationDTO>> constraintViolations = validator.validate(bulkUsersDto);
+        Set<ConstraintViolation<BulkUsersRegistrationDTO>> constraintViolations = validator.validate(bulkUsersDto);
         if (!constraintViolations.isEmpty()) {
             throw new ConstraintViolationException(constraintViolations);
         }
 
-        Set<Tenant> tenants = new HashSet<>(tenantService.findByIdsIn(bulkUsersDto.getTenantIds()));*/
+        Set<Tenant> tenants = new HashSet<>(tenantService.findByIdsIn(bulkUsersDto.getTenantIds()));
         List<U> users = converterUtils.convertList(bulkUsersDto.getUsers(), getUser());
 
         Map<String, String> emailValidationErrors = getEmailValidationErrors(users);
@@ -200,7 +204,7 @@ public abstract class BaseAdminController<
             throw new EmailNotUniqueException(message, emailValidationErrors);
         }
 
-        userService.saveUsers(users, new HashSet<>(), bulkUsersDto.getEmailConfirmationRequired());
+        userService.saveUsers(users, tenants, bulkUsersDto.getEmailConfirmationRequired());
     }
 
     protected abstract Class getUser();
