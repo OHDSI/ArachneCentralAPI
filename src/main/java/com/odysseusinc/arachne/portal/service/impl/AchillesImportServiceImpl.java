@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,14 +22,10 @@
 
 package com.odysseusinc.arachne.portal.service.impl;
 
-import static java.nio.file.FileVisitResult.CONTINUE;
-import static java.nio.file.StandardOpenOption.READ;
-
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 import com.odysseusinc.arachne.portal.model.DataNode;
-import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.achilles.AchillesFile;
 import com.odysseusinc.arachne.portal.model.achilles.Characterization;
@@ -37,35 +33,28 @@ import com.odysseusinc.arachne.portal.repository.AchillesFileRepository;
 import com.odysseusinc.arachne.portal.repository.CharacterizationRepository;
 import com.odysseusinc.arachne.portal.service.AchillesImportService;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
-import java.util.Enumeration;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import javax.persistence.EntityManager;
 import javax.persistence.FlushModeType;
 import javax.transaction.Transactional;
-import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 @Service
 public class AchillesImportServiceImpl implements AchillesImportService {
@@ -74,12 +63,13 @@ public class AchillesImportServiceImpl implements AchillesImportService {
             "{} import Achilles result for Data Source with id='{}', name='{}', Data Node with id='{}' name='{}'";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AchillesImportService.class);
-    private static final ThreadLocal<List<AchillesFile>> batch = new ThreadLocal<>();
+
+    @Value("${spring.jpa.properties.hibernate.jdbc.batch_size}")
+    private int batchSize = 1000;
 
     protected final EntityManager entityManager;
     protected final CharacterizationRepository characterizationRepository;
     protected final AchillesFileRepository achillesFileRepository;
-
 
     @Autowired
     public AchillesImportServiceImpl(EntityManager entityManager,
@@ -108,88 +98,45 @@ public class AchillesImportServiceImpl implements AchillesImportService {
         characterization.setDate(now);
         Path tempDir = Files.createTempDirectory("achilles_");
         entityManager.setFlushMode(FlushModeType.COMMIT);
-        batch.set(new ArrayList<>());
         try {
-            unzipData(archivedData, tempDir);
-            List<AchillesFile> files = new LinkedList<>();
-            JsonParser parser = new JsonParser();
             final Characterization result = characterizationRepository.save(characterization);
-            Files.walkFileTree(tempDir, new SimpleFileVisitor<Path>() {
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-
-                    AchillesFile achillesFile = new AchillesFile();
-                    achillesFile.setFilePath(tempDir.relativize(file).toString());
-                    try (JsonReader reader = new JsonReader(new InputStreamReader(Files.newInputStream(file, READ)))) {
-                        JsonObject jsonObject = parser.parse(reader).getAsJsonObject();
-                        achillesFile.setData(jsonObject);
+            JsonParser parser = new JsonParser();
+            List<AchillesFile> files = new ArrayList<>(batchSize);
+            ZipFile zipFile = new ZipFile(archivedData);
+            for(ZipEntry entry :  Collections.list(zipFile.entries())){
+                String name = entry.getName();
+                if (!entry.isDirectory()) {
+                    try(final InputStream in = zipFile.getInputStream(entry)) {
+                        try(JsonReader reader = new JsonReader(new InputStreamReader(in))){
+                            JsonObject jsonObject = parser.parse(reader).getAsJsonObject();
+                            AchillesFile achillesFile = new AchillesFile();
+                            achillesFile.setData(jsonObject);
+                            achillesFile.setFilePath(name);
+                            achillesFile.setCharacterization(result);
+                            files.add(achillesFile);
+                            if (files.size() == batchSize) {
+                                flush(files);
+                                files = new ArrayList<>(batchSize);
+                            }
+                        }
                     }
-                    achillesFile.setCharacterization(result);
-                    saveAsBatch(achillesFile);
-                    return CONTINUE;
                 }
-            });
-            flush();
+            }
+            flush(files);
             LOGGER.info(IMPORT_ACHILLES_RESULT_LOG, "Finished", dataSourceId, dataSourceName, dataNodeId, dataNodeName);
         } finally {
             FileUtils.deleteQuietly(tempDir.toFile());
         }
     }
 
-    private void unzipData(File archivedFile, Path destination) throws IOException {
+    private void flush(List<AchillesFile> achillesFiles) {
 
-        /*
-        Objects.requireNonNull(archivedFile);
-        if (Files.notExists(destination)) {
-            Files.createDirectories(destination);
-        }
-        try {
-            CommonFileUtils.unzipFiles(archivedFile, destination.toFile());
-            FileUtils.deleteQuietly(archivedFile);
-        } catch (ZipException e) {
-            throw new java.util.zip.ZipException(e.getMessage());
-        }
-        */
-        // Alternate unzip implementation. Code is below unzips achilles loosing jsons
-        java.util.zip.ZipFile zipFile = new ZipFile(archivedFile);
-        try {
-            Enumeration<? extends ZipEntry> entries = zipFile.entries();
-            while (entries.hasMoreElements()) {
-                ZipEntry entry = entries.nextElement();
-                File entryDestination = new File(destination.toString(), entry.getName());
-                if (entry.isDirectory()) {
-                    entryDestination.mkdirs();
-                } else {
-                    entryDestination.getParentFile().mkdirs();
-                    InputStream in = zipFile.getInputStream(entry);
-                    OutputStream out = new FileOutputStream(entryDestination);
-                    IOUtils.copy(in, out);
-                    IOUtils.closeQuietly(in);
-                    out.close();
-                }
+        for(AchillesFile file : achillesFiles) {
+            if (file.getId() == null) {
+                entityManager.persist(file);
+            } else {
+                entityManager.merge(file);
             }
-        } finally {
-            zipFile.close();
-        }
-    }
-
-    private void saveAsBatch(AchillesFile achillesFile) {
-
-        List<AchillesFile> achillesFiles = batch.get();
-        if (achillesFile != null) {
-            achillesFiles.add(achillesFile);
-        }
-        if (achillesFiles.size() == 1000) {
-            flush();
-        }
-    }
-
-    private void flush() {
-
-        final List<AchillesFile> achillesFiles = batch.get();
-        if (!CollectionUtils.isEmpty(achillesFiles)) {
-            achillesFileRepository.save(achillesFiles);
-            batch.set(new ArrayList<>());
         }
         entityManager.flush();
         entityManager.clear();

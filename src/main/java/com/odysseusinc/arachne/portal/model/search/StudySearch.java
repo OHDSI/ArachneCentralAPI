@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.model.search;
 
+import com.odysseusinc.arachne.portal.model.StudyKind;
 
 public class StudySearch {
     private String query;
@@ -35,6 +36,7 @@ public class StudySearch {
     private Integer pagesize;
     private Boolean my = Boolean.FALSE;
     private Boolean privacy;
+    private StudyKind kind;
 
     public String getSortBy() {
 
@@ -144,5 +146,15 @@ public class StudySearch {
     public void setPrivacy(Boolean privacy) {
 
         this.privacy = privacy;
+    }
+
+    public StudyKind getKind() {
+
+        return kind;
+    }
+
+    public void setKind(StudyKind kind) {
+
+        this.kind = kind;
     }
 }
