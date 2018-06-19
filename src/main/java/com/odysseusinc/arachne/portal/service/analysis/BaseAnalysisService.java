@@ -23,7 +23,9 @@
 package com.odysseusinc.arachne.portal.service.analysis;
 
 import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
+import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.portal.api.v1.dto.FileDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.UploadFileDTO;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.NotUniqueException;
@@ -59,10 +61,15 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
 
     Boolean moveAnalysis(Long id, Integer index);
 
+    List<AnalysisFile> saveFiles(List<UploadFileDTO> files, IUser user, T analysis) throws IOException;
+
+    List<AnalysisFile> saveFiles(List<MultipartFile> multipartFiles, IUser user, T analysis, CommonAnalysisType analysisType,
+                                 DataReference dataReference) throws IOException;
+
     AnalysisFile saveFile(MultipartFile multipartFile, IUser user, T analysis, String label,
                           Boolean isExecutable, DataReference dataReference) throws IOException, AlreadyExistException;
 
-    AnalysisFile saveFile(String link, IUser user, T analysis, String label, Boolean isExecutable)
+    AnalysisFile saveFileByLink(String link, IUser user, T analysis, String label, Boolean isExecutable)
             throws IOException, AlreadyExistException;
 
     Path getAnalysisFile(AnalysisFile analysisFile) throws FileNotFoundException;
