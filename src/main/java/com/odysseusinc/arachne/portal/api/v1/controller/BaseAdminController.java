@@ -32,6 +32,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.ArachneConsts;
 import com.odysseusinc.arachne.portal.api.v1.dto.BatchOperationDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.BulkUsersRegistrationDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserWithTenantsDTO;
+import com.odysseusinc.arachne.portal.exception.EmailNotUniqueException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
@@ -58,8 +59,10 @@ import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.validation.ConstraintViolation;
@@ -69,6 +72,7 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -94,6 +98,7 @@ public abstract class BaseAdminController<
         SB extends Submission> extends BaseController<DataNode, U> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AdminController.class);
+    private static final String SHOULD_BE_UNIQUE_EXCEPTION = "Should be unique";
 
     private final BaseDataSourceService<DS> dataSourceService;
     protected final ProfessionalTypeService professionalTypeService;
@@ -104,6 +109,7 @@ public abstract class BaseAdminController<
     private final BaseTenantService tenantService;
     private final ConverterUtils converterUtils;
     private final Validator validator;
+    private final MessageSource messageSource;
 
     @Autowired
     public BaseAdminController(final BaseDataSourceService<DS> dataSourceService,
@@ -114,7 +120,8 @@ public abstract class BaseAdminController<
                                final BasePaperService<P, PS, S, DS, SS, SU> paperService,
                                final BaseTenantService tenantService,
                                final ConverterUtils converterUtils,
-                               final Validator validator) {
+                               final Validator validator,
+                               final MessageSource messageSource) {
 
         this.dataSourceService = dataSourceService;
         this.professionalTypeService = professionalTypeService;
@@ -125,6 +132,7 @@ public abstract class BaseAdminController<
         this.tenantService = tenantService;
         this.converterUtils = converterUtils;
         this.validator = validator;
+        this.messageSource = messageSource;
     }
 
     @ApiOperation(value = "Enable user.", hidden = true)
@@ -186,6 +194,11 @@ public abstract class BaseAdminController<
 
         Set<Tenant> tenants = new HashSet<>(tenantService.findByIdsIn(bulkUsersDto.getTenantIds()));
         List<U> users = converterUtils.convertList(bulkUsersDto.getUsers(), getUser());
+
+        Map<String, String> emailValidationErrors = getEmailValidationErrors(users);
+        if (!emailValidationErrors.isEmpty()) {
+            throw new EmailNotUniqueException(SHOULD_BE_UNIQUE_EXCEPTION, emailValidationErrors);
+        }
 
         userService.saveUsers(users, tenants, bulkUsersDto.getEmailConfirmationRequired());
     }
@@ -283,5 +296,22 @@ public abstract class BaseAdminController<
 
         userService.performBatchOperation(dto.getIds(), dto.getType());
         return new JsonResult<>(NO_ERROR);
+    }
+
+    private Map<String, String> getEmailValidationErrors(List<U> users) {
+
+        List<U> persistentUsers = userService.findUsersInAnyTenantByEmailIn(users.stream()
+                .map(user -> user.getEmail())
+                .collect(Collectors.toList()));
+        Map<String, String> emailValidationErrors = new HashMap<>();
+        for (int i = 0; i < users.size(); i++) {
+            for (U persistentUser : persistentUsers) {
+                if (persistentUser.getEmail().equals(users.get(i).getEmail())) {
+                    emailValidationErrors.put("users[" + i + "].email", messageSource.getMessage("validation.email.already.used", null, null));
+                }
+            }
+        }
+
+        return emailValidationErrors;
     }
 }

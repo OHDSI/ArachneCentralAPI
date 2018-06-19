@@ -44,7 +44,6 @@ import com.odysseusinc.arachne.portal.api.v1.dto.BatchOperationType;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchExpertListDTO;
 import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
 import com.odysseusinc.arachne.portal.exception.ArachneSystemRuntimeException;
-import com.odysseusinc.arachne.portal.exception.EmailNotUniqueException;
 import com.odysseusinc.arachne.portal.exception.NotEmptyException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.NotUniqueException;
@@ -110,7 +109,6 @@ import java.security.Principal;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -122,7 +120,6 @@ import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletResponse;
@@ -166,7 +163,6 @@ public abstract class BaseUserServiceImpl<
     private static final String USERS_DIR = "users";
     private static final String AVATAR_FILE_NAME = "avatar.jpg";
     private static final String PASSWORD_NOT_MATCH_EXC = "Old password is incorrect";
-    private static final String SHOULD_BE_UNIQUE_EXCEPTION = "Should be unique";
 
     private final MessageSource messageSource;
     protected final ProfessionalTypeService professionalTypeService;
@@ -339,7 +335,7 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    public U create(final @NotNull U user)
+    public U createWithValidation(final @NotNull U user)
             throws NotUniqueException, NotExistException, PasswordValidationException {
 
         updateFields(user);
@@ -348,7 +344,7 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    public U bulkCreate(final @NotNull U user) throws PasswordValidationException  {
+    public U create(final @NotNull U user) throws PasswordValidationException  {
 
         setFields(user);
 
@@ -361,7 +357,7 @@ public abstract class BaseUserServiceImpl<
 
         user.setEmailConfirmed(false);
         user.setRegistrationCode(UUID.randomUUID().toString());
-        U createdUser = create(user);
+        U createdUser = createWithValidation(user);
 
         Optional<UserRegistrant> userRegistrant = userRegistrantService.findByToken(registrantToken);
         sendRegistrationEmail(createdUser, userRegistrant, callbackUrl, false);
@@ -591,11 +587,6 @@ public abstract class BaseUserServiceImpl<
     @Transactional(rollbackOn = Exception.class)
     public void saveUsers(List<U> users, Set<Tenant> tenants, boolean emailConfirmationRequired) {
 
-        Map<String, String> emailValidationErrors = getEmailValidationErrors(users);
-        if (!emailValidationErrors.isEmpty()) {
-            throw new EmailNotUniqueException(SHOULD_BE_UNIQUE_EXCEPTION, emailValidationErrors);
-        }
-
         users.forEach(user -> {
             user.setTenants(tenants);
             user.setOrigin(UserOrigin.NATIVE);
@@ -605,26 +596,11 @@ public abstract class BaseUserServiceImpl<
                 user.setEmailConfirmed(false);
                 user.setRegistrationCode(UUID.randomUUID().toString());
             }
-            U createdUser = bulkCreate(user);
+            U createdUser = create(user);
             if (emailConfirmationRequired) {
                 sendRegistrationEmail(createdUser, Optional.empty(), null, true);
             }
         });
-    }
-
-    private Map<String, String> getEmailValidationErrors(List<U> users) {
-
-        List<U> persistentUsers = getAllInAnyTenant();
-        Map<String, String> emailValidationErrors = new HashMap<>();
-        for (int i = 0; i < users.size(); i++) {
-            for (U persistentUser : persistentUsers) {
-                if (persistentUser.getEmail().equals(users.get(i).getEmail())) {
-                    emailValidationErrors.put("users[" + i + "].email", messageSource.getMessage("validation.email.already.used", null, null));
-                }
-            }
-        }
-
-        return emailValidationErrors;
     }
 
     @Override
@@ -714,9 +690,9 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    public List<U> getAllInAnyTenant() {
+    public List<U> findUsersInAnyTenantByEmailIn(List<String> emails) {
 
-        return rawUserRepository.findAll();
+        return rawUserRepository.findByEmailIn(emails);
     }
 
     private Specifications<U> buildSpecification(final UserSearch userSearch) {

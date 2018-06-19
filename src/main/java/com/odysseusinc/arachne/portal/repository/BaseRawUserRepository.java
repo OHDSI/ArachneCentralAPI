@@ -86,4 +86,6 @@ public interface BaseRawUserRepository<U extends IUser> extends EntityGraphJpaRe
     List<U> findByIdInAndEnabledTrue(Set<Long> userIds);
     
     List<U> findByIdIn(Collection<Long> userIds);
+
+    List<U> findByEmailIn(List<String> emails);
 }
