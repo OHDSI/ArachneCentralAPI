@@ -42,8 +42,11 @@ import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ServiceNotAvailableException;
 import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
+import com.odysseusinc.arachne.portal.exception.ValidationRuntimeException;
 import com.odysseusinc.arachne.portal.exception.WrongFileFormatException;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -86,6 +89,20 @@ public class ExceptionHandlingController extends BaseController {
         LOGGER.warn(ex.getMessage());
         JsonResult result = new JsonResult<>(VALIDATION_ERROR);
         result.setErrorMessage(ex.getMessage());
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @ExceptionHandler(ValidationRuntimeException.class)
+    public ResponseEntity<JsonResult> exceptionHandler(ValidationRuntimeException ex) {
+
+        LOGGER.error(ex.getMessage() + ": " +
+                ex.getValidatorErrors().values()
+                        .stream()
+                        .flatMap(Collection::stream)
+                        .collect(Collectors.toList())
+                        .toString());
+        JsonResult result = new JsonResult<>(VALIDATION_ERROR);
+        result.setValidatorErrors(ex.getValidatorErrors());
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
