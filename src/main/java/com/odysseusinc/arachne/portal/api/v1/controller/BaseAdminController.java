@@ -47,7 +47,6 @@ import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.search.PaperSearch;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.model.search.UserSearch;
-import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.service.BaseAdminService;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.BasePaperService;
@@ -63,10 +62,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
 import javax.validation.Validator;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
@@ -98,7 +96,6 @@ public abstract class BaseAdminController<
         SB extends Submission> extends BaseController<DataNode, U> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AdminController.class);
-    private static final String SHOULD_BE_UNIQUE_EXCEPTION = "Should be unique";
 
     private final BaseDataSourceService<DS> dataSourceService;
     protected final ProfessionalTypeService professionalTypeService;
@@ -187,20 +184,23 @@ public abstract class BaseAdminController<
 
         bulkUsersDto.getUsers().forEach(u -> u.setPassword(bulkUsersDto.getPassword()));
 
-        Set<ConstraintViolation<BulkUsersRegistrationDTO>> constraintViolations = validator.validate(bulkUsersDto);
+/*        Set<ConstraintViolation<BulkUsersRegistrationDTO>> constraintViolations = validator.validate(bulkUsersDto);
         if (!constraintViolations.isEmpty()) {
             throw new ConstraintViolationException(constraintViolations);
         }
 
-        Set<Tenant> tenants = new HashSet<>(tenantService.findByIdsIn(bulkUsersDto.getTenantIds()));
+        Set<Tenant> tenants = new HashSet<>(tenantService.findByIdsIn(bulkUsersDto.getTenantIds()));*/
         List<U> users = converterUtils.convertList(bulkUsersDto.getUsers(), getUser());
 
         Map<String, String> emailValidationErrors = getEmailValidationErrors(users);
         if (!emailValidationErrors.isEmpty()) {
-            throw new EmailNotUniqueException(SHOULD_BE_UNIQUE_EXCEPTION, emailValidationErrors);
+            String message = emailValidationErrors.entrySet().stream()
+                    .map(entry -> entry.getKey() + " " + entry.getValue())
+                    .collect(Collectors.joining("; "));
+            throw new EmailNotUniqueException(message, emailValidationErrors);
         }
 
-        userService.saveUsers(users, tenants, bulkUsersDto.getEmailConfirmationRequired());
+        userService.saveUsers(users, new HashSet<>(), bulkUsersDto.getEmailConfirmationRequired());
     }
 
     protected abstract Class getUser();
@@ -303,12 +303,12 @@ public abstract class BaseAdminController<
         List<U> persistentUsers = userService.findUsersInAnyTenantByEmailIn(users.stream()
                 .map(user -> user.getEmail())
                 .collect(Collectors.toList()));
+        Map<String, U> mailUserMap = persistentUsers.stream()
+                .collect(Collectors.toMap(U::getEmail, Function.identity()));
         Map<String, String> emailValidationErrors = new HashMap<>();
         for (int i = 0; i < users.size(); i++) {
-            for (U persistentUser : persistentUsers) {
-                if (persistentUser.getEmail().equals(users.get(i).getEmail())) {
-                    emailValidationErrors.put("users[" + i + "].email", messageSource.getMessage("validation.email.already.used", null, null));
-                }
+            if (!Objects.isNull(mailUserMap.get(users.get(i).getEmail()))) {
+                emailValidationErrors.put("users[" + i + "].email", messageSource.getMessage("validation.email.already.used", null, null));
             }
         }
 
