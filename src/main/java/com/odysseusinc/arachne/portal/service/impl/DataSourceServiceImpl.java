@@ -38,7 +38,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
-import java.util.List;
 
 @Service
 @SuppressWarnings("unused")
@@ -62,11 +61,5 @@ public class DataSourceServiceImpl extends BaseDataSourceServiceImpl<IDataSource
     protected Class<?> getType() {
 
         return DataSource.class;
-    }
-
-    @Override
-    public List<IDataSource> getAllByUserId(Long userId) {
-
-        return dataSourceRepository.getAllByUserId(userId);
     }
 }
