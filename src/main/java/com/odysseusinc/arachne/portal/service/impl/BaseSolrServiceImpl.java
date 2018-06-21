@@ -255,18 +255,22 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
             final List<Map<T, Object>> valuesList
     ) {
 
-        try {
-            final List<SolrInputDocument> documents = valuesList.stream().map(v -> createSolrDocument(collection, v)).collect(Collectors.toList());
+        EntityUtils.splitAndApplyBatchFunction(sublist -> {
+            try {
+                final List<SolrInputDocument> documents = sublist.stream()
+                        .map(v -> createSolrDocument(collection, v))
+                        .collect(Collectors.toList());
 
-            final UpdateResponse updateResponse = solrClient.add(collection, documents);
-            final UpdateResponse commitResponse = solrClient.commit(collection);
+                final UpdateResponse updateResponse = solrClient.add(collection, documents);
+                final UpdateResponse commitResponse = solrClient.commit(collection);
 
-            if (commitResponse.getStatus() != 0 || updateResponse.getStatus() != 0) {
-                throw new SolrServerException("Cannot index by Solr");
+                if (commitResponse.getStatus() != 0 || updateResponse.getStatus() != 0) {
+                    throw new SolrServerException("Cannot index by Solr");
+                }
+            } catch( IOException | SolrServerException e) {
+                throw new SolrException(e);
             }
-        } catch( IOException | SolrServerException e) {
-            throw new SolrException(e);
-        }
+        }, valuesList, solrBatchSize);
     }
         
     
@@ -397,32 +401,25 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
     @Override
     public void indexBySolr(final SolrEntity entity) {
         
-        try {
-            final Map<T, Object> values = getValuesByEntity(entity);
-            putDocument(
-                    entity.getCollection().getName(),
-                    entity.getId(),
-                    values
-            );
-        } catch (final Exception e) {
-            throw new SolrException(e);
-        }
+        final Map<T, Object> values = getValuesByEntity(entity);
+        putDocument(
+                entity.getCollection().getName(),
+                entity.getId(),
+                values
+        );
     }
+
+
 
     @Override
     public void indexBySolr(final List<? extends SolrEntity> entities) {
-        
-        EntityUtils.splitAndApplyBatchFunction(this::indexBySolrInternal, entities, solrBatchSize);
-    }
 
-    public void indexBySolrInternal(final List<? extends SolrEntity> entities) {
-        
         try {
             final Map<SolrCollection, List<SolrEntity>> entitiesGroupByCollection = entities
                     .stream()
                     .collect(Collectors.groupingBy(SolrEntity::getCollection));
             entitiesGroupByCollection.forEach((key, value) -> putDocuments(
-                    key.getName(), 
+                    key.getName(),
                     value.stream().map(this::getValuesByEntity).collect(Collectors.toList())
             ));
         } catch (final Exception e) {
