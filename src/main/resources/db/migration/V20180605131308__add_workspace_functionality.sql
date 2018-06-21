@@ -1,6 +1,8 @@
 ALTER TABLE studies_data
   ADD COLUMN IF NOT EXISTS kind VARCHAR NOT NULL DEFAULT 'REGULAR';
 
+ALTER TABLE studies_data
+  DROP CONSTRAINT IF EXISTS title_uk;
 DROP INDEX IF EXISTS title_uk;
 
 DROP INDEX IF EXISTS studies_data_unique_title_if_kind_is_regular;
