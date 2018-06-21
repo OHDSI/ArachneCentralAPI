@@ -348,7 +348,7 @@ public abstract class BaseUserServiceImpl<
 
         // The existing user check should come last:
         // it is muted in public registration form, so we need to show other errors ahead
-        U byEmail = getByUnverifiedEmailInAnyTenant(user.getEmail());
+        U byEmail = getByUnverifiedEmailInAnyTenant(user.getEmail().toLowerCase());
         if (byEmail != null) {
             throw new NotUniqueException(
                     "email",
