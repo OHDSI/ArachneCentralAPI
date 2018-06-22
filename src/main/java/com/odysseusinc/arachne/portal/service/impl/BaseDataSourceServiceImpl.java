@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -460,8 +460,13 @@ public abstract class BaseDataSourceServiceImpl<
     public void indexAllBySolr() throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
         solrService.deleteAll(SolrCollection.DATA_SOURCES);
-        final List<DS> dataSourceList = getAllNotDeletedAndIsNotVirtualFromAllTenants(true);
-        solrService.indexBySolr(dataSourceList);
+
+        // it's not obvious, just gatherValues is overridden in enterprise
+        final List<Map<SF, Object>> values = getAllNotDeletedAndIsNotVirtualFromAllTenants(true).stream()
+                .map(this::gatherValues)
+                .collect(Collectors.toList());
+
+        solrService.putDocuments(SolrCollection.DATA_SOURCES.getName(), values);
     }
 
     protected SolrQuery addFilterQuery(SolrQuery solrQuery, IUser user) throws NoSuchFieldException {
@@ -480,12 +485,25 @@ public abstract class BaseDataSourceServiceImpl<
         return searchResult.excludedOptions();
     }
 
-    public void indexBySolr(DS dataSource)
+    @Override
+    public void indexBySolr(final DS dataSource)
             throws IOException, SolrServerException, NoSuchFieldException, IllegalAccessException {
 
-        solrService.indexBySolr(dataSource);
+        final Map<SF, Object> valuesByEntity = gatherValues(dataSource);
+
+        solrService.putDocument(
+                dataSource.getCollection().getName(),
+                dataSource.getId(),
+                valuesByEntity
+        );
     }
 
+    protected Map<SF, Object> gatherValues(final DS dataSource) {
+
+        return solrService.getValuesByEntity(dataSource);
+    }
+
+    @Override
     public List<DS> findByIdsAndNotDeleted(List<Long> dataSourceIds) {
 
         return rawDataSourceRepository.findByIdInAndDeletedIsNull(dataSourceIds);

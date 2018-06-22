@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,7 +26,7 @@ import com.odysseusinc.arachne.portal.model.IUser;
 
 public class RemindPasswordMailMessage extends ArachneMailMessage implements UserRegistrantMailMessage {
 
-    private String subject = "Arachne reset password";
+    private String subject = "${app-title} reset password";
     private String template = "mail/remind_password";
 
     public RemindPasswordMailMessage(IUser user, String portalUrl, String token) {

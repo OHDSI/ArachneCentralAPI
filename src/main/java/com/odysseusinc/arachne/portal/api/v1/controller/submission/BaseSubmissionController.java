@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -79,6 +79,7 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -324,7 +325,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
 
         try {
             Path file = submissionService.getSubmissionArchiveChunk(id, updatePassword, fileName);
-            HttpUtils.putFileContentToResponse(response, "", fileName, file);
+            HttpUtils.putFileContentToResponse(response, MediaType.APPLICATION_OCTET_STREAM_VALUE, fileName, file);
         } catch (FileNotFoundException e) {
             LOGGER.warn("Submission file was not found, id: {}, fileName: {}", id, fileName);
             response.setStatus(HttpStatus.NOT_FOUND.value());

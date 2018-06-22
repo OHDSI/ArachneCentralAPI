@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -51,7 +51,9 @@ import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionInsightDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdateNotificationDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdateParticipantDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UploadFileDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.WorkspaceDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.converters.FileDtoContentHandler;
+import com.odysseusinc.arachne.portal.config.tenancy.TenantContext;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
@@ -67,6 +69,8 @@ import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
 import com.odysseusinc.arachne.portal.model.StudyFile;
+import com.odysseusinc.arachne.portal.model.StudyKind;
+import com.odysseusinc.arachne.portal.model.StudyType;
 import com.odysseusinc.arachne.portal.model.SubmissionInsight;
 import com.odysseusinc.arachne.portal.model.SuggestSearchRegion;
 import com.odysseusinc.arachne.portal.model.User;
@@ -76,6 +80,7 @@ import com.odysseusinc.arachne.portal.model.statemachine.study.StudyStateMachine
 import com.odysseusinc.arachne.portal.model.statemachine.study.StudyTransition;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.StudyFileService;
+import com.odysseusinc.arachne.portal.service.StudyTypeService;
 import com.odysseusinc.arachne.portal.service.ToPdfConverter;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightService;
@@ -116,6 +121,7 @@ public abstract class BaseStudyController<
         DS extends IDataSource,
         A extends Analysis,
         SD extends StudyDTO,
+        WD extends WorkspaceDTO,
         SS extends StudySearch,
         SU extends AbstractUserStudyListItem,
         SL extends StudyListDTO> extends BaseController {
@@ -129,6 +135,7 @@ public abstract class BaseStudyController<
     private BaseAnalysisService<A> analysisService;
     private SimpMessagingTemplate wsTemplate;
     private SubmissionInsightService submissionInsightService;
+    private StudyTypeService studyTypeService;
 
     @Autowired
     private ToPdfConverter toPdfConverter;
@@ -140,7 +147,8 @@ public abstract class BaseStudyController<
                                SimpMessagingTemplate wsTemplate,
                                StudyFileService fileService,
                                StudyStateMachine studyStateMachine,
-                               SubmissionInsightService submissionInsightService) {
+                               SubmissionInsightService submissionInsightService,
+                               StudyTypeService studyTypeService) {
 
         this.studyService = studyService;
         this.analysisService = analysisService;
@@ -149,6 +157,7 @@ public abstract class BaseStudyController<
         this.fileService = fileService;
         this.studyStateMachine = studyStateMachine;
         this.submissionInsightService = submissionInsightService;
+        this.studyTypeService = studyTypeService;
     }
 
     public abstract T convert(CreateStudyDTO studyDTO);
@@ -172,12 +181,29 @@ public abstract class BaseStudyController<
                 T study = convert(studyDTO);
                 study = studyService.create(user, study);
                 result = new JsonResult<>(NO_ERROR);
-                result.setResult(convert(study));
+                result.setResult(convertStudyToStudyDTO(study));
             }
         } else {
             result = new JsonResult<>(PERMISSION_DENIED);
         }
         return result;
+    }
+
+    @ApiOperation("Get existing or create new workspace.")
+    @RequestMapping(value = "/api/v1/workspace", method = GET)
+    public WD getOrCreateWorkspace(final Principal principal) throws PermissionDeniedException {
+
+        final IUser user = getUser(principal);
+        final T workspace = studyService.findOrCreateWorkspaceForUser(user, user.getId());
+        return convertStudyToWorkspaceDTO(workspace);
+    }
+
+    @ApiOperation("Get workspace for specific user.")
+    @RequestMapping(value = "/api/v1/workspace/{userUuid}", method = GET)
+    public WD getWorkspaceForUser(@PathVariable("userUuid") final String userUuid, final Principal principal) throws NotExistException, PermissionDeniedException {
+
+        final IUser currentUser = getUser(principal);
+        return convertStudyToWorkspaceDTO(studyService.findWorkspaceForUser(currentUser, UserIdUtils.uuidToId(userUuid)));
     }
 
     @ApiOperation("List study statuses.")
@@ -188,18 +214,14 @@ public abstract class BaseStudyController<
     }
 
     @RequestMapping(value = "/api/v1/study-management/studies/{studyId}", method = GET)
-    public JsonResult<SD> get(
-            @PathVariable("studyId") Long id,
-            Principal principal)
+    public SD get(
+            @PathVariable("studyId") final Long id,
+            final Principal principal)
             throws PermissionDeniedException, NotExistException {
 
-        JsonResult<SD> result;
-        IUser user = getUser(principal);
-        SU myStudy = studyService.getStudy(user, id);
-        result = new JsonResult<>(NO_ERROR);
-        SD studyDTO = convert(myStudy);
-        result.setResult(studyDTO);
-        return result;
+        final IUser user = getUser(principal);
+        final SU myStudy = studyService.getStudy(user, id);
+        return convert(myStudy);
     }
 
     protected abstract SD convert(SU myStudy);
@@ -219,13 +241,15 @@ public abstract class BaseStudyController<
             study.setId(id);
             study = studyService.update(study);
             result = new JsonResult<>(NO_ERROR);
-            SD dto = convert(study);
+            SD dto = convertStudyToStudyDTO(study);
             result.setResult(dto);
         }
         return result;
     }
 
-    protected abstract SD convert(T study);
+    protected abstract SD convertStudyToStudyDTO(T study);
+
+    protected abstract WD convertStudyToWorkspaceDTO(T study);
 
     @RequestMapping(value = "/api/v1/study-management/studies/{studyId}/favourite", method = PUT)
     public JsonResult updateFavourite(
@@ -277,15 +301,11 @@ public abstract class BaseStudyController<
     ) throws PermissionDeniedException {
 
         handleInputSearchParams(studySearch);
-
         final IUser user = getUser(principal);
-
         studySearch.setUserId(user.getId());
-
         Page<SL> converted =
                 studyService.findStudies(studySearch)
                         .map(this::convertListItem);
-
         return new JsonResult<>(NO_ERROR, converted);
     }
 
@@ -299,8 +319,8 @@ public abstract class BaseStudyController<
         if (studyViewSearchParams.getPagesize() == null) {
             studyViewSearchParams.setPagesize(Integer.MAX_VALUE);
         }
+        studyViewSearchParams.setKind(StudyKind.REGULAR);
     }
-
 
     @ApiOperation("Add participant to the study.")
     @RequestMapping(value = "/api/v1/study-management/studies/{studyId}/participants",

@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,6 +31,7 @@ import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.api.v1.dto.RemindPasswordDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ResetPasswordDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserInfoDTO;
+import com.odysseusinc.arachne.portal.exception.NoDefaultTenantException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PasswordValidationException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
@@ -164,10 +165,13 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
     }
 
     protected void checkIfUserHasTenant(String email) throws AuthenticationException {
+
         IUser user = userService.getByEmailInAnyTenant(email);
-        if (user == null ||
-                user.getTenants() == null || user.getTenants().isEmpty()) {
+        if (user == null) {
             throw new BadCredentialsException("Bad credentials");
+        }
+        if (user.getTenants() == null || user.getTenants().isEmpty()) {
+            throw new NoDefaultTenantException("Request admin to add you into a tenant.");
         }
     }
 

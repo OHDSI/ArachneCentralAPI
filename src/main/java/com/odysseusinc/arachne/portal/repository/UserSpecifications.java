@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,7 +23,11 @@
 package com.odysseusinc.arachne.portal.repository;
 
 import com.odysseusinc.arachne.portal.model.IUser;
-import com.odysseusinc.arachne.portal.model.User;
+import com.odysseusinc.arachne.portal.model.security.Tenant;
+import java.util.Set;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.Specifications;
 
@@ -46,6 +50,23 @@ public class UserSpecifications {
     public static <U extends IUser> Specification<U> withFieldLike(String field, String namePattern) {
 
         return (root, query, cb) -> cb.like(root.get(field), namePattern);
+    }
+
+    public static <U extends IUser> Specification<U> usersIn(final Set<Long> tenantIds) {
+
+        return ((root, query, cb) -> {
+            final Path<Tenant> tenantIdPath = root.join("tenants", JoinType.LEFT).get("id");
+            query.distinct(true);
+
+            Predicate predicate;
+            if (tenantIds.contains(-1L)) {
+                predicate = cb.or(tenantIdPath.in(tenantIds), cb.isNull(root.get("activeTenant")));
+            } else {
+                predicate = tenantIdPath.in(tenantIds);
+            }
+
+            return predicate;
+        });
     }
 
     public static <U extends IUser> Specification<U> withNameLike(String namePattern) {
