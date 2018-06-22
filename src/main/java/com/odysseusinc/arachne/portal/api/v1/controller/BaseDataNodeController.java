@@ -35,6 +35,7 @@ import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.DataNode;
+import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Organization;
@@ -50,9 +51,9 @@ import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import javax.validation.Valid;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.assertj.core.util.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -233,7 +234,8 @@ public abstract class BaseDataNodeController<
     public List<CommonDataSourceDTO> getDataSourcesForDataNode(@PathVariable("dataNodeId") Long dataNodeId) {
 
         DataNode dataNode = baseDataNodeService.getById(dataNodeId);
-        return converterUtils.convertList(Lists.newArrayList(dataNode.getDataSources()), CommonDataSourceDTO.class);
+        List<DataSource> dataSources = dataNode.getDataSources().stream().filter(ds -> Boolean.TRUE.equals(ds.getPublished())).collect(Collectors.toList());
+        return converterUtils.convertList(dataSources, CommonDataSourceDTO.class);
     }
 
     @RequestMapping(value = "/api/v1/data-nodes/{dataNodeId}", method = RequestMethod.GET)
