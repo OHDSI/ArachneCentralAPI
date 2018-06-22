@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -95,6 +95,7 @@ public class UserControllerTests extends BaseControllerTest {
 
     private static final String PUBLISHER = "userPublicationPublisher";
     public static final String USER_2_UUID = UserIdUtils.idToUuid(USER_ID);
+    private static final String ORGANIZATION = "Odysseus Inc";
 
     private final JSONObject ADMIN_JSON_OBJECT = new JSONObject()
             .put("firstname", ADMIN_FIRST_NAME)
@@ -180,6 +181,7 @@ public class UserControllerTests extends BaseControllerTest {
         inputDTO.setMiddlename(MIDDLE_NAME);
         inputDTO.setPassword(password);
         inputDTO.setProfessionalTypeId(PROFESSIONAL_TYPE_ID);
+        inputDTO.setOrganization(ORGANIZATION);
         return inputDTO;
     }
 

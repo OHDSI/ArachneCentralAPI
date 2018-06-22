@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -724,34 +724,50 @@ public abstract class BaseAnalysisServiceImpl<
     @Override
     @PreAuthorize("hasPermission(#analysisFile, "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).DELETE_ANALYSIS_FILES)")
-    public void writeToFile(
-            AnalysisFile analysisFile,
-            FileDTO fileContentDTO,
-            IUser updatedBy) throws IOException {
+    public void updateCodeFile(
+            final AnalysisFile analysisFile,
+            final FileDTO fileDTO,
+            final IUser updatedBy) throws IOException {
 
-        Analysis analysis = analysisFile.getAnalysis();
+        final Analysis analysis = analysisFile.getAnalysis();
+        
         throwAccessDeniedExceptionIfLocked(analysis);
-        Study study = analysis.getStudy();
+
+        final String content = fileDTO.getContent();
+        if (content != null) {
+            writeContentAndCheckForViruses(analysisFile, updatedBy, content);
+        }
+        
+        final String name = fileDTO.getName();
+        if (!StringUtils.isEmpty(name)) {
+            analysisFile.setLabel(name);
+        }
+
+        analysisFileRepository.saveAndFlush(analysisFile);
+    }
+
+    private void writeContentAndCheckForViruses(final AnalysisFile analysisFile, final IUser updatedBy, final String content) throws IOException {
+
         try {
+            final Analysis analysis = analysisFile.getAnalysis();
             Path analysisFolder = analysisHelper.getAnalysisFolder(analysis);
             if (Files.notExists(analysisFolder)) {
                 Files.createDirectories(analysisFolder);
             }
             Path targetPath = analysisFolder.resolve(analysisFile.getUuid());
-            byte[] content = fileContentDTO.getContent().getBytes(StandardCharsets.UTF_8);
-            try (final InputStream stream = new ByteArrayInputStream(content)) {
+            byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
+            try (final InputStream stream = new ByteArrayInputStream(bytes)) {
                 Files.copy(stream, targetPath, REPLACE_EXISTING);
             }
             analysisFile.setUpdated(new Date());
             analysisFile.setEntryPoint(analysisFile.getEntryPoint());
             analysisFile.setUpdatedBy(updatedBy);
-            analysisFile.setContentType(CommonFileUtils.getContentType(analysisFile.getRealName(), targetPath.toString()));
+            analysisFile.setContentType(CommonFileUtils.getContentType(analysisFile.getName(), targetPath.toString()));
 
             analysisFile.incrementVersion();
             analysisFile.setAntivirusStatus(AntivirusStatus.SCANNING);
             analysisFile.setAntivirusDescription(null);
-            final AnalysisFile saved = analysisFileRepository.save(analysisFile);
-            eventPublisher.publishEvent(new AntivirusJobEvent(this, new AntivirusJob(saved.getId(), saved.getRealName(), new FileInputStream(targetPath.toString()), AntivirusJobFileType.ANALYSIS_FILE)));
+            eventPublisher.publishEvent(new AntivirusJobEvent(this, new AntivirusJob(analysisFile.getId(), analysisFile.getName(), new FileInputStream(targetPath.toString()), AntivirusJobFileType.ANALYSIS_FILE)));
 
         } catch (IOException | RuntimeException ex) {
 

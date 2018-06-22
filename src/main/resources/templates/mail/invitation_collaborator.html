@@ -17,7 +17,7 @@ To accept this invitation, please follow this
 <a th:href="@{${invitationUrl}(id=${userStudyId},accepted='true',type='COLLABORATOR',token=${token})}">link</a>. Alternatively, please follow this
 <a th:href="@{${invitationUrl}(id=${userStudyId},accepted='false',type='COLLABORATOR',token=${token})}">link</a>
 if you wish to reject this invitation.</div>
-<p>
+<p th:utext="${signature}">
     Regards,<br/>
     Odysseus Data Services, Inc.
 </p>

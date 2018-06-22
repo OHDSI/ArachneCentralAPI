@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,6 +25,7 @@ package com.odysseusinc.arachne.portal.service.impl;
 import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.repository.BaseTenantRepository;
 import com.odysseusinc.arachne.portal.service.BaseTenantService;
+import java.util.List;
 import java.util.Set;
 
 public abstract class BaseTenantServiceImpl<T extends Tenant> implements BaseTenantService<T> {
@@ -46,5 +47,11 @@ public abstract class BaseTenantServiceImpl<T extends Tenant> implements BaseTen
     public T findById(final Long tenantId) {
         
         return tenantRepository.getOne(tenantId);
+    }
+
+    @Override
+    public List<T> findByIdsIn(List<Long> tenantIds) {
+
+        return tenantRepository.findByIdIn(tenantIds);
     }
 }

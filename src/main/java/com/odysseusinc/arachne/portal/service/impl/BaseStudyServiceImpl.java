@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -55,6 +55,7 @@ import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceComment;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
 import com.odysseusinc.arachne.portal.model.StudyFile;
+import com.odysseusinc.arachne.portal.model.StudyKind;
 import com.odysseusinc.arachne.portal.model.SuggestSearchRegion;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserStudy;
@@ -161,6 +162,7 @@ public abstract class BaseStudyServiceImpl<
     private static final String DATASOURCE_NOT_EXIST_EXCEPTION = "DataSource with id='%s' does not exist";
     private static final String VIRTUAL_DATASOURCE_OWNERS_IS_EMPTY_EXC = "Virtual Data Source must have at least one Data Owner";
     private static final String PENDING_USER_CANNOT_BE_DATASOURCE_OWNER = "Pending user cannot be a Data Owner";
+    private final static String OTHER_STUDY_TYPE = "Other";
 
     private final JavaMailSender javaMailSender;
     private final UserStudyExtendedRepository userStudyExtendedRepository;
@@ -188,6 +190,8 @@ public abstract class BaseStudyServiceImpl<
     private final Map<String, String[]> studySortPaths = new HashMap<>();
     protected final ApplicationEventPublisher eventPublisher;
     private final BaseSolrService<SF> solrService;
+    
+    public BaseStudyService<T, DS, SS, SU> proxy;
 
     public BaseStudyServiceImpl(final UserStudyExtendedRepository userStudyExtendedRepository,
                                 final StudyFileService fileService,
@@ -267,6 +271,17 @@ public abstract class BaseStudyServiceImpl<
     }
 
     @Override
+    public T createWorkspace(Long ownerId, T workspace) {
+
+        IUser owner = userService.getById(ownerId);
+        workspace.setType(studyTypeService.findByName(OTHER_STUDY_TYPE));
+        workspace.setKind(StudyKind.WORKSPACE);
+        workspace.setTitle(owner.getFullName() + " workspace");
+        workspace.setPrivacy(true);
+        return create(owner, workspace);
+    }
+
+    @Override
     public T create(IUser owner, T study) throws NotUniqueException, NotExistException {
 
         List<T> studies = studyRepository.findByTitle(study.getTitle());
@@ -281,10 +296,6 @@ public abstract class BaseStudyServiceImpl<
         study.setType(studyTypeService.getById(study.getType().getId()));
         study.setStatus(studyStatusService.findByName("Initiate"));
         study.setTenant(owner.getActiveTenant());
-
-        if (study.getPrivacy() == null) {
-            study.setPrivacy(true);
-        }
         T savedStudy = studyRepository.save(study);
         solrService.indexBySolr(study);
 
@@ -761,7 +772,7 @@ public abstract class BaseStudyServiceImpl<
                 .map(link -> link.getUser().getId())
                 .collect(Collectors.toSet());
 
-          boolean containsPending = dataOwners.stream().map(IUser::getId).anyMatch(pendingUserIdsSet::contains);
+        boolean containsPending = dataOwners.stream().map(IUser::getId).anyMatch(pendingUserIdsSet::contains);
 
         if (containsPending) {
             throw new IllegalArgumentException(PENDING_USER_CANNOT_BE_DATASOURCE_OWNER);
@@ -979,6 +990,7 @@ public abstract class BaseStudyServiceImpl<
 
     @Override
     public void indexAllBySolr() throws IOException, NotExistException, SolrServerException, NoSuchFieldException, IllegalAccessException {
+
         solrService.deleteAll(SolrCollection.STUDIES);
         final List<T> studies = studyRepository.findAll();
         for (final T study : studies) {
@@ -1008,5 +1020,41 @@ public abstract class BaseStudyServiceImpl<
     public T findByIdInAnyTenant(final Long studyId) {
 
         return studyRepository.findByIdInAnyTenant(studyId);
+    }
+
+    @Override
+    public T findWorkspaceForUser(IUser user, Long userId) throws NotExistException {
+
+        final T workspace = studyRepository.findWorkspaceForUser(userId);
+        
+        if (workspace == null) {
+            throw new NotExistException(getType());
+        }
+        // here permissions will be checked
+        getProxy().getStudy(user, workspace.getId());
+        return workspace;
+    }
+
+    @Override
+    public T findOrCreateWorkspaceForUser(IUser user, Long userId) {
+
+        T workspace;
+        try {
+            workspace = findWorkspaceForUser(user, userId);
+        } catch (NotExistException e) {
+            workspace = createWorkspace(userId);
+        }
+        return workspace;
+    }
+
+    protected BaseStudyService<T, DS, SS, SU> getProxy() {
+        
+        return this.proxy;
+    }
+    
+    @Override
+    public void setProxy(final Object proxy) {
+        
+        this.proxy = (BaseStudyService<T, DS, SS, SU>)proxy;
     }
 }
