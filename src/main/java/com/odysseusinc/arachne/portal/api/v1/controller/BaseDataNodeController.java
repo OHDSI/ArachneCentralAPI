@@ -48,17 +48,18 @@ import com.odysseusinc.arachne.portal.util.ArachneConverterUtils;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
 import java.security.Principal;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import javax.validation.Valid;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.assertj.core.util.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -226,6 +227,13 @@ public abstract class BaseDataNodeController<
         if (bindException.hasErrors()) {
             throw bindException;
         }
+    }
+
+    @GetMapping(value = "/api/v1/data-nodes/{dataNodeId}/data-sources")
+    public List<CommonDataSourceDTO> getDataSourcesForDataNode(@PathVariable("dataNodeId") Long dataNodeId) {
+
+        DataNode dataNode = baseDataNodeService.getById(dataNodeId);
+        return converterUtils.convertList(Lists.newArrayList(dataNode.getDataSources()), CommonDataSourceDTO.class);
     }
 
     @RequestMapping(value = "/api/v1/data-nodes/{dataNodeId}", method = RequestMethod.GET)
