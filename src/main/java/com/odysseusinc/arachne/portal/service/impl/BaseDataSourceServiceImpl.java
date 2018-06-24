@@ -363,8 +363,8 @@ public abstract class BaseDataSourceServiceImpl<
         if (split.length > 1 || (split.length == 1 && !split[0].equals(""))) {
             List<Predicate> predictList = new ArrayList<>();
             for (String one : split) {
-                predictList.add(cb.like(cb.lower(root.get("name")), one.toLowerCase() + "%"));
-                predictList.add(cb.like(cb.lower(root.get("dataNode").get("name")), one.toLowerCase() + "%"));
+                predictList.add(cb.like(cb.lower(root.get("name")), "%" + one.toLowerCase() + "%"));
+                predictList.add(cb.like(cb.lower(root.get("dataNode").get("name")),"%" + one.toLowerCase() + "%"));
             }
             nameClause = cb.or(predictList.toArray(new Predicate[]{}));
         }
@@ -380,11 +380,6 @@ public abstract class BaseDataSourceServiceImpl<
                 .setMaxResults(pageRequest.getPageSize())
                 .getResultList();
         return new PageImpl<>(list, pageRequest, list.size());
-    }
-
-    protected Page<DS> doSuggestDataSource(String query, Long userId, Long studyId, PageRequest pageRequest) {
-
-        return dataSourceRepository.suggest(query, studyId, pageRequest);
     }
 
     @PreAuthorize("hasPermission(#id, 'RawDataSource', "
@@ -508,6 +503,4 @@ public abstract class BaseDataSourceServiceImpl<
 
         return rawDataSourceRepository.findByIdInAndDeletedIsNull(dataSourceIds);
     }
-
-    public abstract List<DS> getAllByUserId(Long userId);
 }
