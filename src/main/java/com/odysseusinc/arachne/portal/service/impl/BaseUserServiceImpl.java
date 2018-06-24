@@ -281,6 +281,13 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
+    public U getByUnverifiedEmailIgnoreCaseInAnyTenant(final String email) {
+
+        return rawUserRepository.findByEmailIgnoreCase(email,
+                EntityUtils.fromAttributePaths("roles", "professionalType"));
+    }
+
+    @Override
     public U getByEmailInAnyTenant(final String email) {
 
         return rawUserRepository.findByOriginAndUsername(this.userOrigin, email);
@@ -348,7 +355,7 @@ public abstract class BaseUserServiceImpl<
 
         // The existing user check should come last:
         // it is muted in public registration form, so we need to show other errors ahead
-        U byEmail = getByUnverifiedEmailInAnyTenant(user.getEmail().toLowerCase());
+        U byEmail = getByUnverifiedEmailIgnoreCaseInAnyTenant(user.getEmail());
         if (byEmail != null) {
             throw new NotUniqueException(
                     "email",
