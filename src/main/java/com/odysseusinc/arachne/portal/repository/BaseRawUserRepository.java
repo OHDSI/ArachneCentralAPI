@@ -64,7 +64,7 @@ public interface BaseRawUserRepository<U extends IUser> extends EntityGraphJpaRe
             + "     (lower(firstname) SIMILAR TO :suggestRequest OR\n"
             + "     lower(lastname) SIMILAR TO :suggestRequest OR\n"
             + "     lower(middlename) SIMILAR TO :suggestRequest)"
-            + " AND email NOT IN (:emails)"
+            + " AND lower(email) NOT IN (:emails)"
             + " AND enabled = TRUE"
             + " LIMIT :limit")
     List<U> suggest(@Param("suggestRequest") String suggestRequest,
@@ -89,5 +89,6 @@ public interface BaseRawUserRepository<U extends IUser> extends EntityGraphJpaRe
     
     List<U> findByIdIn(Collection<Long> userIds);
 
-    List<U> findByEmailIn(List<String> emails);
+    @Query("select u from RawUser u where lower(u.email) in :emails")
+    List<U> findByEmailIgnoreCaseIn(@Param("emails") List<String> emails);
 }

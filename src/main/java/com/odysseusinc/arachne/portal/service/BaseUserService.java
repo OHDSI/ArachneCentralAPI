@@ -150,7 +150,7 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
 
     List<U> getList(UserSearch userSearch);
 
-    List<U> findUsersInAnyTenantByEmailIn(List<String> emails);
+    List<U> findUsersInAnyTenantByEmailIgnoreCaseIn(List<String> emails);
 
     void resetPassword(U user)
             throws UserNotFoundException, IllegalAccessException, NotExistException,

@@ -351,7 +351,7 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    public U create(final @NotNull U user) throws PasswordValidationException  {
+    public U create(final @NotNull U user) throws PasswordValidationException {
 
         setFields(user);
 
@@ -630,7 +630,9 @@ public abstract class BaseUserServiceImpl<
     public List<U> suggestUserFromAnyTenant(final String query, List<String> emailsList, final Integer limit) {
 
         final String preparedQuery = prepareQuery(query);
-        return rawUserRepository.suggest(preparedQuery, emailsList, limit);
+        return rawUserRepository.suggest(preparedQuery,
+                emailsList.stream().map(e -> e.toLowerCase()).collect(Collectors.toList()),
+                limit);
     }
 
     @Override
@@ -697,9 +699,9 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    public List<U> findUsersInAnyTenantByEmailIn(List<String> emails) {
+    public List<U> findUsersInAnyTenantByEmailIgnoreCaseIn(List<String> emails) {
 
-        return rawUserRepository.findByEmailIn(emails);
+        return rawUserRepository.findByEmailIgnoreCaseIn(emails);
     }
 
     private Specifications<U> buildSpecification(final UserSearch userSearch) {
@@ -723,7 +725,7 @@ public abstract class BaseUserServiceImpl<
         return spec;
     }
 
-    private Set<Long> getTenantIdsSet(Long[] tenantIds){
+    private Set<Long> getTenantIdsSet(Long[] tenantIds) {
         Set<Long> idsSet = new HashSet<>();
         if (tenantIds != null) {
             idsSet = Sets.newHashSet(tenantIds);
