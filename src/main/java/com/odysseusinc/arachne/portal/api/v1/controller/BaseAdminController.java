@@ -31,6 +31,8 @@ import com.odysseusinc.arachne.portal.api.v1.dto.AdminUserDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ArachneConsts;
 import com.odysseusinc.arachne.portal.api.v1.dto.BatchOperationDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.BulkUsersRegistrationDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.DeletableUserWithTenantsDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.DeletableUserWithTenantsListDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserWithTenantsDTO;
 import com.odysseusinc.arachne.portal.exception.EmailNotUniqueException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
@@ -167,7 +169,7 @@ public abstract class BaseAdminController<
 
     @ApiOperation(value = "Get all users.", hidden = true)
     @RequestMapping(value = "/api/v1/admin/users", method = RequestMethod.GET)
-    public Page<UserWithTenantsDTO> getAll(
+    public Page<DeletableUserWithTenantsDTO> getAll(
             @PageableDefault(page = 1)
             @SortDefault.SortDefaults({
                     @SortDefault(sort = "firstname", direction = Sort.Direction.ASC)
@@ -177,7 +179,8 @@ public abstract class BaseAdminController<
             throws UserNotFoundException {
       
         final Page<U> users = userService.getPage(pageable, userSearch);
-        return users.map(user -> conversionService.convert(user, UserWithTenantsDTO.class));
+        final DeletableUserWithTenantsListDTO userDtoList = conversionService.convert(users.getContent(), DeletableUserWithTenantsListDTO.class);
+        return new CustomPageImpl<>(userDtoList, pageable, users.getTotalElements());
     }
 
     @ApiOperation("Register new users")

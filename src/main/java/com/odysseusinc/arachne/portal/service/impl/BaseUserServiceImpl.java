@@ -155,6 +155,11 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 
+/**
+ * @param <U>
+ * @param <S>
+ * @param <SF>
+ */
 public abstract class BaseUserServiceImpl<
         U extends IUser,
         S extends Skill,
@@ -1304,6 +1309,15 @@ public abstract class BaseUserServiceImpl<
         }
     }
 
+    @Override
+    public Set<Long> checkIfUsersAreDeletable(final Set<Long> users) {
+
+        final String delimiter = ",";
+        final String userIds = users.stream().map(String::valueOf).collect(Collectors.joining(delimiter));
+        final String deletableUsers = rawUserRepository.checkIfUsersAreDeletable(userIds, "tenants_users");
+        return Stream.of(StringUtils.split(deletableUsers, delimiter)).map(Long::valueOf).collect(Collectors.toSet());
+    }
+    
     private void toggleFlag(
             final List<U> entities,
             final Function<U, Boolean> getter,

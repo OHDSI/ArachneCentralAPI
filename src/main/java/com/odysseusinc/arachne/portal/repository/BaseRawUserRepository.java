@@ -36,6 +36,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specifications;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.query.Param;
 
@@ -88,4 +89,7 @@ public interface BaseRawUserRepository<U extends IUser> extends EntityGraphJpaRe
     List<U> findByIdIn(Collection<Long> userIds);
 
     List<U> findByEmailIn(List<String> emails);
+
+    @Procedure(name = "check_if_users_are_deletable")
+    String checkIfUsersAreDeletable(@Param("ids") String ids, @Param("excluded_tables") String tables);
 }

@@ -246,4 +246,6 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
     List<U> findByIdsInAnyTenant(Set<Long> userIds);
 
     void performBatchOperation(List<String> ids, BatchOperationType type);
+
+    Set<Long> checkIfUsersAreDeletable(Set<Long> users);
 }
