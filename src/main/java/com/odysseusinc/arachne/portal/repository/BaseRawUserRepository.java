@@ -47,6 +47,8 @@ public interface BaseRawUserRepository<U extends IUser> extends EntityGraphJpaRe
 
     U findByEmail(String email, EntityGraph entityGraph);
 
+    U findByEmailIgnoreCase(String email, EntityGraph entityGraph);
+
     U findByEmail(String email);
 
     U findByEmailAndEnabledTrue(String email);
