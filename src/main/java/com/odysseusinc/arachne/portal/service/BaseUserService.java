@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,6 +24,7 @@ package com.odysseusinc.arachne.portal.service;
 
 import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.MetadataException;
+import com.odysseusinc.arachne.portal.api.v1.dto.BatchOperationType;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.NotUniqueException;
 import com.odysseusinc.arachne.portal.exception.PasswordValidationException;
@@ -34,13 +35,13 @@ import com.odysseusinc.arachne.portal.exception.WrongFileFormatException;
 import com.odysseusinc.arachne.portal.model.Country;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Invitationable;
-import com.odysseusinc.arachne.portal.model.RawUser;
 import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.StateProvince;
 import com.odysseusinc.arachne.portal.model.UserLink;
 import com.odysseusinc.arachne.portal.model.UserPublication;
 import com.odysseusinc.arachne.portal.model.UserStudy;
 import com.odysseusinc.arachne.portal.model.search.UserSearch;
+import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
 import java.io.IOException;
@@ -80,6 +81,10 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
 
     U getByUsernameInAnyTenant(final String username, boolean includeDeleted);
 
+    @PreAuthorize("hasRole('ROLE_ADMIN') || #dataNode == authentication.principal || hasPermission(#id, 'RawUser', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_USER)")
+    List<U> getByIdsInAnyTenant(List<Long> ids);
+
     void remove(Long id)
             throws ValidationException, UserNotFoundException, NotExistException, IOException, SolrServerException;
 
@@ -93,11 +98,17 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
             throws UserNotFoundException, IOException, NotExistException,
             SolrServerException, NoSuchFieldException, IllegalAccessException;
 
+    void sendRegistrationEmail(U user, String registrantToken, String callbackUrl, boolean isAsync);
+
     void resendActivationEmail(String email) throws UserNotFoundException;
 
-    U create(U user) throws NotUniqueException, NotExistException, PasswordValidationException;
+    U createWithValidation(@NotNull U user) throws NotUniqueException, NotExistException, PasswordValidationException;
+
+    U create(@NotNull U user) throws PasswordValidationException;
 
     void sendRemindPasswordEmail(U user, String token, String registrantToken, String callbackUrl);
+
+    void resendActivationEmail(U user);
 
     U getByIdInAnyTenantAndInitializeCollections(Long id);
 
@@ -114,6 +125,8 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
             NoSuchFieldException;
 
     U updateInAnyTenant(U user) throws NotExistException;
+
+    void saveUsers(List<U> users, Set<Tenant> tenants, boolean emailConfirmationRequired);
 
     @PreAuthorize("hasPermission(#uuid, 'User', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_USER)")
@@ -133,7 +146,11 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
 
     List<U> getAllEnabledFromAllTenants();
 
-    Page<U> getAll(Pageable pageable, UserSearch userSearch);
+    Page<U> getPage(Pageable pageable, UserSearch userSearch);
+
+    List<U> getList(UserSearch userSearch);
+
+    List<U> findUsersInAnyTenantByEmailIn(List<String> emails);
 
     void resetPassword(U user)
             throws UserNotFoundException, IllegalAccessException, NotExistException,
@@ -212,7 +229,7 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
 
     U findOne(Long participantId);
 
-    List<IUser> findUsersByUuidsIn(List<String> dataOwnerIds);
+    List<U> findUsersByUuidsIn(List<String> dataOwnerIds);
 
     List<U> findUsersApprovedInDataSource(Long id);
 
@@ -221,7 +238,7 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
     void setActiveTenant(U user, Long tenantId);
 
     void makeLinksWithStudiesDeleted(Long tenantId, Long userId);
-    
+
     U getRawUser(Long userId);
 
     void makeLinksWithPapersDeleted(Long tenantId, Long userId);
@@ -229,4 +246,6 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
     void revertBackUserToPapers(Long tenantId, Long userId);
 
     List<U> findByIdsInAnyTenant(Set<Long> userIds);
+
+    void performBatchOperation(List<String> ids, BatchOperationType type);
 }

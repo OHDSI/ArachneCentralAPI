@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -659,18 +659,16 @@ public abstract class BaseAnalysisController<T extends Analysis,
     @RequestMapping(value = "/api/v1/analysis-management/analyses/{analysisId}/code-files/{fileUuid}",
             method = PUT)
     public JsonResult<Boolean> putFileContent(
-            Principal principal,
-            @RequestBody FileDTO fileContentDTO,
-            @PathVariable("analysisId") Long analysisId,
-            @PathVariable("fileUuid") String uuid)
+            final Principal principal,
+            final @RequestBody FileDTO fileDTO,
+            final @PathVariable("analysisId") Long analysisId,
+            final @PathVariable("fileUuid") String uuid)
             throws PermissionDeniedException, NotExistException, IOException, URISyntaxException {
 
         final IUser user = getUser(principal);
-        AnalysisFile analysisFile = analysisService.getAnalysisFile(analysisId, uuid);
-        analysisService.writeToFile(analysisFile, fileContentDTO, user);
-        JsonResult<Boolean> result = new JsonResult<>(NO_ERROR);
-        result.setResult(Boolean.TRUE);
-        return result;
+        final AnalysisFile analysisFile = analysisService.getAnalysisFile(analysisId, uuid);
+        analysisService.updateCodeFile(analysisFile, fileDTO, user);
+        return new JsonResult<>(NO_ERROR, Boolean.TRUE);
     }
 
     protected List<MultipartFile> getEntityFiles(DataReferenceDTO entityReference, DataNode dataNode, CommonAnalysisType entityType)

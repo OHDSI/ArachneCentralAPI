@@ -17,7 +17,7 @@ To accept this request, please follow this
 <a th:href="@{${invitationUrl}(id=${requestId},accepted='true',type='UNLOCK_ANALYSIS',token=${token},userUuid=${userUuid})}">link</a>. Alternatively, please follow this
 <a th:href="@{${invitationUrl}(id=${requestId},accepted='false',type='UNLOCK_ANALYSIS',token=${token},userUuid=${userUuid})}">link</a>
 if you wish to reject this invitation.</div>
-<p>
+<p th:utext="${signature}">
     Regards,<br/>
     Odysseus Data Services, Inc.
 </p>

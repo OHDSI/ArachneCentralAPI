@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -35,10 +35,14 @@ import com.odysseusinc.arachne.portal.service.BaseUserService;
 import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+
+import javax.validation.ConstraintViolation;
 
 public abstract class BaseController<DN extends DataNode, U extends IUser> {
 
@@ -47,7 +51,6 @@ public abstract class BaseController<DN extends DataNode, U extends IUser> {
 
     @Autowired
     protected GenericConversionService conversionService;
-
 
     protected U getUser(Principal principal) throws PermissionDeniedException {
 
@@ -70,6 +73,23 @@ public abstract class BaseController<DN extends DataNode, U extends IUser> {
         for (FieldError fieldError : binding.getFieldErrors()) {
             result.getValidatorErrors().put(fieldError.getField(), fieldError.getDefaultMessage());
         }
+        return result;
+    }
+
+    protected <T> JsonResult<T> setValidationErrors(Set<ConstraintViolation> violations) {
+
+        JsonResult<T> result;
+        result = new JsonResult<>(VALIDATION_ERROR);
+        violations.forEach(v -> result.getValidatorErrors().put(v.getPropertyPath().toString(), v.getMessage()));
+        return result;
+    }
+
+    protected <T> JsonResult<T> setEmailValidationErrors(Map<String, String> emailErrors) {
+
+        JsonResult<T> result;
+        result = new JsonResult<>(VALIDATION_ERROR);
+        result.getValidatorErrors().putAll(emailErrors);
+
         return result;
     }
 

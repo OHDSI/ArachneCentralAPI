@@ -6,7 +6,7 @@
 
     <artifactId>portal</artifactId>
     <groupId>com.odysseusinc.arachne</groupId>
-    <version>1.12.2-QA</version>
+    <version>1.13.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -351,6 +351,11 @@
             <groupId>org.springframework.retry</groupId>
             <artifactId>spring-retry</artifactId>
             <version>${springRetryVersion}</version>
+        </dependency>
+        <dependency>
+            <groupId>net.htmlparser.jericho</groupId>
+            <artifactId>jericho-html</artifactId>
+            <version>3.4</version>
         </dependency>
     </dependencies>
 

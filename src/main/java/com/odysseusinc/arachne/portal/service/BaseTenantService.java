@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,6 +23,7 @@
 package com.odysseusinc.arachne.portal.service;
 
 import com.odysseusinc.arachne.portal.model.security.Tenant;
+import java.util.List;
 import java.util.Set;
 
 public interface BaseTenantService<T extends Tenant> {
@@ -30,4 +31,6 @@ public interface BaseTenantService<T extends Tenant> {
     Set<T> getDefault();
 
     T findById(Long tenantId);
+
+    List<T> findByIdsIn(List<Long> tenantIds);
 }

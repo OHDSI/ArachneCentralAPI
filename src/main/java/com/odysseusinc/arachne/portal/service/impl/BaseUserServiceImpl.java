@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,6 +26,7 @@ import static com.odysseusinc.arachne.portal.model.ParticipantStatus.APPROVED;
 import static com.odysseusinc.arachne.portal.model.ParticipantStatus.DECLINED;
 import static com.odysseusinc.arachne.portal.repository.UserSpecifications.emailConfirmed;
 import static com.odysseusinc.arachne.portal.repository.UserSpecifications.userEnabled;
+import static com.odysseusinc.arachne.portal.repository.UserSpecifications.usersIn;
 import static com.odysseusinc.arachne.portal.repository.UserSpecifications.withNameOrEmailLike;
 import static com.odysseusinc.arachne.portal.service.RoleService.ROLE_ADMIN;
 import static java.lang.Boolean.TRUE;
@@ -36,8 +37,10 @@ import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.MetadataException;
 import com.drew.metadata.exif.ExifIFD0Directory;
+import com.google.common.collect.Sets;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.commons.utils.UserIdUtils;
+import com.odysseusinc.arachne.portal.api.v1.dto.BatchOperationType;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchExpertListDTO;
 import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
 import com.odysseusinc.arachne.portal.exception.ArachneSystemRuntimeException;
@@ -106,6 +109,7 @@ import java.security.Principal;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -113,12 +117,15 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -134,6 +141,7 @@ import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specifications;
@@ -155,6 +163,7 @@ public abstract class BaseUserServiceImpl<
     private static final String USERS_DIR = "users";
     private static final String AVATAR_FILE_NAME = "avatar.jpg";
     private static final String PASSWORD_NOT_MATCH_EXC = "Old password is incorrect";
+
     private final MessageSource messageSource;
     protected final ProfessionalTypeService professionalTypeService;
     private final JavaMailSender javaMailSender;
@@ -309,6 +318,14 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
+    @PreAuthorize("hasRole('ROLE_ADMIN') || #dataNode == authentication.principal || hasPermission(#id, 'RawUser', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_USER)")
+    public List<U> getByIdsInAnyTenant(final List<Long> ids) {
+
+        return rawUserRepository.findByIdIn(ids);
+    }
+
+    @Override
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Transactional(rollbackOn = Exception.class)
     public void remove(Long id) throws ValidationException, UserNotFoundException, NotExistException, IOException, SolrServerException {
@@ -325,9 +342,51 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    public U create(final @NotNull U user)
+    public U createWithValidation(final @NotNull U user)
             throws NotUniqueException, NotExistException, PasswordValidationException {
 
+        updateFields(user);
+
+        return userRepository.save(user);
+    }
+
+    @Override
+    public U create(final @NotNull U user) throws PasswordValidationException  {
+
+        setFields(user);
+
+        return userRepository.save(user);
+    }
+
+    @Override
+    public U createWithEmailVerification(final @NotNull U user, String registrantToken, String callbackUrl)
+            throws NotUniqueException, NotExistException, PasswordValidationException {
+
+        user.setEmailConfirmed(false);
+        user.setRegistrationCode(UUID.randomUUID().toString());
+        U createdUser = createWithValidation(user);
+
+        Optional<UserRegistrant> userRegistrant = userRegistrantService.findByToken(registrantToken);
+        sendRegistrationEmail(createdUser, userRegistrant, callbackUrl, false);
+        return createdUser;
+    }
+
+    private void updateFields(U user) throws PasswordValidationException {
+
+        setFields(user);
+
+        // The existing user check should come last:
+        // it is muted in public registration form, so we need to show other errors ahead
+        U byEmail = getByUnverifiedEmailIgnoreCaseInAnyTenant(user.getEmail().toLowerCase());
+        if (byEmail != null) {
+            throw new NotUniqueException(
+                    "email",
+                    messageSource.getMessage("validation.email.already.used", null, null)
+            );
+        }
+    }
+
+    private void setFields(U user) {
         if (userOrigin.equals(UserOrigin.NATIVE)) {
             user.setUsername(user.getEmail());
         }
@@ -348,35 +407,11 @@ public abstract class BaseUserServiceImpl<
         validatePassword(username, firstName, lastName, middleName, password);
         user.setPassword(passwordEncoder.encode(password));
 
-        user.setTenants(tenantService.getDefault());
-        if (user.getTenants().size() > 0) {
+        if (CollectionUtils.isEmpty(user.getTenants())) {
+            user.setTenants(tenantService.getDefault());
+        } else {
             user.setActiveTenant(user.getTenants().iterator().next());
         }
-
-        // The existing user check should come last:
-        // it is muted in public registration form, so we need to show other errors ahead
-        U byEmail = getByUnverifiedEmailIgnoreCaseInAnyTenant(user.getEmail());
-        if (byEmail != null) {
-            throw new NotUniqueException(
-                    "email",
-                    messageSource.getMessage("validation.email.already.used", null, null)
-            );
-        }
-
-        return userRepository.save(user);
-    }
-
-    @Override
-    public U createWithEmailVerification(final @NotNull U user, String registrantToken, String callbackUrl)
-            throws NotUniqueException, NotExistException, PasswordValidationException {
-
-        user.setEmailConfirmed(false);
-        user.setRegistrationCode(UUID.randomUUID().toString());
-        U createdUser = create(user);
-
-        Optional<UserRegistrant> userRegistrant = userRegistrantService.findByToken(registrantToken);
-        sendRegistrationEmail(createdUser, userRegistrant, callbackUrl);
-        return createdUser;
     }
 
     @Override
@@ -420,11 +455,17 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    public void resendActivationEmail(String email) throws UserNotFoundException {
+    public void resendActivationEmail(final String email) throws UserNotFoundException {
 
         final U user = userRepository.findByEmailAndEnabledFalse(email);
+        resendActivationEmail(user);
+    }
+
+    @Override
+    public void resendActivationEmail(final U user) {
+
         if (user == null) {
-            throw new UserNotFoundException("email", "not enabled user is not found by email " + email);
+            throw new UserNotFoundException("email", "not enabled user is not found by email " + user.getEmail());
         }
         sendRegistrationEmail(user);
     }
@@ -473,7 +514,7 @@ public abstract class BaseUserServiceImpl<
         forUpdate.setEnabled(user.getEnabled() != null ? user.getEnabled() : forUpdate.getEnabled());
         forUpdate.setUpdated(date);
         if (user.getProfessionalType() != null) {
-            if (user.getProfessionalType().getId() == null){
+            if (user.getProfessionalType().getId() == null) {
                 throw new NotEmptyException("professional type is empty");
             }
             ProfessionalType professionalType = professionalTypeService.getById(user.getProfessionalType().getId());
@@ -549,6 +590,27 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @Transactional(rollbackOn = Exception.class)
+    public void saveUsers(List<U> users, Set<Tenant> tenants, boolean emailConfirmationRequired) {
+
+        users.forEach(user -> {
+            user.setTenants(tenants);
+            user.setOrigin(UserOrigin.NATIVE);
+            if (!emailConfirmationRequired) {
+                user.setEmailConfirmed(true);
+            } else {
+                user.setEmailConfirmed(false);
+                user.setRegistrationCode(UUID.randomUUID().toString());
+            }
+            U createdUser = create(user);
+            if (emailConfirmationRequired) {
+                sendRegistrationEmail(createdUser, Optional.empty(), null, true);
+            }
+        });
+    }
+
+    @Override
     public U getByUuid(String uuid) {
 
         if (uuid != null && !uuid.isEmpty()) {
@@ -616,7 +678,31 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    public Page<U> getAll(Pageable pageable, UserSearch userSearch) {
+    public Page<U> getPage(final Pageable pageable, final UserSearch userSearch) {
+
+        final Pageable pageableWithUpdatedOrder = new PageRequest(pageable.getPageNumber() - 1, pageable.getPageSize(), pageable.getSort());
+
+        final Specifications<U> spec = buildSpecification(userSearch);
+
+        final Page<U> page = rawUserRepository.findAll(spec, pageableWithUpdatedOrder);
+
+        return page;
+    }
+
+    @Override
+    public List<U> getList(final UserSearch userSearch) {
+
+        final Specifications<U> spec = buildSpecification(userSearch);
+        return rawUserRepository.findAll(spec);
+    }
+
+    @Override
+    public List<U> findUsersInAnyTenantByEmailIn(List<String> emails) {
+
+        return rawUserRepository.findByEmailIn(emails);
+    }
+
+    private Specifications<U> buildSpecification(final UserSearch userSearch) {
 
         Specifications<U> spec = where(UserSpecifications.hasEmail());
         if (userSearch.getEmailConfirmed() != null && userSearch.getEmailConfirmed()) {
@@ -629,15 +715,36 @@ public abstract class BaseUserServiceImpl<
             String pattern = userSearch.getQuery() + "%";
             spec = spec.and(withNameOrEmailLike(pattern));
         }
-        return rawUserRepository.findAll(spec, pageable);
+
+        Set<Long> tenantIds = getTenantIdsSet(userSearch.getTenantIds());
+        if (!CollectionUtils.isEmpty(tenantIds)) {
+            spec = spec.and(usersIn(tenantIds));
+        }
+        return spec;
+    }
+
+    private Set<Long> getTenantIdsSet(Long[] tenantIds){
+        Set<Long> idsSet = new HashSet<>();
+        if (tenantIds != null) {
+            idsSet = Sets.newHashSet(tenantIds);
+        }
+
+        return idsSet;
     }
 
     private void sendRegistrationEmail(final U user) {
 
-        sendRegistrationEmail(user, Optional.empty(), null);
+        sendRegistrationEmail(user, Optional.empty(), null, false);
     }
 
-    private void sendRegistrationEmail(U user, Optional<UserRegistrant> userRegistrant, String callbackUrl) {
+    @Override
+    public void sendRegistrationEmail(U user, String registrantToken, String callbackUrl, boolean isAsync) {
+
+        Optional<UserRegistrant> userRegistrant = userRegistrantService.findByToken(registrantToken);
+        sendRegistrationEmail(user, userRegistrant, callbackUrl, isAsync);
+    }
+
+    private void sendRegistrationEmail(U user, Optional<UserRegistrant> userRegistrant, String callbackUrl, boolean isAsync) {
 
         RegistrationMailMessage mail = new RegistrationMailMessage(
                 user,
@@ -646,7 +753,11 @@ public abstract class BaseUserServiceImpl<
         );
         userRegistrant.ifPresent(registrant ->
                 userRegistrantService.customizeUserRegistrantMailMessage(registrant, callbackUrl, mail));
-        arachneMailSender.send(mail);
+        if (isAsync) {
+            arachneMailSender.asyncSend(mail);
+        } else {
+            arachneMailSender.send(mail);
+        }
     }
 
     @Override
@@ -1089,9 +1200,9 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    public List<IUser> findUsersByUuidsIn(List<String> ids) {
+    public List<U> findUsersByUuidsIn(List<String> ids) {
 
-        return (List<IUser>) userRepository.findByIdIn(UserIdUtils.uuidsToIds(ids));
+        return userRepository.findByIdIn(UserIdUtils.uuidsToIds(ids));
     }
 
     @Override
@@ -1175,6 +1286,40 @@ public abstract class BaseUserServiceImpl<
     public List<U> findByIdsInAnyTenant(final Set<Long> userIds) {
 
         return rawUserRepository.findByIdInAndEnabledTrue(userIds);
+    }
+
+    @Override
+    public void performBatchOperation(final List<String> ids, final BatchOperationType type) {
+
+        final List<U> users = rawUserRepository.findByIdIn(UserIdUtils.uuidsToIds(ids));
+
+        switch (type) {
+            case CONFIRM:
+                toggleFlag(users, U::getEmailConfirmed, U::setEmailConfirmed);
+                break;
+            case DELETE:
+                rawUserRepository.deleteInBatch(users);
+                break;
+            case ENABLE:
+                toggleFlag(users, U::getEnabled, U::setEnabled);
+                break;
+            case RESEND:
+                users.forEach(this::resendActivationEmail);
+                break;
+            default:
+                throw new IllegalArgumentException("Batch operation type " + type + " isn't supported");
+        }
+    }
+
+    private void toggleFlag(
+            final List<U> entities,
+            final Function<U, Boolean> getter,
+            final BiConsumer<U, Boolean> setter) {
+
+        for (final U entity : entities) {
+            setter.accept(entity, !getter.apply(entity));
+        }
+        rawUserRepository.save(entities);
     }
 
     private class AvatarResolver implements AutoCloseable {
