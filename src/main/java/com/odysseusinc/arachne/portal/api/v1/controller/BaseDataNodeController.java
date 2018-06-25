@@ -27,8 +27,10 @@ import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeCreationResponse
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeRegisterDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataSourceDTO;
+import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
 import com.odysseusinc.arachne.commons.api.v1.dto.OrganizationDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
+import com.odysseusinc.arachne.portal.api.v1.dto.DataSourceDTO;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
@@ -179,7 +181,7 @@ public abstract class BaseDataNodeController<
     private void validateOrganization(final OrganizationDTO organizationDTO) throws BindException {
 
         BindException bindException = new BindException("organization", "not null");
-        if (Objects.isNull(organizationDTO.getId()) && Objects.isNull(organizationDTO.getName()) ) {
+        if (Objects.isNull(organizationDTO.getId()) && Objects.isNull(organizationDTO.getName())) {
             bindException.addError(new FieldError("organization", "organization", "May not be empty"));
         }
         if (bindException.hasErrors()) {
@@ -231,11 +233,14 @@ public abstract class BaseDataNodeController<
     }
 
     @GetMapping(value = "/api/v1/data-nodes/{dataNodeId}/data-sources")
-    public List<CommonDataSourceDTO> getDataSourcesForDataNode(@PathVariable("dataNodeId") Long dataNodeId) {
+    public List<DataSourceDTO> getDataSourcesForDataNode(@PathVariable("dataNodeId") Long dataNodeId) {
 
         DataNode dataNode = baseDataNodeService.getById(dataNodeId);
-        List<DataSource> dataSources = dataNode.getDataSources().stream().filter(ds -> Boolean.TRUE.equals(ds.getPublished())).collect(Collectors.toList());
-        return converterUtils.convertList(dataSources, CommonDataSourceDTO.class);
+        List<DataSource> dataSources = dataNode.getDataSources().stream()
+                .filter(ds -> Boolean.TRUE.equals(ds.getPublished())
+                        && CommonHealthStatus.GREEN.equals(ds.getHealthStatus()))
+                .collect(Collectors.toList());
+        return converterUtils.convertList(dataSources, DataSourceDTO.class);
     }
 
     @RequestMapping(value = "/api/v1/data-nodes/{dataNodeId}", method = RequestMethod.GET)
