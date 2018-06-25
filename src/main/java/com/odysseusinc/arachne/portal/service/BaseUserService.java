@@ -75,6 +75,8 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
 
     U getByUnverifiedEmailInAnyTenant(final String email);
 
+    U getByUnverifiedEmailIgnoreCaseInAnyTenant(final String email);
+
     U getByUsernameInAnyTenant(final String username);
 
     U getByUsernameInAnyTenant(final String username, boolean includeDeleted);
@@ -148,7 +150,7 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
 
     List<U> getList(UserSearch userSearch);
 
-    List<U> findUsersInAnyTenantByEmailIn(List<String> emails);
+    List<U> findUsersInAnyTenantByEmailIgnoreCaseIn(List<String> emails);
 
     void resetPassword(U user)
             throws UserNotFoundException, IllegalAccessException, NotExistException,
