@@ -630,9 +630,7 @@ public abstract class BaseUserServiceImpl<
     public List<U> suggestUserFromAnyTenant(final String query, List<String> emailsList, final Integer limit) {
 
         final String preparedQuery = prepareQuery(query);
-        return rawUserRepository.suggest(preparedQuery,
-                emailsList.stream().map(e -> e.toLowerCase()).collect(Collectors.toList()),
-                limit);
+        return rawUserRepository.suggest(preparedQuery, emailsList, limit);
     }
 
     @Override

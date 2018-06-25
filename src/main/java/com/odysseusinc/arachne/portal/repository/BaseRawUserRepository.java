@@ -64,7 +64,7 @@ public interface BaseRawUserRepository<U extends IUser> extends EntityGraphJpaRe
             + "     (lower(firstname) SIMILAR TO :suggestRequest OR\n"
             + "     lower(lastname) SIMILAR TO :suggestRequest OR\n"
             + "     lower(middlename) SIMILAR TO :suggestRequest)"
-            + " AND lower(email) NOT IN (:emails)"
+            + " AND email NOT IN (:emails)"
             + " AND enabled = TRUE"
             + " LIMIT :limit")
     List<U> suggest(@Param("suggestRequest") String suggestRequest,
