@@ -47,8 +47,6 @@ public interface BaseRawUserRepository<U extends IUser> extends EntityGraphJpaRe
 
     U findByOriginAndUsername(String userOrigin, String username);
 
-    U findByOriginAndUsernameIgnoreCase(String userOrigin, String username);
-
     U findByRegistrationCode(String activateCode);
 
     U findByEmail(String email, EntityGraph entityGraph);
