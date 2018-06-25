@@ -370,7 +370,7 @@ public abstract class BaseUserServiceImpl<
 
         // The existing user check should come last:
         // it is muted in public registration form, so we need to show other errors ahead
-        U byEmail = getByUnverifiedEmailInAnyTenant(user.getEmail());
+        U byEmail = getByUnverifiedEmailInAnyTenant(user.getEmail().toLowerCase());
         if (byEmail != null) {
             throw new NotUniqueException(
                     "email",
@@ -1305,7 +1305,7 @@ public abstract class BaseUserServiceImpl<
     }
 
     private void toggleFlag(
-            final List<U> entities, 
+            final List<U> entities,
             final Function<U, Boolean> getter,
             final BiConsumer<U, Boolean> setter) {
 
@@ -1314,7 +1314,7 @@ public abstract class BaseUserServiceImpl<
         }
         rawUserRepository.save(entities);
     }
-    
+
     private class AvatarResolver implements AutoCloseable {
 
         final private String contentType;
