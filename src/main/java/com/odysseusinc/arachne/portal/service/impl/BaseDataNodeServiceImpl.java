@@ -114,7 +114,7 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
     public DN update(DN dataNode) throws NotExistException, AlreadyExistException {
 
         DN existed = dataNodeRepository.findByNameAndVirtualIsFalse(dataNode.getName());
-        if (existed != null) {
+        if (existed != null && !existed.getId().equals(dataNode.getId())) {
             throw new AlreadyExistException("Data node with the same name already exists");
         }
         final DN existsDataNode = getById(dataNode.getId());
