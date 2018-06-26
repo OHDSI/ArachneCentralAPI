@@ -30,6 +30,7 @@ import static com.odysseusinc.arachne.portal.repository.UserSpecifications.users
 import static com.odysseusinc.arachne.portal.repository.UserSpecifications.withNameOrEmailLike;
 import static com.odysseusinc.arachne.portal.service.RoleService.ROLE_ADMIN;
 import static java.lang.Boolean.TRUE;
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.springframework.data.jpa.domain.Specifications.where;
 
 import com.drew.imaging.ImageMetadataReader;
@@ -125,7 +126,6 @@ import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -295,6 +295,13 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
+    public U getByUnverifiedEmailIgnoreCaseInAnyTenant(final String email) {
+
+        return rawUserRepository.findByEmailIgnoreCase(email,
+                EntityUtils.fromAttributePaths("roles", "professionalType"));
+    }
+
+    @Override
     public U getByEmailInAnyTenant(final String email) {
 
         return rawUserRepository.findByOriginAndUsername(this.userOrigin, email);
@@ -349,7 +356,7 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    public U create(final @NotNull U user) throws PasswordValidationException  {
+    public U create(final @NotNull U user) throws PasswordValidationException {
 
         setFields(user);
 
@@ -375,7 +382,7 @@ public abstract class BaseUserServiceImpl<
 
         // The existing user check should come last:
         // it is muted in public registration form, so we need to show other errors ahead
-        U byEmail = getByUnverifiedEmailInAnyTenant(user.getEmail().toLowerCase());
+        U byEmail = getByUnverifiedEmailIgnoreCaseInAnyTenant(user.getEmail());
         if (byEmail != null) {
             throw new NotUniqueException(
                     "email",
@@ -385,6 +392,7 @@ public abstract class BaseUserServiceImpl<
     }
 
     private void setFields(U user) {
+
         if (userOrigin.equals(UserOrigin.NATIVE)) {
             user.setUsername(user.getEmail());
         }
@@ -405,9 +413,10 @@ public abstract class BaseUserServiceImpl<
         validatePassword(username, firstName, lastName, middleName, password);
         user.setPassword(passwordEncoder.encode(password));
 
-        if (CollectionUtils.isEmpty(user.getTenants())) {
+        if (isEmpty(user.getTenants())) {
             user.setTenants(tenantService.getDefault());
-        } else {
+        }
+        if (!isEmpty(user.getTenants())) {
             user.setActiveTenant(user.getTenants().iterator().next());
         }
     }
@@ -695,9 +704,9 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    public List<U> findUsersInAnyTenantByEmailIn(List<String> emails) {
+    public List<U> findUsersInAnyTenantByEmailIgnoreCaseIn(List<String> emails) {
 
-        return rawUserRepository.findByEmailIn(emails);
+        return rawUserRepository.findByEmailIgnoreCaseIn(emails);
     }
 
     private Specifications<U> buildSpecification(final UserSearch userSearch) {
@@ -715,13 +724,13 @@ public abstract class BaseUserServiceImpl<
         }
 
         Set<Long> tenantIds = getTenantIdsSet(userSearch.getTenantIds());
-        if (!CollectionUtils.isEmpty(tenantIds)) {
+        if (!isEmpty(tenantIds)) {
             spec = spec.and(usersIn(tenantIds));
         }
         return spec;
     }
 
-    private Set<Long> getTenantIdsSet(Long[] tenantIds){
+    private Set<Long> getTenantIdsSet(Long[] tenantIds) {
         Set<Long> idsSet = new HashSet<>();
         if (tenantIds != null) {
             idsSet = Sets.newHashSet(tenantIds);

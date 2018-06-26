@@ -318,14 +318,15 @@ public abstract class BaseAdminController<
 
     private Map<String, String> getEmailValidationErrors(List<U> users) {
 
-        List<U> persistentUsers = userService.findUsersInAnyTenantByEmailIn(users.stream()
-                .map(user -> user.getEmail())
+        List<U> persistentUsers = userService.findUsersInAnyTenantByEmailIgnoreCaseIn(users.stream()
+                .map(user -> user.getEmail().toLowerCase())
                 .collect(Collectors.toList()));
+
         Map<String, U> mailUserMap = persistentUsers.stream()
-                .collect(Collectors.toMap(U::getEmail, Function.identity()));
+                .collect(Collectors.toMap(u -> u.getEmail().toLowerCase(), Function.identity()));
         Map<String, String> emailValidationErrors = new HashMap<>();
         for (int i = 0; i < users.size(); i++) {
-            if (!Objects.isNull(mailUserMap.get(users.get(i).getEmail()))) {
+            if (!Objects.isNull(mailUserMap.get(users.get(i).getEmail().toLowerCase()))) {
                 emailValidationErrors.put("users[" + i + "].email", messageSource.getMessage("validation.email.already.used", null, null));
             }
         }

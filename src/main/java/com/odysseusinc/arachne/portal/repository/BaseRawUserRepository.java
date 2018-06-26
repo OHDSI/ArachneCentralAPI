@@ -53,6 +53,8 @@ public interface BaseRawUserRepository<U extends IUser> extends EntityGraphJpaRe
 
     U findByEmail(String email, EntityGraph entityGraph);
 
+    U findByEmailIgnoreCase(String email, EntityGraph entityGraph);
+
     U findByEmail(String email);
 
     U findByEmailAndEnabledTrue(String email);
@@ -89,6 +91,8 @@ public interface BaseRawUserRepository<U extends IUser> extends EntityGraphJpaRe
     
     List<U> findByIdIn(Collection<Long> userIds);
 
+    @Query("select u from RawUser u where lower(u.email) in :emails")
+    List<U> findByEmailIgnoreCaseIn(@Param("emails") List<String> emails);
     List<U> findByEmailIn(List<String> emails);
 
     @Procedure(name = CHECK_IF_USERS_ARE_DELETABLE, outputParameterName = "filtered_ids")
