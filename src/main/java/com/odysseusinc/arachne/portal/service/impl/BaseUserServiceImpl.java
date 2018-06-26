@@ -30,6 +30,7 @@ import static com.odysseusinc.arachne.portal.repository.UserSpecifications.users
 import static com.odysseusinc.arachne.portal.repository.UserSpecifications.withNameOrEmailLike;
 import static com.odysseusinc.arachne.portal.service.RoleService.ROLE_ADMIN;
 import static java.lang.Boolean.TRUE;
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.springframework.data.jpa.domain.Specifications.where;
 
 import com.drew.imaging.ImageMetadataReader;
@@ -125,7 +126,6 @@ import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -387,6 +387,7 @@ public abstract class BaseUserServiceImpl<
     }
 
     private void setFields(U user) {
+
         if (userOrigin.equals(UserOrigin.NATIVE)) {
             user.setUsername(user.getEmail());
         }
@@ -407,9 +408,10 @@ public abstract class BaseUserServiceImpl<
         validatePassword(username, firstName, lastName, middleName, password);
         user.setPassword(passwordEncoder.encode(password));
 
-        if (CollectionUtils.isEmpty(user.getTenants())) {
+        if (isEmpty(user.getTenants())) {
             user.setTenants(tenantService.getDefault());
-        } else {
+        }
+        if (!isEmpty(user.getTenants())) {
             user.setActiveTenant(user.getTenants().iterator().next());
         }
     }
@@ -717,7 +719,7 @@ public abstract class BaseUserServiceImpl<
         }
 
         Set<Long> tenantIds = getTenantIdsSet(userSearch.getTenantIds());
-        if (!CollectionUtils.isEmpty(tenantIds)) {
+        if (!isEmpty(tenantIds)) {
             spec = spec.and(usersIn(tenantIds));
         }
         return spec;
