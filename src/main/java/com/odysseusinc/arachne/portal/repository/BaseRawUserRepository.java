@@ -51,6 +51,8 @@ public interface BaseRawUserRepository<U extends IUser> extends EntityGraphJpaRe
 
     U findByEmail(String email, EntityGraph entityGraph);
 
+    U findByEmailIgnoreCase(String email, EntityGraph entityGraph);
+
     U findByEmail(String email);
 
     U findByEmailAndEnabledTrue(String email);
@@ -87,5 +89,6 @@ public interface BaseRawUserRepository<U extends IUser> extends EntityGraphJpaRe
     
     List<U> findByIdIn(Collection<Long> userIds);
 
-    List<U> findByEmailIn(List<String> emails);
+    @Query("select u from RawUser u where lower(u.email) in :emails")
+    List<U> findByEmailIgnoreCaseIn(@Param("emails") List<String> emails);
 }

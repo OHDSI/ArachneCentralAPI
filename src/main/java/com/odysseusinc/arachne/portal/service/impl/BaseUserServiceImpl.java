@@ -290,6 +290,13 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
+    public U getByUnverifiedEmailIgnoreCaseInAnyTenant(final String email) {
+
+        return rawUserRepository.findByEmailIgnoreCase(email,
+                EntityUtils.fromAttributePaths("roles", "professionalType"));
+    }
+
+    @Override
     public U getByEmailInAnyTenant(final String email) {
 
         return rawUserRepository.findByOriginAndUsername(this.userOrigin, email);
@@ -344,7 +351,7 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    public U create(final @NotNull U user) throws PasswordValidationException  {
+    public U create(final @NotNull U user) throws PasswordValidationException {
 
         setFields(user);
 
@@ -370,7 +377,7 @@ public abstract class BaseUserServiceImpl<
 
         // The existing user check should come last:
         // it is muted in public registration form, so we need to show other errors ahead
-        U byEmail = getByUnverifiedEmailInAnyTenant(user.getEmail().toLowerCase());
+        U byEmail = getByUnverifiedEmailIgnoreCaseInAnyTenant(user.getEmail());
         if (byEmail != null) {
             throw new NotUniqueException(
                     "email",
@@ -690,9 +697,9 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    public List<U> findUsersInAnyTenantByEmailIn(List<String> emails) {
+    public List<U> findUsersInAnyTenantByEmailIgnoreCaseIn(List<String> emails) {
 
-        return rawUserRepository.findByEmailIn(emails);
+        return rawUserRepository.findByEmailIgnoreCaseIn(emails);
     }
 
     private Specifications<U> buildSpecification(final UserSearch userSearch) {
@@ -716,7 +723,7 @@ public abstract class BaseUserServiceImpl<
         return spec;
     }
 
-    private Set<Long> getTenantIdsSet(Long[] tenantIds){
+    private Set<Long> getTenantIdsSet(Long[] tenantIds) {
         Set<Long> idsSet = new HashSet<>();
         if (tenantIds != null) {
             idsSet = Sets.newHashSet(tenantIds);
