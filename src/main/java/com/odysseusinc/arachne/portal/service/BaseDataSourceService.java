@@ -61,6 +61,8 @@ public interface BaseDataSourceService<DS extends IDataSource> {
 
     DS getNotDeletedByIdInAnyTenant(Long id);
 
+    DS getByIdInAnyTenant(Long id);
+
     DS getByIdUnsecured(Long id) throws NotExistException;
 
     List<DS> getAllNotDeletedAndIsNotVirtualFromAllTenants(boolean withManual);
