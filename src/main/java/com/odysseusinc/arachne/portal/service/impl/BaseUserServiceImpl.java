@@ -1315,7 +1315,7 @@ public abstract class BaseUserServiceImpl<
         final String delimiter = ",";
         final String userIds = users.stream().map(String::valueOf).collect(Collectors.joining(delimiter));
         final String deletableUsers = rawUserRepository.checkIfUsersAreDeletable(userIds, "tenants_users");
-        return Stream.of(StringUtils.split(deletableUsers, delimiter)).map(Long::valueOf).collect(Collectors.toSet());
+        return Stream.of(org.apache.commons.lang3.StringUtils.split(deletableUsers, delimiter)).map(Long::valueOf).collect(Collectors.toSet());
     }
     
     private void toggleFlag(

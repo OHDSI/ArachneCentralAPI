@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.repository;
 
+import static com.odysseusinc.arachne.portal.model.RawUser.CHECK_IF_USERS_ARE_DELETABLE;
 import static com.odysseusinc.arachne.portal.service.BaseRoleService.ROLE_ADMIN;
 
 import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
@@ -90,6 +91,6 @@ public interface BaseRawUserRepository<U extends IUser> extends EntityGraphJpaRe
 
     List<U> findByEmailIn(List<String> emails);
 
-    @Procedure(name = "check_if_users_are_deletable")
+    @Procedure(name = CHECK_IF_USERS_ARE_DELETABLE, outputParameterName = "filtered_ids")
     String checkIfUsersAreDeletable(@Param("ids") String ids, @Param("excluded_tables") String tables);
 }

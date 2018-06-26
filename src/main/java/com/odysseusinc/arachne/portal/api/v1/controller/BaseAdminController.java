@@ -78,6 +78,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -180,7 +181,7 @@ public abstract class BaseAdminController<
       
         final Page<U> users = userService.getPage(pageable, userSearch);
         final DeletableUserWithTenantsListDTO userDtoList = conversionService.convert(users.getContent(), DeletableUserWithTenantsListDTO.class);
-        return new CustomPageImpl<>(userDtoList, pageable, users.getTotalElements());
+        return new CustomPageImpl<>(userDtoList, new PageRequest(pageable.getPageNumber() - 1, pageable.getPageSize()), users.getTotalElements());
     }
 
     @ApiOperation("Register new users")
@@ -219,6 +220,16 @@ public abstract class BaseAdminController<
   
         final List<U> users = userService.getList(userSearch);
         return users.stream().map(IUser::getId).map(UserIdUtils::idToUuid).collect(Collectors.toList());
+    }
+
+    @ApiOperation(value = "Get undeletable user ids.", hidden = true)
+    @RequestMapping(value = "/api/v1/admin/users/ids/undeletable", method = RequestMethod.GET)
+    public List<String> getListOfUndeletableUserIdsByFilter(final UserSearch userSearch)
+            throws UserNotFoundException {
+
+        final List<U> users = userService.getList(userSearch);
+        final Set<Long> deletableIds = userService.checkIfUsersAreDeletable(users.stream().map(IUser::getId).collect(Collectors.toSet()));
+        return users.stream().map(IUser::getId).filter(id -> !deletableIds.contains(id)).map(UserIdUtils::idToUuid).collect(Collectors.toList());
     }
 
     @ApiOperation(value = "Get all users.", hidden = true)

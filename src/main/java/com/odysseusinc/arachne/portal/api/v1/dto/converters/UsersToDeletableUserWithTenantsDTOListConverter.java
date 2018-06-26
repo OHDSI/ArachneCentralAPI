@@ -21,6 +21,7 @@
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
 import com.odysseusinc.arachne.commons.utils.ConverterUtils;
+import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.DeletableUserWithTenantsDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.DeletableUserWithTenantsListDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.TenantBaseDTO;
@@ -49,10 +50,13 @@ public class UsersToDeletableUserWithTenantsDTOListConverter extends BaseConvers
         final List<DeletableUserWithTenantsDTO> convertedList = converterUtils.convertList(source, DeletableUserWithTenantsDTO.class);
 
         final Set<Long> userIds = userService.checkIfUsersAreDeletable(source.stream().map(IUser::getId).collect(Collectors.toSet()));
-        final Set<Long> deletableUserIds = userService.checkIfUsersAreDeletable(userIds);
+        final Set<String> deletableUserIds = userService.checkIfUsersAreDeletable(userIds)
+                .stream()
+                .map(UserIdUtils::idToUuid)
+                .collect(Collectors.toSet());
 
         for (final DeletableUserWithTenantsDTO userDto : convertedList) {
-            if (!deletableUserIds.contains(Long.valueOf(userDto.getId()))) {
+            if (!deletableUserIds.contains(userDto.getId())) {
                 userDto.setDeletable(false);
             }
         }
