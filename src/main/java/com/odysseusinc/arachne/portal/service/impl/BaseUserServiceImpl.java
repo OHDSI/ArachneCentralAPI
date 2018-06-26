@@ -155,11 +155,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 
-/**
- * @param <U>
- * @param <S>
- * @param <SF>
- */
 public abstract class BaseUserServiceImpl<
         U extends IUser,
         S extends Skill,
