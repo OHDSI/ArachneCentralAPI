@@ -37,6 +37,7 @@ import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.validation.BindingResult;
 
 public interface BaseDataSourceService<DS extends IDataSource> {
 
@@ -93,4 +94,6 @@ public interface BaseDataSourceService<DS extends IDataSource> {
     PageRequest getPageRequest(PageDTO pageDTO, String sortBy, String order) throws PermissionDeniedException;
 
     PageRequest getPageRequest(PageDTO pageDTO) throws PermissionDeniedException;
+
+    void fillBindingResult(BindingResult bindingResult, DS existingDS, DS updatedDS);
 }

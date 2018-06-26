@@ -107,23 +107,24 @@ public abstract class BaseDataSourceController<
 
     private JsonResult<DTO> updateDataSource(Principal principal, Long dataSourceId,
                                              DTO commonDataSourceDTO, BindingResult bindingResult)
-            throws PermissionDeniedException, IllegalAccessException, IOException, NoSuchFieldException,
-            SolrServerException, ValidationException {
+            throws PermissionDeniedException, IllegalAccessException,
+            IOException, NoSuchFieldException, SolrServerException {
 
         JsonResult result;
+        getUser(principal);
+        final DS existingDS = dataSourceService.getNotDeletedByIdInAnyTenant(dataSourceId);
+        DS updatedDS = convertDTOToDataSource(commonDataSourceDTO);
+        updatedDS.setId(dataSourceId);
+        updatedDS.setDataNode(existingDS.getDataNode());
+        updatedDS.setPublished(true);
+
+        dataSourceService.fillBindingResult(bindingResult, existingDS, updatedDS);
         if (bindingResult.hasErrors()) {
             result = setValidationErrors(bindingResult);
         } else {
-            IUser user = getUser(principal);
-            final DS exist = dataSourceService.getNotDeletedByIdInAnyTenant(dataSourceId);
-            DS dataSource = convertDTOToDataSource(commonDataSourceDTO);
-            dataSource.setId(dataSourceId);
-            dataSource.setDataNode(exist.getDataNode());
-            dataSource.setPublished(true);
-            dataSource = dataSourceService.updateInAnyTenant(dataSource);
-
+            updatedDS = dataSourceService.updateInAnyTenant(updatedDS);
             result = new JsonResult<>(NO_ERROR);
-            result.setResult(convertDataSourceToDTO(dataSource));
+            result.setResult(convertDataSourceToDTO(updatedDS));
         }
         return result;
     }
