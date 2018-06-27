@@ -115,7 +115,7 @@ public abstract class BaseDataSourceController<
             result = setValidationErrors(bindingResult);
         } else {
             IUser user = getUser(principal);
-            final DS exist = dataSourceService.getNotDeletedByIdInAnyTenant(dataSourceId);
+            final DS exist = dataSourceService.getByIdInAnyTenant(dataSourceId);
             DS dataSource = convertDTOToDataSource(commonDataSourceDTO);
             dataSource.setId(dataSourceId);
             dataSource.setDataNode(exist.getDataNode());
@@ -274,7 +274,7 @@ public abstract class BaseDataSourceController<
     @RequestMapping(value = "/api/v1/data-sources/{id}/complete", method = RequestMethod.GET)
     public JsonResult<DS_DTO> getWhole(@PathVariable("id") Long dataSourceId) throws NotExistException {
 
-        DS dataSource = dataSourceService.getNotDeletedByIdInAnyTenant(dataSourceId);
+        DS dataSource = dataSourceService.getByIdInAnyTenant(dataSourceId);
         return new JsonResult<>(NO_ERROR, conversionService.convert(dataSource, getDataSourceDTOClass()));
     }
 
