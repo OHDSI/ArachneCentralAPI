@@ -111,18 +111,17 @@ public abstract class BaseDataSourceController<
             IOException, NoSuchFieldException, SolrServerException {
 
         JsonResult result;
-        getUser(principal);
-        final DS existingDS = dataSourceService.getNotDeletedByIdInAnyTenant(dataSourceId);
-        DS updatedDS = convertDTOToDataSource(commonDataSourceDTO);
-        updatedDS.setId(dataSourceId);
-        updatedDS.setDataNode(existingDS.getDataNode());
-        updatedDS.setPublished(true);
-
-        dataSourceService.fillBindingResult(bindingResult, existingDS, updatedDS);
         if (bindingResult.hasErrors()) {
             result = setValidationErrors(bindingResult);
         } else {
+            getUser(principal);
+            final DS existingDS = dataSourceService.getNotDeletedByIdInAnyTenant(dataSourceId);
+            DS updatedDS = convertDTOToDataSource(commonDataSourceDTO);
+            updatedDS.setId(dataSourceId);
+            updatedDS.setDataNode(existingDS.getDataNode());
+            updatedDS.setPublished(true);
             updatedDS = dataSourceService.updateInAnyTenant(updatedDS);
+
             result = new JsonResult<>(NO_ERROR);
             result.setResult(convertDataSourceToDTO(updatedDS));
         }

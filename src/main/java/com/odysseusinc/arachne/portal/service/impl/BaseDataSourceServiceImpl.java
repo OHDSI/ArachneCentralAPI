@@ -85,8 +85,6 @@ import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 
 @Transactional(rollbackFor = Exception.class)
 public abstract class BaseDataSourceServiceImpl<
@@ -222,14 +220,6 @@ public abstract class BaseDataSourceServiceImpl<
         afterUpdate(savedDataSource);
         return savedDataSource;
     }
-
-    public void fillBindingResult(BindingResult bindingResult, DS target, DS dataSource) {
-
-        getErrorsFromDynamicFields(target, dataSource).stream()
-                .forEach(error -> bindingResult.addError(error));
-    }
-
-    protected abstract List<FieldError> getErrorsFromDynamicFields(DS target, DS dataSource);
 
     @Transactional
     @PreAuthorize("hasPermission(#dataSource, "

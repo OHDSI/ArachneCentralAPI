@@ -38,8 +38,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
-import java.util.List;
-import org.springframework.validation.FieldError;
 
 @Service
 @SuppressWarnings("unused")
@@ -63,11 +61,5 @@ public class DataSourceServiceImpl extends BaseDataSourceServiceImpl<IDataSource
     protected Class<?> getType() {
 
         return DataSource.class;
-    }
-
-    @Override
-    protected List<FieldError> getErrorsFromDynamicFields(IDataSource target, IDataSource dataSource) {
-
-        return null;
     }
 }
