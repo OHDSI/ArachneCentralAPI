@@ -157,7 +157,7 @@ public abstract class BaseDataNodeController<
 
     @ApiOperation("Update data node info")
     @RequestMapping(value = "/api/v1/data-nodes/{dataNodeId}", method = RequestMethod.PUT)
-    public JsonResult<CommonDataNodeDTO> updateDataNode(
+    public JsonResult<DataNodeDTO> updateDataNode(
             @PathVariable("dataNodeId") Long dataNodeId,
             @RequestBody @Valid CommonDataNodeRegisterDTO commonDataNodeRegisterDTO,
             Principal principal
@@ -171,9 +171,9 @@ public abstract class BaseDataNodeController<
         final Organization organization = conversionService.convert(commonDataNodeRegisterDTO.getOrganization(), Organization.class);
         dataNode.setOrganization(organizationService.getOrCreate(organization));
         final DN updatedDataNode = baseDataNodeService.update(dataNode);
-        final CommonDataNodeDTO dataNodeRegisterResponseDTO
-                = conversionService.convert(updatedDataNode, CommonDataNodeDTO.class);
-        final JsonResult<CommonDataNodeDTO> result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
+        final DataNodeDTO dataNodeRegisterResponseDTO
+                = conversionService.convert(updatedDataNode, DataNodeDTO.class);
+        final JsonResult<DataNodeDTO> result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
         result.setResult(dataNodeRegisterResponseDTO);
         return result;
     }
