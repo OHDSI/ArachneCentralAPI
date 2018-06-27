@@ -157,7 +157,7 @@ public abstract class BaseDataNodeController<
 
     @ApiOperation("Update data node info")
     @RequestMapping(value = "/api/v1/data-nodes/{dataNodeId}", method = RequestMethod.PUT)
-    public JsonResult<DataNodeDTO> updateDataNode(
+    public JsonResult<CommonDataNodeDTO> updateDataNode(
             @PathVariable("dataNodeId") Long dataNodeId,
             @RequestBody @Valid CommonDataNodeRegisterDTO commonDataNodeRegisterDTO,
             Principal principal
@@ -171,9 +171,9 @@ public abstract class BaseDataNodeController<
         final Organization organization = conversionService.convert(commonDataNodeRegisterDTO.getOrganization(), Organization.class);
         dataNode.setOrganization(organizationService.getOrCreate(organization));
         final DN updatedDataNode = baseDataNodeService.update(dataNode);
-        final DataNodeDTO dataNodeRegisterResponseDTO
-                = conversionService.convert(updatedDataNode, DataNodeDTO.class);
-        final JsonResult<DataNodeDTO> result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
+        final CommonDataNodeDTO dataNodeRegisterResponseDTO
+                = conversionService.convert(updatedDataNode, CommonDataNodeDTO.class);
+        final JsonResult<CommonDataNodeDTO> result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
         result.setResult(dataNodeRegisterResponseDTO);
         return result;
     }
@@ -260,11 +260,11 @@ public abstract class BaseDataNodeController<
     }
 
     @RequestMapping(value = "/api/v1/data-nodes/suggest", method = RequestMethod.GET)
-    public List<DataNodeDTO> suggestDataNodes(Principal principal) throws PermissionDeniedException {
+    public List<CommonDataNodeDTO> suggestDataNodes(Principal principal) throws PermissionDeniedException {
 
         IUser user = getUser(principal);
         List<DN> dataNodes = baseDataNodeService.suggestDataNode(user.getId());
-        return converterUtils.convertList(dataNodes, DataNodeDTO.class);
+        return converterUtils.convertList(dataNodes, CommonDataNodeDTO.class);
     }
 
     @RequestMapping(value = "/api/v1/data-nodes/byuuid/{dataNodeUuid}", method = RequestMethod.GET)
