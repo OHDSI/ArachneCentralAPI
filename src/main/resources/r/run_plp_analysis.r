@@ -26,10 +26,22 @@ run_plp_analysis <-function(basicDir, analysisDescriptionFile, cohortDefinitionP
   # Data extraction ----
   
   # TODO: Insert your connection details here
-  connectionDetails <- DatabaseConnector::createConnectionDetails(dbms = dbms,
+  if ("impala" == dbms){
+    driverPath <- Sys.getenv("IMPALA_DRIVER_PATH")
+    if (missing(driverPath) || is.null(driverPath) || driverPath == ''){
+      driverPath <- "/impala"
+    }
+    connectionDetails <- DatabaseConnector::createConnectionDetails(dbms = dbms,
+    connectionString = connectionString,
+    user = user,
+    password = password,
+    pathToDriver = driverPath)
+  } else {
+    connectionDetails <- DatabaseConnector::createConnectionDetails(dbms = dbms,
                                                                   connectionString = connectionString,
                                                                   user = user,
                                                                   password = password)
+  }
   connection <- DatabaseConnector::connect(connectionDetails) 
   
   analysisSettings <- CohortMethod::loadCmAnalysisList(analysisDescriptionFile)

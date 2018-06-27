@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,6 +27,7 @@ import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.config.tenancy.TenantContext;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
 import java.io.IOException;
+import java.util.Objects;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
@@ -47,6 +48,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 
 public class AuthenticationTokenFilter extends UsernamePasswordAuthenticationFilter {
 
+    public static final String USER_REQUEST_HEADER = "Arachne-User-Request";
     @Value("${arachne.token.header}")
     private String tokenHeader;
 
@@ -74,6 +76,10 @@ public class AuthenticationTokenFilter extends UsernamePasswordAuthenticationFil
             }
             if (authToken != null) {
                 String username = this.tokenUtils.getUsernameFromToken(authToken);
+                String requested = httpRequest.getHeader(USER_REQUEST_HEADER);
+                if (requested != null && username != null && !Objects.equals(username, requested)){
+                    throw new BadCredentialsException("forced logout");
+                }
                 if (tokenUtils.isExpired(authToken)) {
                     if (((HttpServletRequest) request).getRequestURI().startsWith("/api")) {
                         if (username != null) {

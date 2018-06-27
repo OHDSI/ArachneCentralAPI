@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -334,11 +334,10 @@ public class StudyControllerTests extends BaseControllerTest {
         MvcResult mvcResult = mvc.perform(
                 get("/api/v1/study-management/studies/" + STUDY_ID)
         )
-                .andExpect(NO_ERROR_CODE)
-                .andExpect(jsonPath("$.result.id").isNotEmpty())
+                .andExpect(jsonPath("$.id").isNotEmpty())
                 .andReturn();
 
-        JSONAssert.assertEquals(UPDATED_STUDY_JSON_OBJECT, getResultJSONObject(mvcResult), false);
+        JSONAssert.assertEquals(UPDATED_STUDY_JSON_OBJECT, getResponse(mvcResult), false);
     }
 
     @Test

@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,8 +23,9 @@
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
-import com.odysseusinc.arachne.portal.api.v1.dto.DataNodeDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.OrganizationDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.DataNodeDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.PermissionsDTO;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
@@ -44,7 +45,8 @@ public class DataNodeToDataNodeDTOConverter extends BaseConversionServiceAwareCo
         dataNodeDTO.setDescription(dataNode.getDescription());
         dataNodeDTO.setVirtual(dataNode.getVirtual());
         dataNodeDTO.setPublished(dataNode.getPublished());
-        dataNodeDTO.setAtlasVerion(dataNode.getAtlasVersion());
+        dataNodeDTO.setAtlasVersion(dataNode.getAtlasVersion());
+        dataNodeDTO.setPermissions(conversionService.convert(dataNode, PermissionsDTO.class));
         CommonHealthStatus healthStatus = dataNode.getHealthStatus();
         dataNodeDTO.setHealthStatus(healthStatus);
         dataNodeDTO.setHealthStatusTitle(healthStatus.toString());
