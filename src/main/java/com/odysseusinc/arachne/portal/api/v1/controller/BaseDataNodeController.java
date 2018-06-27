@@ -24,6 +24,7 @@ package com.odysseusinc.arachne.portal.api.v1.controller;
 
 import com.google.common.base.Strings;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeCreationResponseDTO;
+import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeRegisterDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataSourceDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.OrganizationDTO;
@@ -245,7 +246,10 @@ public abstract class BaseDataNodeController<
     public JsonResult<DataNodeDTO> getDataNode(@PathVariable("dataNodeId") Long dataNodeId) {
 
         DataNode dataNode = baseDataNodeService.getById(dataNodeId);
-        return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, getDataNode(dataNode));
+        if (dataNode == null) {
+            throw new NotExistException(DataNode.class);
+        }
+        return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, conversionService.convert(dataNode, DataNodeDTO.class));
     }
 
     @RequestMapping(value = "/api/v1/data-nodes", method = RequestMethod.GET)
@@ -264,18 +268,13 @@ public abstract class BaseDataNodeController<
     }
 
     @RequestMapping(value = "/api/v1/data-nodes/byuuid/{dataNodeUuid}", method = RequestMethod.GET)
-    public JsonResult<DataNodeDTO> getDataNode(@PathVariable("dataNodeUuid") String dataNodeUuid) {
+    public JsonResult<CommonDataNodeDTO> getDataNode(@PathVariable("dataNodeUuid") String dataNodeUuid) {
 
         DataNode dataNode = baseDataNodeService.getBySid(dataNodeUuid);
-        return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, getDataNode(dataNode));
-    }
-
-    protected DataNodeDTO getDataNode(DataNode dataNode) {
-
         if (dataNode == null) {
             throw new NotExistException(DataNode.class);
         }
-        return conversionService.convert(dataNode, DataNodeDTO.class);
+        return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, conversionService.convert(dataNode, CommonDataNodeDTO.class));
     }
 
     protected abstract DS convertCommonDataSourceDtoToDataSource(C_DS_DTO commonDataSourceDTO);
