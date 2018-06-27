@@ -212,7 +212,7 @@ public abstract class BaseDataSourceServiceImpl<
     public DS updateInAnyTenant(DS dataSource, Consumer<PairForUpdating<DS>> beforeUpdate)
             throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
-        DS forUpdate = getNotDeletedByIdInAnyTenant(dataSource.getId());
+        DS forUpdate = getByIdInAnyTenant(dataSource.getId());
         forUpdate = baseUpdate(forUpdate, dataSource);
 
         beforeUpdate.accept(new PairForUpdating<>(forUpdate, dataSource));
@@ -263,6 +263,10 @@ public abstract class BaseDataSourceServiceImpl<
 
         if (dataSource.getPublished() != null) {
             exist.setPublished(dataSource.getPublished());
+            if (dataSource.getPublished()){
+                exist.setDeleted(null);
+                exist.setHealthStatusDescription(null);
+            }
         }
 
         if (!CollectionUtils.isEmpty(dataSource.getTenants())) {
@@ -295,6 +299,16 @@ public abstract class BaseDataSourceServiceImpl<
     public DS getNotDeletedByIdInAnyTenant(Long dataSourceId) {
 
         return rawDataSourceRepository.findByIdAndDeletedIsNull(dataSourceId)
+                .orElseThrow(() -> new NotExistException(DataSource.class));
+    }
+
+    @Override
+    @PreAuthorize("hasRole('ROLE_ADMIN') || hasPermission(#dataSourceId, 'RawDataSource', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_DATASOURCE)")
+    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
+    public DS getByIdInAnyTenant(Long dataSourceId) {
+
+        return rawDataSourceRepository.findById(dataSourceId)
                 .orElseThrow(() -> new NotExistException(DataSource.class));
     }
 
