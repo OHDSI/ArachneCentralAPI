@@ -18,17 +18,20 @@
  * Created: June 25, 2018
  */
 
-package com.odysseusinc.arachne.portal.api.v1.dto.converters;
+package com.odysseusinc.arachne.portal.api.v1.dto;
 
-import com.odysseusinc.arachne.portal.api.v1.dto.UserWithTenantsDTO;
-import org.springframework.stereotype.Component;
 
-@Component
-public class UserToUserWithTenantsDTOConverter extends BaseUserToUserWithTenantsDTOConverter<UserWithTenantsDTO> {
+public class DeletableUserWithTenantsDTO extends UserWithTenantsDTO {
     
-    @Override
-    protected UserWithTenantsDTO createResultObject() {
+    private boolean isDeletable = true;
 
-        return new UserWithTenantsDTO();
+    public boolean isDeletable() {
+
+        return isDeletable;
+    }
+
+    public void setDeletable(final boolean deletable) {
+
+        isDeletable = deletable;
     }
 }

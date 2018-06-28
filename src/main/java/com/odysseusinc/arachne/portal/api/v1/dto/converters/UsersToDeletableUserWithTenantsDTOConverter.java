@@ -20,15 +20,18 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
-import com.odysseusinc.arachne.portal.api.v1.dto.UserWithTenantsDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.DeletableUserWithTenantsDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.DeletableUserWithTenantsListDTO;
+import com.odysseusinc.arachne.portal.model.IUser;
+import java.util.List;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UserToUserWithTenantsDTOConverter extends BaseUserToUserWithTenantsDTOConverter<UserWithTenantsDTO> {
+public class UsersToDeletableUserWithTenantsDTOConverter extends BaseUserToUserWithTenantsDTOConverter<DeletableUserWithTenantsDTO> {
     
     @Override
-    protected UserWithTenantsDTO createResultObject() {
+    protected DeletableUserWithTenantsDTO createResultObject() {
 
-        return new UserWithTenantsDTO();
+        return new DeletableUserWithTenantsDTO();
     }
 }

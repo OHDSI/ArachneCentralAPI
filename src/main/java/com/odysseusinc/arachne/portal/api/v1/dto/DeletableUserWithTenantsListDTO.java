@@ -18,17 +18,17 @@
  * Created: June 25, 2018
  */
 
-package com.odysseusinc.arachne.portal.api.v1.dto.converters;
+package com.odysseusinc.arachne.portal.api.v1.dto;
 
-import com.odysseusinc.arachne.portal.api.v1.dto.UserWithTenantsDTO;
-import org.springframework.stereotype.Component;
 
-@Component
-public class UserToUserWithTenantsDTOConverter extends BaseUserToUserWithTenantsDTOConverter<UserWithTenantsDTO> {
+import java.util.ArrayList;
+import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
+
+public class DeletableUserWithTenantsListDTO extends ArrayList<DeletableUserWithTenantsDTO> {
     
-    @Override
-    protected UserWithTenantsDTO createResultObject() {
-
-        return new UserWithTenantsDTO();
+    public DeletableUserWithTenantsListDTO(@NotNull final Collection<? extends DeletableUserWithTenantsDTO> c) {
+        
+        super(c);
     }
 }
