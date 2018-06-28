@@ -325,10 +325,7 @@ public abstract class BaseUserController<
         JsonResult<UserProfileDTO> result;
         IUser owner = userService.getByEmail(principal.getName());
         if (binding.hasErrors()) {
-            result = new JsonResult<>(VALIDATION_ERROR);
-            for (FieldError fieldError : binding.getFieldErrors()) {
-                result.getValidatorErrors().put(fieldError.getField(), fieldError.getDefaultMessage());
-            }
+            result = setValidationErrors(binding);
         } else {
             U user = convertUserProfileGeneralDTO(dto);
             user.setId(owner.getId());
