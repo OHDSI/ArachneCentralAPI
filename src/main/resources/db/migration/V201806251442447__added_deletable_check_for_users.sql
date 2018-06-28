@@ -3,7 +3,7 @@ ALTER TABLE tenants_users
   ADD CONSTRAINT tenants_users_user_id_fkey
 FOREIGN KEY (user_id) REFERENCES users_data (id) ON DELETE CASCADE;
 
-DROP FUNCTION IF EXISTS check_if_users_are_deletable(VARCHAR, VARCHAR);
+DROP FUNCTION check_if_users_are_deletable(VARCHAR, VARCHAR);
 CREATE OR REPLACE FUNCTION check_if_users_are_deletable(ids VARCHAR, excluded_tables VARCHAR)
   RETURNS VARCHAR AS $$
 declare
