@@ -260,11 +260,11 @@ public abstract class BaseDataNodeController<
     }
 
     @RequestMapping(value = "/api/v1/data-nodes/suggest", method = RequestMethod.GET)
-    public List<DataNodeDTO> suggestDataNodes(Principal principal) throws PermissionDeniedException {
+    public List<CommonDataNodeDTO> suggestDataNodes(Principal principal) throws PermissionDeniedException {
 
         IUser user = getUser(principal);
         List<DN> dataNodes = baseDataNodeService.suggestDataNode(user.getId());
-        return converterUtils.convertList(dataNodes, DataNodeDTO.class);
+        return converterUtils.convertList(dataNodes, CommonDataNodeDTO.class);
     }
 
     @RequestMapping(value = "/api/v1/data-nodes/byuuid/{dataNodeUuid}", method = RequestMethod.GET)
