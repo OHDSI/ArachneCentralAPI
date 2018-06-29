@@ -626,7 +626,7 @@ public abstract class BaseUserServiceImpl<
             spec = spec.and(userEnabled());
         }
         if (!StringUtils.isEmpty(userSearch.getQuery())) {
-            String pattern = userSearch.getQuery() + "%";
+            String pattern = "%" + userSearch.getQuery().toLowerCase() + "%";
             spec = spec.and(withNameOrEmailLike(pattern));
         }
         return rawUserRepository.findAll(spec, pageable);
