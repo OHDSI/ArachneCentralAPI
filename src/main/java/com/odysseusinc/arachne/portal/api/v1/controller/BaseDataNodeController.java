@@ -159,16 +159,28 @@ public abstract class BaseDataNodeController<
     @RequestMapping(value = "/api/v1/data-nodes/{dataNodeId}", method = RequestMethod.PUT)
     public JsonResult<DataNodeDTO> updateDataNode(
             @PathVariable("dataNodeId") Long dataNodeId,
-            @RequestBody @Valid CommonDataNodeRegisterDTO commonDataNodeRegisterDTO,
+            @RequestBody CommonDataNodeRegisterDTO commonDataNodeRegisterDTO,
             Principal principal
     ) throws PermissionDeniedException, NotExistException, AlreadyExistException, BindException, ValidationException {
 
-        validateOrganization(commonDataNodeRegisterDTO.getOrganization());
-
+        //for the first DN update all fields (name, description, organization) are mandatory in commonDataNodeRegisterDTO.
+        // In further updates they may be empty and will be taken from existing record
+        DN existingDN = baseDataNodeService.getById(dataNodeId);
+        if (existingDN.getName() == null) {
+            validateDNFields(commonDataNodeRegisterDTO);
+        }
         final IUser user = getUser(principal);
         final DN dataNode = conversionService.convert(commonDataNodeRegisterDTO, getDataNodeDNClass());
         dataNode.setId(dataNodeId);
-        final Organization organization = conversionService.convert(commonDataNodeRegisterDTO.getOrganization(), Organization.class);
+        final Organization organization;
+        if (commonDataNodeRegisterDTO.getOrganization() != null) {
+            organization = conversionService.convert(commonDataNodeRegisterDTO.getOrganization(), Organization.class);
+        } else {
+            organization = existingDN.getOrganization();
+        }
+        if (commonDataNodeRegisterDTO.getDescription() == null) {
+            dataNode.setDescription(existingDN.getDescription());
+        }
         dataNode.setOrganization(organizationService.getOrCreate(organization));
         final DN updatedDataNode = baseDataNodeService.update(dataNode);
         final DataNodeDTO dataNodeRegisterResponseDTO
@@ -178,13 +190,34 @@ public abstract class BaseDataNodeController<
         return result;
     }
 
+    private void validateDNFields(final CommonDataNodeRegisterDTO commonDataNodeRegisterDTO) throws BindException {
+
+        BindException bindException = new BindException(commonDataNodeRegisterDTO, "commonDataNodeRegisterDTO");
+        if (Objects.isNull(commonDataNodeRegisterDTO.getName())) {
+            bindException.addError(new FieldError("name", "name", "May not be empty"));
+        }
+        if (Objects.isNull(commonDataNodeRegisterDTO.getDescription())) {
+            bindException.addError(new FieldError("description", "description", "May not be empty"));
+        }
+        validateOrganization(commonDataNodeRegisterDTO.getOrganization(), bindException);
+        if (bindException.hasErrors()) {
+            throw bindException;
+        }
+    }
+
+    private void validateOrganization(final OrganizationDTO organizationDTO, BindException bindException) throws BindException {
+
+        if (Objects.isNull(organizationDTO.getId()) && Objects.isNull(organizationDTO.getName())) {
+            bindException.addError(new FieldError("organization", "organization", "May not be empty"));
+            throw bindException;
+        }
+    }
+
     private void validateOrganization(final OrganizationDTO organizationDTO) throws BindException {
 
         BindException bindException = new BindException("organization", "not null");
         if (Objects.isNull(organizationDTO.getId()) && Objects.isNull(organizationDTO.getName())) {
             bindException.addError(new FieldError("organization", "organization", "May not be empty"));
-        }
-        if (bindException.hasErrors()) {
             throw bindException;
         }
     }
