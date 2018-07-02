@@ -49,7 +49,7 @@ public class UserSpecifications {
 
     public static <U extends IUser> Specification<U> withFieldLike(String field, String namePattern) {
 
-        return (root, query, cb) -> cb.like(root.get(field), namePattern);
+        return (root, query, cb) -> cb.like(cb.lower(root.get(field)), namePattern);
     }
 
     public static <U extends IUser> Specification<U> usersIn(final Set<Long> tenantIds) {
