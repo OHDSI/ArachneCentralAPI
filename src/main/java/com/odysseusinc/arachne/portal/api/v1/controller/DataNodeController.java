@@ -24,20 +24,17 @@ package com.odysseusinc.arachne.portal.api.v1.controller;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataSourceDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
-import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
-import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
-import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
 import com.odysseusinc.arachne.portal.service.DataNodeService;
 import com.odysseusinc.arachne.portal.service.DataSourceService;
 import com.odysseusinc.arachne.portal.service.OrganizationService;
 import com.odysseusinc.arachne.portal.service.StudyDataSourceService;
 import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
-import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.util.ArachneConverterUtils;
+import javax.validation.Validator;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -50,7 +47,8 @@ public class DataNodeController extends BaseDataNodeController<IDataSource, Comm
                               BaseUserService userService,
                               StudyDataSourceService studyDataSourceService,
                               ArachneConverterUtils converterUtils,
-                              OrganizationService organizationService) {
+                              OrganizationService organizationService,
+                              Validator validator) {
 
         super(analysisService,
                 baseDataNodeService,
@@ -59,7 +57,8 @@ public class DataNodeController extends BaseDataNodeController<IDataSource, Comm
                 userService,
                 studyDataSourceService,
                 converterUtils,
-                organizationService);
+                organizationService,
+                validator);
     }
 
     @Override

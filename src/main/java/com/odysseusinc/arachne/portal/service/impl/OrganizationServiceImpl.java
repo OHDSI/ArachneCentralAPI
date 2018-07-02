@@ -71,10 +71,10 @@ public class OrganizationServiceImpl implements OrganizationService {
 
     @Override
     @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
-    public Organization get(Long id) {
+    public Organization get(String name) {
 
-        return organizationRepository.getById(id).orElseThrow(() -> {
-            final String message = String.format("Organization with id='%s' does not exist", id);
+        return organizationRepository.getByName(name).orElseThrow(() -> {
+            final String message = String.format("Organization with name='%s' does not exist", name);
             return new NotExistException(message, Organization.class);
         });
     }
@@ -85,7 +85,7 @@ public class OrganizationServiceImpl implements OrganizationService {
     public Organization getOrCreate(Organization organization) throws ValidationException {
 
         try {
-            return get(organization.getId());
+            return get(organization.getName());
         } catch (NotExistException ignored) {}
             return create(organization);
     }
@@ -97,7 +97,7 @@ public class OrganizationServiceImpl implements OrganizationService {
     @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
     public Organization update(Organization organization) {
 
-        final Organization exist = get(organization.getId());
+        final Organization exist = get(organization.getName());
         final String name = organization.getName();
         if (Objects.nonNull(name)) {
             exist.setName(name);
@@ -108,12 +108,12 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     @Override
-    @PreAuthorize("hasPermission(#id, 'Organization', "
+    @PreAuthorize("hasPermission(#name, 'Organization', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).DELETE_ORGANIZATION)")
-    public void delete(Long id) {
+    public void delete(String name) {
 
-        final Organization exist = get(id);
-        organizationRepository.delete(id);
+        final Organization exist = get(name);
+        organizationRepository.delete(name);
         logger.info("{} deleted", exist);
     }
 

@@ -32,7 +32,6 @@ import com.odysseusinc.arachne.commons.api.v1.dto.OrganizationDTO;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.Organization;
 import com.odysseusinc.arachne.portal.service.OrganizationService;
-import com.odysseusinc.arachne.portal.service.impl.OrganizationServiceImpl;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import java.util.List;
@@ -66,10 +65,10 @@ public class OrganizationController extends BaseController {
     }
 
     @ApiOperation("Get Organization")
-    @RequestMapping(value = "/api/v1/user-management/organizations/{id}", produces = APPLICATION_JSON_UTF8_VALUE, method = GET)
-    public OrganizationDTO get(@PathVariable Long id) {
+    @RequestMapping(value = "/api/v1/user-management/organizations/{name}", produces = APPLICATION_JSON_UTF8_VALUE, method = GET)
+    public OrganizationDTO get(@PathVariable String name) {
 
-        final Organization organization = organizationService.get(id);
+        final Organization organization = organizationService.get(name);
         return conversionService.convert(organization, OrganizationDTO.class);
     }
 
@@ -77,17 +76,16 @@ public class OrganizationController extends BaseController {
     @RequestMapping(value = "/api/v1/user-management/organizations/{id}", produces = APPLICATION_JSON_UTF8_VALUE, consumes = APPLICATION_JSON_UTF8_VALUE, method = PUT)
     public OrganizationDTO update(@PathVariable Long id, @RequestBody OrganizationDTO organizationDTO) {
 
-        organizationDTO.setId(id);
         final Organization organization = conversionService.convert(organizationDTO, Organization.class);
         final Organization updated = organizationService.update(organization);
         return conversionService.convert(updated, OrganizationDTO.class);
     }
 
     @ApiOperation("Delete Organization")
-    @RequestMapping(value = "/api/v1/user-management/organizations/{id}", method = DELETE)
-    public void delete(@PathVariable Long id) {
+    @RequestMapping(value = "/api/v1/user-management/organizations/{name}", method = DELETE)
+    public void delete(@PathVariable String name) {
 
-        organizationService.delete(id);
+        organizationService.delete(name);
     }
 
     @ApiOperation("Suggest Organizations")

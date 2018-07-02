@@ -29,13 +29,13 @@ import java.util.List;
 public interface OrganizationService {
     Organization create(Organization organization) throws ValidationException;
 
-    Organization get(Long id);
+    Organization get(String name);
 
     Organization getOrCreate(Organization organization) throws ValidationException;
 
     Organization update(Organization organization);
 
-    void delete(Long id);
+    void delete(String name);
 
     List<Organization> suggest(String query, Integer limit);
 }

@@ -53,8 +53,12 @@ import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
 import javax.validation.Valid;
+import javax.validation.Validator;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,6 +87,7 @@ public abstract class BaseDataNodeController<
     protected final StudyDataSourceService studyDataSourceService;
     protected final ArachneConverterUtils converterUtils;
     protected final OrganizationService organizationService;
+    private final Validator validator;
 
     @Autowired
     public BaseDataNodeController(BaseAnalysisService analysisService,
@@ -92,7 +97,8 @@ public abstract class BaseDataNodeController<
                                   BaseUserService userService,
                                   StudyDataSourceService studyDataSourceService,
                                   ArachneConverterUtils converterUtils,
-                                  OrganizationService organizationService) {
+                                  OrganizationService organizationService,
+                                  Validator validator) {
 
         this.analysisService = analysisService;
         this.baseDataNodeService = dataNodeService;
@@ -102,6 +108,7 @@ public abstract class BaseDataNodeController<
         this.studyDataSourceService = studyDataSourceService;
         this.converterUtils = converterUtils;
         this.organizationService = organizationService;
+        this.validator = validator;
     }
 
     @ApiOperation("Create new data node.")
@@ -161,28 +168,25 @@ public abstract class BaseDataNodeController<
             @PathVariable("dataNodeId") Long dataNodeId,
             @RequestBody CommonDataNodeRegisterDTO commonDataNodeRegisterDTO,
             Principal principal
-    ) throws PermissionDeniedException, NotExistException, AlreadyExistException, BindException, ValidationException {
+    ) throws NotExistException, AlreadyExistException {
 
         //for the first DN update all fields (name, description, organization) are mandatory in commonDataNodeRegisterDTO.
         // In further updates they may be empty and will be taken from existing record
         DN existingDN = baseDataNodeService.getById(dataNodeId);
         if (existingDN.getName() == null) {
-            validateDNFields(commonDataNodeRegisterDTO);
+            Set<ConstraintViolation<CommonDataNodeRegisterDTO>> constraintViolations = validator.validate(commonDataNodeRegisterDTO);
+            if (!constraintViolations.isEmpty()) {
+                throw new ConstraintViolationException(constraintViolations);
+            }
         }
-        final IUser user = getUser(principal);
         final DN dataNode = conversionService.convert(commonDataNodeRegisterDTO, getDataNodeDNClass());
-        dataNode.setId(dataNodeId);
-        final Organization organization;
         if (commonDataNodeRegisterDTO.getOrganization() != null) {
-            organization = conversionService.convert(commonDataNodeRegisterDTO.getOrganization(), Organization.class);
-        } else {
-            organization = existingDN.getOrganization();
+            existingDN.setOrganization(conversionService.convert(commonDataNodeRegisterDTO.getOrganization(), Organization.class));
         }
-        if (commonDataNodeRegisterDTO.getDescription() == null) {
-            dataNode.setDescription(existingDN.getDescription());
+        if (commonDataNodeRegisterDTO.getDescription() != null) {
+            existingDN.setDescription(commonDataNodeRegisterDTO.getDescription());
         }
-        dataNode.setOrganization(organizationService.getOrCreate(organization));
-        final DN updatedDataNode = baseDataNodeService.update(dataNode);
+        final DN updatedDataNode = baseDataNodeService.update(existingDN);
         final DataNodeDTO dataNodeRegisterResponseDTO
                 = conversionService.convert(updatedDataNode, DataNodeDTO.class);
         final JsonResult<DataNodeDTO> result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
@@ -190,33 +194,10 @@ public abstract class BaseDataNodeController<
         return result;
     }
 
-    private void validateDNFields(final CommonDataNodeRegisterDTO commonDataNodeRegisterDTO) throws BindException {
-
-        BindException bindException = new BindException(commonDataNodeRegisterDTO, "commonDataNodeRegisterDTO");
-        if (Objects.isNull(commonDataNodeRegisterDTO.getName())) {
-            bindException.addError(new FieldError("name", "name", "May not be empty"));
-        }
-        if (Objects.isNull(commonDataNodeRegisterDTO.getDescription())) {
-            bindException.addError(new FieldError("description", "description", "May not be empty"));
-        }
-        validateOrganization(commonDataNodeRegisterDTO.getOrganization(), bindException);
-        if (bindException.hasErrors()) {
-            throw bindException;
-        }
-    }
-
-    private void validateOrganization(final OrganizationDTO organizationDTO, BindException bindException) throws BindException {
-
-        if (Objects.isNull(organizationDTO.getId()) && Objects.isNull(organizationDTO.getName())) {
-            bindException.addError(new FieldError("organization", "organization", "May not be empty"));
-            throw bindException;
-        }
-    }
-
     private void validateOrganization(final OrganizationDTO organizationDTO) throws BindException {
 
         BindException bindException = new BindException("organization", "not null");
-        if (Objects.isNull(organizationDTO.getId()) && Objects.isNull(organizationDTO.getName())) {
+        if (Objects.isNull(organizationDTO.getName())) {
             bindException.addError(new FieldError("organization", "organization", "May not be empty"));
             throw bindException;
         }

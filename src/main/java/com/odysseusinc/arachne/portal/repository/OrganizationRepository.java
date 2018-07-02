@@ -29,9 +29,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface OrganizationRepository extends JpaRepository<Organization, Long> {
+public interface OrganizationRepository extends JpaRepository<Organization, String> {
 
-    Optional<Organization> getById(Long id);
+    Optional<Organization> getByName(String name);
 
     @Query(nativeQuery = true,
             value = "SELECT * FROM organizations WHERE lower(name) SIMILAR TO :suggestRequest LIMIT :limit")
