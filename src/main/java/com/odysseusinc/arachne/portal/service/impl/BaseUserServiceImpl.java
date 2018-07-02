@@ -459,7 +459,7 @@ public abstract class BaseUserServiceImpl<
     @Override
     public void resendActivationEmail(final String email) throws UserNotFoundException {
 
-        final U user = userRepository.findByEmailAndEnabledFalse(email);
+        final U user = userRepository.findByEmailAndEmailConfirmedFalse(email);
         resendActivationEmail(user);
     }
 
@@ -1321,7 +1321,7 @@ public abstract class BaseUserServiceImpl<
         final String deletableUsers = rawUserRepository.checkIfUsersAreDeletable(userIds, "tenants_users");
         return Stream.of(org.apache.commons.lang3.StringUtils.split(deletableUsers, delimiter)).map(Long::valueOf).collect(Collectors.toSet());
     }
-    
+
     private void toggleFlag(
             final List<U> entities,
             final Function<U, Boolean> getter,

@@ -103,6 +103,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.servlet.http.HttpServletRequest;
@@ -732,17 +733,17 @@ public abstract class BaseUserController<
     ) throws NotExistException {
 
         final DN dataNode = baseDataNodeService.getById(dataNodeId);
-        
+
         final Set<DataNodeUser> users = linkUserToDataNodes.stream()
                 .map(link -> new DataNodeUser(userService.getByUnverifiedEmailInAnyTenant(link.getUserName()), dataNode))
                 .collect(Collectors.toSet());
-        
+
         baseDataNodeService.relinkAllUsersToDataNode(dataNode, users);
-        
+
         final List<CommonUserDTO> userDTOs = users.stream()
                 .map(user -> conversionService.convert(user.getUser(), CommonUserDTO.class))
                 .collect(Collectors.toList());
-        
+
         return new JsonResult<>(NO_ERROR, userDTOs);
     }
 
@@ -774,6 +775,9 @@ public abstract class BaseUserController<
 
         U user = userService.getByIdInAnyTenantAndInitializeCollections(UserIdUtils.uuidToId(userUuid));
         user.setEmailConfirmed(confirm);
+        if (!confirm) {
+            user.setRegistrationCode(UUID.randomUUID().toString());
+        }
         userService.updateInAnyTenant(user);
         return conversionService.convert(user, CommonUserDTO.class);
     }

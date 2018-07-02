@@ -27,6 +27,7 @@ import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.factory.ArachneUserFactory;
 import com.odysseusinc.arachne.portal.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -49,7 +50,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             throw new UsernameNotFoundException(String.format("No user found with email '%s'.", email));
         }
         if (!user.getEnabled()) {
-            throw new UserNotActivatedException(String.format("User with email='%s' is not activated", email));
+            if (!user.getEmailConfirmed()) {
+                throw new UserNotActivatedException(String.format("User with email='%s' is not activated", email));
+            }
+            throw new BadCredentialsException("Bad credentials"); // temp solution - change in ARACHNE-2490
         }
         return ArachneUserFactory.create(user);
     }
