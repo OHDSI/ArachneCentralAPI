@@ -82,4 +82,6 @@ public interface BaseRawUserRepository<U extends IUser> extends EntityGraphJpaRe
     List<U> findByRoles_name(String role, Sort sort);
 
     List<U> findByIdInAndEnabledTrue(Set<Long> userIds);
+
+    U findByEmailAndEmailConfirmedFalse(String email);
 }
