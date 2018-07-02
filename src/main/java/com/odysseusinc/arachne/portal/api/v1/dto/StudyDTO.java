@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,26 +26,11 @@ import com.odysseusinc.arachne.portal.api.v1.dto.dictionary.StudyStatusDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.dictionary.StudyTypeDTO;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
 
-public class StudyDTO {
-
-    public Long id;
-
-    private String title;
-
-    private StudyTypeDTO type;
-
-    private String description;
+public class StudyDTO extends CommonStudyDTO {
 
     private String role;
-
-    private List<ParticipantDTO> participants = new ArrayList<>();
-
-    private List<DataSourceDTO> dataSources = new LinkedList<>();
-
-    private List<BaseAnalysisDTO> analyses = new LinkedList<>();
 
     private Date created;
 
@@ -57,16 +42,17 @@ public class StudyDTO {
 
     private Date endDate;
 
-    private List<StudyFileDTO> files = new LinkedList<>();
-
-    private PermissionsDTO permissions;
-
     private Boolean favourite;
 
     private Long paperId;
 
     private Boolean privacy;
 
+    private StudyTypeDTO type;
+
+    private List<ParticipantDTO> participants = new ArrayList<>();
+
+    private String description;
 
     public String getDescription() {
 
@@ -88,14 +74,14 @@ public class StudyDTO {
         this.participants = participants;
     }
 
-    public List<DataSourceDTO> getDataSources() {
+    public StudyTypeDTO getType() {
 
-        return dataSources;
+        return type;
     }
 
-    public void setDataSources(List<DataSourceDTO> dataSources) {
+    public void setType(StudyTypeDTO type) {
 
-        this.dataSources = dataSources;
+        this.type = type;
     }
 
     public Date getCreated() {
@@ -138,27 +124,6 @@ public class StudyDTO {
         this.endDate = endDate;
     }
 
-
-    public Long getId() {
-
-        return id;
-    }
-
-    public void setId(Long id) {
-
-        this.id = id;
-    }
-
-    public String getTitle() {
-
-        return title;
-    }
-
-    public void setTitle(String title) {
-
-        this.title = title;
-    }
-
     public StudyStatusDTO getStatus() {
 
         return status;
@@ -169,16 +134,6 @@ public class StudyDTO {
         this.status = status;
     }
 
-    public StudyTypeDTO getType() {
-
-        return type;
-    }
-
-    public void setType(StudyTypeDTO type) {
-
-        this.type = type;
-    }
-
     public String getRole() {
 
         return role;
@@ -187,36 +142,6 @@ public class StudyDTO {
     public void setRole(String role) {
 
         this.role = role;
-    }
-
-    public List<BaseAnalysisDTO> getAnalyses() {
-
-        return analyses;
-    }
-
-    public void setAnalyses(List<BaseAnalysisDTO> analyses) {
-
-        this.analyses = analyses;
-    }
-
-    public List<StudyFileDTO> getFiles() {
-
-        return files;
-    }
-
-    public void setFiles(List<StudyFileDTO> files) {
-
-        this.files = files;
-    }
-
-    public PermissionsDTO getPermissions() {
-
-        return permissions;
-    }
-
-    public void setPermissions(PermissionsDTO permissions) {
-
-        this.permissions = permissions;
     }
 
     public Boolean getFavourite() {

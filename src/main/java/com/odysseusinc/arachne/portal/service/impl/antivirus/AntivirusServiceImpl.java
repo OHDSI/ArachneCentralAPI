@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -47,6 +47,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import xyz.capybara.clamav.ClamavClient;
 import xyz.capybara.clamav.ClamavException;
+import xyz.capybara.clamav.CommunicationException;
 import xyz.capybara.clamav.commands.scan.result.ScanResult;
 
 @Service
@@ -85,10 +86,12 @@ public class AntivirusServiceImpl {
         logger.debug(PROCESSING_SCAN_REQUEST, fileId, fileType);
         String description = null;
         AntivirusStatus status;
-        try {
+        try (InputStream content = antivirusJob.getContent()) {
+            clamavClientAvailabilityCheck();
+
             final ScanResult scan = retryTemplate.execute((RetryCallback<ScanResult, Exception>) retryContext -> {
                 logger.debug(PROCESSING_SCAN_ATTEMPT, fileId, fileType);
-                return scan(antivirusJob.getContent());
+                return scan(content);
             });
 
             if (scan instanceof ScanResult.OK) {
@@ -113,12 +116,19 @@ public class AntivirusServiceImpl {
         publishResponse(fileType, fileId, status, description);
     }
 
-    private ScanResult scan(InputStream inputStream) throws IOException {
+    private ScanResult scan(InputStream inputStream) {
 
-        try (InputStream is = inputStream) {
-            final ClamavClient clamavClient = new ClamavClient(antivirusHost, antivirusPort);
-            return clamavClient.scan(is);
-        }
+        return clamavClient().scan(inputStream);
+    }
+
+    private ClamavClient clamavClient() {
+
+        return new ClamavClient(antivirusHost, antivirusPort);
+    }
+
+    private void clamavClientAvailabilityCheck() throws CommunicationException {
+
+        clamavClient().ping();
     }
 
     private void publishResponse(final AntivirusJobFileType fileType, final Long fileId, final AntivirusStatus status, final String description) {

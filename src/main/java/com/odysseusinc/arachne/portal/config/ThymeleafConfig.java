@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,6 +31,7 @@ import org.springframework.context.annotation.Configuration;
 import org.thymeleaf.spring4.SpringTemplateEngine;
 import org.thymeleaf.spring4.templateresolver.SpringResourceTemplateResolver;
 import org.thymeleaf.templatemode.TemplateMode;
+import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import org.thymeleaf.templateresolver.ITemplateResolver;
 import org.thymeleaf.templateresolver.StringTemplateResolver;
 
@@ -48,16 +49,31 @@ public class ThymeleafConfig {
     private void postConstruct() {
         Set<ITemplateResolver> resolverSet = new LinkedHashSet<>();
 
-        // At first, try to load template from resources by given name
+        // At first, try to load html template from resources by given name
         defaultTemplateResolver.setOrder(0);
         resolverSet.add(defaultTemplateResolver);
 
-        // If there was founf no such template, use the string as template by itself
+        //Then try to load txt template from resources by given name
+        ClassLoaderTemplateResolver textTemplateResolver = getTextTemplateResolver();
+        textTemplateResolver.setOrder(0);
+        resolverSet.add(textTemplateResolver);
+
+        // If there was found no such template, use the string as template by itself
         StringTemplateResolver stringTemplateResolver = getStringTemplateResolver();
         stringTemplateResolver.setOrder(1);
         resolverSet.add(stringTemplateResolver);
 
         templateEngine.setTemplateResolvers(resolverSet);
+    }
+
+    private ClassLoaderTemplateResolver getTextTemplateResolver() {
+
+        final ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver();
+        templateResolver.setPrefix("templates/");
+        templateResolver.setSuffix(".txt");
+        templateResolver.setTemplateMode(TemplateMode.TEXT);
+        templateResolver.setCacheable(false);
+        return templateResolver;
     }
 
     private StringTemplateResolver getStringTemplateResolver() {

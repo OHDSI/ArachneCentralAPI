@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -48,8 +48,8 @@ public interface BaseStudyRepository<T extends Study> extends JpaRepository<T, L
                     + " AND studies_users.user_id=:ownerId AND lower(title) SIMILAR TO :suggestRequest"
                     + " AND lower(studies_users.status) = 'approved'")
     Iterable<T> suggestByParticipantId(@Param("suggestRequest") String suggestRequest,
-                                           @Param("ownerId") Long id,
-                                           @Param("participantId") Long participantId);
+                                       @Param("ownerId") Long id,
+                                       @Param("participantId") Long participantId);
 
     @Query(nativeQuery = true,
             value = "SELECT studies.* " +
@@ -61,8 +61,8 @@ public interface BaseStudyRepository<T extends Study> extends JpaRepository<T, L
                     + " AND studies_users.user_id=:ownerId AND lower(title) SIMILAR TO :suggestRequest"
                     + " AND lower(studies_users.status) = 'approved'")
     Iterable<T> suggestByDatasourceId(@Param("suggestRequest") String suggestRequest,
-                                          @Param("ownerId") Long id,
-                                          @Param("datasourceId") Long datasourceId);
+                                      @Param("ownerId") Long id,
+                                      @Param("datasourceId") Long datasourceId);
 
     List<T> findByIdIn(List<Long> ids);
 
@@ -77,4 +77,7 @@ public interface BaseStudyRepository<T extends Study> extends JpaRepository<T, L
 
     @Query(nativeQuery = true, value = "SELECT * FROM studies_data WHERE id IN :studyIds")
     List<T> findByIdsInAnyTenant(@Param("studyIds") Collection<Long> ids);
+
+    @Query("SELECT s, u FROM UserStudy u JOIN u.study s WHERE s.kind = com.odysseusinc.arachne.portal.model.StudyKind.WORKSPACE AND u.user.id = :userId")
+    T findWorkspaceForUser(@Param("userId") Long userId);
 }

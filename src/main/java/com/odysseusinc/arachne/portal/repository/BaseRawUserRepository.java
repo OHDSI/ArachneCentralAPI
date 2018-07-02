@@ -22,22 +22,28 @@
 
 package com.odysseusinc.arachne.portal.repository;
 
+import static com.odysseusinc.arachne.portal.model.RawUser.CHECK_IF_USERS_ARE_DELETABLE;
 import static com.odysseusinc.arachne.portal.service.BaseRoleService.ROLE_ADMIN;
 
 import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
 import com.cosium.spring.data.jpa.entity.graph.repository.EntityGraphJpaRepository;
+import com.cosium.spring.data.jpa.entity.graph.repository.EntityGraphJpaSpecificationExecutor;
 import com.odysseusinc.arachne.portal.model.IUser;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specifications;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.query.Param;
 
 @NoRepositoryBean
 public interface BaseRawUserRepository<U extends IUser> extends EntityGraphJpaRepository<U, Long>,
-        JpaSpecificationExecutor<U> {
+        EntityGraphJpaSpecificationExecutor<U> {
 
     U findByIdAndEnabledTrue(Long id);
 
@@ -82,4 +88,13 @@ public interface BaseRawUserRepository<U extends IUser> extends EntityGraphJpaRe
     List<U> findByRoles_name(String role, Sort sort);
 
     List<U> findByIdInAndEnabledTrue(Set<Long> userIds);
+    
+    List<U> findByIdIn(Collection<Long> userIds);
+
+    @Query("select u from RawUser u where lower(u.email) in :emails")
+    List<U> findByEmailIgnoreCaseIn(@Param("emails") List<String> emails);
+    List<U> findByEmailIn(List<String> emails);
+
+    @Procedure(name = CHECK_IF_USERS_ARE_DELETABLE, outputParameterName = "filtered_ids")
+    String checkIfUsersAreDeletable(@Param("ids") String ids, @Param("excluded_tables") String tables);
 }

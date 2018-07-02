@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -100,8 +100,8 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
     void updateFile(String uuid, MultipartFile file, Long analysisId, Boolean isExecutable)
             throws IOException;
 
-    void writeToFile(AnalysisFile analysisFile,
-                     FileDTO fileContentDTO, IUser updatedBy) throws IOException;
+    void updateCodeFile(AnalysisFile analysisFile,
+                        FileDTO fileContentDTO, IUser updatedBy) throws IOException;
 
     AnalysisFile saveAnalysisFile(AnalysisFile file);
 

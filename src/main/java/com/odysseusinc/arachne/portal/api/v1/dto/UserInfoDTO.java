@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,6 +27,7 @@ import java.util.List;
 public class UserInfoDTO extends DTO {
     private String id;
     private String email;
+    private String username;
     private String firstname;
     private String lastname;
     private String middlename;
@@ -49,6 +50,14 @@ public class UserInfoDTO extends DTO {
     public void setId(String id) {
 
         this.id = id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getEmail() {

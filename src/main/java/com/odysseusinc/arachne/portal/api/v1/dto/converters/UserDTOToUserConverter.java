@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,26 +23,15 @@
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserRegistrationDTO;
-import com.odysseusinc.arachne.portal.model.ProfessionalType;
 import com.odysseusinc.arachne.portal.model.User;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UserDTOToUserConverter extends BaseConversionServiceAwareConverter<CommonUserRegistrationDTO, User> {
-
+public class UserDTOToUserConverter extends BaseUserDtoToUserConverter<CommonUserRegistrationDTO, User> {
 
     @Override
-    public User convert(CommonUserRegistrationDTO dto) {
+    protected User newUser() {
 
-        User user = new User();
-        user.setEmail(dto.getEmail());
-        user.setPassword(dto.getPassword());
-        user.setMiddlename(dto.getMiddlename());
-        user.setFirstname(dto.getFirstname());
-        user.setLastname(dto.getLastname());
-        ProfessionalType professionalType = new ProfessionalType();
-        professionalType.setId(dto.getProfessionalTypeId());
-        user.setProfessionalType(professionalType);
-        return user;
+        return new User();
     }
 }
