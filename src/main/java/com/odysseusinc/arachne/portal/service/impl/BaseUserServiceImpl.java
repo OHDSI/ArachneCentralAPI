@@ -422,7 +422,7 @@ public abstract class BaseUserServiceImpl<
     @Override
     public void resendActivationEmail(String email) throws UserNotFoundException {
 
-        final U user = userRepository.findByEmailAndEmailConfirmedFalse(email);
+        final U user = rawUserRepository.findByEmailAndEmailConfirmedFalse(email);
         if (user == null) {
             throw new UserNotFoundException("email", "not enabled user is not found by email " + email);
         }
