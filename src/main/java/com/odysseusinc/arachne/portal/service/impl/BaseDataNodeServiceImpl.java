@@ -154,7 +154,7 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
     }
 
     @Override
-    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
+    @PostAuthorize("principal instanceof T(com.odysseusinc.arachne.portal.model.DataNode) ? true : @ArachnePermissionEvaluator.addPermissions(principal, returnObject)")
     public DN getById(Long id) throws NotExistException {
 
         if (Objects.nonNull(id)) {
