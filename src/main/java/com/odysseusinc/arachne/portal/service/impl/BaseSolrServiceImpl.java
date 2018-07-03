@@ -330,14 +330,16 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
 
             document.addField(solrField.getSolrName(), value);
 
-            if (solrField.isSortNeeded() && solrField.isMultiValuesType()) {
-                String valueForSort = null;
-                if (!StringUtils.isEmpty((String) queryValue)) {
-                    final List<String> list = Arrays.asList(StringUtils.split(((String) queryValue)));
-                    Collections.sort(list);
-                    valueForSort = String.join(" ", list);
+            if (solrField.isSortNeeded()) {
+                String queryValueString = (String) queryValue;
+                if (solrField.isMultiValuesType()) {
+                    if (!StringUtils.isEmpty(queryValueString)) {
+                        final List<String> list = Arrays.asList(StringUtils.split((queryValueString)));
+                        Collections.sort(list);
+                        queryValueString = String.join(" ", list);
+                    }
                 }
-                document.addField(solrField.getMultiValuesTypeFieldName(), valueForSort);
+                document.addField(solrField.getSolrSortFieldName(), queryValueString);
             }
             
             
