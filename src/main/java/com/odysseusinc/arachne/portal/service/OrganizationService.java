@@ -29,7 +29,9 @@ import java.util.List;
 public interface OrganizationService {
     Organization create(Organization organization) throws ValidationException;
 
-    Organization get(Long id);
+    Organization getByName(String name);
+
+    Organization getById(Long id);
 
     Organization getOrCreate(Organization organization) throws ValidationException;
 

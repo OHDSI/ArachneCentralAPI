@@ -31,6 +31,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface OrganizationRepository extends JpaRepository<Organization, Long> {
 
+    Optional<Organization> getByName(String name);
+
     Optional<Organization> getById(Long id);
 
     @Query(nativeQuery = true,
