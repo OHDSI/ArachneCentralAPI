@@ -172,7 +172,6 @@ public abstract class BaseDataNodeController<
         // In further updates they may be empty and will be taken from existing record
         DN existingDN = baseDataNodeService.getById(dataNodeId);
         if (existingDN.getName() == null) {
-            commonDataNodeRegisterDTO.getOrganization().setName("OHDSI");//todo REMOVE THIS LINE
             Set<ConstraintViolation<CommonDataNodeRegisterDTO>> constraintViolations = validator.validate(commonDataNodeRegisterDTO);
             if (!constraintViolations.isEmpty()) {
                 throw new ConstraintViolationException(constraintViolations);
