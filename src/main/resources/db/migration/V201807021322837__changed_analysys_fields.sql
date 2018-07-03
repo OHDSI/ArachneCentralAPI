@@ -1,0 +1,2 @@
+ALTER TABLE analyses ALTER COLUMN title TYPE TEXT;
+ALTER TABLE analyses ALTER COLUMN description TYPE TEXT;
