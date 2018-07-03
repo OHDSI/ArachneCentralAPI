@@ -80,6 +80,16 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     @Override
+    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
+    public Organization get(Long id) {
+
+        return organizationRepository.getById(id).orElseThrow(() -> {
+            final String message = String.format("Organization with id='%s' does not exist", id);
+            return new NotExistException(message, Organization.class);
+        });
+    }
+
+    @Override
     @Transactional
     @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
     public Organization getOrCreate(Organization organization) throws ValidationException {
@@ -108,12 +118,12 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     @Override
-    @PreAuthorize("hasPermission(#name, 'Organization', "
+    @PreAuthorize("hasPermission(#id, 'Organization', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).DELETE_ORGANIZATION)")
-    public void delete(String name) {
+    public void delete(Long id) {
 
-        final Organization exist = get(name);
-        organizationRepository.delete(name);
+        final Organization exist = get(id);
+        organizationRepository.delete(id);
         logger.info("{} deleted", exist);
     }
 

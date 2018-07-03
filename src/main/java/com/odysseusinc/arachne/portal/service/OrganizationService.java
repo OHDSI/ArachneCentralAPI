@@ -31,11 +31,13 @@ public interface OrganizationService {
 
     Organization get(String name);
 
+    Organization get(Long id);
+
     Organization getOrCreate(Organization organization) throws ValidationException;
 
     Organization update(Organization organization);
 
-    void delete(String name);
+    void delete(Long id);
 
     List<Organization> suggest(String query, Integer limit);
 }

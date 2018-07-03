@@ -33,6 +33,7 @@ public class OrganizationDTOToOrganizationConverter extends BaseConversionServic
     public Organization convert(OrganizationDTO source) {
 
         final Organization organization = new Organization();
+        organization.setId(source.getId());
         organization.setName(source.getName());
         return organization;
     }

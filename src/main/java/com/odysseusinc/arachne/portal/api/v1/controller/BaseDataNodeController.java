@@ -27,7 +27,6 @@ import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeCreationResponse
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeRegisterDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataSourceDTO;
-import com.odysseusinc.arachne.commons.api.v1.dto.OrganizationDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.api.v1.dto.DataNodeDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.DataSourceDTO;
@@ -130,9 +129,8 @@ public abstract class BaseDataNodeController<
     public CommonDataNodeCreationResponseDTO createManualDataNode(
             @RequestBody @Valid CommonDataNodeRegisterDTO commonDataNodeRegisterDTO,
             Principal principal
-    ) throws PermissionDeniedException, AlreadyExistException, ValidationException, BindException {
+    ) throws PermissionDeniedException, AlreadyExistException, ValidationException {
 
-        validateOrganization(commonDataNodeRegisterDTO.getOrganization());
         commonDataNodeRegisterDTO.setId(null);
         final DN dataNode = conversionService.convert(commonDataNodeRegisterDTO, getDataNodeDNClass());
         final Organization organization = conversionService.convert(commonDataNodeRegisterDTO.getOrganization(), Organization.class);
@@ -174,10 +172,12 @@ public abstract class BaseDataNodeController<
         // In further updates they may be empty and will be taken from existing record
         DN existingDN = baseDataNodeService.getById(dataNodeId);
         if (existingDN.getName() == null) {
+            commonDataNodeRegisterDTO.getOrganization().setName("OHDSI");//todo REMOVE THIS LINE
             Set<ConstraintViolation<CommonDataNodeRegisterDTO>> constraintViolations = validator.validate(commonDataNodeRegisterDTO);
             if (!constraintViolations.isEmpty()) {
                 throw new ConstraintViolationException(constraintViolations);
             }
+            existingDN.setName(commonDataNodeRegisterDTO.getName());
         }
         final DN dataNode = conversionService.convert(commonDataNodeRegisterDTO, getDataNodeDNClass());
         if (commonDataNodeRegisterDTO.getOrganization() != null) {
@@ -187,20 +187,10 @@ public abstract class BaseDataNodeController<
             existingDN.setDescription(commonDataNodeRegisterDTO.getDescription());
         }
         final DN updatedDataNode = baseDataNodeService.update(existingDN);
-        final DataNodeDTO dataNodeRegisterResponseDTO
-                = conversionService.convert(updatedDataNode, DataNodeDTO.class);
+        final DataNodeDTO dataNodeRegisterResponseDTO = conversionService.convert(updatedDataNode, DataNodeDTO.class);
         final JsonResult<DataNodeDTO> result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
         result.setResult(dataNodeRegisterResponseDTO);
         return result;
-    }
-
-    private void validateOrganization(final OrganizationDTO organizationDTO) throws BindException {
-
-        BindException bindException = new BindException("organization", "not null");
-        if (Objects.isNull(organizationDTO.getName())) {
-            bindException.addError(new FieldError("organization", "organization", "May not be empty"));
-            throw bindException;
-        }
     }
 
     @ApiOperation("Create new data source of datanode.")

@@ -65,10 +65,10 @@ public class OrganizationController extends BaseController {
     }
 
     @ApiOperation("Get Organization")
-    @RequestMapping(value = "/api/v1/user-management/organizations/{name}", produces = APPLICATION_JSON_UTF8_VALUE, method = GET)
-    public OrganizationDTO get(@PathVariable String name) {
+    @RequestMapping(value = "/api/v1/user-management/organizations/{id}", produces = APPLICATION_JSON_UTF8_VALUE, method = GET)
+    public OrganizationDTO get(@PathVariable Long id) {
 
-        final Organization organization = organizationService.get(name);
+        final Organization organization = organizationService.get(id);
         return conversionService.convert(organization, OrganizationDTO.class);
     }
 
@@ -76,16 +76,17 @@ public class OrganizationController extends BaseController {
     @RequestMapping(value = "/api/v1/user-management/organizations/{id}", produces = APPLICATION_JSON_UTF8_VALUE, consumes = APPLICATION_JSON_UTF8_VALUE, method = PUT)
     public OrganizationDTO update(@PathVariable Long id, @RequestBody OrganizationDTO organizationDTO) {
 
+        organizationDTO.setId(id);
         final Organization organization = conversionService.convert(organizationDTO, Organization.class);
         final Organization updated = organizationService.update(organization);
         return conversionService.convert(updated, OrganizationDTO.class);
     }
 
     @ApiOperation("Delete Organization")
-    @RequestMapping(value = "/api/v1/user-management/organizations/{name}", method = DELETE)
-    public void delete(@PathVariable String name) {
+    @RequestMapping(value = "/api/v1/user-management/organizations/{id}", method = DELETE)
+    public void delete(@PathVariable Long id) {
 
-        organizationService.delete(name);
+        organizationService.delete(id);
     }
 
     @ApiOperation("Suggest Organizations")
