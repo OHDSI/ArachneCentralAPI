@@ -459,7 +459,7 @@ public abstract class BaseUserServiceImpl<
     @Override
     public void resendActivationEmail(final String email) throws UserNotFoundException {
 
-        final U user = userRepository.findByEmailAndEnabledFalse(email);
+        final U user = userRepository.findByEmailAndEmailConfirmedFalse(email);
         resendActivationEmail(user);
     }
 
@@ -714,7 +714,7 @@ public abstract class BaseUserServiceImpl<
             spec = spec.and(userEnabled());
         }
         if (!StringUtils.isEmpty(userSearch.getQuery())) {
-            String pattern = userSearch.getQuery() + "%";
+            String pattern = "%" + userSearch.getQuery().toLowerCase() + "%";
             spec = spec.and(withNameOrEmailLike(pattern));
         }
 
@@ -1311,6 +1311,15 @@ public abstract class BaseUserServiceImpl<
             default:
                 throw new IllegalArgumentException("Batch operation type " + type + " isn't supported");
         }
+    }
+
+    @Override
+    public Set<Long> checkIfUsersAreDeletable(final Set<Long> users) {
+
+        final String delimiter = ",";
+        final String userIds = users.stream().map(String::valueOf).collect(Collectors.joining(delimiter));
+        final String deletableUsers = rawUserRepository.checkIfUsersAreDeletable(userIds, "tenants_users");
+        return Stream.of(org.apache.commons.lang3.StringUtils.split(deletableUsers, delimiter)).map(Long::valueOf).collect(Collectors.toSet());
     }
 
     private void toggleFlag(

@@ -31,6 +31,8 @@ import com.odysseusinc.arachne.portal.api.v1.dto.AdminUserDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ArachneConsts;
 import com.odysseusinc.arachne.portal.api.v1.dto.BatchOperationDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.BulkUsersRegistrationDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.DeletableUserWithTenantsDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.DeletableUserWithTenantsListDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserWithTenantsDTO;
 import com.odysseusinc.arachne.portal.exception.EmailNotUniqueException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
@@ -76,6 +78,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -167,7 +170,7 @@ public abstract class BaseAdminController<
 
     @ApiOperation(value = "Get all users.", hidden = true)
     @RequestMapping(value = "/api/v1/admin/users", method = RequestMethod.GET)
-    public Page<UserWithTenantsDTO> getAll(
+    public Page<DeletableUserWithTenantsDTO> getAll(
             @PageableDefault(page = 1)
             @SortDefault.SortDefaults({
                     @SortDefault(sort = "firstname", direction = Sort.Direction.ASC)
@@ -177,7 +180,8 @@ public abstract class BaseAdminController<
             throws UserNotFoundException {
       
         final Page<U> users = userService.getPage(pageable, userSearch);
-        return users.map(user -> conversionService.convert(user, UserWithTenantsDTO.class));
+        final DeletableUserWithTenantsListDTO userDtoList = conversionService.convert(users.getContent(), DeletableUserWithTenantsListDTO.class);
+        return new CustomPageImpl<>(userDtoList, new PageRequest(pageable.getPageNumber() - 1, pageable.getPageSize()), users.getTotalElements());
     }
 
     @ApiOperation("Register new users")
@@ -216,6 +220,16 @@ public abstract class BaseAdminController<
   
         final List<U> users = userService.getList(userSearch);
         return users.stream().map(IUser::getId).map(UserIdUtils::idToUuid).collect(Collectors.toList());
+    }
+
+    @ApiOperation(value = "Get undeletable user ids.", hidden = true)
+    @RequestMapping(value = "/api/v1/admin/users/ids/undeletable", method = RequestMethod.GET)
+    public List<String> getListOfUndeletableUserIdsByFilter(final UserSearch userSearch)
+            throws UserNotFoundException {
+
+        final List<U> users = userService.getList(userSearch);
+        final Set<Long> deletableIds = userService.checkIfUsersAreDeletable(users.stream().map(IUser::getId).collect(Collectors.toSet()));
+        return users.stream().map(IUser::getId).filter(id -> !deletableIds.contains(id)).map(UserIdUtils::idToUuid).collect(Collectors.toList());
     }
 
     @ApiOperation(value = "Get all users.", hidden = true)

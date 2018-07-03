@@ -23,6 +23,7 @@
 package com.odysseusinc.arachne.portal.api.v1.dto;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonProfessionalTypeDTO;
+import org.hibernate.validator.constraints.Email;
 
 public class UserProfileGeneralDTO extends DTO {
 
@@ -42,6 +43,7 @@ public class UserProfileGeneralDTO extends DTO {
     private Long stateProvinceId;
     private String zipCode;
     private CountryDTO country;
+    @Email(message = "Email is not in the correct format")
     private String contactEmail;
 
     public String getAffiliation() {
