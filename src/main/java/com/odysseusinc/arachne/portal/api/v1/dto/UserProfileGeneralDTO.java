@@ -43,7 +43,7 @@ public class UserProfileGeneralDTO extends DTO {
     private Long stateProvinceId;
     private String zipCode;
     private CountryDTO country;
-    @Email
+    @Email(message = "Email is not in the correct format")
     private String contactEmail;
 
     public String getAffiliation() {
