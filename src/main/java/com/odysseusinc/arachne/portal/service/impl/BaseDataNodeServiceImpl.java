@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -48,6 +48,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -113,7 +114,7 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
     public DN update(DN dataNode) throws NotExistException, AlreadyExistException {
 
         DN existed = dataNodeRepository.findByNameAndVirtualIsFalse(dataNode.getName());
-        if (existed != null) {
+        if (existed != null && !existed.getId().equals(dataNode.getId())) {
             throw new AlreadyExistException("Data node with the same name already exists");
         }
         final DN existsDataNode = getById(dataNode.getId());
@@ -137,6 +138,7 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
     }
 
     @Override
+    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
     public DN getBySid(String uuid) throws NotExistException {
 
         if (uuid != null && !uuid.isEmpty()) {
@@ -152,6 +154,7 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
     }
 
     @Override
+    @PostAuthorize("principal instanceof T(com.odysseusinc.arachne.portal.model.DataNode) ? true : @ArachnePermissionEvaluator.addPermissions(principal, returnObject)")
     public DN getById(Long id) throws NotExistException {
 
         if (Objects.nonNull(id)) {

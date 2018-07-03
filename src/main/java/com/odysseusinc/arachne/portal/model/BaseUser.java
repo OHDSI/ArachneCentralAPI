@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2018 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -83,6 +83,9 @@ public class BaseUser implements IUser, Serializable {
     @SolrFieldAnno(query = true)
     @Column(nullable = false, length = 100)
     protected String lastname;
+
+    @Column(nullable = false, length = 100)
+    protected String organization;
 
     @Column
     protected Boolean enabled;
@@ -291,6 +294,18 @@ public class BaseUser implements IUser, Serializable {
     public void setLastname(String lastname) {
 
         this.lastname = lastname;
+    }
+
+    @Override
+    public String getOrganization() {
+
+        return organization;
+    }
+
+    @Override
+    public void setOrganization(String organization) {
+
+        this.organization = organization;
     }
 
     public ProfessionalType getProfessionalType() {

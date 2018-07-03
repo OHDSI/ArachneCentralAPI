@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -41,6 +41,8 @@ public interface BaseUserRepository<U extends IUser> extends EntityGraphJpaRepos
     List<U> findByIdIn(List<Long> idList);
 
     U findByEmailAndEnabledTrue(String email);
+
+    U findByEmailAndEmailConfirmedFalse(String email);
 
     U findByOriginAndUsername(String userOrigin, String username);
 

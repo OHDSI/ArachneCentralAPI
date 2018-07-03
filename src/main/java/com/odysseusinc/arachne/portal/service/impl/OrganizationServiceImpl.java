@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -71,7 +71,17 @@ public class OrganizationServiceImpl implements OrganizationService {
 
     @Override
     @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
-    public Organization get(Long id) {
+    public Organization getByName(String name) {
+
+        return organizationRepository.getByName(name).orElseThrow(() -> {
+            final String message = String.format("Organization with name='%s' does not exist", name);
+            return new NotExistException(message, Organization.class);
+        });
+    }
+
+    @Override
+    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
+    public Organization getById(Long id) {
 
         return organizationRepository.getById(id).orElseThrow(() -> {
             final String message = String.format("Organization with id='%s' does not exist", id);
@@ -85,7 +95,7 @@ public class OrganizationServiceImpl implements OrganizationService {
     public Organization getOrCreate(Organization organization) throws ValidationException {
 
         try {
-            return get(organization.getId());
+            return getByName(organization.getName());
         } catch (NotExistException ignored) {}
             return create(organization);
     }
@@ -97,7 +107,7 @@ public class OrganizationServiceImpl implements OrganizationService {
     @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
     public Organization update(Organization organization) {
 
-        final Organization exist = get(organization.getId());
+        final Organization exist = getByName(organization.getName());
         final String name = organization.getName();
         if (Objects.nonNull(name)) {
             exist.setName(name);
@@ -112,7 +122,7 @@ public class OrganizationServiceImpl implements OrganizationService {
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).DELETE_ORGANIZATION)")
     public void delete(Long id) {
 
-        final Organization exist = get(id);
+        final Organization exist = getById(id);
         organizationRepository.delete(id);
         logger.info("{} deleted", exist);
     }
