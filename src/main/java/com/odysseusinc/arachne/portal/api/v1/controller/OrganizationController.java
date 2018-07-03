@@ -68,7 +68,7 @@ public class OrganizationController extends BaseController {
     @RequestMapping(value = "/api/v1/user-management/organizations/{id}", produces = APPLICATION_JSON_UTF8_VALUE, method = GET)
     public OrganizationDTO get(@PathVariable Long id) {
 
-        final Organization organization = organizationService.get(id);
+        final Organization organization = organizationService.getById(id);
         return conversionService.convert(organization, OrganizationDTO.class);
     }
 
