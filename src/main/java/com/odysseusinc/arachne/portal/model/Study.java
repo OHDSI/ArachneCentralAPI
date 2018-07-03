@@ -90,11 +90,11 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "studies_pk_sequence")
     private Long id;
 
-    @Column(length = 1024)
+    @Column
     @SolrFieldAnno(query = true)
     private String title;
 
-    @Column(length = 10000)
+    @Column
     @SolrFieldAnno(query = true)
     private String description;
 
