@@ -38,6 +38,7 @@ import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
+import com.odysseusinc.arachne.portal.model.DataSourceFields;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
@@ -55,7 +56,6 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -74,6 +74,7 @@ public abstract class BaseDataSourceController<
     protected final BaseDataSourceService<DS> dataSourceService;
     protected final ArachneConverterUtils converterUtils;
     protected final StudyDataSourceService studyDataSourceService;
+
 
     public BaseDataSourceController(GenericConversionService conversionService,
                                     BaseDataSourceService<DS> dataSourceService,
@@ -114,7 +115,7 @@ public abstract class BaseDataSourceController<
             result = setValidationErrors(bindingResult);
         } else {
             IUser user = getUser(principal);
-            final DS exist = dataSourceService.getNotDeletedByIdInAnyTenant(dataSourceId);
+            final DS exist = dataSourceService.getByIdInAnyTenant(dataSourceId);
             DS dataSource = convertDTOToDataSource(commonDataSourceDTO);
             dataSource.setId(dataSourceId);
             dataSource.setDataNode(exist.getDataNode());
@@ -153,8 +154,7 @@ public abstract class BaseDataSourceController<
             throw new javax.validation.ValidationException();
         }
         final IUser user = getUser(principal);
-        PageRequest pageRequest = getPageRequest(pageDTO);
-
+        PageRequest pageRequest = dataSourceService.getPageRequest(pageDTO);
         Page<DS> dataSources = dataSourceService.suggestDataSource(query, studyId, user.getId(), pageRequest);
         List<DS_DTO> dataSourceDTOs = converterUtils.convertList(dataSources.getContent(), getDataSourceDTOClass());
         CustomPageImpl<DS_DTO> resultPage =
@@ -179,21 +179,16 @@ public abstract class BaseDataSourceController<
     @RequestMapping(value = "/api/v1/data-sources/my", method = RequestMethod.GET)
     public Page<DS_DTO> getUserDataSources(Principal principal,
                                            @RequestParam(name = "query", required = false, defaultValue = "") String query,
+                                           @RequestParam(name = "sort", required = false, defaultValue = DataSourceFields.UI_NAME) String sortBy,
+                                           @RequestParam(name = "order", required = false, defaultValue = "asc") String order,
                                            @ModelAttribute PageDTO pageDTO
     ) throws PermissionDeniedException {
 
         final IUser user = getUser(principal);
-        PageRequest pageRequest = getPageRequest(pageDTO);
-
+        PageRequest pageRequest = dataSourceService.getPageRequest(pageDTO, sortBy, order);
         Page<DS> dataSources = dataSourceService.getUserDataSources(query, user.getId(), pageRequest);
         List<DS_DTO> dataSourceDTOs = converterUtils.convertList(dataSources.getContent(), getDataSourceDTOClass());
         return new CustomPageImpl<>(dataSourceDTOs, pageRequest, dataSources.getTotalElements());
-    }
-
-    private PageRequest getPageRequest(PageDTO pageDTO) throws PermissionDeniedException {
-
-        Sort sort = new Sort(Sort.Direction.ASC, "name");
-        return new PageRequest(pageDTO.getPage() - 1, pageDTO.getPageSize(), sort);
     }
 
     @RequestMapping(value = "/api/v1/data-sources/byuuid/{uuid}", method = RequestMethod.GET)
@@ -245,9 +240,9 @@ public abstract class BaseDataSourceController<
     @ApiOperation("Publish data source")
     @RequestMapping(value = "/api/v1/data-sources/{id}/registration", method = RequestMethod.POST)
     public JsonResult<DTO> publishDataSource(Principal principal,
-                                 @PathVariable("id") Long dataSourceId,
-                                 @RequestBody @Valid DTO commonDataSourceDTO,
-                                 BindingResult bindingResult
+                                             @PathVariable("id") Long dataSourceId,
+                                             @RequestBody @Valid DTO commonDataSourceDTO,
+                                             BindingResult bindingResult
     ) throws NotExistException,
             PermissionDeniedException,
             FieldException,
@@ -279,7 +274,7 @@ public abstract class BaseDataSourceController<
     @RequestMapping(value = "/api/v1/data-sources/{id}/complete", method = RequestMethod.GET)
     public JsonResult<DS_DTO> getWhole(@PathVariable("id") Long dataSourceId) throws NotExistException {
 
-        DS dataSource = dataSourceService.getNotDeletedByIdInAnyTenant(dataSourceId);
+        DS dataSource = dataSourceService.getByIdInAnyTenant(dataSourceId);
         return new JsonResult<>(NO_ERROR, conversionService.convert(dataSource, getDataSourceDTOClass()));
     }
 

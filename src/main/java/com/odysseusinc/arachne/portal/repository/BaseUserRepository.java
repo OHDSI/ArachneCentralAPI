@@ -42,8 +42,6 @@ public interface BaseUserRepository<U extends IUser> extends EntityGraphJpaRepos
 
     U findByEmailAndEnabledTrue(String email);
 
-    U findByEmailAndEnabledFalse(String email);
-
     U findByOriginAndUsername(String userOrigin, String username);
 
     U findByOriginAndUsernameAndEnabledTrue(String userOrigin, String username);

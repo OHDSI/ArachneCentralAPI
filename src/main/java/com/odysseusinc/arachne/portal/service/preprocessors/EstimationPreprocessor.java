@@ -24,6 +24,7 @@ package com.odysseusinc.arachne.portal.service.preprocessors;
 
 import com.github.jknack.handlebars.Template;
 import com.odysseusinc.arachne.commons.service.preprocessor.Preprocessor;
+import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.AnalysisFile;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
@@ -111,6 +112,8 @@ public class EstimationPreprocessor implements Preprocessor<Analysis> {
         } catch (IOException e) {
             LOGGER.error("Failed to add file", e);
             throw new UncheckedIOException(e);
+        } catch (AlreadyExistException e) {
+            LOGGER.error("Failed to save file", e);
         }
     }
 
@@ -127,7 +130,7 @@ public class EstimationPreprocessor implements Preprocessor<Analysis> {
         return parameters;
     }
 
-    private void attachRunner(Analysis analysis, File file) {
+    private void attachRunner(Analysis analysis, File file){
 
         try {
             String runnerContent = template.apply(prepareParameters(analysis, file));
@@ -149,6 +152,8 @@ public class EstimationPreprocessor implements Preprocessor<Analysis> {
         } catch (IOException e) {
             LOGGER.error("Failed to generate estimation R execution", e);
             throw new UncheckedIOException(e);
+        } catch (AlreadyExistException e) {
+            LOGGER.error("Failed to save file", e);
         }
     }
 }

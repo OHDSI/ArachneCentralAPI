@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Observational Health Data Sciences and Informatics
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,15 +15,17 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: November 15, 2016
+ * Authors: Anastasiia Klochkova
+ * Created: June 21, 2018
  *
  */
 
-package com.odysseusinc.arachne.portal.service;
+package com.odysseusinc.arachne.portal.exception;
 
-import com.odysseusinc.arachne.portal.model.IDataSource;
+public class NoDefaultTenantException extends RuntimeException {
 
-public interface DataSourceService extends BaseDataSourceService<IDataSource> {
+    public NoDefaultTenantException(String message) {
 
+        super(message);
+    }
 }

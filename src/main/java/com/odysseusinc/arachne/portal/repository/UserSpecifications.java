@@ -23,7 +23,6 @@
 package com.odysseusinc.arachne.portal.repository;
 
 import com.odysseusinc.arachne.portal.model.IUser;
-import com.odysseusinc.arachne.portal.model.User;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.Specifications;
 
@@ -45,7 +44,7 @@ public class UserSpecifications {
 
     public static <U extends IUser> Specification<U> withFieldLike(String field, String namePattern) {
 
-        return (root, query, cb) -> cb.like(root.get(field), namePattern);
+        return (root, query, cb) -> cb.like(cb.lower(root.get(field)), namePattern);
     }
 
     public static <U extends IUser> Specification<U> withNameLike(String namePattern) {

@@ -23,12 +23,15 @@
 package com.odysseusinc.arachne.portal.service.impl;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonModelType;
+import com.odysseusinc.arachne.portal.api.v1.dto.PageDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchDataCatalogDTO;
 import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
 import com.odysseusinc.arachne.portal.config.tenancy.TenantContext;
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
+import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.DataSourceFields;
 import com.odysseusinc.arachne.portal.model.DataSourceStatus;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
@@ -77,6 +80,7 @@ import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
@@ -208,7 +212,7 @@ public abstract class BaseDataSourceServiceImpl<
     public DS updateInAnyTenant(DS dataSource, Consumer<PairForUpdating<DS>> beforeUpdate)
             throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
-        DS forUpdate = getNotDeletedByIdInAnyTenant(dataSource.getId());
+        DS forUpdate = getByIdInAnyTenant(dataSource.getId());
         forUpdate = baseUpdate(forUpdate, dataSource);
 
         beforeUpdate.accept(new PairForUpdating<>(forUpdate, dataSource));
@@ -236,7 +240,8 @@ public abstract class BaseDataSourceServiceImpl<
     public DS updateWithoutMetadataInAnyTenant(DS dataSource)
             throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
-        return updateInAnyTenant(dataSource, pair -> {});
+        return updateInAnyTenant(dataSource, pair -> {
+        });
     }
 
     private DS baseUpdate(DS exist, DS dataSource) {
@@ -247,6 +252,9 @@ public abstract class BaseDataSourceServiceImpl<
 
         if (dataSource.getModelType() != null) {
             exist.setModelType(dataSource.getModelType());
+            if (!CommonModelType.CDM.equals(dataSource.getModelType())) {
+                exist.setCdmVersion(null);
+            }
         }
 
         if (dataSource.getCdmVersion() != null) {
@@ -255,6 +263,10 @@ public abstract class BaseDataSourceServiceImpl<
 
         if (dataSource.getPublished() != null) {
             exist.setPublished(dataSource.getPublished());
+            if (dataSource.getPublished()){
+                exist.setDeleted(null);
+                exist.setHealthStatusDescription(null);
+            }
         }
 
         if (!CollectionUtils.isEmpty(dataSource.getTenants())) {
@@ -287,6 +299,16 @@ public abstract class BaseDataSourceServiceImpl<
     public DS getNotDeletedByIdInAnyTenant(Long dataSourceId) {
 
         return rawDataSourceRepository.findByIdAndDeletedIsNull(dataSourceId)
+                .orElseThrow(() -> new NotExistException(DataSource.class));
+    }
+
+    @Override
+    @PreAuthorize("hasRole('ROLE_ADMIN') || hasPermission(#dataSourceId, 'RawDataSource', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_DATASOURCE)")
+    @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
+    public DS getByIdInAnyTenant(Long dataSourceId) {
+
+        return rawDataSourceRepository.findById(dataSourceId)
                 .orElseThrow(() -> new NotExistException(DataSource.class));
     }
 
@@ -355,8 +377,8 @@ public abstract class BaseDataSourceServiceImpl<
         if (split.length > 1 || (split.length == 1 && !split[0].equals(""))) {
             List<Predicate> predictList = new ArrayList<>();
             for (String one : split) {
-                predictList.add(cb.like(cb.lower(root.get("name")), one.toLowerCase() + "%"));
-                predictList.add(cb.like(cb.lower(root.get("dataNode").get("name")), one.toLowerCase() + "%"));
+                predictList.add(cb.like(cb.lower(root.get("name")), "%" + one.toLowerCase() + "%"));
+                predictList.add(cb.like(cb.lower(root.get("dataNode").get("name")),"%" + one.toLowerCase() + "%"));
             }
             nameClause = cb.or(predictList.toArray(new Predicate[]{}));
         }
@@ -372,11 +394,6 @@ public abstract class BaseDataSourceServiceImpl<
                 .setMaxResults(pageRequest.getPageSize())
                 .getResultList();
         return new PageImpl<>(list, pageRequest, list.size());
-    }
-
-    protected Page<DS> doSuggestDataSource(String query, Long userId, Long studyId, PageRequest pageRequest) {
-
-        return dataSourceRepository.suggest(query, studyId, pageRequest);
     }
 
     @PreAuthorize("hasPermission(#id, 'RawDataSource', "
@@ -435,11 +452,30 @@ public abstract class BaseDataSourceServiceImpl<
     }
 
     @Override
+    public PageRequest getPageRequest(PageDTO pageDTO) throws PermissionDeniedException {
+
+        return getPageRequest(pageDTO, DataSourceFields.UI_NAME, "asc");
+    }
+
+    @Override
+    public PageRequest getPageRequest(PageDTO pageDTO, String sortBy, String order) throws PermissionDeniedException {
+
+        List<String> dsSortBy = DataSourceFields.getFields().get(sortBy);
+        Sort sort = new Sort(Sort.Direction.fromString(order), dsSortBy);
+        return new PageRequest(pageDTO.getPage() - 1, pageDTO.getPageSize(), sort);
+    }
+
+    @Override
     public void indexAllBySolr() throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
         solrService.deleteAll(SolrCollection.DATA_SOURCES);
-        final List<DS> dataSourceList = getAllNotDeletedAndIsNotVirtualFromAllTenants(true);
-        solrService.indexBySolr(dataSourceList);
+
+        // it's not obvious, just gatherValues is overridden in enterprise
+        final List<Map<SF, Object>> values = getAllNotDeletedAndIsNotVirtualFromAllTenants(true).stream()
+                .map(this::gatherValues)
+                .collect(Collectors.toList());
+
+        solrService.putDocuments(SolrCollection.DATA_SOURCES.getName(), values);
     }
 
     protected SolrQuery addFilterQuery(SolrQuery solrQuery, IUser user) throws NoSuchFieldException {
@@ -458,16 +494,27 @@ public abstract class BaseDataSourceServiceImpl<
         return searchResult.excludedOptions();
     }
 
-    public void indexBySolr(DS dataSource)
+    @Override
+    public void indexBySolr(final DS dataSource)
             throws IOException, SolrServerException, NoSuchFieldException, IllegalAccessException {
 
-        solrService.indexBySolr(dataSource);
+        final Map<SF, Object> valuesByEntity = gatherValues(dataSource);
+
+        solrService.putDocument(
+                dataSource.getCollection().getName(),
+                dataSource.getId(),
+                valuesByEntity
+        );
     }
 
+    protected Map<SF, Object> gatherValues(final DS dataSource) {
+
+        return solrService.getValuesByEntity(dataSource);
+    }
+
+    @Override
     public List<DS> findByIdsAndNotDeleted(List<Long> dataSourceIds) {
 
         return rawDataSourceRepository.findByIdInAndDeletedIsNull(dataSourceIds);
     }
-
-    public abstract List<DS> getAllByUserId(Long userId);
 }

@@ -32,10 +32,12 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableMap;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.ApproveDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.FileDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.UploadFileDTO;
 import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.IORuntimeException;
@@ -43,6 +45,7 @@ import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.NotUniqueException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
+import com.odysseusinc.arachne.portal.exception.ValidationRuntimeException;
 import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.AnalysisFile;
@@ -101,6 +104,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -201,7 +205,7 @@ public abstract class BaseAnalysisServiceImpl<
                                    final ToPdfConverter docToPdfConverter,
                                    final ApplicationEventPublisher eventPublisher,
                                    final BaseSolrService solrService
-                                   ) {
+    ) {
 
         this.docToPdfConverter = docToPdfConverter;
 
@@ -252,7 +256,7 @@ public abstract class BaseAnalysisServiceImpl<
         afterCreate(saved);
 
         solrService.indexBySolr(analysis);
-        
+
         return saved;
     }
 
@@ -363,12 +367,65 @@ public abstract class BaseAnalysisServiceImpl<
         return true;
     }
 
+    protected boolean detectExecutable(CommonAnalysisType type, MultipartFile file) {
+
+        return false;
+    }
+
+    @Transactional
+    @Override
+    public List<AnalysisFile> saveFiles(List<UploadFileDTO> files, IUser user, A analysis) throws IOException {
+
+        List<String> errorFileMessages = new ArrayList<>();
+        List<AnalysisFile> savedFiles = new ArrayList<>();
+        for (UploadFileDTO f : files) {
+            try {
+                if (StringUtils.hasText(f.getLink())) {
+                    savedFiles.add(saveFileByLink(f.getLink(), user, analysis, f.getLabel(), f.getExecutable()));
+                } else if (f.getFile() != null) {
+                    savedFiles.add(saveFile(f.getFile(), user, analysis, f.getLabel(), f.getExecutable(), null));
+                } else {
+                    errorFileMessages.add("Invalid file: \"" + f.getLabel() + "\"");
+                }
+            } catch (AlreadyExistException e) {
+                errorFileMessages.add(e.getMessage());
+            }
+        }
+        if (!errorFileMessages.isEmpty()) {
+            throw new ValidationRuntimeException("Failed to save files", ImmutableMap.of("file", errorFileMessages));
+        }
+        return savedFiles;
+    }
+
+    @Transactional
+    @Override
+    public List<AnalysisFile> saveFiles(List<MultipartFile> multipartFiles, IUser user, A analysis, CommonAnalysisType analysisType,
+                                        DataReference dataReference) throws IOException {
+
+        List<MultipartFile> filteredFiles = multipartFiles.stream()
+                .filter(f -> !CommonAnalysisType.COHORT.equals(analysisType) || !f.getName().endsWith(CommonFileUtils.OHDSI_JSON_EXT))
+                .collect(Collectors.toList());
+        List<AnalysisFile> savedFiles = new ArrayList<>();
+        List<String> errorFileMessages = new ArrayList<>();
+        for (MultipartFile f : filteredFiles) {
+            try {
+                savedFiles.add(saveFile(f, user, analysis, f.getName(), detectExecutable(analysisType, f), dataReference));
+            } catch (AlreadyExistException e) {
+                errorFileMessages.add(e.getMessage());
+            }
+        }
+        if (!errorFileMessages.isEmpty()) {
+            throw new ValidationRuntimeException("Failed to save files", ImmutableMap.of(dataReference.getGuid(), errorFileMessages));
+        }
+        return savedFiles;
+    }
+
     @Override
     public AnalysisFile saveFile(MultipartFile multipartFile, IUser user, A analysis, String label,
-                                 Boolean isExecutable, DataReference dataReference) throws IOException {
+                                 Boolean isExecutable, DataReference dataReference) throws IOException, AlreadyExistException {
 
+        ensureLabelIsUnique(analysis.getId(), label);
         String originalFilename = multipartFile.getOriginalFilename();
-
         String fileNameLowerCase = UUID.randomUUID().toString();
         try {
             Path analysisPath = getAnalysisPath(analysis);
@@ -444,11 +501,11 @@ public abstract class BaseAnalysisServiceImpl<
     }
 
     @Override
-    public AnalysisFile saveFile(String link, IUser user, A analysis, String label, Boolean isExecutable)
-            throws IOException {
+    public AnalysisFile saveFileByLink(String link, IUser user, A analysis, String label, Boolean isExecutable)
+            throws IOException, AlreadyExistException {
 
+        ensureLabelIsUnique(analysis.getId(), label);
         throwAccessDeniedExceptionIfLocked(analysis);
-        Study study = analysis.getStudy();
         String fileNameLowerCase = UUID.randomUUID().toString();
         try {
             if (link == null) {
@@ -458,7 +515,8 @@ public abstract class BaseAnalysisServiceImpl<
             headers.setAccept(Collections.singletonList(MediaType.APPLICATION_OCTET_STREAM));
             HttpEntity<String> entity = new HttpEntity<>(headers);
             URL url = new URL(link);
-            String fileName = FilenameUtils.getName(url.getPath());
+
+            String originalFileName = FilenameUtils.getName(url.getPath());
 
             ResponseEntity<byte[]> response = restTemplate.exchange(
                     link,
@@ -469,9 +527,10 @@ public abstract class BaseAnalysisServiceImpl<
                 final String contentType = response.getHeaders().getContentType().toString();
 
                 Path pathToAnalysis = getAnalysisPath(analysis);
+                Path targetPath = Paths.get(pathToAnalysis.toString(), fileNameLowerCase);
 
                 Files.copy(new ByteArrayInputStream(response.getBody()),
-                        pathToAnalysis, REPLACE_EXISTING);
+                        targetPath, REPLACE_EXISTING);
                 AnalysisFile analysisFile = new AnalysisFile();
                 analysisFile.setUuid(fileNameLowerCase);
                 analysisFile.setAnalysis(analysis);
@@ -479,9 +538,8 @@ public abstract class BaseAnalysisServiceImpl<
                 analysisFile.setLabel(label);
                 analysisFile.setAuthor(user);
                 analysisFile.setExecutable(Boolean.TRUE.equals(isExecutable));
-                analysisFile.setRealName(fileName);
-
-                analysisFile.setEntryPoint(fileName);
+                analysisFile.setRealName(originalFileName);
+                analysisFile.setEntryPoint(originalFileName);
 
                 Date created = new Date();
                 analysisFile.setCreated(created);
@@ -566,7 +624,7 @@ public abstract class BaseAnalysisServiceImpl<
         }
         analysisUnlockRequest.setAnalysis(analysis);
         final AnalysisUnlockRequest savedUnlockRequest = analysisUnlockRequestRepository.save(analysisUnlockRequest);
-        studyService.findLeads((S)savedUnlockRequest.getAnalysis().getStudy()).forEach(lead ->
+        studyService.findLeads((S) savedUnlockRequest.getAnalysis().getStudy()).forEach(lead ->
                 mailSender.send(new UnlockAnalysisRequestMailMessage(
                         WebSecurityConfig.getDefaultPortalURI(), lead, savedUnlockRequest)
                 )
@@ -842,7 +900,7 @@ public abstract class BaseAnalysisServiceImpl<
     @Override
     public List<IUser> findLeads(Analysis analysis) {
 
-        return studyService.findLeads((S)analysis.getStudy());
+        return studyService.findLeads((S) analysis.getStudy());
     }
 
     private void throwAccessDeniedExceptionIfLocked(Analysis analysis) {
@@ -851,6 +909,13 @@ public abstract class BaseAnalysisServiceImpl<
             final String ANALYSIS_LOCKE_EXCEPTION = "Analysis with id='%s' is locked, file access forbidden";
             final String message = String.format(ANALYSIS_LOCKE_EXCEPTION, analysis.getId());
             throw new AccessDeniedException(message);
+        }
+    }
+
+    private void ensureLabelIsUnique(Long analysisId, String label) throws AlreadyExistException {
+
+        if (!analysisFileRepository.findAllByAnalysisIdAndLabel(analysisId, label).isEmpty()) {
+            throw new AlreadyExistException("File with such name " + label + " already exists");
         }
     }
 
@@ -909,6 +974,7 @@ public abstract class BaseAnalysisServiceImpl<
 
     @Override
     public void indexAllBySolr() throws IOException, NotExistException, SolrServerException, NoSuchFieldException, IllegalAccessException {
+
         solrService.deleteAll(SolrCollection.ANALYSES);
 
         final Map<Long, Study> map = studyService.findWithAnalysesInAnyTenant()

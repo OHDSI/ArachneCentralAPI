@@ -31,6 +31,7 @@ import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.api.v1.dto.RemindPasswordDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ResetPasswordDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserInfoDTO;
+import com.odysseusinc.arachne.portal.exception.NoDefaultTenantException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PasswordValidationException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
@@ -59,8 +60,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.MailSendException;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -127,8 +128,8 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
 
         try {
             checkIfUserBlocked(username);
-            Authentication authentication = authenticate(authenticationRequest);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            checkIfUserHasTenant(username);
+            authenticate(authenticationRequest);
             String token = this.tokenUtils.generateToken(username);
             CommonAuthenticationResponse authenticationResponse = new CommonAuthenticationResponse(token);
             jsonResult = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, authenticationResponse);
@@ -163,19 +164,27 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
         }
     }
 
-    private Authentication authenticate(CommonAuthenticationRequest authenticationRequest) {
+    protected void checkIfUserHasTenant(String email) throws AuthenticationException {
 
-        return this.authenticationManager.authenticate(
+        IUser user = userService.getByEmailInAnyTenant(email);
+        if (user == null) {
+            throw new BadCredentialsException("Bad credentials");
+        }
+        if (user.getTenants() == null || user.getTenants().isEmpty()) {
+            throw new NoDefaultTenantException("Request admin to add you into a tenant.");
+        }
+    }
+
+    protected Authentication authenticate(CommonAuthenticationRequest authenticationRequest) {
+
+        Authentication authentication = this.authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         authenticationRequest.getUsername(),
                         authenticationRequest.getPassword()
                 )
         );
-    }
-
-    protected IUser getUser(String userName) {
-
-        return userService.getByUsername(userName);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        return authentication;
     }
 
     @ApiOperation("Logout.")

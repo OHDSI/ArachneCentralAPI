@@ -15,25 +15,37 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: September 17, 2017
+ * Authors: Anastasiia Klochkova
+ * Created: May 24, 2018
  *
  */
 
-package com.odysseusinc.arachne.portal.repository;
+package com.odysseusinc.arachne.portal.api.v1.dto;
 
-import com.odysseusinc.arachne.portal.model.IDataSource;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.repository.NoRepositoryBean;
 
-@NoRepositoryBean
-public interface BaseRawDataSourceRepository<T extends IDataSource> extends JpaRepository<T, Long> {
+public class UploadFilesDTO {
+    private List<UploadFileDTO> files = new LinkedList<>();
+    private List<UploadFileDTO> links = new LinkedList<>();
 
-    Optional<T> findByIdAndDeletedIsNull(Long id);
+    public List<UploadFileDTO> getFiles() {
 
-    Optional<T> findById(Long id);
+        return files;
+    }
 
-    List<T> findByIdInAndDeletedIsNull(List<Long> ids);
+    public void setFiles(LinkedList<UploadFileDTO> files) {
+
+        this.files = files;
+    }
+
+    public List<UploadFileDTO> getLinks() {
+
+        return links;
+    }
+
+    public void setLinks(List<UploadFileDTO> links) {
+
+        this.links = links;
+    }
 }

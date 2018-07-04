@@ -60,6 +60,7 @@ import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.StateProvince;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserLink;
+import com.odysseusinc.arachne.portal.model.UserOrigin;
 import com.odysseusinc.arachne.portal.model.UserPublication;
 import com.odysseusinc.arachne.portal.model.UserRegistrant;
 import com.odysseusinc.arachne.portal.model.UserStudy;
@@ -254,9 +255,9 @@ public abstract class BaseUserServiceImpl<
     public U getByUsernameInAnyTenant(final String username, boolean includeDeleted) {
 
         if (includeDeleted) {
-            return rawUserRepository.findByEmail(username);
+            return rawUserRepository.findByOriginAndUsername(this.userOrigin, username);
         } else {
-            return rawUserRepository.findByEmailAndEnabledTrue(username);
+            return rawUserRepository.findByOriginAndUsernameAndEnabledTrue(this.userOrigin, username);
         }
     }
 
@@ -277,6 +278,13 @@ public abstract class BaseUserServiceImpl<
     public U getByUnverifiedEmailInAnyTenant(final String email) {
 
         return rawUserRepository.findByEmail(email, EntityUtils.fromAttributePaths("roles", "professionalType"));
+    }
+
+    @Override
+    public U getByUnverifiedEmailIgnoreCaseInAnyTenant(final String email) {
+
+        return rawUserRepository.findByEmailIgnoreCase(email,
+                EntityUtils.fromAttributePaths("roles", "professionalType"));
     }
 
     @Override
@@ -320,7 +328,9 @@ public abstract class BaseUserServiceImpl<
     public U create(final @NotNull U user)
             throws NotUniqueException, NotExistException, PasswordValidationException {
 
-        user.setUsername(user.getEmail());
+        if (userOrigin.equals(UserOrigin.NATIVE)) {
+            user.setUsername(user.getEmail());
+        }
         if (Objects.isNull(user.getEnabled())) {
             user.setEnabled(userEnableDefault);
         }
@@ -345,7 +355,7 @@ public abstract class BaseUserServiceImpl<
 
         // The existing user check should come last:
         // it is muted in public registration form, so we need to show other errors ahead
-        U byEmail = getByUnverifiedEmailInAnyTenant(user.getEmail());
+        U byEmail = getByUnverifiedEmailIgnoreCaseInAnyTenant(user.getEmail());
         if (byEmail != null) {
             throw new NotUniqueException(
                     "email",
@@ -412,7 +422,7 @@ public abstract class BaseUserServiceImpl<
     @Override
     public void resendActivationEmail(String email) throws UserNotFoundException {
 
-        final U user = userRepository.findByEmailAndEnabledFalse(email);
+        final U user = rawUserRepository.findByEmailAndEmailConfirmedFalse(email);
         if (user == null) {
             throw new UserNotFoundException("email", "not enabled user is not found by email " + email);
         }
@@ -527,7 +537,7 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    @Secured({"ROLE_ADMIN"})
+    @PreAuthorize("@rawUserRepository.findOne(#user.id)?.getUsername() == authentication.principal.username || hasRole('ROLE_ADMIN')")
     public U updateInAnyTenant(U user) throws NotExistException {
 
         U forUpdate = getByIdInAnyTenant(user.getId());
@@ -616,7 +626,7 @@ public abstract class BaseUserServiceImpl<
             spec = spec.and(userEnabled());
         }
         if (!StringUtils.isEmpty(userSearch.getQuery())) {
-            String pattern = userSearch.getQuery() + "%";
+            String pattern = "%" + userSearch.getQuery().toLowerCase() + "%";
             spec = spec.and(withNameOrEmailLike(pattern));
         }
         return rawUserRepository.findAll(spec, pageable);

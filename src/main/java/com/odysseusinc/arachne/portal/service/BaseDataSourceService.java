@@ -22,8 +22,10 @@
 
 package com.odysseusinc.arachne.portal.service;
 
+import com.odysseusinc.arachne.portal.api.v1.dto.PageDTO;
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
+import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
@@ -59,6 +61,8 @@ public interface BaseDataSourceService<DS extends IDataSource> {
 
     DS getNotDeletedByIdInAnyTenant(Long id);
 
+    DS getByIdInAnyTenant(Long id);
+
     DS getByIdUnsecured(Long id) throws NotExistException;
 
     List<DS> getAllNotDeletedAndIsNotVirtualFromAllTenants(boolean withManual);
@@ -87,4 +91,8 @@ public interface BaseDataSourceService<DS extends IDataSource> {
      * Makes links between Studies from the given tenant and DataSource deleted
      */
     void makeLinksWithStudiesDeleted(Long tenantId, Long dataSourceId);
+
+    PageRequest getPageRequest(PageDTO pageDTO, String sortBy, String order) throws PermissionDeniedException;
+
+    PageRequest getPageRequest(PageDTO pageDTO) throws PermissionDeniedException;
 }

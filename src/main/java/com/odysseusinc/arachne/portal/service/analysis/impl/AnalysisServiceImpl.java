@@ -194,7 +194,7 @@ public class AnalysisServiceImpl extends BaseAnalysisServiceImpl<Analysis, Study
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).UPLOAD_ANALYSIS_FILES)")
     public AnalysisFile saveFile(MultipartFile multipartFile, IUser user, Analysis analysis,
                                  String label, Boolean isExecutable, DataReference dataReference)
-            throws IOException {
+            throws IOException, AlreadyExistException {
 
         return super.saveFile(multipartFile, user, analysis, label, isExecutable, dataReference);
     }
@@ -202,10 +202,10 @@ public class AnalysisServiceImpl extends BaseAnalysisServiceImpl<Analysis, Study
     @Override
     @PreAuthorize("hasPermission(#analysis, "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).UPLOAD_ANALYSIS_FILES)")
-    public AnalysisFile saveFile(String link, IUser user, Analysis analysis, String label,
-                                 Boolean isExecutable) throws IOException {
+    public AnalysisFile saveFileByLink(String link, IUser user, Analysis analysis, String label,
+                                       Boolean isExecutable) throws IOException, AlreadyExistException {
 
-        return super.saveFile(link, user, analysis, label, isExecutable);
+        return super.saveFileByLink(link, user, analysis, label, isExecutable);
     }
 
     @Override
