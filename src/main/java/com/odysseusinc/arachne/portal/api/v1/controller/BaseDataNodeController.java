@@ -166,7 +166,7 @@ public abstract class BaseDataNodeController<
             @PathVariable("dataNodeId") Long dataNodeId,
             @RequestBody CommonDataNodeRegisterDTO commonDataNodeRegisterDTO,
             Principal principal
-    ) throws NotExistException, AlreadyExistException {
+    ) throws NotExistException, AlreadyExistException, ValidationException {
 
         //for the first DN update all fields (name, description, organization) are mandatory in commonDataNodeRegisterDTO.
         // In further updates they may be empty and will be taken from existing record
@@ -180,7 +180,8 @@ public abstract class BaseDataNodeController<
         }
         final DN dataNode = conversionService.convert(commonDataNodeRegisterDTO, getDataNodeDNClass());
         if (commonDataNodeRegisterDTO.getOrganization() != null) {
-            existingDN.setOrganization(conversionService.convert(commonDataNodeRegisterDTO.getOrganization(), Organization.class));
+            Organization organization = conversionService.convert(commonDataNodeRegisterDTO.getOrganization(), Organization.class);
+            existingDN.setOrganization(organizationService.getOrCreate(organization));
         }
         if (commonDataNodeRegisterDTO.getDescription() != null) {
             existingDN.setDescription(commonDataNodeRegisterDTO.getDescription());
