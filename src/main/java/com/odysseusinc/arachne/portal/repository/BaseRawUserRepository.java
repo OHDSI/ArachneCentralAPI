@@ -97,4 +97,6 @@ public interface BaseRawUserRepository<U extends IUser> extends EntityGraphJpaRe
 
     @Procedure(name = CHECK_IF_USERS_ARE_DELETABLE, outputParameterName = "filtered_ids")
     String checkIfUsersAreDeletable(@Param("ids") String ids, @Param("excluded_tables") String tables);
+
+    U findByEmailAndEmailConfirmedFalse(String email);
 }

@@ -24,9 +24,12 @@ package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchDTO;
 import com.odysseusinc.arachne.portal.service.SolrService;
-import com.odysseusinc.arachne.portal.service.impl.BaseSolrServiceImpl;
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -48,18 +51,26 @@ public abstract class SearchDTOToSolrQuery {
         return new FieldList<>();
     }
 
-    protected void setSorting(SearchDTO source, SolrQuery result, FieldList solrFields) {
+    protected void setSorting(final SearchDTO source, final SolrQuery query, final FieldList<SolrField> solrFields) {
 
-        if (source.getSort() != null && source.getOrder() != null) {
+        final String sortString = source.getSort();
+        if (sortString != null && source.getOrder() != null) {
             // Check if such field exists in Solr index and retrieve it
-            SolrField sortSolrSolrField = solrFields.getByName(source.getSort());
-            if (sortSolrSolrField != null) {
-                String sortFieldName = sortSolrSolrField.isMultiValuesType() ?
-                        sortSolrSolrField.getMultiValuesTypeFieldName() :
-                        sortSolrSolrField.getSolrName();
-
-                result.setSort(sortFieldName, SolrQuery.ORDER.valueOf(source.getOrder()));
+            final String comma = ",";
+            if (sortString.contains(comma)) {
+                final List<SolrQuery.SortClause> sortClauses = Stream.of(StringUtils.split(sortString, comma))
+                        .map(solrFields::getByName)
+                        .map(SolrField::getSolrSortFieldName)
+                        .map(sort -> new SolrQuery.SortClause(sort, source.getOrder()))
+                        .collect(Collectors.toList());
+                query.setSorts(sortClauses);
+            } else {
+                final SolrField field = solrFields.getByName(sortString);
+                if (field != null) {
+                    query.setSort(field.getSolrSortFieldName(), SolrQuery.ORDER.valueOf(source.getOrder()));
+                }
             }
+
         }
     }
 

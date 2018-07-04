@@ -36,6 +36,7 @@ public class SolrField {
 
     public static final String META_PREFIX = "metadata_";
     public static final String TXT_POSTFIX = "_txt";
+    public static final String SORT_POSTFIX = "_sortable";
     public static final String TS_POSTFIX = "_ts";
     public static final String INT_POSTFIX = "_i";
     
@@ -127,9 +128,14 @@ public class SolrField {
 
         return MULTI_METADATA_PREFIX + getName() + (this.isPostfixNeeded ? TXT_POSTFIX : StringUtils.EMPTY);
     }
+    
+    public String getSolrSortFieldName() {
+        
+        return getName() + SORT_POSTFIX;
+    }
 
     public String getSolrName() {
-        return name + getDynamicPostfixIfNeeded();
+        return this.getName() + getDynamicPostfixIfNeeded();
     }
 
     protected String getDynamicPostfixIfNeeded() {
