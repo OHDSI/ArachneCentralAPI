@@ -176,9 +176,10 @@ public abstract class BaseDataNodeController<
             if (!constraintViolations.isEmpty()) {
                 throw new ConstraintViolationException(constraintViolations);
             }
+        }
+        if (commonDataNodeRegisterDTO.getName() != null) {
             existingDN.setName(commonDataNodeRegisterDTO.getName());
         }
-        final DN dataNode = conversionService.convert(commonDataNodeRegisterDTO, getDataNodeDNClass());
         if (commonDataNodeRegisterDTO.getOrganization() != null) {
             Organization organization = conversionService.convert(commonDataNodeRegisterDTO.getOrganization(), Organization.class);
             existingDN.setOrganization(organizationService.getOrCreate(organization));
