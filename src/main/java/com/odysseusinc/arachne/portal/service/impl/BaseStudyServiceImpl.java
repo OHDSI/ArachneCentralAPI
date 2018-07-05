@@ -992,7 +992,7 @@ public abstract class BaseStudyServiceImpl<
     public void indexAllBySolr() throws IOException, NotExistException, SolrServerException, NoSuchFieldException, IllegalAccessException {
 
         solrService.deleteAll(SolrCollection.STUDIES);
-        final List<T> studies = studyRepository.findAll();
+        final List<T> studies = studyRepository.findAll(EntityUtils.fromAttributePaths("participants", "paper"));
         solrService.indexBySolr(studies);
     }
 
