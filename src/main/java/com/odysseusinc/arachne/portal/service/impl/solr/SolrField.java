@@ -131,10 +131,11 @@ public class SolrField {
     
     public String getSolrSortFieldName() {
         
-        return getName() + SORT_POSTFIX;
+        return getSolrName() + SORT_POSTFIX;
     }
 
     public String getSolrName() {
+        
         return this.getName() + getDynamicPostfixIfNeeded();
     }
 
