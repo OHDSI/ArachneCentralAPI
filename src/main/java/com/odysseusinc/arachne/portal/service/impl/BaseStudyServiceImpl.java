@@ -993,9 +993,7 @@ public abstract class BaseStudyServiceImpl<
 
         solrService.deleteAll(SolrCollection.STUDIES);
         final List<T> studies = studyRepository.findAll();
-        for (final T study : studies) {
-            solrService.indexBySolr(study);
-        }
+        solrService.indexBySolr(studies);
     }
 
     @Override
