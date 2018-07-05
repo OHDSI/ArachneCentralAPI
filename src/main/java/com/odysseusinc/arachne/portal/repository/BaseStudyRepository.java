@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.repository;
 
+import com.cosium.spring.data.jpa.entity.graph.repository.EntityGraphJpaRepository;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.statemachine.ObjectRepository;
 import java.util.Collection;
@@ -33,7 +34,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.query.Param;
 
 @NoRepositoryBean
-public interface BaseStudyRepository<T extends Study> extends JpaRepository<T, Long>, ObjectRepository<T>, JpaSpecificationExecutor<T> {
+public interface BaseStudyRepository<T extends Study> extends EntityGraphJpaRepository<T, Long>, ObjectRepository<T>, JpaSpecificationExecutor<T> {
 
     List<T> findByTitle(String title);
 
