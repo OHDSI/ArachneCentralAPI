@@ -35,9 +35,10 @@ public class StudyToStudyShortDTOConverter extends BaseConversionServiceAwareCon
     @Override
     public StudyShortDTO convert(Study source) {
 
-        StudyShortDTO studyDTO = new StudyShortDTO();
+        final StudyShortDTO studyDTO = new StudyShortDTO();
         studyDTO.setId(source.getId());
         studyDTO.setTitle(source.getTitle());
+        studyDTO.setKind(source.getKind());
         return studyDTO;
     }
 }

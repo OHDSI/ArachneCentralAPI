@@ -22,6 +22,8 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto;
 
+import com.odysseusinc.arachne.portal.model.StudyKind;
+
 /**
  * Created by AKrutov on 07.11.2016.
  */
@@ -30,6 +32,8 @@ public class StudyShortDTO {
     public Long id;
 
     private String title;
+    
+    private StudyKind kind;
 
     public Long getId() {
 
@@ -49,5 +53,15 @@ public class StudyShortDTO {
     public void setTitle(String title) {
 
         this.title = title;
+    }
+
+    public StudyKind getKind() {
+
+        return kind;
+    }
+
+    public void setKind(final StudyKind kind) {
+
+        this.kind = kind;
     }
 }
