@@ -188,7 +188,10 @@ public abstract class BaseDataNodeController<
             existingDN.setDescription(commonDataNodeRegisterDTO.getDescription());
         }
         final DN updatedDataNode = baseDataNodeService.update(existingDN);
-        dataSourceService.indexAllBySolr();
+
+        for (DataSource ds : updatedDataNode.getDataSources()) {
+            dataSourceService.indexBySolr((DS) ds);
+        }
         final DataNodeDTO dataNodeRegisterResponseDTO = conversionService.convert(updatedDataNode, DataNodeDTO.class);
         final JsonResult<DataNodeDTO> result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
         result.setResult(dataNodeRegisterResponseDTO);
