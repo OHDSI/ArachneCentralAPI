@@ -166,7 +166,7 @@ public abstract class BaseDataNodeController<
             @PathVariable("dataNodeId") Long dataNodeId,
             @RequestBody CommonDataNodeRegisterDTO commonDataNodeRegisterDTO,
             Principal principal
-    ) throws NotExistException, AlreadyExistException, ValidationException {
+    ) throws NotExistException, AlreadyExistException, ValidationException, IOException, NoSuchFieldException, SolrServerException, IllegalAccessException {
 
         //for the first DN update all fields (name, description, organization) are mandatory in commonDataNodeRegisterDTO.
         // In further updates they may be empty and will be taken from existing record
@@ -188,6 +188,7 @@ public abstract class BaseDataNodeController<
             existingDN.setDescription(commonDataNodeRegisterDTO.getDescription());
         }
         final DN updatedDataNode = baseDataNodeService.update(existingDN);
+        dataSourceService.indexAllBySolr();
         final DataNodeDTO dataNodeRegisterResponseDTO = conversionService.convert(updatedDataNode, DataNodeDTO.class);
         final JsonResult<DataNodeDTO> result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
         result.setResult(dataNodeRegisterResponseDTO);
