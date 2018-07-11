@@ -263,7 +263,7 @@ public abstract class BaseDataSourceServiceImpl<
 
         if (dataSource.getPublished() != null) {
             exist.setPublished(dataSource.getPublished());
-            if (dataSource.getPublished()){
+            if (dataSource.getPublished()) {
                 exist.setDeleted(null);
                 exist.setHealthStatusDescription(null);
             }
@@ -378,7 +378,7 @@ public abstract class BaseDataSourceServiceImpl<
             List<Predicate> predictList = new ArrayList<>();
             for (String one : split) {
                 predictList.add(cb.like(cb.lower(root.get("name")), "%" + one.toLowerCase() + "%"));
-                predictList.add(cb.like(cb.lower(root.get("dataNode").get("name")),"%" + one.toLowerCase() + "%"));
+                predictList.add(cb.like(cb.lower(root.get("dataNode").get("name")), "%" + one.toLowerCase() + "%"));
             }
             nameClause = cb.or(predictList.toArray(new Predicate[]{}));
         }
@@ -478,6 +478,15 @@ public abstract class BaseDataSourceServiceImpl<
         solrService.putDocuments(SolrCollection.DATA_SOURCES.getName(), values);
     }
 
+    @Override
+    public void indexBySolr(List<DS> dataSources) {
+
+        List<Map<SF, Object>> values = dataSources.stream()
+                .map(this::gatherValues)
+                .collect(Collectors.toList());
+        solrService.putDocuments(SolrCollection.DATA_SOURCES.getName(), values);
+    }
+
     protected SolrQuery addFilterQuery(SolrQuery solrQuery, IUser user) throws NoSuchFieldException {
 
         return solrQuery;
@@ -516,5 +525,11 @@ public abstract class BaseDataSourceServiceImpl<
     public List<DS> findByIdsAndNotDeleted(List<Long> dataSourceIds) {
 
         return rawDataSourceRepository.findByIdInAndDeletedIsNull(dataSourceIds);
+    }
+
+    @Override
+    public List<DS> getByDataNodeId(Long id) {
+
+        return rawDataSourceRepository.findByDataNodeId(id);
     }
 }

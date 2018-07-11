@@ -24,19 +24,23 @@ package com.odysseusinc.arachne.portal.service.impl;
 
 import static org.assertj.core.util.Preconditions.checkNotNull;
 
+import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeRegisterDTO;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
+import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataNodeJournalEntry;
 import com.odysseusinc.arachne.portal.model.DataNodeStatus;
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
 import com.odysseusinc.arachne.portal.model.IUser;
+import com.odysseusinc.arachne.portal.model.Organization;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.repository.DataNodeJournalRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeStatusRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeUserRepository;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
+import com.odysseusinc.arachne.portal.service.OrganizationService;
 import com.odysseusinc.arachne.portal.util.EntityUtils;
 import java.sql.Timestamp;
 import java.util.Date;
@@ -48,6 +52,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,17 +72,23 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
     private final DataNodeUserRepository dataNodeUserRepository;
     private final DataNodeStatusRepository dataNodeStatusRepository;
     private final DataNodeJournalRepository dataNodeJournalRepository;
+    private final GenericConversionService conversionService;
+    protected final OrganizationService organizationService;
 
     @Autowired
     public BaseDataNodeServiceImpl(DataNodeRepository<DN> dataNodeRepository,
                                    DataNodeUserRepository dataNodeUserRepository,
                                    DataNodeStatusRepository dataNodeStatusRepository,
-                                   DataNodeJournalRepository dataNodeJournalRepository) {
+                                   DataNodeJournalRepository dataNodeJournalRepository,
+                                   GenericConversionService conversionService,
+                                   OrganizationService organizationService) {
 
         this.dataNodeRepository = dataNodeRepository;
         this.dataNodeUserRepository = dataNodeUserRepository;
         this.dataNodeStatusRepository = dataNodeStatusRepository;
         this.dataNodeJournalRepository = dataNodeJournalRepository;
+        this.conversionService = conversionService;
+        this.organizationService = organizationService;
     }
 
 
@@ -109,8 +120,7 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
 
     @Transactional
     @Override
-    @PreAuthorize("hasPermission(#dataNode, "
-            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_DATANODE)")
+    @PreAuthorize("hasPermission(#dataNode, T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_DATANODE)")
     public DN update(DN dataNode) throws NotExistException, AlreadyExistException {
 
         DN existed = dataNodeRepository.findByNameAndVirtualIsFalse(dataNode.getName());
@@ -123,6 +133,22 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
         existsDataNode.setPublished(true);
         existsDataNode.setOrganization(dataNode.getOrganization());
         return dataNodeRepository.save(existsDataNode);
+    }
+
+    @Override
+    @PreAuthorize("hasPermission(#dataNode, T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_DATANODE)")
+    public void setFields(DN dataNode, CommonDataNodeRegisterDTO commonDataNodeRegisterDTO) throws ValidationException {
+
+        if (commonDataNodeRegisterDTO.getName() != null) {
+            dataNode.setName(commonDataNodeRegisterDTO.getName());
+        }
+        if (commonDataNodeRegisterDTO.getOrganization() != null) {
+            Organization organization = conversionService.convert(commonDataNodeRegisterDTO.getOrganization(), Organization.class);
+            dataNode.setOrganization(organizationService.getOrCreate(organization));
+        }
+        if (commonDataNodeRegisterDTO.getDescription() != null) {
+            dataNode.setDescription(commonDataNodeRegisterDTO.getDescription());
+        }
     }
 
     @Override
@@ -156,6 +182,20 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
     @Override
     @PostAuthorize("principal instanceof T(com.odysseusinc.arachne.portal.model.DataNode) ? true : @ArachnePermissionEvaluator.addPermissions(principal, returnObject)")
     public DN getById(Long id) throws NotExistException {
+
+        if (Objects.nonNull(id)) {
+            final DN dataNode = dataNodeRepository.findOne(id);
+            if (dataNode == null) {
+                final String message = String.format(IS_NOT_FOUND_EXCEPTION, id);
+                throw new NotExistException(message, DataNode.class);
+            }
+            return dataNode;
+        } else {
+            throw new IllegalArgumentException("unable to find datanode by null id ");
+        }
+    }
+
+    public DN getByIdUnsecured(Long id) throws NotExistException {
 
         if (Objects.nonNull(id)) {
             final DN dataNode = dataNodeRepository.findOne(id);

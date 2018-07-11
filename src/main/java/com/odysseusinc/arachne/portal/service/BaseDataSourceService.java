@@ -76,10 +76,14 @@ public interface BaseDataSourceService<DS extends IDataSource> {
 
     List<DS> findByIdsAndNotDeleted(List<Long> dataSourceIds);
 
+    List<DS> getByDataNodeId(Long id);
+
     Page<DS> suggestDataSource(String query, Long studyId, Long userId,
                                        PageRequest pageRequest);
 
     void indexAllBySolr() throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException;
+
+    void indexBySolr(List<DS> dataSources);
 
     void delete(Long id) throws IOException, SolrServerException;
 

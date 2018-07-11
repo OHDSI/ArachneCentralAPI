@@ -28,6 +28,8 @@ import com.odysseusinc.arachne.portal.repository.DataNodeRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeStatusRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeUserRepository;
 import com.odysseusinc.arachne.portal.service.DataNodeService;
+import com.odysseusinc.arachne.portal.service.OrganizationService;
+import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,8 +41,10 @@ public class DataNodeServiceImpl extends BaseDataNodeServiceImpl<DataNode> imple
             DataNodeRepository<DataNode> dataNodeRepository,
             DataNodeUserRepository dataNodeUserRepository,
             DataNodeStatusRepository dataNodeStatusRepository,
-            DataNodeJournalRepository dataNodeJournalRepository) {
+            DataNodeJournalRepository dataNodeJournalRepository,
+            GenericConversionService conversionService,
+            OrganizationService organizationService) {
 
-        super(dataNodeRepository, dataNodeUserRepository, dataNodeStatusRepository, dataNodeJournalRepository);
+        super(dataNodeRepository, dataNodeUserRepository, dataNodeStatusRepository, dataNodeJournalRepository, conversionService, organizationService);
     }
 }

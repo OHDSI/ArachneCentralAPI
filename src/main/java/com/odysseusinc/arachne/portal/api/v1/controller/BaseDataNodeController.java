@@ -166,32 +166,21 @@ public abstract class BaseDataNodeController<
             @PathVariable("dataNodeId") Long dataNodeId,
             @RequestBody CommonDataNodeRegisterDTO commonDataNodeRegisterDTO,
             Principal principal
-    ) throws NotExistException, AlreadyExistException, ValidationException, IOException, NoSuchFieldException, SolrServerException, IllegalAccessException {
+    ) throws NotExistException, AlreadyExistException, ValidationException {
 
         //for the first DN update all fields (name, description, organization) are mandatory in commonDataNodeRegisterDTO.
         // In further updates they may be empty and will be taken from existing record
-        DN existingDN = baseDataNodeService.getById(dataNodeId);
+        DN existingDN = baseDataNodeService.getByIdUnsecured(dataNodeId);
         if (existingDN.getName() == null) {
             Set<ConstraintViolation<CommonDataNodeRegisterDTO>> constraintViolations = validator.validate(commonDataNodeRegisterDTO);
             if (!constraintViolations.isEmpty()) {
                 throw new ConstraintViolationException(constraintViolations);
             }
         }
-        if (commonDataNodeRegisterDTO.getName() != null) {
-            existingDN.setName(commonDataNodeRegisterDTO.getName());
-        }
-        if (commonDataNodeRegisterDTO.getOrganization() != null) {
-            Organization organization = conversionService.convert(commonDataNodeRegisterDTO.getOrganization(), Organization.class);
-            existingDN.setOrganization(organizationService.getOrCreate(organization));
-        }
-        if (commonDataNodeRegisterDTO.getDescription() != null) {
-            existingDN.setDescription(commonDataNodeRegisterDTO.getDescription());
-        }
+        baseDataNodeService.setFields(existingDN, commonDataNodeRegisterDTO);
         final DN updatedDataNode = baseDataNodeService.update(existingDN);
-
-        for (DataSource ds : updatedDataNode.getDataSources()) {
-            dataSourceService.indexBySolr((DS) ds);
-        }
+        List<DS> dataSources = dataSourceService.getByDataNodeId(updatedDataNode.getId());
+        dataSourceService.indexBySolr(dataSources);
         final DataNodeDTO dataNodeRegisterResponseDTO = conversionService.convert(updatedDataNode, DataNodeDTO.class);
         final JsonResult<DataNodeDTO> result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
         result.setResult(dataNodeRegisterResponseDTO);
