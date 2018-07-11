@@ -49,6 +49,7 @@ import com.odysseusinc.arachne.portal.model.DataSourceStatus;
 import com.odysseusinc.arachne.portal.model.FavouriteStudy;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
+import com.odysseusinc.arachne.portal.model.Identifiable;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import com.odysseusinc.arachne.portal.model.ParticipantStatus;
 import com.odysseusinc.arachne.portal.model.Study;
@@ -88,6 +89,7 @@ import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJob
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobFileType;
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobResponse;
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobStudyFileResponseEvent;
+import com.odysseusinc.arachne.portal.service.impl.breadcrumb.EntityType;
 import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
 import com.odysseusinc.arachne.portal.service.mail.InvitationCollaboratorMailSender;
@@ -445,6 +447,37 @@ public abstract class BaseStudyServiceImpl<
                         )
                 ).orElseThrow(() -> new NotExistException(UserStudyGrouped.class));
         return userStudyItem;
+    }
+    
+    @Override
+    public StudyKind getEntityStudyKind(final EntityType type, final Long id) {
+        
+        final Optional<StudyKind> kind;
+        
+        switch (type) {
+            case ANALYSIS:
+                kind = studyRepository.findStudyKindByAnalysisId(id);
+                break;
+            case STUDY_FILE:
+                kind = studyRepository.findStudyKindByStudyFileId(id);
+                break;
+            case ANALYSIS_FILE:
+                kind = studyRepository.findStudyKindByAnalysisId(id);
+                break;
+            case STUDY:
+                kind = studyRepository.findStudyKindById(id);
+                break;
+            case SUBMISSION:
+                kind = studyRepository.findStudyKindBySubmissionId(id);
+                break;
+            case SUBMISSION_GROUP:
+                kind = studyRepository.findStudyKindBySubmissionGroupId(id);
+                break;
+            default:
+                throw new IllegalArgumentException("Can't get study kind of entity with type = " + type);
+        }
+        
+        return kind.orElseThrow(() -> new IllegalArgumentException(String.format("Study doesn't exist for %s entity with id %d", type, id)));
     }
 
     public List<IUser> findLeads(Study study) {

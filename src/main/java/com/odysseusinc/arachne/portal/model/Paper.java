@@ -30,7 +30,7 @@ import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
-import com.odysseusinc.arachne.portal.service.impl.breadcrumb.BreadcrumbType;
+import com.odysseusinc.arachne.portal.service.impl.breadcrumb.EntityType;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -163,9 +163,9 @@ public class Paper implements HasArachnePermissions, Breadcrumb, SolrEntity {
     }
 
     @Override
-    public BreadcrumbType getCrumbType() {
+    public EntityType getCrumbType() {
 
-        return BreadcrumbType.PAPER;
+        return EntityType.PAPER;
     }
 
     @Override

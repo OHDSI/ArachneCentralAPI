@@ -36,12 +36,14 @@ import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
 import com.odysseusinc.arachne.portal.model.StudyFile;
+import com.odysseusinc.arachne.portal.model.StudyKind;
 import com.odysseusinc.arachne.portal.model.SuggestSearchRegion;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserStudy;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
 import com.odysseusinc.arachne.portal.component.SelfReferencingBean;
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobStudyFileResponseEvent;
+import com.odysseusinc.arachne.portal.service.impl.breadcrumb.EntityType;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -75,6 +77,8 @@ public interface BaseStudyService<
     Page<AbstractUserStudyListItem> findStudies(SS studySearch);
 
     SU getStudy(final IUser user, final Long studyId);
+
+    StudyKind getEntityStudyKind(EntityType type, Long id);
 
     List<IUser> findLeads(T study);
 

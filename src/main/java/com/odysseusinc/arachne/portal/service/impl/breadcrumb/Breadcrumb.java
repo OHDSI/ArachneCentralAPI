@@ -26,7 +26,7 @@ import com.odysseusinc.arachne.portal.model.Identifiable;
 
 public interface Breadcrumb extends Identifiable {
 
-    BreadcrumbType getCrumbType();
+    EntityType getCrumbType();
 
     default Long getCrumbId() {
 
