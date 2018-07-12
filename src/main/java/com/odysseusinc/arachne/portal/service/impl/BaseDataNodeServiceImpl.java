@@ -24,7 +24,6 @@ package com.odysseusinc.arachne.portal.service.impl;
 
 import static org.assertj.core.util.Preconditions.checkNotNull;
 
-import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeRegisterDTO;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
@@ -33,7 +32,6 @@ import com.odysseusinc.arachne.portal.model.DataNodeJournalEntry;
 import com.odysseusinc.arachne.portal.model.DataNodeStatus;
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
 import com.odysseusinc.arachne.portal.model.IUser;
-import com.odysseusinc.arachne.portal.model.Organization;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.repository.DataNodeJournalRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeRepository;
@@ -49,6 +47,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import javax.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -121,34 +120,24 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
     @Transactional
     @Override
     @PreAuthorize("hasPermission(#dataNode, T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_DATANODE)")
-    public DN update(DN dataNode) throws NotExistException, AlreadyExistException {
+    public DN update(DN dataNode) throws NotExistException, AlreadyExistException, ConstraintViolationException, ValidationException {
 
         DN existed = dataNodeRepository.findByNameAndVirtualIsFalse(dataNode.getName());
         if (existed != null && !existed.getId().equals(dataNode.getId())) {
             throw new AlreadyExistException("Data node with the same name already exists");
         }
         final DN existsDataNode = getById(dataNode.getId());
-        existsDataNode.setName(dataNode.getName());
-        existsDataNode.setDescription(dataNode.getDescription());
+        if (dataNode.getName() != null) {
+            existsDataNode.setName(dataNode.getName());
+        }
+        if (dataNode.getDescription() != null) {
+            existsDataNode.setDescription(dataNode.getDescription());
+        }
+        if (dataNode.getOrganization() != null) {
+            existsDataNode.setOrganization(dataNode.getOrganization());
+        }
         existsDataNode.setPublished(true);
-        existsDataNode.setOrganization(dataNode.getOrganization());
         return dataNodeRepository.save(existsDataNode);
-    }
-
-    @Override
-    @PreAuthorize("hasPermission(#dataNode, T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_DATANODE)")
-    public void setFields(DN dataNode, CommonDataNodeRegisterDTO commonDataNodeRegisterDTO) throws ValidationException {
-
-        if (commonDataNodeRegisterDTO.getName() != null) {
-            dataNode.setName(commonDataNodeRegisterDTO.getName());
-        }
-        if (commonDataNodeRegisterDTO.getOrganization() != null) {
-            Organization organization = conversionService.convert(commonDataNodeRegisterDTO.getOrganization(), Organization.class);
-            dataNode.setOrganization(organizationService.getOrCreate(organization));
-        }
-        if (commonDataNodeRegisterDTO.getDescription() != null) {
-            dataNode.setDescription(commonDataNodeRegisterDTO.getDescription());
-        }
     }
 
     @Override

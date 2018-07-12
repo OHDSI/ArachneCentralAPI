@@ -22,7 +22,6 @@
 
 package com.odysseusinc.arachne.portal.service;
 
-import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeRegisterDTO;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
@@ -36,7 +35,7 @@ import java.util.Set;
 public interface BaseDataNodeService<DN extends DataNode> {
     DN create(DN dataNode);
 
-    DN update(DN dataNode) throws NotExistException, AlreadyExistException;
+    DN update(DN dataNode) throws NotExistException, AlreadyExistException, ValidationException;
 
     List<DN> findAllIsNotVirtual();
 
@@ -60,6 +59,4 @@ public interface BaseDataNodeService<DN extends DataNode> {
     Optional<DN> findByToken(String token);
 
     DN getBySid(String uuid) throws NotExistException;
-
-    void setFields(DN datanode, CommonDataNodeRegisterDTO commonDataNodeRegisterDTO) throws ValidationException;
 }

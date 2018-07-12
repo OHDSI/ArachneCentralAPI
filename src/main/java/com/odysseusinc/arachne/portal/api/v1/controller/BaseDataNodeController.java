@@ -168,17 +168,25 @@ public abstract class BaseDataNodeController<
             Principal principal
     ) throws NotExistException, AlreadyExistException, ValidationException {
 
-        //for the first DN update all fields (name, description, organization) are mandatory in commonDataNodeRegisterDTO.
+        final DN dataNode = conversionService.convert(commonDataNodeRegisterDTO, getDataNodeDNClass());
+        dataNode.setId(dataNodeId);
+        DN existsDataNode = baseDataNodeService.getByIdUnsecured(dataNodeId);
+        if (existsDataNode == null) {
+            throw new NotExistException("update: dataNode with id = " + dataNode.getId() + " doesn't exist", DataNode.class);
+        }
+        //for the first DN update (when DN's name is null) all fields (name, description, organization) are mandatory in commonDataNodeRegisterDTO.
         // In further updates they may be empty and will be taken from existing record
-        DN existingDN = baseDataNodeService.getByIdUnsecured(dataNodeId);
-        if (existingDN.getName() == null) {
+        if (existsDataNode.getName() == null) {
             Set<ConstraintViolation<CommonDataNodeRegisterDTO>> constraintViolations = validator.validate(commonDataNodeRegisterDTO);
             if (!constraintViolations.isEmpty()) {
                 throw new ConstraintViolationException(constraintViolations);
             }
         }
-        baseDataNodeService.setFields(existingDN, commonDataNodeRegisterDTO);
-        final DN updatedDataNode = baseDataNodeService.update(existingDN);
+        if (commonDataNodeRegisterDTO.getOrganization() != null) {
+            Organization organization = conversionService.convert(commonDataNodeRegisterDTO.getOrganization(), Organization.class);
+            dataNode.setOrganization(organizationService.getOrCreate(organization));
+        }
+        final DN updatedDataNode = baseDataNodeService.update(dataNode);
         List<DS> dataSources = dataSourceService.getByDataNodeId(updatedDataNode.getId());
         dataSourceService.indexBySolr(dataSources);
         final DataNodeDTO dataNodeRegisterResponseDTO = conversionService.convert(updatedDataNode, DataNodeDTO.class);
