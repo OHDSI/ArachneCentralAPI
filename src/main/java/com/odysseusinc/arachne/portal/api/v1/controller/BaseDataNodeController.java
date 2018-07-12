@@ -171,7 +171,7 @@ public abstract class BaseDataNodeController<
         final DN dataNode = conversionService.convert(commonDataNodeRegisterDTO, getDataNodeDNClass());
         dataNode.setId(dataNodeId);
         validateIfFirstUpdate(dataNode, commonDataNodeRegisterDTO);
-        final DN updatedDataNode = baseDataNodeService.update(dataNode, commonDataNodeRegisterDTO);
+        final DN updatedDataNode = baseDataNodeService.update(dataNode);
         return conversionService.convert(updatedDataNode, DataNodeDTO.class);
     }
 

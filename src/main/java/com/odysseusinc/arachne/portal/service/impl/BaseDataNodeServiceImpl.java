@@ -24,7 +24,6 @@ package com.odysseusinc.arachne.portal.service.impl;
 
 import static org.assertj.core.util.Preconditions.checkNotNull;
 
-import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeRegisterDTO;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
@@ -34,7 +33,6 @@ import com.odysseusinc.arachne.portal.model.DataNodeStatus;
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
-import com.odysseusinc.arachne.portal.model.Organization;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.repository.DataNodeJournalRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeRepository;
@@ -55,7 +53,6 @@ import javax.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
@@ -75,7 +72,6 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode, DS extends ID
     private final DataNodeUserRepository dataNodeUserRepository;
     private final DataNodeStatusRepository dataNodeStatusRepository;
     private final DataNodeJournalRepository dataNodeJournalRepository;
-    private final GenericConversionService conversionService;
     protected final OrganizationService organizationService;
     protected final BaseDataSourceService<DS> dataSourceService;
 
@@ -85,14 +81,12 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode, DS extends ID
                                    DataNodeUserRepository dataNodeUserRepository,
                                    DataNodeStatusRepository dataNodeStatusRepository,
                                    DataNodeJournalRepository dataNodeJournalRepository,
-                                   GenericConversionService conversionService,
                                    OrganizationService organizationService) {
 
         this.dataNodeRepository = dataNodeRepository;
         this.dataNodeUserRepository = dataNodeUserRepository;
         this.dataNodeStatusRepository = dataNodeStatusRepository;
         this.dataNodeJournalRepository = dataNodeJournalRepository;
-        this.conversionService = conversionService;
         this.organizationService = organizationService;
         this.dataSourceService = dataSourceService;
     }
@@ -127,7 +121,7 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode, DS extends ID
     @Transactional
     @Override
     @PreAuthorize("hasPermission(#dataNode, T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_DATANODE)")
-    public DN update(DN dataNode, CommonDataNodeRegisterDTO commonDataNodeRegisterDTO) throws NotExistException, AlreadyExistException, ConstraintViolationException, ValidationException {
+    public DN update(DN dataNode) throws NotExistException, AlreadyExistException, ConstraintViolationException, ValidationException {
 
         DN existed = dataNodeRepository.findByNameAndVirtualIsFalse(dataNode.getName());
         if (existed != null && !existed.getId().equals(dataNode.getId())) {
@@ -140,9 +134,8 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode, DS extends ID
         if (dataNode.getDescription() != null) {
             existsDataNode.setDescription(dataNode.getDescription());
         }
-        if (commonDataNodeRegisterDTO.getOrganization() != null) {
-            Organization organization = conversionService.convert(commonDataNodeRegisterDTO.getOrganization(), Organization.class);
-            existsDataNode.setOrganization(organizationService.getOrCreate(organization));
+        if (dataNode.getOrganization() != null) {
+            existsDataNode.setOrganization(organizationService.getOrCreate(dataNode.getOrganization()));
         }
         existsDataNode.setPublished(true);
         DN updated = dataNodeRepository.save(existsDataNode);
