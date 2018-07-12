@@ -177,13 +177,13 @@ public abstract class BaseDataNodeController<
 
     private void validateIfFirstUpdate(DN dataNode, CommonDataNodeRegisterDTO commonDataNodeRegisterDTO) {
 
-        DN existsDataNode = baseDataNodeService.getByIdUnsecured(dataNode.getId());
-        if (existsDataNode == null) {
+        DN existedDataNode = baseDataNodeService.getByIdUnsecured(dataNode.getId());
+        if (existedDataNode == null) {
             throw new NotExistException("update: dataNode with id = " + dataNode.getId() + " doesn't exist", DataNode.class);
         }
         //for the first DN update (when DN's name is null) all fields (name, description, organization) are mandatory in commonDataNodeRegisterDTO.
         // In further updates they may be empty and will be taken from existing record
-        if (existsDataNode.getName() == null) {
+        if (existedDataNode.getName() == null) {
             Set<ConstraintViolation<CommonDataNodeRegisterDTO>> constraintViolations = validator.validate(commonDataNodeRegisterDTO);
             if (!constraintViolations.isEmpty()) {
                 throw new ConstraintViolationException(constraintViolations);

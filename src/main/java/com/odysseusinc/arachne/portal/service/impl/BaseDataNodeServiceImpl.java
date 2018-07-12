@@ -123,22 +123,22 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode, DS extends ID
     @PreAuthorize("hasPermission(#dataNode, T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_DATANODE)")
     public DN update(DN dataNode) throws NotExistException, AlreadyExistException, ConstraintViolationException, ValidationException {
 
-        DN existed = dataNodeRepository.findByNameAndVirtualIsFalse(dataNode.getName());
-        if (existed != null && !existed.getId().equals(dataNode.getId())) {
+        DN existedWithSameName = dataNodeRepository.findByNameAndVirtualIsFalse(dataNode.getName());
+        if (existedWithSameName != null && !existedWithSameName.getId().equals(dataNode.getId())) {
             throw new AlreadyExistException("Data node with the same name already exists");
         }
-        final DN existsDataNode = getById(dataNode.getId());
+        final DN existedDataNode = getById(dataNode.getId());
         if (dataNode.getName() != null) {
-            existsDataNode.setName(dataNode.getName());
+            existedDataNode.setName(dataNode.getName());
         }
         if (dataNode.getDescription() != null) {
-            existsDataNode.setDescription(dataNode.getDescription());
+            existedDataNode.setDescription(dataNode.getDescription());
         }
         if (dataNode.getOrganization() != null) {
-            existsDataNode.setOrganization(organizationService.getOrCreate(dataNode.getOrganization()));
+            existedDataNode.setOrganization(organizationService.getOrCreate(dataNode.getOrganization()));
         }
-        existsDataNode.setPublished(true);
-        DN updated = dataNodeRepository.save(existsDataNode);
+        existedDataNode.setPublished(true);
+        DN updated = dataNodeRepository.save(existedDataNode);
         List<DS> dataSources = dataSourceService.getByDataNodeId(updated.getId());
         dataSourceService.indexBySolr(dataSources);
         return updated;
