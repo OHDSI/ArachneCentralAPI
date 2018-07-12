@@ -20,7 +20,11 @@
 
 package com.odysseusinc.arachne.portal.service.impl;
 
-import static com.odysseusinc.arachne.portal.service.BaseSolrService.*;
+import static com.odysseusinc.arachne.portal.service.BaseSolrService.BREADCRUMBS;
+import static com.odysseusinc.arachne.portal.service.BaseSolrService.ID;
+import static com.odysseusinc.arachne.portal.service.BaseSolrService.SYSTEM_ID;
+import static com.odysseusinc.arachne.portal.service.BaseSolrService.TITLE;
+import static com.odysseusinc.arachne.portal.service.BaseSolrService.TYPE;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.GlobalSearchResultDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchGlobalDTO;
@@ -29,7 +33,6 @@ import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
 import com.odysseusinc.arachne.portal.model.solr.SolrEntityCreatedEvent;
 import com.odysseusinc.arachne.portal.service.BaseGlobalSearchService;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
-import com.odysseusinc.arachne.portal.service.SolrService;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
 import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
 import java.io.IOException;
@@ -38,6 +41,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrDocument;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -66,11 +70,11 @@ public abstract class BaseGlobalSearchServiceImpl<SF extends SolrField> implemen
         searchDTO.setCollections(collections);
         final String tenantId = TenantContext.getCurrentTenant().toString();
         final SolrQuery query = conversionService.convert(searchDTO, SolrQuery.class);
-        
+
         query.setQuery(buildSearchString(searchDTO.getQuery(), userId, tenantId));
 
         setupHighlight(searchDTO.getQuery(), query);
-        
+
         final QueryResponse response = solrService.search(collections[0], query);
 
         final SearchResult<SolrDocument> searchResult = new SearchResult<>(query, response, response.getResults());
@@ -85,13 +89,13 @@ public abstract class BaseGlobalSearchServiceImpl<SF extends SolrField> implemen
 
         solrQuery.setHighlight(Boolean.TRUE);
 
-        solrQuery.set("hl.q", "*" + query + "*");
+        solrQuery.set("hl.q", "*" + ClientUtils.escapeQueryChars(query) + "*");
 
         solrQuery.setHighlightFragsize(40);
-        
+
         solrQuery.setHighlightSimplePre("[b]");
         solrQuery.setHighlightSimplePost("[/b]");
-        
+
         solrQuery.addHighlightField("*" + SolrField.TS_POSTFIX);
         solrQuery.addHighlightField("*" + SolrField.TXT_POSTFIX);
     }
@@ -108,24 +112,24 @@ public abstract class BaseGlobalSearchServiceImpl<SF extends SolrField> implemen
     private String buildSearchString(final String query, final Long userId, final String tenantId) {
 
 
-        final String q = 
+        final String q =
                 "(entity_type:studies AND (is_public:true OR (is_public:false AND participants:userId)) AND tenants:%tenantId AND query:*%query*) OR " +
-                "(entity_type:papers AND (readers_ts:userId OR _query_:\"{!join from=entity_id fromIndex=studies to=study_id_txt}(participants:userId AND tenants:%tenantId)\") AND query:*%query*) OR " +
-                "(entity_type:data-sources AND tenants:%tenantId AND query:*%query*) OR " +
-                "(entity_type:analyses AND _query_:\"{!join from=entity_id fromIndex=studies to=study_id_txt}(participants:userId AND tenants:%tenantId)\" AND query:*%query*) OR " +
-                "(entity_type:users AND tenants:%tenantId AND query:*%query*)";
-        
+                        "(entity_type:papers AND (readers_ts:userId OR _query_:\"{!join from=entity_id fromIndex=studies to=study_id_txt}(participants:userId AND tenants:%tenantId)\") AND query:*%query*) OR " +
+                        "(entity_type:data-sources AND tenants:%tenantId AND query:*%query*) OR " +
+                        "(entity_type:analyses AND _query_:\"{!join from=entity_id fromIndex=studies to=study_id_txt}(participants:userId AND tenants:%tenantId)\" AND query:*%query*) OR " +
+                        "(entity_type:users AND tenants:%tenantId AND query:*%query*)";
+
         final String modifiedString = StringUtils.replaceEach(
-                q, 
+                q,
                 new String[]{
                         "userId",
                         "%tenantId",
                         "%query"
-                }, 
+                },
                 new String[]{
                         String.valueOf(userId),
                         tenantId,
-                        query
+                        ClientUtils.escapeQueryChars(query)
                 }
         );
         return modifiedString;

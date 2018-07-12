@@ -23,24 +23,29 @@
 package com.odysseusinc.arachne.portal.service.impl;
 
 import com.odysseusinc.arachne.portal.model.DataNode;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.repository.DataNodeJournalRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeStatusRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeUserRepository;
 import com.odysseusinc.arachne.portal.service.DataNodeService;
+import com.odysseusinc.arachne.portal.service.DataSourceService;
+import com.odysseusinc.arachne.portal.service.OrganizationService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @SuppressWarnings("unused")
 @Transactional(rollbackFor = Exception.class)
-public class DataNodeServiceImpl extends BaseDataNodeServiceImpl<DataNode> implements DataNodeService {
+public class DataNodeServiceImpl extends BaseDataNodeServiceImpl<DataNode, IDataSource> implements DataNodeService {
     public DataNodeServiceImpl(
             DataNodeRepository<DataNode> dataNodeRepository,
             DataNodeUserRepository dataNodeUserRepository,
             DataNodeStatusRepository dataNodeStatusRepository,
-            DataNodeJournalRepository dataNodeJournalRepository) {
+            DataNodeJournalRepository dataNodeJournalRepository,
+            OrganizationService organizationService,
+            DataSourceService dataSourceService) {
 
-        super(dataNodeRepository, dataNodeUserRepository, dataNodeStatusRepository, dataNodeJournalRepository);
+        super(dataNodeRepository, dataSourceService, dataNodeUserRepository, dataNodeStatusRepository, dataNodeJournalRepository, organizationService);
     }
 }

@@ -24,6 +24,7 @@ package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeRegisterDTO;
 import com.odysseusinc.arachne.portal.model.DataNode;
+import com.odysseusinc.arachne.portal.model.Organization;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -38,6 +39,7 @@ public class CommonDataNodeRegisterDTOToDataNodeConverter
         dataNode.setDescription(source.getDescription());
         dataNode.setVirtual(false);
         dataNode.setPublished(true);
+        dataNode.setOrganization(conversionService.convert(source.getOrganization(), Organization.class));
         return dataNode;
     }
 }

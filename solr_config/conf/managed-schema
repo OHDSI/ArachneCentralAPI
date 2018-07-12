@@ -164,9 +164,9 @@
 
     <dynamicField name="attr_*" type="text_general" indexed="true" stored="true" multiValued="true"/>
 
-    <dynamicField name="query_*" type="text_general" multiValued="true" indexed="false" stored="false"/>
+    <dynamicField name="query_*" type="lowercase" multiValued="true" indexed="false" stored="false"/>
     <copyField source="query_*" dest="query"/>
-    <field name="query" type="text_general" multiValued="true" indexed="true" stored="true" />
+    <field name="query" type="lowercase" multiValued="true" indexed="true" stored="true"/>
 
     <!-- Facets: -->
 

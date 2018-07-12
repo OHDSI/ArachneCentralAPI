@@ -162,36 +162,33 @@ public abstract class BaseDataNodeController<
 
     @ApiOperation("Update data node info")
     @RequestMapping(value = "/api/v1/data-nodes/{dataNodeId}", method = RequestMethod.PUT)
-    public JsonResult<DataNodeDTO> updateDataNode(
+    public DataNodeDTO updateDataNode(
             @PathVariable("dataNodeId") Long dataNodeId,
             @RequestBody CommonDataNodeRegisterDTO commonDataNodeRegisterDTO,
             Principal principal
     ) throws NotExistException, AlreadyExistException, ValidationException {
 
-        //for the first DN update all fields (name, description, organization) are mandatory in commonDataNodeRegisterDTO.
+        final DN dataNode = conversionService.convert(commonDataNodeRegisterDTO, getDataNodeDNClass());
+        dataNode.setId(dataNodeId);
+        validateIfFirstUpdate(dataNode, commonDataNodeRegisterDTO);
+        final DN updatedDataNode = baseDataNodeService.update(dataNode);
+        return conversionService.convert(updatedDataNode, DataNodeDTO.class);
+    }
+
+    private void validateIfFirstUpdate(DN dataNode, CommonDataNodeRegisterDTO commonDataNodeRegisterDTO) {
+
+        DN existedDataNode = baseDataNodeService.getByIdUnsecured(dataNode.getId());
+        if (existedDataNode == null) {
+            throw new NotExistException("update: dataNode with id = " + dataNode.getId() + " doesn't exist", DataNode.class);
+        }
+        //for the first DN update (when DN's name is null) all fields (name, description, organization) are mandatory in commonDataNodeRegisterDTO.
         // In further updates they may be empty and will be taken from existing record
-        DN existingDN = baseDataNodeService.getById(dataNodeId);
-        if (existingDN.getName() == null) {
+        if (existedDataNode.getName() == null) {
             Set<ConstraintViolation<CommonDataNodeRegisterDTO>> constraintViolations = validator.validate(commonDataNodeRegisterDTO);
             if (!constraintViolations.isEmpty()) {
                 throw new ConstraintViolationException(constraintViolations);
             }
         }
-        if (commonDataNodeRegisterDTO.getName() != null) {
-            existingDN.setName(commonDataNodeRegisterDTO.getName());
-        }
-        if (commonDataNodeRegisterDTO.getOrganization() != null) {
-            Organization organization = conversionService.convert(commonDataNodeRegisterDTO.getOrganization(), Organization.class);
-            existingDN.setOrganization(organizationService.getOrCreate(organization));
-        }
-        if (commonDataNodeRegisterDTO.getDescription() != null) {
-            existingDN.setDescription(commonDataNodeRegisterDTO.getDescription());
-        }
-        final DN updatedDataNode = baseDataNodeService.update(existingDN);
-        final DataNodeDTO dataNodeRegisterResponseDTO = conversionService.convert(updatedDataNode, DataNodeDTO.class);
-        final JsonResult<DataNodeDTO> result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
-        result.setResult(dataNodeRegisterResponseDTO);
-        return result;
     }
 
     @ApiOperation("Create new data source of datanode.")
