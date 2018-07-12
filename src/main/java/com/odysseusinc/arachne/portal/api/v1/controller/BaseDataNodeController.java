@@ -162,7 +162,7 @@ public abstract class BaseDataNodeController<
 
     @ApiOperation("Update data node info")
     @RequestMapping(value = "/api/v1/data-nodes/{dataNodeId}", method = RequestMethod.PUT)
-    public JsonResult<DataNodeDTO> updateDataNode(
+    public DataNodeDTO updateDataNode(
             @PathVariable("dataNodeId") Long dataNodeId,
             @RequestBody CommonDataNodeRegisterDTO commonDataNodeRegisterDTO,
             Principal principal
@@ -170,7 +170,14 @@ public abstract class BaseDataNodeController<
 
         final DN dataNode = conversionService.convert(commonDataNodeRegisterDTO, getDataNodeDNClass());
         dataNode.setId(dataNodeId);
-        DN existsDataNode = baseDataNodeService.getByIdUnsecured(dataNodeId);
+        validateIfFirstUpdate(dataNode, commonDataNodeRegisterDTO);
+        final DN updatedDataNode = baseDataNodeService.update(dataNode, commonDataNodeRegisterDTO);
+        return conversionService.convert(updatedDataNode, DataNodeDTO.class);
+    }
+
+    private void validateIfFirstUpdate(DN dataNode, CommonDataNodeRegisterDTO commonDataNodeRegisterDTO) {
+
+        DN existsDataNode = baseDataNodeService.getByIdUnsecured(dataNode.getId());
         if (existsDataNode == null) {
             throw new NotExistException("update: dataNode with id = " + dataNode.getId() + " doesn't exist", DataNode.class);
         }
@@ -182,17 +189,6 @@ public abstract class BaseDataNodeController<
                 throw new ConstraintViolationException(constraintViolations);
             }
         }
-        if (commonDataNodeRegisterDTO.getOrganization() != null) {
-            Organization organization = conversionService.convert(commonDataNodeRegisterDTO.getOrganization(), Organization.class);
-            dataNode.setOrganization(organizationService.getOrCreate(organization));
-        }
-        final DN updatedDataNode = baseDataNodeService.update(dataNode);
-        List<DS> dataSources = dataSourceService.getByDataNodeId(updatedDataNode.getId());
-        dataSourceService.indexBySolr(dataSources);
-        final DataNodeDTO dataNodeRegisterResponseDTO = conversionService.convert(updatedDataNode, DataNodeDTO.class);
-        final JsonResult<DataNodeDTO> result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
-        result.setResult(dataNodeRegisterResponseDTO);
-        return result;
     }
 
     @ApiOperation("Create new data source of datanode.")

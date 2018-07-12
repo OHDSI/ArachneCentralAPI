@@ -24,6 +24,7 @@ package com.odysseusinc.arachne.portal.service.impl;
 
 import static org.assertj.core.util.Preconditions.checkNotNull;
 
+import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeRegisterDTO;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
@@ -31,13 +32,16 @@ import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataNodeJournalEntry;
 import com.odysseusinc.arachne.portal.model.DataNodeStatus;
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
+import com.odysseusinc.arachne.portal.model.Organization;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.repository.DataNodeJournalRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeStatusRepository;
 import com.odysseusinc.arachne.portal.repository.DataNodeUserRepository;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
+import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.OrganizationService;
 import com.odysseusinc.arachne.portal.util.EntityUtils;
 import java.sql.Timestamp;
@@ -56,7 +60,7 @@ import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 
-public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements BaseDataNodeService<DN> {
+public abstract class BaseDataNodeServiceImpl<DN extends DataNode, DS extends IDataSource> implements BaseDataNodeService<DN> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseDataNodeServiceImpl.class);
     private static final String IS_NOT_FOUND_EXCEPTION = "Data node with id='%s' is not found";
@@ -73,9 +77,11 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
     private final DataNodeJournalRepository dataNodeJournalRepository;
     private final GenericConversionService conversionService;
     protected final OrganizationService organizationService;
+    protected final BaseDataSourceService<DS> dataSourceService;
 
     @Autowired
     public BaseDataNodeServiceImpl(DataNodeRepository<DN> dataNodeRepository,
+                                   BaseDataSourceService<DS> dataSourceService,
                                    DataNodeUserRepository dataNodeUserRepository,
                                    DataNodeStatusRepository dataNodeStatusRepository,
                                    DataNodeJournalRepository dataNodeJournalRepository,
@@ -88,6 +94,7 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
         this.dataNodeJournalRepository = dataNodeJournalRepository;
         this.conversionService = conversionService;
         this.organizationService = organizationService;
+        this.dataSourceService = dataSourceService;
     }
 
 
@@ -120,7 +127,7 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
     @Transactional
     @Override
     @PreAuthorize("hasPermission(#dataNode, T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_DATANODE)")
-    public DN update(DN dataNode) throws NotExistException, AlreadyExistException, ConstraintViolationException, ValidationException {
+    public DN update(DN dataNode, CommonDataNodeRegisterDTO commonDataNodeRegisterDTO) throws NotExistException, AlreadyExistException, ConstraintViolationException, ValidationException {
 
         DN existed = dataNodeRepository.findByNameAndVirtualIsFalse(dataNode.getName());
         if (existed != null && !existed.getId().equals(dataNode.getId())) {
@@ -133,11 +140,15 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode> implements Ba
         if (dataNode.getDescription() != null) {
             existsDataNode.setDescription(dataNode.getDescription());
         }
-        if (dataNode.getOrganization() != null) {
-            existsDataNode.setOrganization(dataNode.getOrganization());
+        if (commonDataNodeRegisterDTO.getOrganization() != null) {
+            Organization organization = conversionService.convert(commonDataNodeRegisterDTO.getOrganization(), Organization.class);
+            existsDataNode.setOrganization(organizationService.getOrCreate(organization));
         }
         existsDataNode.setPublished(true);
-        return dataNodeRepository.save(existsDataNode);
+        DN updated = dataNodeRepository.save(existsDataNode);
+        List<DS> dataSources = dataSourceService.getByDataNodeId(updated.getId());
+        dataSourceService.indexBySolr(dataSources);
+        return updated;
     }
 
     @Override
