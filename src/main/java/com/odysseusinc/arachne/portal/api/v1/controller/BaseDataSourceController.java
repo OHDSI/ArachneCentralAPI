@@ -38,7 +38,7 @@ import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
-import com.odysseusinc.arachne.portal.model.DataSourceFields;
+import com.odysseusinc.arachne.portal.model.DataSourceSortMapper;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
@@ -179,7 +179,7 @@ public abstract class BaseDataSourceController<
     @RequestMapping(value = "/api/v1/data-sources/my", method = RequestMethod.GET)
     public Page<DS_DTO> getUserDataSources(Principal principal,
                                            @RequestParam(name = "query", required = false, defaultValue = "") String query,
-                                           @RequestParam(name = "sort", required = false, defaultValue = DataSourceFields.UI_NAME) String sortBy,
+                                           @RequestParam(name = "sort", required = false, defaultValue = DataSourceSortMapper.NAME) String sortBy,
                                            @RequestParam(name = "order", required = false, defaultValue = "asc") String order,
                                            @ModelAttribute PageDTO pageDTO
     ) throws PermissionDeniedException {
