@@ -31,13 +31,11 @@ import static com.odysseusinc.arachne.portal.model.SubmissionStatus.FAILED_REJEC
 import static com.odysseusinc.arachne.portal.model.SubmissionStatus.IN_PROGRESS;
 import static com.odysseusinc.arachne.portal.model.SubmissionStatus.NOT_APPROVED;
 import static com.odysseusinc.arachne.portal.model.SubmissionStatus.PENDING;
-import static com.odysseusinc.arachne.portal.model.SubmissionStatus.valueOf;
 import static com.odysseusinc.arachne.portal.service.impl.submission.SubmissionActionType.EXECUTE;
 import static com.odysseusinc.arachne.portal.service.impl.submission.SubmissionActionType.PUBLISH;
 import static com.odysseusinc.arachne.portal.util.DataNodeUtils.isDataNodeOwner;
 
 import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
-import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraphUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.ApproveDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdateNotificationDTO;
 import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
@@ -159,6 +157,8 @@ public abstract class BaseSubmissionServiceImpl<
 
     @Value("${files.store.path}")
     private String fileStorePath;
+    @Value("${portal.explicitExecutionApprove}")
+    protected Boolean explicitExecutionApprove;
 
     protected BaseSubmissionServiceImpl(BaseSubmissionRepository<T> submissionRepository,
                                         BaseDataSourceService<DS> dataSourceService,
