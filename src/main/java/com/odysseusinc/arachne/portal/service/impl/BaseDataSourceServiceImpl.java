@@ -31,7 +31,7 @@ import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.model.DataSource;
-import com.odysseusinc.arachne.portal.model.DataSourceFields;
+import com.odysseusinc.arachne.portal.model.DataSourceSortMapper;
 import com.odysseusinc.arachne.portal.model.DataSourceStatus;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
@@ -71,6 +71,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -454,13 +455,13 @@ public abstract class BaseDataSourceServiceImpl<
     @Override
     public PageRequest getPageRequest(PageDTO pageDTO) throws PermissionDeniedException {
 
-        return getPageRequest(pageDTO, DataSourceFields.UI_NAME, "asc");
+        return getPageRequest(pageDTO, DataSourceSortMapper.NAME, "asc");
     }
 
     @Override
     public PageRequest getPageRequest(PageDTO pageDTO, String sortBy, String order) throws PermissionDeniedException {
 
-        List<String> dsSortBy = DataSourceFields.getFields().get(sortBy);
+        List<String> dsSortBy = DataSourceSortMapper.map(Arrays.asList(StringUtils.split(sortBy, ",")));
         Sort sort = new Sort(Sort.Direction.fromString(order), dsSortBy);
         return new PageRequest(pageDTO.getPage() - 1, pageDTO.getPageSize(), sort);
     }
