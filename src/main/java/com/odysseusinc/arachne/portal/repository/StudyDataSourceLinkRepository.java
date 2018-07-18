@@ -58,7 +58,9 @@ public interface StudyDataSourceLinkRepository extends EntityGraphJpaRepository<
     StudyDataSourceLink findByDataSourceIdAndStudyId(@Param("dataSourceId") Long dataSourceId,
                                                      @Param("studyId") Long studyId);
 
-    List<StudyDataSourceLink> findByStudyId(Long studyId);
+    //Have to do native query to ignore @Where in StudyDataSourceLink entity
+    @Query(nativeQuery = true, value = "SELECT * FROM studies_data_sources l WHERE l.study_id =:studyId")
+    List<StudyDataSourceLink> findByStudyId(@Param("studyId") Long studyId);
 
     StudyDataSourceLink findById(Long id);
 
