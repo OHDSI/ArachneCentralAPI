@@ -22,11 +22,16 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto.converters.study;
 
+import com.odysseusinc.arachne.portal.api.v1.dto.DataSourceDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.StudyDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
 import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
+import com.odysseusinc.arachne.portal.model.DataSourceStatus;
 import com.odysseusinc.arachne.portal.model.Study;
+import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
 import com.odysseusinc.arachne.portal.util.ArachneConverterUtils;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class BaseUserStudyItemToStudyDTOConverter<S extends StudyDTO> extends BaseConversionServiceAwareConverter<AbstractUserStudyListItem, S> {
@@ -37,17 +42,21 @@ public abstract class BaseUserStudyItemToStudyDTOConverter<S extends StudyDTO> e
     @Override
     public S convert(AbstractUserStudyListItem source) {
 
+        final Study study = source.getStudy();
         S studyDto = createResultObject();
 
-        StudyDTO baseObject = conversionService.convert(source.getStudy(), getDtoClass());
+        StudyDTO baseObject = conversionService.convert(study, getDtoClass());
         baseObject.setFavourite(source.getFavourite());
 
+        List<StudyDataSourceLink> links = study.getDataSources().stream().filter(ds -> DataSourceStatus.DELETED.equals(ds.getStatus())).collect(Collectors.toList());
+        //this list won't be empty only in case when we intentionally get all (include those with deleted_at != NULL) StudyDataSourceLinks from repository
+        if (!links.isEmpty()) {
+            List<DataSourceDTO> dataSourceDTOS = converterUtils.convertList(links, DataSourceDTO.class);
+            baseObject.getDataSources().addAll(dataSourceDTOS);
+        }
         converterUtils.shallowCopy(studyDto, baseObject);
-        final Study study = source.getStudy();
         studyDto.setPrivacy(study.getPrivacy());
-
         proceedAdditionalFields(studyDto, source);
-
         return studyDto;
     }
 
