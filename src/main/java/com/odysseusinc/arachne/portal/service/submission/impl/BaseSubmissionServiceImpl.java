@@ -157,8 +157,6 @@ public abstract class BaseSubmissionServiceImpl<
 
     @Value("${files.store.path}")
     private String fileStorePath;
-    @Value("${portal.explicitExecutionApprove}")
-    protected Boolean explicitExecutionApprove;
 
     protected BaseSubmissionServiceImpl(BaseSubmissionRepository<T> submissionRepository,
                                         BaseDataSourceService<DS> dataSourceService,

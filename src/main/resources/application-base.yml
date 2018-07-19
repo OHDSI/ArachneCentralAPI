@@ -129,7 +129,6 @@ portal:
   organizations:
     enableCreateByNonAdmin: true
   notifyAdminAboutNewUser: true
-  explicitExecutionApprove: true
 datanode:
   messaging:
     importTimeout: 60000
