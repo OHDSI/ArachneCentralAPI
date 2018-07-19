@@ -20,27 +20,27 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto;
 
-import com.odysseusinc.arachne.portal.service.impl.breadcrumb.BreadcrumbType;
+import com.odysseusinc.arachne.portal.service.impl.breadcrumb.EntityType;
 
 public class SolrBreadcrumbDTO {
 
-    private BreadcrumbType entityType;
+    private EntityType entityType;
     private Long id;
     private String title;
 
-    public SolrBreadcrumbDTO(BreadcrumbType entityType, Long id, String title) {
+    public SolrBreadcrumbDTO(EntityType entityType, Long id, String title) {
 
         this.entityType = entityType;
         this.id = id;
         this.title = title;
     }
 
-    public BreadcrumbType getEntityType() {
+    public EntityType getEntityType() {
 
         return entityType;
     }
 
-    public void setEntityType(BreadcrumbType entityType) {
+    public void setEntityType(EntityType entityType) {
 
         this.entityType = entityType;
     }

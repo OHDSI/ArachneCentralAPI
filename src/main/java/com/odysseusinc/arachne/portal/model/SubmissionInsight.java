@@ -25,7 +25,7 @@ package com.odysseusinc.arachne.portal.model;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
-import com.odysseusinc.arachne.portal.service.impl.breadcrumb.BreadcrumbType;
+import com.odysseusinc.arachne.portal.service.impl.breadcrumb.EntityType;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
@@ -67,9 +67,9 @@ public class SubmissionInsight implements Serializable, Breadcrumb, HasArachnePe
     @Transient
     private Set<ArachnePermission> permissions;
 
-    public BreadcrumbType getCrumbType() {
+    public EntityType getCrumbType() {
 
-        return BreadcrumbType.INSIGHT;
+        return EntityType.INSIGHT;
     }
 
     public Long getCrumbId() {

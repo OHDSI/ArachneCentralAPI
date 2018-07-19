@@ -28,7 +28,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.InvitationType;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
-import com.odysseusinc.arachne.portal.service.impl.breadcrumb.BreadcrumbType;
+import com.odysseusinc.arachne.portal.service.impl.breadcrumb.EntityType;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.LinkedList;
@@ -130,9 +130,9 @@ public class Submission implements HasArachnePermissions, Breadcrumb, Invitation
     @Transient
     private Set<ArachnePermission> permissions;
 
-    public BreadcrumbType getCrumbType() {
+    public EntityType getCrumbType() {
 
-        return BreadcrumbType.SUBMISSION;
+        return EntityType.SUBMISSION;
     }
 
     public Breadcrumb getCrumbParent() {

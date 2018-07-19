@@ -91,6 +91,7 @@ public class SubmissionInsightToSubmissionInsightDTOConverter extends BaseConver
         final Study study = analysis.getStudy();
         studyDTO.setId(study.getId());
         studyDTO.setTitle(study.getTitle());
+        studyDTO.setKind(study.getKind());
         analysisDTO.setStudy(studyDTO);
         return analysisDTO;
     }

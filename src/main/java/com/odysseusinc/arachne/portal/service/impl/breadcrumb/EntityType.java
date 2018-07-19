@@ -22,7 +22,7 @@
 
 package com.odysseusinc.arachne.portal.service.impl.breadcrumb;
 
-public enum BreadcrumbType {
+public enum EntityType {
     ANALYSIS,
     STUDY,
     SUBMISSION_GROUP,
@@ -30,5 +30,7 @@ public enum BreadcrumbType {
     INSIGHT,
     PAPER,
     USER,
-    DATA_SOURCE
+    DATA_SOURCE,
+    STUDY_FILE,
+    ANALYSIS_FILE
 }

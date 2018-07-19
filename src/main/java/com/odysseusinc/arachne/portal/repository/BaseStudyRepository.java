@@ -24,9 +24,11 @@ package com.odysseusinc.arachne.portal.repository;
 
 import com.cosium.spring.data.jpa.entity.graph.repository.EntityGraphJpaRepository;
 import com.odysseusinc.arachne.portal.model.Study;
+import com.odysseusinc.arachne.portal.model.StudyKind;
 import com.odysseusinc.arachne.portal.model.statemachine.ObjectRepository;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -81,4 +83,19 @@ public interface BaseStudyRepository<T extends Study> extends EntityGraphJpaRepo
 
     @Query("SELECT s, u FROM UserStudy u JOIN u.study s WHERE s.kind = com.odysseusinc.arachne.portal.model.StudyKind.WORKSPACE AND u.user.id = :userId")
     T findWorkspaceForUser(@Param("userId") Long userId);
+
+    @Query("SELECT s.kind FROM Study s JOIN s.analyses a WHERE a.id = :id")
+    Optional<StudyKind> findStudyKindByAnalysisId(@Param("id") Long id);
+    
+    @Query("SELECT s.kind FROM Study s JOIN s.files f WHERE f.id = :id")
+    Optional<StudyKind> findStudyKindByStudyFileId(@Param("id") Long id);
+
+    @Query("SELECT kind FROM Study WHERE id = :id")
+    Optional<StudyKind> findStudyKindById(@Param("id") Long id);
+
+    @Query("SELECT s.kind FROM Study s JOIN s.analyses a JOIN a.submissions subm WHERE subm.id = :id")
+    Optional<StudyKind> findStudyKindBySubmissionId(@Param("id") Long id);
+
+    @Query("SELECT s.kind FROM Study s JOIN s.analyses a JOIN a.submissionGroups sg WHERE sg.id = :id")
+    Optional<StudyKind> findStudyKindBySubmissionGroupId(@Param("id") Long id);
 }

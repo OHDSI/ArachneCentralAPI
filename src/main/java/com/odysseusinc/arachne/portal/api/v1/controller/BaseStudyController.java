@@ -83,6 +83,7 @@ import com.odysseusinc.arachne.portal.service.StudyFileService;
 import com.odysseusinc.arachne.portal.service.StudyTypeService;
 import com.odysseusinc.arachne.portal.service.ToPdfConverter;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
+import com.odysseusinc.arachne.portal.service.impl.breadcrumb.EntityType;
 import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightService;
 import io.swagger.annotations.ApiOperation;
 import java.io.FileNotFoundException;
@@ -222,6 +223,17 @@ public abstract class BaseStudyController<
         final IUser user = getUser(principal);
         final SU myStudy = studyService.getStudy(user, id);
         return convert(myStudy);
+    }
+
+    @RequestMapping(value = "/api/v1/study-management/studies/kind/{entityType}/{id}", method = GET)
+    public StudyKind getStudyKind(
+            @PathVariable("id") final Long id,
+            @PathVariable("entityType") final EntityType entityType,
+            final Principal principal)
+            throws PermissionDeniedException, NotExistException {
+
+        final IUser user = getUser(principal);
+        return studyService.getEntityStudyKind(entityType, id);
     }
 
     protected abstract SD convert(SU myStudy);

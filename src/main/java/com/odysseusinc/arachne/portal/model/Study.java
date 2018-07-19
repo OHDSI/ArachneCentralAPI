@@ -33,7 +33,7 @@ import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
-import com.odysseusinc.arachne.portal.service.impl.breadcrumb.BreadcrumbType;
+import com.odysseusinc.arachne.portal.service.impl.breadcrumb.EntityType;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -157,9 +157,9 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
         return SolrCollection.STUDIES;
     }
 
-    public BreadcrumbType getCrumbType() {
+    public EntityType getCrumbType() {
 
-        return BreadcrumbType.STUDY;
+        return EntityType.STUDY;
     }
 
     public String getCrumbTitle() {
