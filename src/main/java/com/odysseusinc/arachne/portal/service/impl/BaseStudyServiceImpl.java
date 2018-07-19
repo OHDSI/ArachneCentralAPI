@@ -444,7 +444,7 @@ public abstract class BaseStudyServiceImpl<
                                 "study.participants.dataSource"
                         )
                 ).orElseThrow(() -> new NotExistException(UserStudyGrouped.class));
-        List<StudyDataSourceLink> dataSourceLinks = studyDataSourceLinkRepository.findByStudyId(studyId);
+        List<StudyDataSourceLink> dataSourceLinks = studyDataSourceLinkRepository.findByStudyIdIncludingDeleted(studyId);
         userStudyItem.getStudy().setDataSources(dataSourceLinks);
         return userStudyItem;
     }

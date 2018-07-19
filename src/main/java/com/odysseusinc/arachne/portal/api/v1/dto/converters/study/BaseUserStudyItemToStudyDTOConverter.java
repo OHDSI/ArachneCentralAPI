@@ -52,7 +52,7 @@ public abstract class BaseUserStudyItemToStudyDTOConverter<S extends StudyDTO> e
         //this list won't be empty only in case when we intentionally get all (include those with deleted_at != NULL) StudyDataSourceLinks from repository
         if (!links.isEmpty()) {
             List<DataSourceDTO> dataSourceDTOS = converterUtils.convertList(links, DataSourceDTO.class);
-            baseObject.setDataSources(dataSourceDTOS);
+            baseObject.getDataSources().addAll(dataSourceDTOS);
         }
         converterUtils.shallowCopy(studyDto, baseObject);
         studyDto.setPrivacy(study.getPrivacy());
