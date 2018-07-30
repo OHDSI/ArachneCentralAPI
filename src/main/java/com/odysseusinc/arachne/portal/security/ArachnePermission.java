@@ -67,7 +67,8 @@ public enum ArachnePermission {
     ACCESS_ORGANIZATION(Organization.class),
     CREATE_ORGANIZATION(Organization.class),
     UPDATE_ORGANIZATION(Organization.class),
-    DELETE_ORGANIZATION(Organization.class);
+    DELETE_ORGANIZATION(Organization.class),
+    ACCESS_SUBMISSION_RESULTS(Submission.class);
 
     private Class<?>[] applicableClass;
 
