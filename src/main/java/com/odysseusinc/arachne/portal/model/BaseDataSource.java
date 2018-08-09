@@ -91,6 +91,7 @@ public abstract class BaseDataSource implements IDataSource, Serializable, HasAr
     @Enumerated(value = EnumType.STRING)
     protected CommonHealthStatus healthStatus = CommonHealthStatus.NOT_COLLECTED;
     @Column
+    
     protected String healthStatusDescription;
     @Column
     protected Date deleted;
