@@ -78,6 +78,8 @@ public interface BaseDataSourceService<DS extends IDataSource> {
 
     List<DS> getByDataNodeId(Long id);
 
+    List<DS> getNotDeletedByDataNodeId(Long dataNodeId);
+
     Page<DS> suggestDataSource(String query, Long studyId, Long userId,
                                        PageRequest pageRequest);
 

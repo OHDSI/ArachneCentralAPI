@@ -24,15 +24,15 @@ package com.odysseusinc.arachne.portal.api.v1.dto.converters.datasource;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataSourceHealthStatusDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
-import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import org.springframework.stereotype.Component;
 
 @Component
 public class DataSourceToCommonDataSourceHealthStatusDTOConverter
-        extends BaseConversionServiceAwareConverter<DataSource, CommonDataSourceHealthStatusDTO> {
+        extends BaseConversionServiceAwareConverter<IDataSource, CommonDataSourceHealthStatusDTO> {
 
     @Override
-    public CommonDataSourceHealthStatusDTO convert(DataSource source) {
+    public CommonDataSourceHealthStatusDTO convert(IDataSource source) {
 
         final CommonDataSourceHealthStatusDTO dataSourceHealthStatusDTO = new CommonDataSourceHealthStatusDTO();
         dataSourceHealthStatusDTO.setCentralId(source.getId());
