@@ -517,4 +517,10 @@ public abstract class BaseDataSourceServiceImpl<
 
         return rawDataSourceRepository.findByIdInAndDeletedIsNull(dataSourceIds);
     }
+
+    @Override
+    public List<DS> getNotDeletedByDataNodeId(Long dataNodeId) {
+
+        return rawDataSourceRepository.findByDataNodeIdAndDeletedIsNull(dataNodeId);
+    }
 }
