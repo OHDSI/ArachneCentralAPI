@@ -38,4 +38,6 @@ public interface BaseRawDataSourceRepository<T extends IDataSource> extends JpaR
     List<T> findByIdInAndDeletedIsNull(List<Long> ids);
 
     List<T> findByDataNodeId(Long id);
+
+    List<T> findByDataNodeIdAndDeletedIsNull(Long id);
 }
