@@ -25,6 +25,7 @@ package com.odysseusinc.arachne.portal.api.v1.dto;
 public class AchillesReportDTO {
     private String label;
     private String name;
+    private Integer sortOrder;
 
     public String getLabel() {
 
@@ -44,5 +45,15 @@ public class AchillesReportDTO {
     public void setName(String name) {
 
         this.name = name;
+    }
+
+    public Integer getSortOrder() {
+
+        return sortOrder;
+    }
+
+    public void setSortOrder(Integer sortOrder) {
+
+        this.sortOrder = sortOrder;
     }
 }
