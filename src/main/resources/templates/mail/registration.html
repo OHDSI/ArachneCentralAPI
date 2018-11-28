@@ -15,9 +15,6 @@
     <a th:href="@{${portalUrl} + '/api/v1/user-management/activation/' + ${registrationCode}(callbackUrl=${callbackUrl})}">link</a>
     to verify your email and start using the Arachne Collaboration Network!
 </p>
-<p th:utext="${signature}">
-    Regards,<br/>
-    Odysseus Data Services, Inc.
-</p>
+<p th:utext="${signature}"></p>
 </body>
 </html>
