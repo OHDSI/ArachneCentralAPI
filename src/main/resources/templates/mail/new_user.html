@@ -10,13 +10,10 @@
 <body>
 <p th:text="Dear+' '+${userFirstName}+', '"></p>
 <div>
-    There is new user registered - <a th:href="${userUrl}"><span class="btn-link" th:text="${userName}"></span></a>.
+    A new user was registered: <a th:href="${userUrl}"><span class="btn-link" th:text="${userName}"></span></a>.
     <br/>
     This notification was sent to you since you are the site's administrator.
 </div>
-<p th:utext="${signature}">
-    Regards,<br/>
-    Odysseus Data Services, Inc.
-</p>
+<p th:utext="${signature}"></p>
 </body>
 </html>
