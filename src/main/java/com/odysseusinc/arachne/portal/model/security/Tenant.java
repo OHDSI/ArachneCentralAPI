@@ -45,6 +45,7 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
+import org.hibernate.annotations.WhereJoinTable;
 
 @Entity
 @Table(name = "tenants")
@@ -77,6 +78,7 @@ public class Tenant implements SolrValue {
     @JoinTable(name = "tenants_data_sources",
             joinColumns = @JoinColumn(name = "tenant_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "data_source_id", referencedColumnName = "id"))
+    @WhereJoinTable(clause = "deleted_at is null")
     private Set<RawDataSource> dataSources;
 
     @LazyCollection(LazyCollectionOption.EXTRA)

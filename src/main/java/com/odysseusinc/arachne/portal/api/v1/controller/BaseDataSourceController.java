@@ -120,6 +120,7 @@ public abstract class BaseDataSourceController<
             dataSource.setId(dataSourceId);
             dataSource.setDataNode(exist.getDataNode());
             dataSource.setPublished(true);
+            dataSourceService.makeLinksWithTenantsNotDeleted(dataSourceId);
             dataSource = dataSourceService.updateInAnyTenant(dataSource);
 
             result = new JsonResult<>(NO_ERROR);

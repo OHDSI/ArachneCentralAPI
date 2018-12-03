@@ -55,6 +55,7 @@ import javax.persistence.SequenceGenerator;
 import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
+import org.hibernate.annotations.WhereJoinTable;
 import org.hibernate.validator.constraints.NotBlank;
 
 @MappedSuperclass
@@ -106,6 +107,7 @@ public abstract class BaseDataSource implements IDataSource, Serializable, HasAr
     @JoinTable(name = "tenants_data_sources",
             joinColumns = @JoinColumn(name = "data_source_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "tenant_id", referencedColumnName = "id"))
+    @WhereJoinTable(clause = "deleted_at is null")
     @SolrFieldAnno(filter = true, postfix = false, sort = false, extractor = DataSourceSolrExtractors.TenantsExtractor.class)
     protected Set<Tenant> tenants = new HashSet<>();
 
