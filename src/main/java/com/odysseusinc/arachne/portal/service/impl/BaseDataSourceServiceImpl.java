@@ -404,6 +404,7 @@ public abstract class BaseDataSourceServiceImpl<
     public void delete(Long id) {
 
         log.info("Deleting datasource with id={}", id);
+        makeLinksWithTenantsDeleted(id);
         rawDataSourceRepository.delete(id);
     }
 
@@ -436,6 +437,17 @@ public abstract class BaseDataSourceServiceImpl<
     public void makeLinksWithStudiesDeleted(final Long tenantId, final Long dataSourceId) {
 
         studyDataSourceLinkRepository.setLinksBetweenStudiesAndDsDeleted(tenantId, dataSourceId);
+    }
+
+    protected void makeLinksWithTenantsDeleted(Long dataSourceId) {
+
+        dataSourceRepository.makeLinksWithTenantsDeleted(dataSourceId);
+    }
+
+    @Override
+    public void makeLinksWithTenantsNotDeleted(Long dataSourceId) {
+
+        dataSourceRepository.makeLinksWithTenantsNotDeleted(dataSourceId);
     }
 
     public FieldList<SF> getSolrFields() {
