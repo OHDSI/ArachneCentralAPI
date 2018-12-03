@@ -95,7 +95,8 @@ public class OrganizationServiceImpl implements OrganizationService {
     public Organization getOrCreate(Organization organization) throws ValidationException {
 
         try {
-            return getByName(organization.getName());
+            return Objects.nonNull(organization.getId()) ? getById(organization.getId())
+                    : getByName(organization.getName());
         } catch (NotExistException ignored) {}
             return create(organization);
     }
