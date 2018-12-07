@@ -1,6 +1,6 @@
 package com.odysseusinc.arachne.portal.db.migration;
 
-import com.odysseusinc.arachne.portal.config.flyway.ApplicationContextAwareSpringMigration;
+import com.odysseusinc.arachne.commons.config.flyway.ApplicationContextAwareSpringMigration;
 import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.storage.service.ContentStorageService;
 import edu.emory.mathcs.backport.java.util.Arrays;
