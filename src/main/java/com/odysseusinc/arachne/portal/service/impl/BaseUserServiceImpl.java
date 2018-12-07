@@ -374,6 +374,12 @@ public abstract class BaseUserServiceImpl<
     private void updateFields(U user) throws PasswordValidationException {
 
         setFields(user);
+        if (Objects.nonNull(user.getCountry())) {
+            user.setCountry(countryRepository.findByIsoCode(user.getCountry().getIsoCode()));
+        }
+        if (Objects.nonNull(user.getStateProvince())) {
+            user.setStateProvince(stateProvinceRepository.findByIsoCode(user.getStateProvince().getIsoCode()));
+        }
 
         // The existing user check should come last:
         // it is muted in public registration form, so we need to show other errors ahead

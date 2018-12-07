@@ -42,4 +42,5 @@ public interface StateProvinceRepository extends CrudRepository<StateProvince, L
             @Param("limit") Integer limit,
             @Param("includeId") Long includeId);
 
+    StateProvince findByIsoCode(String isoCode);
 }
