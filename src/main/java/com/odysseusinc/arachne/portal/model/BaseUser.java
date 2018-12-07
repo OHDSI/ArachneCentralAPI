@@ -88,6 +88,9 @@ public class BaseUser implements IUser, Serializable {
     protected String organization;
 
     @Column
+    protected String department;
+
+    @Column
     protected Boolean enabled;
 
     @Column(name = "email_confirmed", nullable = false)
@@ -306,6 +309,18 @@ public class BaseUser implements IUser, Serializable {
     public void setOrganization(String organization) {
 
         this.organization = organization;
+    }
+
+    @Override
+    public String getDepartment() {
+
+        return department;
+    }
+
+    @Override
+    public void setDepartment(String department) {
+
+        this.department = department;
     }
 
     public ProfessionalType getProfessionalType() {
