@@ -49,4 +49,5 @@ public interface CountryRepository extends CrudRepository<Country, Long> {
     List<Country> findByCode(
             @Param("code") String code);
 
+    Country findByIsoCode(String isoCode);
 }
