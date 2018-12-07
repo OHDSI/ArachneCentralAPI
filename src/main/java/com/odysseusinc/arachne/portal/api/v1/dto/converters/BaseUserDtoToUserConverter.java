@@ -22,9 +22,13 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
+import com.odysseusinc.arachne.commons.api.v1.dto.CommonAddressDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserRegistrationDTO;
+import com.odysseusinc.arachne.portal.model.Country;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.ProfessionalType;
+import com.odysseusinc.arachne.portal.model.StateProvince;
+import java.util.Objects;
 
 public abstract class BaseUserDtoToUserConverter<CU extends CommonUserRegistrationDTO, U extends IUser> extends BaseConversionServiceAwareConverter<CU, U> {
 
@@ -38,9 +42,26 @@ public abstract class BaseUserDtoToUserConverter<CU extends CommonUserRegistrati
         user.setFirstname(dto.getFirstname());
         user.setLastname(dto.getLastname());
         user.setOrganization(dto.getOrganization());
+        user.setDepartment(dto.getDepartment());
         ProfessionalType professionalType = new ProfessionalType();
         professionalType.setId(dto.getProfessionalTypeId());
         user.setProfessionalType(professionalType);
+        CommonAddressDTO address = dto.getAddress();
+        if (Objects.nonNull(address)) {
+            user.setZipCode(address.getZipCode());
+            user.setCity(address.getCity());
+            user.setAddress1(address.getAddress1());
+            user.setAddress2(address.getAddress2());
+            user.setPhone(address.getPhone());
+            user.setMobile(address.getMobile());
+            user.setContactEmail(address.getContactEmail());
+            if (Objects.nonNull(address.getCountry())) {
+                user.setCountry(conversionService.convert(address.getCountry(), Country.class));
+            }
+            if (Objects.nonNull(address.getStateProvince())) {
+                user.setStateProvince(conversionService.convert(address.getStateProvince(), StateProvince.class));
+            }
+        }
         return user;
     }
 
