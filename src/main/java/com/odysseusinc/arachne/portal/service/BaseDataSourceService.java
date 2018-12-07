@@ -98,6 +98,8 @@ public interface BaseDataSourceService<DS extends IDataSource> {
      */
     void makeLinksWithStudiesDeleted(Long tenantId, Long dataSourceId);
 
+    void makeLinksWithTenantsNotDeleted(Long dataSourceId);
+
     PageRequest getPageRequest(PageDTO pageDTO, String sortBy, String order) throws PermissionDeniedException;
 
     PageRequest getPageRequest(PageDTO pageDTO) throws PermissionDeniedException;
