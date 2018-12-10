@@ -101,6 +101,7 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -109,6 +110,7 @@ import java.util.stream.Stream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
@@ -678,13 +680,29 @@ public abstract class BaseUserController<
     @ApiOperation("Suggests state or province.")
     @RequestMapping(value = "/api/v1/user-management/state-province/search", method = GET)
     public JsonResult<List<StateProvinceDTO>> suggestStateProvince(
-            @RequestParam("countryId") Long countryId,
+            @RequestParam("countryId") String countryIdParam,
             @RequestParam("query") String query,
             @RequestParam("limit") Integer limit,
-            @RequestParam(value = "includeId", required = false) Long includeId
+            @RequestParam(value = "includeId", required = false) String includeIdParam
     ) {
 
         JsonResult<List<StateProvinceDTO>> result;
+        Long countryId;
+        if (NumberUtils.isCreatable(countryIdParam)) {
+        	countryId = NumberUtils.createLong(countryIdParam);
+				} else {
+					Country country = Optional.ofNullable(userService.findCountryByCode(countryIdParam))
+									.orElseThrow(() -> new NotExistException(Country.class));
+					countryId = country.getId();
+				}
+				Long includeId = null;
+        if (NumberUtils.isCreatable(includeIdParam)) {
+        	includeId = NumberUtils.createLong(includeIdParam);
+				} else if (Objects.nonNull(includeIdParam)) {
+        	StateProvince stateProvince = Optional.ofNullable(userService.findStateProvinceByCode(includeIdParam))
+									.orElseThrow(() -> new NotExistException(StateProvince.class));
+        	includeId = stateProvince.getId();
+				}
         List<StateProvince> countries = userService.suggestStateProvince(query, countryId, limit, includeId);
         List<StateProvinceDTO> countriesDTOs = new LinkedList<>();
         countries

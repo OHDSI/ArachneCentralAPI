@@ -1328,6 +1328,18 @@ public abstract class BaseUserServiceImpl<
         return Stream.of(org.apache.commons.lang3.StringUtils.split(deletableUsers, delimiter)).map(Long::valueOf).collect(Collectors.toSet());
     }
 
+    @Override
+    public Country findCountryByCode(String countryCode) {
+
+        return countryRepository.findByIsoCode(countryCode);
+    }
+
+    @Override
+    public StateProvince findStateProvinceByCode(String isoCode) {
+
+        return stateProvinceRepository.findByIsoCode(isoCode);
+    }
+
     private void toggleFlag(
             final List<U> entities,
             final Function<U, Boolean> getter,
