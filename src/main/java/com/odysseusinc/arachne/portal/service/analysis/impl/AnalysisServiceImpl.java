@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.service.analysis.impl;
 
+import com.odysseusinc.arachne.portal.api.v1.dto.UploadFileDTO;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.NotUniqueException;
@@ -31,7 +32,6 @@ import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.AnalysisFile;
 import com.odysseusinc.arachne.portal.model.AnalysisUnlockRequest;
 import com.odysseusinc.arachne.portal.model.DataReference;
-import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Study;
@@ -206,6 +206,14 @@ public class AnalysisServiceImpl extends BaseAnalysisServiceImpl<Analysis, Study
                                        Boolean isExecutable) throws IOException, AlreadyExistException {
 
         return super.saveFileByLink(link, user, analysis, label, isExecutable);
+    }
+
+    @Override
+    @PreAuthorize("hasPermission(#analysis, "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).UPLOAD_ANALYSIS_FILES)")
+    public List<AnalysisFile> saveFiles(List<UploadFileDTO> files, IUser user, Analysis analysis) throws IOException {
+
+        return super.saveFiles(files, user, analysis);
     }
 
     @Override
