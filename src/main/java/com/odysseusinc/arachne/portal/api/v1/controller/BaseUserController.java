@@ -110,6 +110,7 @@ import java.util.stream.Stream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -687,10 +688,10 @@ public abstract class BaseUserController<
     ) {
 
         JsonResult<List<StateProvinceDTO>> result;
-        Long countryId;
+        Long countryId = null;
         if (NumberUtils.isCreatable(countryIdParam)) {
         	countryId = NumberUtils.createLong(countryIdParam);
-				} else {
+				} else if (StringUtils.isNotBlank(countryIdParam)) {
 					Country country = Optional.ofNullable(userService.findCountryByCode(countryIdParam))
 									.orElseThrow(() -> new NotExistException(Country.class));
 					countryId = country.getId();
@@ -698,7 +699,7 @@ public abstract class BaseUserController<
 				Long includeId = null;
         if (NumberUtils.isCreatable(includeIdParam)) {
         	includeId = NumberUtils.createLong(includeIdParam);
-				} else if (Objects.nonNull(includeIdParam)) {
+				} else if (StringUtils.isNotBlank(includeIdParam)) {
         	StateProvince stateProvince = Optional.ofNullable(userService.findStateProvinceByCode(includeIdParam))
 									.orElseThrow(() -> new NotExistException(StateProvince.class));
         	includeId = stateProvince.getId();
