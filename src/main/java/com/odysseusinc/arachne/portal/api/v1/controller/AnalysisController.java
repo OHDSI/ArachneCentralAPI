@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.jms.core.JmsTemplate;
@@ -170,17 +171,27 @@ public class AnalysisController extends BaseAnalysisController<Analysis, Analysi
 
         List<MultipartFile> multipartFiles = Arrays.stream(resolver.getResources(
                 "classpath:/" + CC_SQLS_DIR + "/**"))
-                .filter(r -> ((ClassPathResource) r).getPath().endsWith(".sql"))
+                .filter(r -> r.getFilename().endsWith(".sql"))
                 .map(this::convertToMultipartFile)
                 .collect(Collectors.toList());
 
         files.addAll(multipartFiles);
     }
 
+    private String getPath(Resource resource) throws IOException {
+        if (resource instanceof ClassPathResource) {
+            return ((ClassPathResource)resource).getPath();
+        } else if (resource instanceof FileSystemResource) {
+            return ((FileSystemResource)resource).getPath();
+        } else {
+            return resource.getFile().getPath();
+        }
+    }
+
     private MultipartFile convertToMultipartFile(Resource resource) {
 
         try {
-            String rootPath = ((ClassPathResource) resource).getPath();
+            String rootPath = getPath(resource);
             String name = convertToUnixPath(rootPath.substring(rootPath.indexOf(CC_SQLS_DIR) + CC_SQLS_DIR.length() + 1));
             return new MockMultipartFile(name, name, null, readResource(CC_SQLS_DIR + "/" + name));
         } catch (IOException e) {
