@@ -43,6 +43,7 @@ run_ir_analysis <- function(basicDir, analysisId, analysisDescriptionFile, cohor
         sql <- readSql(cf)
         sql <- renderSql(sql,
         cdm_database_schema = cdmDatabaseSchema,
+        vocabulary_database_schema = cdmDatabaseSchema,
         target_database_schema = cohortsDatabaseSchema,
         target_cohort_table = cohortTable,
         output = "output")$sql
