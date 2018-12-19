@@ -39,6 +39,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 
+import java.util.Locale;
+
 @SuppressWarnings("unused")
 @Configuration
 public class WebConfig extends WebMvcConfigurerAdapter {
@@ -58,7 +60,9 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     @Bean
     public LocaleResolver localeResolver() {
 
-        return new CookieLocaleResolver();
+        CookieLocaleResolver lr = new CookieLocaleResolver();
+        lr.setDefaultLocale(new Locale("en", "US"));
+        return lr;
     }
 
     @Bean
