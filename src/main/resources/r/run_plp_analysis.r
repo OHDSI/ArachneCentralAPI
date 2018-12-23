@@ -65,7 +65,7 @@ run_plp_analysis <-function(basicDir, analysisDescriptionFile, cohortDefinitionP
     excludedConcepts <- c()
   }else{
     sql <- analysisSettings$cvExclusionConceptSetSQL
-    sql <- SqlRender::renderSql(sql, cdm_database_schema = cdmDatabaseSchema)$sql
+    sql <- SqlRender::renderSql(sql, cdm_database_schema = cdmDatabaseSchema, vocabulary_database_schema = cdmDatabaseSchema)$sql
     sql <- SqlRender::translateSql(sql, targetDialect = connectionDetails$dbms)$sql
     excludedConcepts <- querySql(connection, sql)
     excludedConcepts <- excludedConcepts$CONCEPT_ID
@@ -77,7 +77,7 @@ run_plp_analysis <-function(basicDir, analysisDescriptionFile, cohortDefinitionP
     includedConcepts <- c()
   }else{
     sql <- analysisSettings$cvInclusionConceptSetSQL
-    sql <- SqlRender::renderSql(sql, cdm_database_schema = cdmDatabaseSchema)$sql
+    sql <- SqlRender::renderSql(sql, cdm_database_schema = cdmDatabaseSchema, vocabulary_database_schema = cdmDatabaseSchema)$sql
     sql <- SqlRender::translateSql(sql, targetDialect = connectionDetails$dbms)$sql
     includedConcepts <- querySql(connection, sql)
     includedConcepts <- includedConcepts$CONCEPT_ID
@@ -86,6 +86,7 @@ run_plp_analysis <-function(basicDir, analysisDescriptionFile, cohortDefinitionP
   sql <- readSql(cohortDefinitionPath)
   sql <- renderSql(sql,
                    cdm_database_schema = cdmDatabaseSchema,
+                   vocabulary_database_schema = cdmDatabaseSchema,
                    target_database_schema = cohortsDatabaseSchema,
                    target_cohort_table = cohortTable,
                    target_cohort_id = targetCohortId,
@@ -97,6 +98,7 @@ run_plp_analysis <-function(basicDir, analysisDescriptionFile, cohortDefinitionP
   sql <- readSql(outcomeDefinitionPath)
   sql <- renderSql(sql,
                    cdm_database_schema = cdmDatabaseSchema,
+                   vocabulary_database_schema = cdmDatabaseSchema,
                    target_database_schema = cohortsDatabaseSchema,
                    target_cohort_table = outcomeTable,
                    target_cohort_id = outcomeCohortId,
