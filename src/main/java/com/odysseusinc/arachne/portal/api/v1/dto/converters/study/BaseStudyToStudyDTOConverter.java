@@ -62,7 +62,6 @@ public abstract class BaseStudyToStudyDTOConverter<S extends Study, DTO extends 
             }
             studyDTO.getParticipants().add(participantDTO);
         }
-
         studyDTO.setStatus(conversionService.convert(source.getStatus(), StudyStatusDTO.class));
         studyDTO.setType(conversionService.convert(source.getType(), StudyTypeDTO.class));
         studyDTO.setEndDate(source.getEndDate());
