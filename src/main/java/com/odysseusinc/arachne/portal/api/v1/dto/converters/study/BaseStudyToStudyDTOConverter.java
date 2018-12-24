@@ -23,7 +23,6 @@
 package com.odysseusinc.arachne.portal.api.v1.dto.converters.study;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.ParticipantDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.PermissionsDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.StudyDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.dictionary.StudyStatusDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.dictionary.StudyTypeDTO;
@@ -33,6 +32,11 @@ import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
 import com.odysseusinc.arachne.portal.util.ArachneConverterUtils;
+import edu.emory.mathcs.backport.java.util.Collections;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class BaseStudyToStudyDTOConverter<S extends Study, DTO extends StudyDTO> extends BaseStudyToCommonStudyDTOConverter<S, DTO> {
@@ -48,13 +52,18 @@ public abstract class BaseStudyToStudyDTOConverter<S extends Study, DTO extends 
 
         final DTO studyDTO = super.convert(source);
         final Tenant studyTenant = source.getTenant();
-        for (final UserStudyExtended studyUserLink : source.getParticipants()) {
+        List<UserStudyExtended> sourceParticipants = new ArrayList<>(source.getParticipants());
+        Comparator<UserStudyExtended> comparator = Comparator.comparing(p -> p.getStatus().ordinal());
+        Collections.sort(sourceParticipants, comparator.thenComparing((p1, p2) -> StringUtils.compare(p1.getUser().getFullName(), p2.getUser().getFullName())));
+
+        for (final UserStudyExtended studyUserLink : sourceParticipants) {
             final ParticipantDTO participantDTO = conversionService.convert(studyUserLink, ParticipantDTO.class);
             if (!studyUserLink.getUser().getTenants().contains(studyTenant)) {
                 participantDTO.setCanBeRecreated(Boolean.FALSE);
             }
             studyDTO.getParticipants().add(participantDTO);
         }
+
         studyDTO.setStatus(conversionService.convert(source.getStatus(), StudyStatusDTO.class));
         studyDTO.setType(conversionService.convert(source.getType(), StudyTypeDTO.class));
         studyDTO.setEndDate(source.getEndDate());

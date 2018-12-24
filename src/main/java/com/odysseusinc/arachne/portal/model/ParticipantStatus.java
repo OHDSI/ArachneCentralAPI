@@ -23,10 +23,11 @@
 package com.odysseusinc.arachne.portal.model;
 
 public enum ParticipantStatus {
-    DELETED("DELETED"),
+    //These statuses are ordered but not listed randomly
     APPROVED("APPROVED"),
+    PENDING("PENDING"),
     DECLINED("DECLINED"),
-    PENDING("PENDING");
+    DELETED("DELETED");
 
     private String title;
 
