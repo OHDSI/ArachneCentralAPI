@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -39,6 +39,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 
+import java.util.Locale;
+
 @SuppressWarnings("unused")
 @Configuration
 public class WebConfig extends WebMvcConfigurerAdapter {
@@ -58,7 +60,9 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     @Bean
     public LocaleResolver localeResolver() {
 
-        return new CookieLocaleResolver();
+        CookieLocaleResolver lr = new CookieLocaleResolver();
+        lr.setDefaultLocale(new Locale("en", "US"));
+        return lr;
     }
 
     @Bean

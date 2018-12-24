@@ -38,6 +38,14 @@ public interface IUser extends Breadcrumb, SolrEntity {
 
     void setLastname(String lastname);
 
+    String getOrganization();
+
+    void setOrganization(String organization);
+
+    String getDepartment();
+
+    void setDepartment(String department);
+
     ProfessionalType getProfessionalType();
 
     void setProfessionalType(ProfessionalType professionalType);

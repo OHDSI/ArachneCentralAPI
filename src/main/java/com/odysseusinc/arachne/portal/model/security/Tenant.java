@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -45,6 +45,7 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
+import org.hibernate.annotations.WhereJoinTable;
 
 @Entity
 @Table(name = "tenants")
@@ -77,6 +78,7 @@ public class Tenant implements SolrValue {
     @JoinTable(name = "tenants_data_sources",
             joinColumns = @JoinColumn(name = "tenant_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "data_source_id", referencedColumnName = "id"))
+    @WhereJoinTable(clause = "deleted_at is null")
     private Set<RawDataSource> dataSources;
 
     @LazyCollection(LazyCollectionOption.EXTRA)

@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -34,7 +34,7 @@ import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
-import com.odysseusinc.arachne.portal.service.impl.breadcrumb.BreadcrumbType;
+import com.odysseusinc.arachne.portal.service.impl.breadcrumb.EntityType;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashSet;
@@ -55,6 +55,7 @@ import javax.persistence.SequenceGenerator;
 import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
+import org.hibernate.annotations.WhereJoinTable;
 import org.hibernate.validator.constraints.NotBlank;
 
 @MappedSuperclass
@@ -105,6 +106,7 @@ public abstract class BaseDataSource implements IDataSource, Serializable, HasAr
     @JoinTable(name = "tenants_data_sources",
             joinColumns = @JoinColumn(name = "data_source_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "tenant_id", referencedColumnName = "id"))
+    @WhereJoinTable(clause = "deleted_at is null")
     @SolrFieldAnno(filter = true, postfix = false, sort = false, extractor = DataSourceSolrExtractors.TenantsExtractor.class)
     protected Set<Tenant> tenants = new HashSet<>();
 
@@ -119,9 +121,9 @@ public abstract class BaseDataSource implements IDataSource, Serializable, HasAr
     }
 
     @Override
-    public BreadcrumbType getCrumbType() {
+    public EntityType getCrumbType() {
 
-        return BreadcrumbType.DATA_SOURCE;
+        return EntityType.DATA_SOURCE;
     }
 
     @Override

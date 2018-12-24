@@ -13,9 +13,6 @@
     There is new Data Source registered with name <a th:href="${dataSourceUrl}"><span class="btn-link" th:text="${dataSourceName}"></span></a>.
     To review its details please follow this <a th:href="${dataSourceUrl}"><span class="btn-link">link</span></a>.
 </div>
-<p>
-    Regards,<br/>
-    Odysseus Data Services, Inc.
-</p>
+<p th:utext="${signature}"></p>
 </body>
 </html>

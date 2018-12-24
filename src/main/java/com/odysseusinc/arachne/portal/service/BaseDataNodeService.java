@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,6 +24,7 @@ package com.odysseusinc.arachne.portal.service;
 
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
+import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
 import com.odysseusinc.arachne.portal.model.IUser;
@@ -34,13 +35,15 @@ import java.util.Set;
 public interface BaseDataNodeService<DN extends DataNode> {
     DN create(DN dataNode);
 
-    DN update(DN dataNode) throws NotExistException, AlreadyExistException;
+    DN update(DN dataNode) throws NotExistException, AlreadyExistException, ValidationException;
 
     List<DN> findAllIsNotVirtual();
 
     List<DN> suggestDataNode(Long userId);
 
     DN getById(Long id) throws NotExistException;
+
+    DN getByIdUnsecured(Long id) throws NotExistException;
 
     void linkUserToDataNode(DN dataNode, IUser user)
             throws NotExistException, AlreadyExistException;

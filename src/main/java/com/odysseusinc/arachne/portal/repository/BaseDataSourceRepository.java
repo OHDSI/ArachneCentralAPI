@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.query.Param;
@@ -79,4 +80,18 @@ public interface BaseDataSourceRepository<T extends IDataSource> extends EntityG
             countQuery = "SELECT COUNT(*) FROM (" + USERS_DATASOURCES_QUERY + ") as innerSelect"
     )
     Page<T> getUserDataSources(@Param("suggestRequest") String suggestRequest, @Param("userId") Long userId, Pageable pageable);
+
+    @Modifying
+    @Transactional
+    @Query(nativeQuery = true, value = "UPDATE tenants_data_sources "
+            + " SET deleted_at = CURRENT_TIMESTAMP "
+            + " WHERE data_source_id = :dataSourceId")
+    void makeLinksWithTenantsDeleted(@Param("dataSourceId") Long dataSourceId);
+
+    @Modifying
+    @Transactional
+    @Query(nativeQuery = true, value = "UPDATE tenants_data_sources "
+            + " SET deleted_at = NULL "
+            + " WHERE data_source_id = :dataSourceId")
+    void makeLinksWithTenantsNotDeleted(@Param("dataSourceId") Long dataSourceId);
 }

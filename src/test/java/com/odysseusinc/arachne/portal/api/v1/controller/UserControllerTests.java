@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -43,7 +43,10 @@ import com.github.springtestdbunit.annotation.DatabaseSetup;
 import com.github.springtestdbunit.annotation.DatabaseTearDown;
 import com.github.springtestdbunit.annotation.ExpectedDatabase;
 import com.github.springtestdbunit.assertion.DatabaseAssertionMode;
+import com.odysseusinc.arachne.commons.api.v1.dto.CommonAddressDTO;
+import com.odysseusinc.arachne.commons.api.v1.dto.CommonCountryDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonProfessionalTypeDTO;
+import com.odysseusinc.arachne.commons.api.v1.dto.CommonStateProvinceDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserRegistrationDTO;
 import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserLinkDTO;
@@ -95,6 +98,13 @@ public class UserControllerTests extends BaseControllerTest {
 
     private static final String PUBLISHER = "userPublicationPublisher";
     public static final String USER_2_UUID = UserIdUtils.idToUuid(USER_ID);
+    private static final String ORGANIZATION = "Odysseus Inc";
+    private static final String ADDRESS = "245 First Street, Riverview II";
+    private static final String ZIP_CODE = "78701";
+    private static final String CITY = "Austin";
+    private static final String PROVINCE = "US-TX";
+    private static final String COUNTRY = "US";
+    private static final String MOBILE = "+1 541 754-3010";
 
     private final JSONObject ADMIN_JSON_OBJECT = new JSONObject()
             .put("firstname", ADMIN_FIRST_NAME)
@@ -180,7 +190,35 @@ public class UserControllerTests extends BaseControllerTest {
         inputDTO.setMiddlename(MIDDLE_NAME);
         inputDTO.setPassword(password);
         inputDTO.setProfessionalTypeId(PROFESSIONAL_TYPE_ID);
+        inputDTO.setOrganization(ORGANIZATION);
+        inputDTO.setAddress(getCommonAddressDTO());
         return inputDTO;
+    }
+
+    private CommonAddressDTO getCommonAddressDTO() {
+
+        CommonAddressDTO addressDTO = new CommonAddressDTO();
+        addressDTO.setAddress1(ADDRESS);
+        addressDTO.setCity(CITY);
+        addressDTO.setZipCode(ZIP_CODE);
+        addressDTO.setCountry(getCommonCountryDTO());
+        addressDTO.setStateProvince(getCommonStateProvinceDTO());
+        addressDTO.setMobile(MOBILE);
+        return addressDTO;
+    }
+
+    private CommonStateProvinceDTO getCommonStateProvinceDTO() {
+
+        CommonStateProvinceDTO stateProvinceDTO = new CommonStateProvinceDTO();
+        stateProvinceDTO.setIsoCode(PROVINCE);
+        return stateProvinceDTO;
+    }
+
+    private CommonCountryDTO getCommonCountryDTO() {
+
+        CommonCountryDTO countryDTO = new CommonCountryDTO();
+        countryDTO.setIsoCode(COUNTRY);
+        return countryDTO;
     }
 
     private static final String ACTIVATION_CODE = "activationCode";

@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,13 +31,14 @@ public class DataNodeDTO {
     private String name;
     private String description;
     private Boolean virtual;
-    private String atlasVerion;
+    private String atlasVersion;
     private CommonHealthStatus healthStatus;
     private String healthStatusTitle;
     private List<ShortUserDTO> dataOwners;
     private Boolean currentUserDataOwner;
     private Boolean published;
     private OrganizationDTO organization;
+    private PermissionsDTO permissions;
 
     public DataNodeDTO() {
 
@@ -83,14 +84,14 @@ public class DataNodeDTO {
         this.virtual = virtual;
     }
 
-    public String getAtlasVerion() {
+    public String getAtlasVersion() {
 
-        return atlasVerion;
+        return atlasVersion;
     }
 
-    public void setAtlasVerion(String atlasVerion) {
+    public void setAtlasVersion(String atlasVersion) {
 
-        this.atlasVerion = atlasVerion;
+        this.atlasVersion = atlasVersion;
     }
 
     public CommonHealthStatus getHealthStatus() {
@@ -149,5 +150,15 @@ public class DataNodeDTO {
     public void setOrganization(OrganizationDTO organization) {
 
         this.organization = organization;
+    }
+
+    public PermissionsDTO getPermissions() {
+
+        return permissions;
+    }
+
+    public void setPermissions(PermissionsDTO permissions) {
+
+        this.permissions = permissions;
     }
 }

@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,6 +25,7 @@ package com.odysseusinc.arachne.portal.api.v1.dto;
 public class AchillesReportDTO {
     private String label;
     private String name;
+    private Integer sortOrder;
 
     public String getLabel() {
 
@@ -44,5 +45,15 @@ public class AchillesReportDTO {
     public void setName(String name) {
 
         this.name = name;
+    }
+
+    public Integer getSortOrder() {
+
+        return sortOrder;
+    }
+
+    public void setSortOrder(Integer sortOrder) {
+
+        this.sortOrder = sortOrder;
     }
 }

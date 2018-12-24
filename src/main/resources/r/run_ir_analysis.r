@@ -13,10 +13,22 @@ run_ir_analysis <- function(basicDir, analysisId, analysisDescriptionFile, cohor
     library("rjson")
     analysisDescription <- fromJSON(paste(readLines(analysisDescriptionFile), collapse = ""))
 
-    connectionDetails <- DatabaseConnector::createConnectionDetails(dbms = dbms,
-    connectionString = connectionString,
-    user = user,
-    password = password)
+    if ("impala" == dbms) {
+        driverPath <- Sys.getenv("IMPALA_DRIVER_PATH")
+        if (missing(driverPath) || is.null(driverPath) || driverPath == ''){
+            driverPath <- "/impala"
+        }
+        connectionDetails <- DatabaseConnector::createConnectionDetails(dbms = dbms,
+        connectionString = connectionString,
+        user = user,
+        password = password,
+        pathToDriver = driverPath)
+    } else {
+      connectionDetails <- DatabaseConnector::createConnectionDetails(dbms = dbms,
+        connectionString = connectionString,
+        user = user,
+        password = password)
+    }
     connection <- DatabaseConnector::connect(connectionDetails)
 
     query <- SqlRender::readSql("delete_strata.sql")
@@ -31,6 +43,7 @@ run_ir_analysis <- function(basicDir, analysisId, analysisDescriptionFile, cohor
         sql <- readSql(cf)
         sql <- renderSql(sql,
         cdm_database_schema = cdmDatabaseSchema,
+        vocabulary_database_schema = cdmDatabaseSchema,
         target_database_schema = cohortsDatabaseSchema,
         target_cohort_table = cohortTable,
         output = "output")$sql

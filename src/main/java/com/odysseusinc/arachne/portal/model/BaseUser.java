@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2018 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,7 +29,7 @@ import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
 import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
-import com.odysseusinc.arachne.portal.service.impl.breadcrumb.BreadcrumbType;
+import com.odysseusinc.arachne.portal.service.impl.breadcrumb.EntityType;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashSet;
@@ -83,6 +83,12 @@ public class BaseUser implements IUser, Serializable {
     @SolrFieldAnno(query = true)
     @Column(nullable = false, length = 100)
     protected String lastname;
+
+    @Column(nullable = false, length = 100)
+    protected String organization;
+
+    @Column
+    protected String department;
 
     @Column
     protected Boolean enabled;
@@ -191,9 +197,9 @@ public class BaseUser implements IUser, Serializable {
     }
 
     @Override
-    public BreadcrumbType getCrumbType() {
+    public EntityType getCrumbType() {
 
-        return BreadcrumbType.USER;
+        return EntityType.USER;
     }
 
     @Override
@@ -291,6 +297,30 @@ public class BaseUser implements IUser, Serializable {
     public void setLastname(String lastname) {
 
         this.lastname = lastname;
+    }
+
+    @Override
+    public String getOrganization() {
+
+        return organization;
+    }
+
+    @Override
+    public void setOrganization(String organization) {
+
+        this.organization = organization;
+    }
+
+    @Override
+    public String getDepartment() {
+
+        return department;
+    }
+
+    @Override
+    public void setDepartment(String department) {
+
+        this.department = department;
     }
 
     public ProfessionalType getProfessionalType() {

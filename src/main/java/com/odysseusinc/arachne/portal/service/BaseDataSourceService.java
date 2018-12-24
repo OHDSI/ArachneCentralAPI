@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -76,12 +76,16 @@ public interface BaseDataSourceService<DS extends IDataSource> {
 
     List<DS> findByIdsAndNotDeleted(List<Long> dataSourceIds);
 
+    List<DS> getByDataNodeId(Long id);
+
     List<DS> getNotDeletedByDataNodeId(Long dataNodeId);
 
     Page<DS> suggestDataSource(String query, Long studyId, Long userId,
                                        PageRequest pageRequest);
 
     void indexAllBySolr() throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException;
+
+    void indexBySolr(List<DS> dataSources);
 
     void delete(Long id) throws IOException, SolrServerException;
 
@@ -93,6 +97,8 @@ public interface BaseDataSourceService<DS extends IDataSource> {
      * Makes links between Studies from the given tenant and DataSource deleted
      */
     void makeLinksWithStudiesDeleted(Long tenantId, Long dataSourceId);
+
+    void makeLinksWithTenantsNotDeleted(Long dataSourceId);
 
     PageRequest getPageRequest(PageDTO pageDTO, String sortBy, String order) throws PermissionDeniedException;
 

@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,14 +27,14 @@ import com.odysseusinc.arachne.portal.service.SolrService;
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.Map;
 
 @SuppressWarnings("unused")
 public abstract class SearchDTOToSolrQuery {
@@ -91,7 +91,7 @@ public abstract class SearchDTOToSolrQuery {
 
         String queryStr = "query:*";
         if (source.getQuery() != null) {
-            queryStr = "query:*" + source.getQuery() + "*";
+            queryStr += ClientUtils.escapeQueryChars(source.getQuery()) + "*";
         }
         result.setQuery(queryStr);
     }
