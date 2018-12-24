@@ -32,7 +32,6 @@ import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
 import com.odysseusinc.arachne.portal.util.ArachneConverterUtils;
-import edu.emory.mathcs.backport.java.util.Collections;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -54,7 +53,7 @@ public abstract class BaseStudyToStudyDTOConverter<S extends Study, DTO extends 
         final Tenant studyTenant = source.getTenant();
         List<UserStudyExtended> sourceParticipants = new ArrayList<>(source.getParticipants());
         Comparator<UserStudyExtended> comparator = Comparator.comparing(p -> p.getStatus().ordinal());
-        Collections.sort(sourceParticipants, comparator.thenComparing((p1, p2) -> StringUtils.compare(p1.getUser().getFullName(), p2.getUser().getFullName())));
+        sourceParticipants.sort(comparator.thenComparing((p1, p2) -> StringUtils.compare(p1.getUser().getFullName(), p2.getUser().getFullName())));
 
         for (final UserStudyExtended studyUserLink : sourceParticipants) {
             final ParticipantDTO participantDTO = conversionService.convert(studyUserLink, ParticipantDTO.class);
