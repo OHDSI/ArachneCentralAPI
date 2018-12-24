@@ -28,6 +28,7 @@ import com.odysseusinc.arachne.commons.api.v1.dto.CommonAuthMethodDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAuthenticationRequest;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAuthenticationResponse;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
+import com.odysseusinc.arachne.commons.utils.ErrorMessages;
 import com.odysseusinc.arachne.portal.api.v1.dto.RemindPasswordDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ResetPasswordDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserInfoDTO;
@@ -168,7 +169,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
 
         IUser user = userService.getByEmailInAnyTenant(email);
         if (user == null) {
-            throw new BadCredentialsException("Bad credentials");
+            throw new BadCredentialsException(ErrorMessages.BAD_CREDENTIALS.getMessage());
         }
         if (user.getTenants() == null || user.getTenants().isEmpty()) {
             throw new NoDefaultTenantException("Request admin to add you into a tenant.");
