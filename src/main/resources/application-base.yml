@@ -12,12 +12,16 @@ server:
     enabled: true
     mime-types: application/json,application/xml,text/html,text/xml,text/plain,application/javascript,text/css
 logging:
-  level: info
+  level:
+    root: INFO
+    org.springframework.web.servlet.PageNotFound: ERROR
 spring:
   jpa:
     database: POSTGRESQL
     properties:
       hibernate:
+        jdbc:
+          batch_size: 20
         dialect: org.hibernate.dialect.PostgreSQLDialect
         ddl-auto: none
         connection:
@@ -94,6 +98,8 @@ arachne:
   solrBatchSize: 90
   mail:
     notifier: odysseusinc.notifier@gmail.com
+    signature: Regards,<br/> Odysseus Data Services, Inc.
+    app-title: Arachne
 swagger:
  enable: true
 

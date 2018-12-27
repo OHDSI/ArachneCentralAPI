@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,7 +28,7 @@ import com.odysseusinc.arachne.portal.api.v1.dto.InvitationType;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
-import com.odysseusinc.arachne.portal.service.impl.breadcrumb.BreadcrumbType;
+import com.odysseusinc.arachne.portal.service.impl.breadcrumb.EntityType;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.LinkedList;
@@ -130,9 +130,9 @@ public class Submission implements HasArachnePermissions, Breadcrumb, Invitation
     @Transient
     private Set<ArachnePermission> permissions;
 
-    public BreadcrumbType getCrumbType() {
+    public EntityType getCrumbType() {
 
-        return BreadcrumbType.SUBMISSION;
+        return EntityType.SUBMISSION;
     }
 
     public Breadcrumb getCrumbParent() {

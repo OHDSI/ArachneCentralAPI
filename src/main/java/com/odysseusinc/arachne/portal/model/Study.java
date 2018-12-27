@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -33,13 +33,15 @@ import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
-import com.odysseusinc.arachne.portal.service.impl.breadcrumb.BreadcrumbType;
+import com.odysseusinc.arachne.portal.service.impl.breadcrumb.EntityType;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -59,7 +61,7 @@ import org.hibernate.annotations.DiscriminatorFormula;
 @SolrFieldAnno(name = BaseSolrService.TITLE, postfix = false, extractor = StudySolrExtractors.TitleExtractor.class)
 @SolrFieldAnno(name = BaseSolrService.PARTICIPANTS, postfix = false, extractor = StudySolrExtractors.ParticipantsExtractor.class, filter = true)
 public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyStatus>, SolrEntity {
-    
+
     public Study() {
 
     }
@@ -80,6 +82,7 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
         this.startDate = study.startDate;
         this.endDate = study.endDate;
         this.privacy = study.getPrivacy();
+        this.kind = study.kind;
     }
 
     @Id
@@ -103,6 +106,10 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
 
     @Column
     private Date updated;
+
+    @Column
+    @Enumerated(EnumType.STRING)
+    private StudyKind kind = StudyKind.REGULAR;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private StudyStatus status;
@@ -150,9 +157,9 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
         return SolrCollection.STUDIES;
     }
 
-    public BreadcrumbType getCrumbType() {
+    public EntityType getCrumbType() {
 
-        return BreadcrumbType.STUDY;
+        return EntityType.STUDY;
     }
 
     public String getCrumbTitle() {
@@ -309,11 +316,13 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
 
     @Override
     public StudyStatus getState() {
+
         return getStatus();
     }
 
     @Override
     public void setState(StudyStatus state) {
+
         setStatus(state);
     }
 
@@ -364,5 +373,15 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
     public int hashCode() {
 
         return java.util.Objects.hashCode(this.id);
+    }
+
+    public StudyKind getKind() {
+
+        return kind;
+    }
+
+    public void setKind(StudyKind kind) {
+
+        this.kind = kind;
     }
 }

@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,12 +24,12 @@ package com.odysseusinc.arachne.portal.service;
 
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
-import com.odysseusinc.arachne.portal.service.impl.breadcrumb.BreadcrumbType;
+import com.odysseusinc.arachne.portal.service.impl.breadcrumb.EntityType;
 import java.util.List;
 
 public interface BreadcrumbService {
 
-    List<Breadcrumb> getBreadcrumbs(BreadcrumbType type, Long id) throws NotExistException;
+    List<Breadcrumb> getBreadcrumbs(EntityType type, Long id) throws NotExistException;
 
     List<Breadcrumb> getBreadcrumbs(Breadcrumb breadcrumb) throws NotExistException;
 }

@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,7 +26,7 @@ import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.api.v1.dto.BreadcrumbDTO;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.service.BreadcrumbService;
-import com.odysseusinc.arachne.portal.service.impl.breadcrumb.BreadcrumbType;
+import com.odysseusinc.arachne.portal.service.impl.breadcrumb.EntityType;
 import io.swagger.annotations.ApiOperation;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -53,7 +53,7 @@ public class UtilController extends BaseController {
     @ApiOperation("Get breadcrumbs for entity.")
     @RequestMapping(value = "/api/v1/utils/breadcrumbs/{entity}/{id}", method = RequestMethod.GET)
     public JsonResult<List<BreadcrumbDTO>> getBreadcrumbs(
-            @PathVariable("entity") BreadcrumbType entity,
+            @PathVariable("entity") EntityType entity,
             @PathVariable("id") Long id
     ) throws NotExistException {
 

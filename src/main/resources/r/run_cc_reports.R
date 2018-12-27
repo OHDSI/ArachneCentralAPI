@@ -36,10 +36,22 @@ run_cohort_characterization <- function(
 
   start.time <- Sys.time()
 
-  connectionDetails <- createConnectionDetails(dbms=dbms,
+  if ("impala" == dbms) {
+    driverPath <- Sys.getenv("IMPALA_DRIVER_PATH")
+    if (missing(driverPath) || is.null(driverPath) || driverPath == ''){
+      driverPath <- "/impala"
+    }
+    connectionDetails <- createConnectionDetails(dbms=dbms,
+    connectionString=connectionString,
+    user=user,
+    password=password,
+    pathToDriver=driverPath)
+  } else {
+    connectionDetails <- createConnectionDetails(dbms=dbms,
                                                connectionString=connectionString,
                                                user=user,
                                                password=password)
+  }
   connection <- connect(connectionDetails)
 
   # Setup variables

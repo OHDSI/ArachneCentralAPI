@@ -1,6 +1,5 @@
 /*
- *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,20 +14,36 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: June 13, 2017
- *
+ * Authors: Anton Gackovka
+ * Created: May 24, 2018
  */
 
-package com.odysseusinc.arachne.portal.service.impl.breadcrumb;
+package com.odysseusinc.arachne.portal.api.v1.dto;
 
-public enum BreadcrumbType {
-    ANALYSIS,
-    STUDY,
-    SUBMISSION_GROUP,
-    SUBMISSION,
-    INSIGHT,
-    PAPER,
-    USER,
-    DATA_SOURCE
+public enum BatchOperationType {
+    
+    DELETE("delete"),
+    CONFIRM("confirm"),
+    ENABLE("enable"),
+    RESEND("resend");
+
+
+    private String operationType;
+    
+    
+
+    BatchOperationType(final String operationType) {
+
+        this.operationType = operationType;
+    }
+
+    public String getOperationType() {
+
+        return operationType;
+    }
+
+    public void setOperationType(final String operationType) {
+
+        this.operationType = operationType;
+    }
 }

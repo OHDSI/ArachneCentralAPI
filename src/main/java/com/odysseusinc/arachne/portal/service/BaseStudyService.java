@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -36,11 +36,14 @@ import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
 import com.odysseusinc.arachne.portal.model.StudyFile;
+import com.odysseusinc.arachne.portal.model.StudyKind;
 import com.odysseusinc.arachne.portal.model.SuggestSearchRegion;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserStudy;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
+import com.odysseusinc.arachne.portal.component.SelfReferencingBean;
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobStudyFileResponseEvent;
+import com.odysseusinc.arachne.portal.service.impl.breadcrumb.EntityType;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -54,9 +57,13 @@ public interface BaseStudyService<
         T extends Study,
         DS extends IDataSource,
         SS extends StudySearch,
-        SU extends AbstractUserStudyListItem> {
+        SU extends AbstractUserStudyListItem> extends SelfReferencingBean {
 
     T create(IUser owner, T study) throws NotUniqueException, NotExistException;
+
+    T createWorkspace(Long ownerId, T workspace);
+
+    T createWorkspace(Long ownerId);
 
     void delete(Long id) throws NotExistException;
 
@@ -70,6 +77,8 @@ public interface BaseStudyService<
     Page<AbstractUserStudyListItem> findStudies(SS studySearch);
 
     SU getStudy(final IUser user, final Long studyId);
+
+    StudyKind getEntityStudyKind(EntityType type, Long id);
 
     List<IUser> findLeads(T study);
 
@@ -149,4 +158,8 @@ public interface BaseStudyService<
     List<T> findByIdsInAnyTenant(Set<Long> studyIds);
     
     T findByIdInAnyTenant(Long studyId);
+
+    T findWorkspaceForUser(IUser user, Long userId) throws NotExistException;
+
+    T findOrCreateWorkspaceForUser(IUser user, Long userId);
 }

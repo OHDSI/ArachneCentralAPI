@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -38,7 +38,7 @@ import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
-import com.odysseusinc.arachne.portal.model.DataSourceFields;
+import com.odysseusinc.arachne.portal.model.DataSourceSortMapper;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
@@ -120,6 +120,7 @@ public abstract class BaseDataSourceController<
             dataSource.setId(dataSourceId);
             dataSource.setDataNode(exist.getDataNode());
             dataSource.setPublished(true);
+            dataSourceService.makeLinksWithTenantsNotDeleted(dataSourceId);
             dataSource = dataSourceService.updateInAnyTenant(dataSource);
 
             result = new JsonResult<>(NO_ERROR);
@@ -179,7 +180,7 @@ public abstract class BaseDataSourceController<
     @RequestMapping(value = "/api/v1/data-sources/my", method = RequestMethod.GET)
     public Page<DS_DTO> getUserDataSources(Principal principal,
                                            @RequestParam(name = "query", required = false, defaultValue = "") String query,
-                                           @RequestParam(name = "sort", required = false, defaultValue = DataSourceFields.UI_NAME) String sortBy,
+                                           @RequestParam(name = "sort", required = false, defaultValue = DataSourceSortMapper.NAME) String sortBy,
                                            @RequestParam(name = "order", required = false, defaultValue = "asc") String order,
                                            @ModelAttribute PageDTO pageDTO
     ) throws PermissionDeniedException {

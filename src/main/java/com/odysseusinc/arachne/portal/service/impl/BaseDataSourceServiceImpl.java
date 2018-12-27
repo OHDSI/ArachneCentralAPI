@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,7 +31,7 @@ import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.model.DataSource;
-import com.odysseusinc.arachne.portal.model.DataSourceFields;
+import com.odysseusinc.arachne.portal.model.DataSourceSortMapper;
 import com.odysseusinc.arachne.portal.model.DataSourceStatus;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
@@ -71,6 +71,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -263,7 +264,7 @@ public abstract class BaseDataSourceServiceImpl<
 
         if (dataSource.getPublished() != null) {
             exist.setPublished(dataSource.getPublished());
-            if (dataSource.getPublished()){
+            if (dataSource.getPublished()) {
                 exist.setDeleted(null);
                 exist.setHealthStatusDescription(null);
             }
@@ -378,7 +379,7 @@ public abstract class BaseDataSourceServiceImpl<
             List<Predicate> predictList = new ArrayList<>();
             for (String one : split) {
                 predictList.add(cb.like(cb.lower(root.get("name")), "%" + one.toLowerCase() + "%"));
-                predictList.add(cb.like(cb.lower(root.get("dataNode").get("name")),"%" + one.toLowerCase() + "%"));
+                predictList.add(cb.like(cb.lower(root.get("dataNode").get("name")), "%" + one.toLowerCase() + "%"));
             }
             nameClause = cb.or(predictList.toArray(new Predicate[]{}));
         }
@@ -403,6 +404,7 @@ public abstract class BaseDataSourceServiceImpl<
     public void delete(Long id) {
 
         log.info("Deleting datasource with id={}", id);
+        makeLinksWithTenantsDeleted(id);
         rawDataSourceRepository.delete(id);
     }
 
@@ -437,6 +439,17 @@ public abstract class BaseDataSourceServiceImpl<
         studyDataSourceLinkRepository.setLinksBetweenStudiesAndDsDeleted(tenantId, dataSourceId);
     }
 
+    protected void makeLinksWithTenantsDeleted(Long dataSourceId) {
+
+        dataSourceRepository.makeLinksWithTenantsDeleted(dataSourceId);
+    }
+
+    @Override
+    public void makeLinksWithTenantsNotDeleted(Long dataSourceId) {
+
+        dataSourceRepository.makeLinksWithTenantsNotDeleted(dataSourceId);
+    }
+
     public FieldList<SF> getSolrFields() {
 
         FieldList<SF> fieldList = new FieldList<>();
@@ -454,13 +467,13 @@ public abstract class BaseDataSourceServiceImpl<
     @Override
     public PageRequest getPageRequest(PageDTO pageDTO) throws PermissionDeniedException {
 
-        return getPageRequest(pageDTO, DataSourceFields.UI_NAME, "asc");
+        return getPageRequest(pageDTO, DataSourceSortMapper.NAME, "asc");
     }
 
     @Override
     public PageRequest getPageRequest(PageDTO pageDTO, String sortBy, String order) throws PermissionDeniedException {
 
-        List<String> dsSortBy = DataSourceFields.getFields().get(sortBy);
+        List<String> dsSortBy = DataSourceSortMapper.map(Arrays.asList(StringUtils.split(sortBy, ",")));
         Sort sort = new Sort(Sort.Direction.fromString(order), dsSortBy);
         return new PageRequest(pageDTO.getPage() - 1, pageDTO.getPageSize(), sort);
     }
@@ -475,6 +488,15 @@ public abstract class BaseDataSourceServiceImpl<
                 .map(this::gatherValues)
                 .collect(Collectors.toList());
 
+        solrService.putDocuments(SolrCollection.DATA_SOURCES.getName(), values);
+    }
+
+    @Override
+    public void indexBySolr(List<DS> dataSources) {
+
+        List<Map<SF, Object>> values = dataSources.stream()
+                .map(this::gatherValues)
+                .collect(Collectors.toList());
         solrService.putDocuments(SolrCollection.DATA_SOURCES.getName(), values);
     }
 
@@ -516,6 +538,12 @@ public abstract class BaseDataSourceServiceImpl<
     public List<DS> findByIdsAndNotDeleted(List<Long> dataSourceIds) {
 
         return rawDataSourceRepository.findByIdInAndDeletedIsNull(dataSourceIds);
+    }
+
+    @Override
+    public List<DS> getByDataNodeId(Long id) {
+
+        return rawDataSourceRepository.findByDataNodeId(id);
     }
 
     @Override

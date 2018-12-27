@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,22 +21,22 @@
 package com.odysseusinc.arachne.portal.model.solr;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.ArachneConsts;
-import com.odysseusinc.arachne.portal.service.impl.breadcrumb.BreadcrumbType;
+import com.odysseusinc.arachne.portal.service.impl.breadcrumb.EntityType;
 import java.util.stream.Stream;
 
 public enum SolrCollection {
-    DATA_SOURCES(ArachneConsts.Domains.DATA_SOURCES, "Data sources", BreadcrumbType.DATA_SOURCE),
-    USERS(       ArachneConsts.Domains.USERS,        "Users",        BreadcrumbType.USER),
-    ANALYSES(    ArachneConsts.Domains.ANALYISES,    "Analyses",     BreadcrumbType.ANALYSIS),
-    STUDIES(     ArachneConsts.Domains.STUDIES,      "Studies",      BreadcrumbType.STUDY),
-    PAPERS(      ArachneConsts.Domains.PAPERS,       "Papers",       BreadcrumbType.PAPER)
+    DATA_SOURCES(ArachneConsts.Domains.DATA_SOURCES, "Data sources", EntityType.DATA_SOURCE),
+    USERS(       ArachneConsts.Domains.USERS,        "Users",        EntityType.USER),
+    ANALYSES(    ArachneConsts.Domains.ANALYISES,    "Analyses",     EntityType.ANALYSIS),
+    STUDIES(     ArachneConsts.Domains.STUDIES,      "Studies",      EntityType.STUDY),
+    PAPERS(      ArachneConsts.Domains.PAPERS,       "Papers",       EntityType.PAPER)
     ;
 
     private final String name;
     private final String title;
-    private final BreadcrumbType breadcrumbType;
+    private final EntityType breadcrumbType;
 
-    SolrCollection(final String value, final String title, final BreadcrumbType breadcrumbType) {
+    SolrCollection(final String value, final String title, final EntityType breadcrumbType) {
 
         this.name = value;
         this.breadcrumbType = breadcrumbType;
@@ -48,7 +48,7 @@ public enum SolrCollection {
         return this.name;
     }
 
-    public BreadcrumbType getBreadcrumbType() {
+    public EntityType getBreadcrumbType() {
 
         return breadcrumbType;
     }

@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -101,6 +101,7 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -109,6 +110,8 @@ import java.util.stream.Stream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
@@ -191,7 +194,6 @@ public abstract class BaseUserController<
             U user = convertRegistrationDTO(dto);
             user.setUsername(user.getEmail());
             user.setOrigin(UserOrigin.NATIVE);
-            user.setEmailConfirmed(false);
             user.setEnabled(false);
             userService.createWithEmailVerification(user, dto.getRegistrantToken(), dto.getCallbackUrl());
         } catch (NotUniqueException ex) {
@@ -327,10 +329,7 @@ public abstract class BaseUserController<
         JsonResult<UserProfileDTO> result;
         IUser owner = userService.getByEmail(principal.getName());
         if (binding.hasErrors()) {
-            result = new JsonResult<>(VALIDATION_ERROR);
-            for (FieldError fieldError : binding.getFieldErrors()) {
-                result.getValidatorErrors().put(fieldError.getField(), fieldError.getDefaultMessage());
-            }
+            result = setValidationErrors(binding);
         } else {
             U user = convertUserProfileGeneralDTO(dto);
             user.setId(owner.getId());
@@ -682,13 +681,29 @@ public abstract class BaseUserController<
     @ApiOperation("Suggests state or province.")
     @RequestMapping(value = "/api/v1/user-management/state-province/search", method = GET)
     public JsonResult<List<StateProvinceDTO>> suggestStateProvince(
-            @RequestParam("countryId") Long countryId,
+            @RequestParam("countryId") String countryIdParam,
             @RequestParam("query") String query,
             @RequestParam("limit") Integer limit,
-            @RequestParam(value = "includeId", required = false) Long includeId
+            @RequestParam(value = "includeId", required = false) String includeIdParam
     ) {
 
         JsonResult<List<StateProvinceDTO>> result;
+        Long countryId = null;
+        if (NumberUtils.isCreatable(countryIdParam)) {
+        	countryId = NumberUtils.createLong(countryIdParam);
+				} else if (StringUtils.isNotBlank(countryIdParam)) {
+					Country country = Optional.ofNullable(userService.findCountryByCode(countryIdParam))
+									.orElseThrow(() -> new NotExistException(Country.class));
+					countryId = country.getId();
+				}
+				Long includeId = null;
+        if (NumberUtils.isCreatable(includeIdParam)) {
+        	includeId = NumberUtils.createLong(includeIdParam);
+				} else if (StringUtils.isNotBlank(includeIdParam)) {
+        	StateProvince stateProvince = Optional.ofNullable(userService.findStateProvinceByCode(includeIdParam))
+									.orElseThrow(() -> new NotExistException(StateProvince.class));
+        	includeId = stateProvince.getId();
+				}
         List<StateProvince> countries = userService.suggestStateProvince(query, countryId, limit, includeId);
         List<StateProvinceDTO> countriesDTOs = new LinkedList<>();
         countries

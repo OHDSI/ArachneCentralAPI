@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,14 +27,16 @@ import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeCreationResponse
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataNodeRegisterDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataSourceDTO;
-import com.odysseusinc.arachne.commons.api.v1.dto.OrganizationDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
+import com.odysseusinc.arachne.portal.api.v1.dto.DataNodeDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.DataSourceDTO;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.DataNode;
+import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Organization;
@@ -48,10 +50,14 @@ import com.odysseusinc.arachne.portal.util.ArachneConverterUtils;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
 import java.security.Principal;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
 import javax.validation.Valid;
+import javax.validation.Validator;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +65,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -79,6 +86,7 @@ public abstract class BaseDataNodeController<
     protected final StudyDataSourceService studyDataSourceService;
     protected final ArachneConverterUtils converterUtils;
     protected final OrganizationService organizationService;
+    private final Validator validator;
 
     @Autowired
     public BaseDataNodeController(BaseAnalysisService analysisService,
@@ -88,7 +96,8 @@ public abstract class BaseDataNodeController<
                                   BaseUserService userService,
                                   StudyDataSourceService studyDataSourceService,
                                   ArachneConverterUtils converterUtils,
-                                  OrganizationService organizationService) {
+                                  OrganizationService organizationService,
+                                  Validator validator) {
 
         this.analysisService = analysisService;
         this.baseDataNodeService = dataNodeService;
@@ -98,6 +107,7 @@ public abstract class BaseDataNodeController<
         this.studyDataSourceService = studyDataSourceService;
         this.converterUtils = converterUtils;
         this.organizationService = organizationService;
+        this.validator = validator;
     }
 
     @ApiOperation("Create new data node.")
@@ -119,9 +129,8 @@ public abstract class BaseDataNodeController<
     public CommonDataNodeCreationResponseDTO createManualDataNode(
             @RequestBody @Valid CommonDataNodeRegisterDTO commonDataNodeRegisterDTO,
             Principal principal
-    ) throws PermissionDeniedException, AlreadyExistException, ValidationException, BindException {
+    ) throws PermissionDeniedException, AlreadyExistException, ValidationException {
 
-        validateOrganization(commonDataNodeRegisterDTO.getOrganization());
         commonDataNodeRegisterDTO.setId(null);
         final DN dataNode = conversionService.convert(commonDataNodeRegisterDTO, getDataNodeDNClass());
         final Organization organization = conversionService.convert(commonDataNodeRegisterDTO.getOrganization(), Organization.class);
@@ -153,35 +162,32 @@ public abstract class BaseDataNodeController<
 
     @ApiOperation("Update data node info")
     @RequestMapping(value = "/api/v1/data-nodes/{dataNodeId}", method = RequestMethod.PUT)
-    public JsonResult<CommonDataNodeDTO> updateDataNode(
+    public DataNodeDTO updateDataNode(
             @PathVariable("dataNodeId") Long dataNodeId,
-            @RequestBody @Valid CommonDataNodeRegisterDTO commonDataNodeRegisterDTO,
+            @RequestBody CommonDataNodeRegisterDTO commonDataNodeRegisterDTO,
             Principal principal
-    ) throws PermissionDeniedException, NotExistException, AlreadyExistException, BindException, ValidationException {
+    ) throws NotExistException, AlreadyExistException, ValidationException {
 
-        validateOrganization(commonDataNodeRegisterDTO.getOrganization());
-
-        final IUser user = getUser(principal);
         final DN dataNode = conversionService.convert(commonDataNodeRegisterDTO, getDataNodeDNClass());
         dataNode.setId(dataNodeId);
-        final Organization organization = conversionService.convert(commonDataNodeRegisterDTO.getOrganization(), Organization.class);
-        dataNode.setOrganization(organizationService.getOrCreate(organization));
+        validateIfFirstUpdate(dataNode, commonDataNodeRegisterDTO);
         final DN updatedDataNode = baseDataNodeService.update(dataNode);
-        final CommonDataNodeDTO dataNodeRegisterResponseDTO
-                = conversionService.convert(updatedDataNode, CommonDataNodeDTO.class);
-        final JsonResult<CommonDataNodeDTO> result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
-        result.setResult(dataNodeRegisterResponseDTO);
-        return result;
+        return conversionService.convert(updatedDataNode, DataNodeDTO.class);
     }
 
-    private void validateOrganization(final OrganizationDTO organizationDTO) throws BindException {
+    private void validateIfFirstUpdate(DN dataNode, CommonDataNodeRegisterDTO commonDataNodeRegisterDTO) {
 
-        BindException bindException = new BindException("organization", "not null");
-        if (Objects.isNull(organizationDTO.getId()) && Objects.isNull(organizationDTO.getName()) ) {
-            bindException.addError(new FieldError("organization", "organization", "May not be empty"));
+        DN existedDataNode = baseDataNodeService.getByIdUnsecured(dataNode.getId());
+        if (existedDataNode == null) {
+            throw new NotExistException("update: dataNode with id = " + dataNode.getId() + " doesn't exist", DataNode.class);
         }
-        if (bindException.hasErrors()) {
-            throw bindException;
+        //for the first DN update (when DN's name is null) all fields (name, description, organization) are mandatory in commonDataNodeRegisterDTO.
+        // In further updates they may be empty and will be taken from existing record
+        if (existedDataNode.getName() == null) {
+            Set<ConstraintViolation<CommonDataNodeRegisterDTO>> constraintViolations = validator.validate(commonDataNodeRegisterDTO);
+            if (!constraintViolations.isEmpty()) {
+                throw new ConstraintViolationException(constraintViolations);
+            }
         }
     }
 
@@ -228,18 +234,31 @@ public abstract class BaseDataNodeController<
         }
     }
 
-    @RequestMapping(value = "/api/v1/data-nodes/{dataNodeId}", method = RequestMethod.GET)
-    public JsonResult<CommonDataNodeDTO> getDataNode(@PathVariable("dataNodeId") Long dataNodeId) {
+    @GetMapping(value = "/api/v1/data-nodes/{dataNodeId}/data-sources")
+    public List<DataSourceDTO> getDataSourcesForDataNode(@PathVariable("dataNodeId") Long dataNodeId) {
 
         DataNode dataNode = baseDataNodeService.getById(dataNodeId);
-        return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, getDataNode(dataNode));
+        List<DataSource> dataSources = dataNode.getDataSources().stream()
+                .filter(ds -> Boolean.TRUE.equals(ds.getPublished()))
+                .collect(Collectors.toList());
+        return converterUtils.convertList(dataSources, DataSourceDTO.class);
+    }
+
+    @RequestMapping(value = "/api/v1/data-nodes/{dataNodeId}", method = RequestMethod.GET)
+    public JsonResult<DataNodeDTO> getDataNode(@PathVariable("dataNodeId") Long dataNodeId) {
+
+        DataNode dataNode = baseDataNodeService.getById(dataNodeId);
+        if (dataNode == null) {
+            throw new NotExistException(DataNode.class);
+        }
+        return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, conversionService.convert(dataNode, DataNodeDTO.class));
     }
 
     @RequestMapping(value = "/api/v1/data-nodes", method = RequestMethod.GET)
-    public List<CommonDataNodeDTO> getDataNodes() {
+    public List<DataNodeDTO> getDataNodes() {
 
         List<DN> dataNodes = baseDataNodeService.findAllIsNotVirtual();
-        return converterUtils.convertList(dataNodes, CommonDataNodeDTO.class);
+        return converterUtils.convertList(dataNodes, DataNodeDTO.class);
     }
 
     @RequestMapping(value = "/api/v1/data-nodes/suggest", method = RequestMethod.GET)
@@ -254,15 +273,10 @@ public abstract class BaseDataNodeController<
     public JsonResult<CommonDataNodeDTO> getDataNode(@PathVariable("dataNodeUuid") String dataNodeUuid) {
 
         DataNode dataNode = baseDataNodeService.getBySid(dataNodeUuid);
-        return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, getDataNode(dataNode));
-    }
-
-    protected CommonDataNodeDTO getDataNode(DataNode dataNode) {
-
         if (dataNode == null) {
             throw new NotExistException(DataNode.class);
         }
-        return conversionService.convert(dataNode, CommonDataNodeDTO.class);
+        return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, conversionService.convert(dataNode, CommonDataNodeDTO.class));
     }
 
     protected abstract DS convertCommonDataSourceDtoToDataSource(C_DS_DTO commonDataSourceDTO);

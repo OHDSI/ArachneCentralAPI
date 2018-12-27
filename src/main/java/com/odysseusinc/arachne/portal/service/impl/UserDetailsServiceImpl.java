@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.service.impl;
 
+import com.odysseusinc.arachne.commons.utils.ErrorMessages;
 import com.odysseusinc.arachne.portal.exception.UserNotActivatedException;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.factory.ArachneUserFactory;
@@ -53,7 +54,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             if (!user.getEmailConfirmed()) {
                 throw new UserNotActivatedException(String.format("User with email='%s' is not activated", email));
             }
-            throw new BadCredentialsException("Bad credentials"); // temp solution - change in ARACHNE-2490
+            throw new BadCredentialsException(ErrorMessages.BAD_CREDENTIALS.getMessage()); // temp solution - change in ARACHNE-2490
         }
         return ArachneUserFactory.create(user);
     }

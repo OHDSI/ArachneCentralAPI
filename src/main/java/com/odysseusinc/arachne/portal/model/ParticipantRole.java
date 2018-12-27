@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,39 +22,7 @@
 
 package com.odysseusinc.arachne.portal.model;
 
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.ACCESS_ACHILLES_REPORT_PERMISSION;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.ACCESS_DATASOURCE;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.ACCESS_ORGANIZATION;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.ACCESS_PAPER;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.ACCESS_STUDY;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.APPROVE_SUBMISSION;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.CREATE_ANALYSIS;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.CREATE_DATASOURCE;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.CREATE_ORGANIZATION;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.CREATE_SUBMISSION;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.DELETE_ANALYSIS;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.DELETE_ANALYSIS_FILES;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.DELETE_DATASOURCE;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.DELETE_ORGANIZATION;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.EDIT_ACHILLES_REPORT_PERMISSION;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.EDIT_ANALYSIS;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.EDIT_DATANODE;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.EDIT_DATASOURCE;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.EDIT_INSIGHT;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.EDIT_PAPER;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.EDIT_STUDY;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.UPDATE_SUBMISSION;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.IMPORT_FROM_DATANODE;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.INVITE_CONTRIBUTOR;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.INVITE_DATANODE;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.LIMITED_EDIT_PAPER;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.LOCK_ANALYSIS_FILE;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.SENDING_UNLOCK_ANALYSIS_REQUEST;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.UNLINK_DATASOURCE;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.UPDATE_ORGANIZATION;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.UPLOAD_ACHILLES_REPORTS;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.UPLOAD_ANALYSIS_FILES;
-import static com.odysseusinc.arachne.portal.security.ArachnePermission.UPLOAD_FILES;
+import static com.odysseusinc.arachne.portal.security.ArachnePermission.*;
 
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 
@@ -78,6 +46,7 @@ public enum ParticipantRole {
             EDIT_ANALYSIS,
             EDIT_INSIGHT,
             UPDATE_SUBMISSION,
+            ACCESS_SUBMISSION_RESULTS,
     }),
     CONTRIBUTOR("Contributor", new ArachnePermission[]{
             CREATE_ANALYSIS,
@@ -90,7 +59,8 @@ public enum ParticipantRole {
             LIMITED_EDIT_PAPER,
             ACCESS_PAPER,
             EDIT_ANALYSIS,
-            EDIT_INSIGHT
+            EDIT_INSIGHT,
+            ACCESS_SUBMISSION_RESULTS
     }),
     // Defines user's ability to import Cohorts / PLEs / PLPs / etc from Data node
     DATA_NODE_IMPORTER("Data Node Importer", new ArachnePermission[] {
@@ -108,7 +78,8 @@ public enum ParticipantRole {
             UNLINK_DATASOURCE,
             ACCESS_PAPER,
             EDIT_ANALYSIS,
-            EDIT_INSIGHT
+            EDIT_INSIGHT,
+            ACCESS_SUBMISSION_RESULTS
     }),
     ANALYSIS_OWNER("Analysis owner", new ArachnePermission[]{
             UPDATE_SUBMISSION
@@ -124,13 +95,15 @@ public enum ParticipantRole {
             EDIT_ACHILLES_REPORT_PERMISSION,
             CREATE_DATASOURCE,
             ACCESS_DATASOURCE,
-            UPLOAD_ACHILLES_REPORTS
+            UPLOAD_ACHILLES_REPORTS,
+            ACCESS_SUBMISSION_RESULTS
     }),
     STUDY_PENDING_CONTRIBUTOR("Pending contributor", new ArachnePermission[]{
             ACCESS_STUDY,
     }),
     DATA_SET_USER("Data Set User", new ArachnePermission[]{
-            ACCESS_DATASOURCE
+            ACCESS_DATASOURCE,
+            ACCESS_SUBMISSION_RESULTS
     }),
     PAPER_READER("Paper reader", new ArachnePermission[]{
             ACCESS_PAPER

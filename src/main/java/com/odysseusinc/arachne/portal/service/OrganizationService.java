@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,7 +29,9 @@ import java.util.List;
 public interface OrganizationService {
     Organization create(Organization organization) throws ValidationException;
 
-    Organization get(Long id);
+    Organization getByName(String name);
+
+    Organization getById(Long id);
 
     Organization getOrCreate(Organization organization) throws ValidationException;
 

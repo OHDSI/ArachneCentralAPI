@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -35,7 +35,7 @@ import com.odysseusinc.arachne.portal.repository.SubmissionInsightRepository;
 import com.odysseusinc.arachne.portal.repository.submission.SubmissionRepository;
 import com.odysseusinc.arachne.portal.service.BreadcrumbService;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
-import com.odysseusinc.arachne.portal.service.impl.breadcrumb.BreadcrumbType;
+import com.odysseusinc.arachne.portal.service.impl.breadcrumb.EntityType;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,7 +75,7 @@ public class BreadcrumbServiceImpl implements BreadcrumbService {
     }
 
     // Entry point which ensures that we verify permissions
-    private Breadcrumb getBreadcrumbByTypeAndId(BreadcrumbType type, Long id) throws NotExistException {
+    private Breadcrumb getBreadcrumbByTypeAndId(EntityType type, Long id) throws NotExistException {
 
         switch (type) {
             case STUDY:
@@ -99,7 +99,7 @@ public class BreadcrumbServiceImpl implements BreadcrumbService {
     }
 
     @Override
-    public List<Breadcrumb> getBreadcrumbs(final BreadcrumbType type, final Long id) throws NotExistException {
+    public List<Breadcrumb> getBreadcrumbs(final EntityType type, final Long id) throws NotExistException {
 
         final Breadcrumb breadcrumb = getBreadcrumbByTypeAndId(type, id);
         return getBreadcrumbs(breadcrumb);

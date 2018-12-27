@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -67,7 +67,8 @@ public enum ArachnePermission {
     ACCESS_ORGANIZATION(Organization.class),
     CREATE_ORGANIZATION(Organization.class),
     UPDATE_ORGANIZATION(Organization.class),
-    DELETE_ORGANIZATION(Organization.class);
+    DELETE_ORGANIZATION(Organization.class),
+    ACCESS_SUBMISSION_RESULTS(Submission.class);
 
     private Class<?>[] applicableClass;
 

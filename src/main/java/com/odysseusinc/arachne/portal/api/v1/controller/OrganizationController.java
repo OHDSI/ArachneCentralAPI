@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -32,7 +32,6 @@ import com.odysseusinc.arachne.commons.api.v1.dto.OrganizationDTO;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.Organization;
 import com.odysseusinc.arachne.portal.service.OrganizationService;
-import com.odysseusinc.arachne.portal.service.impl.OrganizationServiceImpl;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import java.util.List;
@@ -69,7 +68,7 @@ public class OrganizationController extends BaseController {
     @RequestMapping(value = "/api/v1/user-management/organizations/{id}", produces = APPLICATION_JSON_UTF8_VALUE, method = GET)
     public OrganizationDTO get(@PathVariable Long id) {
 
-        final Organization organization = organizationService.get(id);
+        final Organization organization = organizationService.getById(id);
         return conversionService.convert(organization, OrganizationDTO.class);
     }
 

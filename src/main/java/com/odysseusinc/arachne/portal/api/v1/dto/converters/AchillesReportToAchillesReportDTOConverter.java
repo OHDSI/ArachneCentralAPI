@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,8 +24,6 @@ package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
 import com.odysseusinc.arachne.portal.api.v1.dto.AchillesReportDTO;
 import com.odysseusinc.arachne.portal.model.achilles.AchillesReport;
-import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
-import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -37,6 +35,7 @@ public class AchillesReportToAchillesReportDTOConverter extends BaseConversionSe
         AchillesReportDTO dto = new AchillesReportDTO();
         dto.setLabel(report.getLabel());
         dto.setName(report.getName());
+        dto.setSortOrder(report.getSortOrder());
         return dto;
     }
 }
