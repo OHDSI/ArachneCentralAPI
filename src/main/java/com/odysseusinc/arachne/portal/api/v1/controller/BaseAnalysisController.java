@@ -31,7 +31,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
-import com.google.common.collect.ImmutableMap;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonEntityRequestDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.OptionDTO;
@@ -146,6 +145,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
             = "'%s' with guid='%s' from DataNode with id='%d' is not available";
     private static final String DEFAULT_EXTENSION = ".txt";
     private static final String DEFAULT_MIMETYPE = "plain/text";
+    private static final String HYDRATED_ANALYSIS_RUNNER = "runAnalysis.R";
     protected final BaseDataSourceService dataSourceService;
     protected final BaseDataNodeService dataNodeService;
     protected final BaseAnalysisService<T> analysisService;
@@ -699,21 +699,24 @@ public abstract class BaseAnalysisController<T extends Analysis,
         }
         List<MultipartFile> files = new LinkedList<>();
         final List<ImportedFile> importedFiles = (List<ImportedFile>) responseMessage.getObject();
-        if (entityType.equals(CommonAnalysisType.ESTIMATION)) {
+        boolean hasAnalysisRunner = hasAnalysisRunner(importedFiles);
+        if (entityType.equals(CommonAnalysisType.ESTIMATION) && !hasAnalysisRunner) {
             files.addAll(importService.processEstimation(importedFiles));
         } else {
             files = importedFiles.stream()
                     .map(file -> conversionService.convert(file, MockMultipartFile.class))
                     .collect(Collectors.toList());
         }
-        if (entityType.equals(CommonAnalysisType.PREDICTION)) {
-            attachPredictionFiles(files);
-        }
-        if (entityType.equals(CommonAnalysisType.COHORT_CHARACTERIZATION)) {
-            attachCohortCharacterizationFiles(files);
-        }
-        if (entityType.equals(CommonAnalysisType.INCIDENCE)) {
-            attachIncidenceRatesFiles(files);
+        if (!hasAnalysisRunner) {
+            if (entityType.equals(CommonAnalysisType.PREDICTION)) {
+                attachPredictionFiles(files);
+            }
+            if (entityType.equals(CommonAnalysisType.COHORT_CHARACTERIZATION)) {
+                attachCohortCharacterizationFiles(files);
+            }
+            if (entityType.equals(CommonAnalysisType.INCIDENCE)) {
+                attachIncidenceRatesFiles(files);
+            }
         }
         return files;
     }
@@ -731,6 +734,11 @@ public abstract class BaseAnalysisController<T extends Analysis,
     protected void afterCreate(T analysis, A_C_DTO analysisDTO) {
 
     }
+
+    protected boolean hasAnalysisRunner(List<ImportedFile> files) {
+
+    	return files.stream().anyMatch(file -> file.getOriginalFilename().equalsIgnoreCase(HYDRATED_ANALYSIS_RUNNER));
+		}
 
     protected abstract void attachPredictionFiles(List<MultipartFile> files) throws IOException;
 
