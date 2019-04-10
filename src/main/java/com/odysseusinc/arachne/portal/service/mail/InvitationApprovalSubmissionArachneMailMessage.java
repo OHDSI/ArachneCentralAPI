@@ -22,8 +22,11 @@
 
 package com.odysseusinc.arachne.portal.service.mail;
 
+import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.IUser;
+import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.Submission;
+
 
 public class InvitationApprovalSubmissionArachneMailMessage extends InvitationArachneMailMessage {
 
@@ -36,11 +39,13 @@ public class InvitationApprovalSubmissionArachneMailMessage extends InvitationAr
 
         this.submission = submission;
 
+        Analysis analysis = submission.getAnalysis();
+        Study study = analysis.getStudy();
         parameters.put("userUuid", user.getUuid());
-        parameters.put("analysisUrl", portalUrl + "/analysis-execution/analyses/" + submission.getAnalysis().getId());
-        parameters.put("analysisTitle", submission.getAnalysis().getTitle());
-        parameters.put("studyUrl", portalUrl + "study-manager/studies/" + submission.getAnalysis().getStudy().getId());
-        parameters.put("studyTitle", submission.getAnalysis().getStudy().getTitle());
+        parameters.put("analysisUrl", portalUrl + "/analysis-execution/analyses/" + analysis.getId());
+        parameters.put("analysisTitle", analysis.getTitle());
+        parameters.put("studyUrl", portalUrl + "/study-manager/studies/" + study.getId());
+        parameters.put("studyTitle", study.getTitle());
         parameters.put("submissionId", submission.getId());
         parameters.put("userFirstName", user.getFirstname());
     }
