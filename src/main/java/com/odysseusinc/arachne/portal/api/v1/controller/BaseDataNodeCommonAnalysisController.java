@@ -30,13 +30,12 @@ import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.messaging.BaseDataNodeMessageService;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-
-import javax.jms.JMSException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.jms.JMSException;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 public abstract class BaseDataNodeCommonAnalysisController<DN extends DataNode> extends BaseController {
     private final BaseDataNodeService<DN> baseDataNodeService;
@@ -53,6 +52,7 @@ public abstract class BaseDataNodeCommonAnalysisController<DN extends DataNode> 
         analysisTypeMap.put("estimations", CommonAnalysisType.ESTIMATION);
         analysisTypeMap.put("predictions", CommonAnalysisType.PREDICTION);
         analysisTypeMap.put("incidence-rates", CommonAnalysisType.INCIDENCE);
+        analysisTypeMap.put("cohort-pathways", CommonAnalysisType.COHORT_PATHWAY);
     }
 
     /**
