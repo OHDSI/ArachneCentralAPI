@@ -31,7 +31,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
-import com.google.common.collect.ImmutableMap;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonEntityRequestDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.OptionDTO;
@@ -709,8 +708,8 @@ public abstract class BaseAnalysisController<T extends Analysis,
         if (entityType.equals(CommonAnalysisType.PREDICTION)) {
             attachPredictionFiles(files);
         }
-        if (entityType.equals(CommonAnalysisType.COHORT_CHARACTERIZATION)) {
-            attachCohortCharacterizationFiles(files);
+        if (entityType.equals(CommonAnalysisType.COHORT_HERACLES)) {
+            attachCohortHeraclesFiles(files);
         }
         if (entityType.equals(CommonAnalysisType.INCIDENCE)) {
             attachIncidenceRatesFiles(files);
@@ -734,6 +733,6 @@ public abstract class BaseAnalysisController<T extends Analysis,
 
     protected abstract void attachPredictionFiles(List<MultipartFile> files) throws IOException;
 
-    protected abstract void attachCohortCharacterizationFiles(List<MultipartFile> files) throws IOException, URISyntaxException;
+    protected abstract void attachCohortHeraclesFiles(List<MultipartFile> files) throws IOException, URISyntaxException;
 
 }
