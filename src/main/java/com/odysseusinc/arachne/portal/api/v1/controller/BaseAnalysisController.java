@@ -715,8 +715,13 @@ public abstract class BaseAnalysisController<T extends Analysis,
         if (entityType.equals(CommonAnalysisType.INCIDENCE)) {
             attachIncidenceRatesFiles(files);
         }
+        if (entityType.equals(CommonAnalysisType.COHORT_PATHWAY)) {
+            attachCohortPathwayFiles(files);
+        }
         return files;
     }
+
+    protected abstract void attachCohortPathwayFiles(List<MultipartFile> files) throws IOException;
 
     protected abstract void attachIncidenceRatesFiles(List<MultipartFile> files) throws IOException;
 

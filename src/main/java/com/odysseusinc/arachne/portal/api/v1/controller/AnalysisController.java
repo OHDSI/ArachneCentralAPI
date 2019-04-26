@@ -63,6 +63,7 @@ public class AnalysisController extends BaseAnalysisController<Analysis, Analysi
     public static final String RUN_PLP_ANALYSIS_FILE_NAME = "run_plp_analysis.r";
     public static final String RUN_IR_ANALYSIS_FILE_NAME = "run_ir_analysis.r";
     private static final String RUN_CC_REPORTS_FILE_NAME = "run_cc_reports.R";
+    private static final String RUN_PATHWAY_ANALYSIS_FILE_NAME = "run_pathways.R";
     private static final String CC_SQLS_DIR = "sql/cc";
     private static final String CIRCE_JAR = "circe-1.2.2-SNAPSHOT.jar";
     private static final String CIRCE_JAR_RES = "circe-1.2.2-SNAPSHOT.jar.res";
@@ -116,6 +117,13 @@ public class AnalysisController extends BaseAnalysisController<Analysis, Analysi
     protected Class<AnalysisDTO> getAnalysisDTOClass() {
 
         return AnalysisDTO.class;
+    }
+
+    @Override
+    protected void attachCohortPathwayFiles(List<MultipartFile> files) throws IOException {
+
+        files.add(new MockMultipartFile(RUN_PATHWAY_ANALYSIS_FILE_NAME, RUN_PATHWAY_ANALYSIS_FILE_NAME, null,
+                readResource("r/" + RUN_PATHWAY_ANALYSIS_FILE_NAME)));
     }
 
     @Override
