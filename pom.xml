@@ -35,6 +35,7 @@
         <hibernate.version>5.2.12.Final</hibernate.version>
         <clamav.version>2.0.1</clamav.version>
         <springRetryVersion>1.2.1.RELEASE</springRetryVersion>
+        <flyway.locations>db/migration</flyway.locations>
     </properties>
 
     <profiles>
@@ -42,6 +43,7 @@
             <id>test</id>
             <properties>
                 <env>integration</env>
+                <flyway.locations>db/migration,db/testmigration</flyway.locations>
                 <latestSuffix>-snapshot</latestSuffix>
             </properties>
         </profile>
@@ -66,6 +68,7 @@
             </activation>
             <properties>
                 <env>dev</env>
+                <flyway.locations>db/migration,db/devmigration</flyway.locations>
                 <latestSuffix>-dev</latestSuffix>
             </properties>
             <build>
@@ -84,6 +87,7 @@
             <id>qa</id>
             <properties>
                 <env>qa</env>
+                <flyway.locations>db/migration,db/qamigration</flyway.locations>
                 <latestSuffix>-qa</latestSuffix>
             </properties>
         </profile>

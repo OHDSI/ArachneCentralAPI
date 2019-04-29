@@ -71,7 +71,7 @@
 //
 //    private void createAdminUser() throws Exception {
 //
-//        User admin = userService.getByUsername("admin@odysseusinc.com");
+//        User admin = userService.getByUsername(ADMIN_EMAIL);
 //
 //        if (admin != null && (System.currentTimeMillis() - admin.getCreated().getTime() > 10000)) {
 //            userService.remove(admin.getId());
@@ -80,7 +80,7 @@
 //
 //        if (admin == null) {
 //            User user = new User();
-//            user.setEmail("admin@odysseusinc.com");
+//            user.setEmail(ADMIN_EMAIL);
 //            user.setCreated(new Date());
 //            user.setUpdated(new Date());
 //            user.setEnabled(true);

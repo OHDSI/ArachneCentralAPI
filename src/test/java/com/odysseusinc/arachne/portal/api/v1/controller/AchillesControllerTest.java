@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
+import static com.odysseusinc.arachne.portal.config.Constants.ADMIN_EMAIL;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -95,7 +96,7 @@ public class AchillesControllerTest extends BaseControllerTest {
     private static final String PRIVATE_DS = "3";
 
     @Test
-    @WithUserDetails(value = "admin@odysseusinc.com")
+    @WithUserDetails(value = ADMIN_EMAIL)
     @DatabaseSetup({
             "/data/achilles/datanode.xml",
             "/data/achilles/users.xml",
@@ -118,7 +119,7 @@ public class AchillesControllerTest extends BaseControllerTest {
     }
 
     @Test
-    @WithUserDetails(value = "admin@odysseusinc.com")
+    @WithUserDetails(value = ADMIN_EMAIL)
     @DatabaseSetup({
             "/data/achilles/datanode.xml",
             "/data/achilles/users.xml",
@@ -138,7 +139,7 @@ public class AchillesControllerTest extends BaseControllerTest {
 
     }
 
-    @WithUserDetails(value = "admin@odysseusinc.com")
+    @WithUserDetails(value = ADMIN_EMAIL)
     @DatabaseSetup(value = {
             "/data/achilles/datanode.xml",
             "/data/achilles/users.xml",

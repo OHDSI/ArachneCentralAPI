@@ -23,9 +23,9 @@
 package com.odysseusinc.arachne.portal.config;
 
 import com.odysseusinc.arachne.portal.model.IUser;
-import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.security.TokenUtils;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -106,7 +106,7 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.setInterceptors(new ChannelInterceptorAdapter() {
+        registration.interceptors(new ChannelInterceptorAdapter() {
 
             @Override
             public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -121,7 +121,7 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
                 // "interceptor only needs to authenticate and set the user header on the CONNECT" - bullshit
 
                 List tokenList = accessor.getNativeHeader(tokenHeader);
-                if (tokenList != null && tokenList.size() > 0) {
+                if (CollectionUtils.isNotEmpty(tokenList)) {
                     String authToken = tokenList.get(0).toString();
                     String username = tokenUtils.getUsernameFromToken(authToken);
                     if (!tokenUtils.isExpired(authToken)) {

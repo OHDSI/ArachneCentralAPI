@@ -28,6 +28,8 @@ import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCo
 import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.VALIDATION_ERROR;
 import static com.odysseusinc.arachne.portal.api.v1.controller.UserControllerTests.USER_2_UUID;
 import static com.odysseusinc.arachne.portal.api.v1.dto.InvitationType.COLLABORATOR;
+import static com.odysseusinc.arachne.portal.config.Constants.ADMIN_EMAIL;
+import static com.odysseusinc.arachne.portal.config.Constants.ADMIN_ID;
 import static com.odysseusinc.arachne.portal.model.ParticipantRole.CONTRIBUTOR;
 import static com.odysseusinc.arachne.portal.model.ParticipantRole.DATA_SET_OWNER;
 import static com.odysseusinc.arachne.portal.model.ParticipantRole.LEAD_INVESTIGATOR;

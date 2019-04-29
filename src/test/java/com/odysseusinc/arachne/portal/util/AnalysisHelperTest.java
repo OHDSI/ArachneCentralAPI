@@ -22,11 +22,9 @@
 
 package com.odysseusinc.arachne.portal.util;
 
+import static com.odysseusinc.arachne.portal.config.Constants.ADMIN_EMAIL;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasProperty;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
 import static org.mockito.Mockito.when;
@@ -68,6 +66,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import org.apache.commons.io.FileUtils;
+import org.assertj.core.api.Assertions;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -115,7 +114,7 @@ public class AnalysisHelperTest {
     private SubmissionService submissionService;
 
     @Test
-    @WithUserDetails("admin@odysseusinc.com")
+    @WithUserDetails(ADMIN_EMAIL)
     public void createSubmission() throws Exception {
 
         DataSource dataSource = prepareDataSource();
@@ -127,7 +126,7 @@ public class AnalysisHelperTest {
         List<Submission> submissions = AnalysisHelper.createSubmission(submissionService,
                 Collections.<Long>singletonList(1L), user, analysis);
         try {
-            assertThat(submissions, is(not(empty())));
+            Assertions.assertThat(submissions).isNotEmpty();
             assertThat(submissions, contains(
                     hasProperty("status", notNullValue())
             ));
@@ -149,7 +148,7 @@ public class AnalysisHelperTest {
 
     private IUser prepareUser() {
 
-        return userService.getByEmail("admin@odysseusinc.com");
+        return userService.getByEmail(ADMIN_EMAIL);
     }
 
     private Analysis prepareAnalysis(IUser author, Study study) throws Exception {
@@ -205,7 +204,7 @@ public class AnalysisHelperTest {
         Study study = new Study();
         study.setTitle("AnalysisHelperTest#test");
         StudyType studyType = studyTypeRepository.findAll().iterator().next();
-        Assert.notNull(studyType);
+        Assertions.assertThat(studyType).isNotNull();
         study.setType(studyType);
 
         return studyService.create(owner, study);

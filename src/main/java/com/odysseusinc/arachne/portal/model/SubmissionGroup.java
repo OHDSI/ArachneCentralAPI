@@ -22,7 +22,7 @@
 
 package com.odysseusinc.arachne.portal.model;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.EntityType;
@@ -181,7 +181,7 @@ public class SubmissionGroup implements Breadcrumb {
     @Override
     public String toString() {
 
-        return Objects.toStringHelper(this)
+        return MoreObjects.toStringHelper(this)
                 .add("id", id)
                 .add("analysis", analysis != null ? analysis.getId() : null)
                 .add("author", author != null ? author.getId() : null)

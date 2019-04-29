@@ -80,6 +80,7 @@ flyway:
   placeholderReplacement: false
   out-of-order: true
   validateOnMigrate: false
+  locations: @flyway.locations@
   #locations: db/migration,classpath:com.odysseusinc.arachne.portal.db.migration
 arachne:
   token:

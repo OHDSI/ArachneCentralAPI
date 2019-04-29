@@ -25,6 +25,7 @@ package com.odysseusinc.arachne.portal.api.v1.controller;
 import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.NO_ERROR;
 import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.PERMISSION_DENIED;
 import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.VALIDATION_ERROR;
+import static com.odysseusinc.arachne.portal.config.Constants.ADMIN_ID;
 import static java.lang.Boolean.TRUE;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -49,7 +50,7 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
 
-public class BaseControllerTest extends SingleContextTest {
+public abstract class BaseControllerTest extends SingleContextTest {
 
     static final CharacterEncodingFilter CHARACTER_ENCODING_FILTER = new CharacterEncodingFilter();
 
@@ -57,12 +58,6 @@ public class BaseControllerTest extends SingleContextTest {
         CHARACTER_ENCODING_FILTER.setEncoding("UTF-8");
         CHARACTER_ENCODING_FILTER.setForceEncoding(true);
     }
-
-    static final String ADMIN_EMAIL = "admin@odysseusinc.com";
-    static final Long ADMIN_ID = 1L;
-
-    static final String FIRST_NAME = "firstName";
-    static final String LAST_NAME = "lastName";
 
     @Autowired
     WebApplicationContext wac;

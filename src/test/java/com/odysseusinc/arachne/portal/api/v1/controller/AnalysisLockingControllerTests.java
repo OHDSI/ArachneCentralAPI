@@ -23,7 +23,7 @@
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
 import static com.github.springtestdbunit.assertion.DatabaseAssertionMode.NON_STRICT;
-import static com.github.springtestdbunit.assertion.DatabaseAssertionMode.NON_STRICT_UNORDERED;
+import static com.odysseusinc.arachne.portal.config.Constants.ADMIN_EMAIL;
 import static java.lang.Boolean.TRUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;

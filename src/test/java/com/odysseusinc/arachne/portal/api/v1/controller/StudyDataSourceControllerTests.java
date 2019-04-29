@@ -23,6 +23,8 @@
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
 import static com.github.springtestdbunit.assertion.DatabaseAssertionMode.NON_STRICT;
+import static com.odysseusinc.arachne.portal.config.Constants.ADMIN_EMAIL;
+import static com.odysseusinc.arachne.portal.config.Constants.STUDY_ID;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -55,8 +57,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 @DatabaseTearDown(value = "/data/empty.xml", type = DatabaseOperation.DELETE_ALL)
 public class StudyDataSourceControllerTests extends BaseControllerTest {
 
-    private static final String STUDY_LEAD = "admin@odysseusinc.com";
-    private static final long STUDY_ID = 1L;
     private static final long PUBLIC_UNSUPERVISED_DATA_SOURCE_ID = 1L;
     private static final long PRIVATE_UNSUPERVISED_DATASOURCE_ID = 3L;
 
@@ -65,7 +65,7 @@ public class StudyDataSourceControllerTests extends BaseControllerTest {
     }
 
     @Test
-    @WithUserDetails(STUDY_LEAD)
+    @WithUserDetails(ADMIN_EMAIL)
     @DatabaseSetup("/data/datanode-with-datasources.xml")
     @ExpectedDatabases({
             @ExpectedDatabase(value = "/data/datanode-with-datasources.xml", assertionMode = NON_STRICT),
@@ -80,7 +80,7 @@ public class StudyDataSourceControllerTests extends BaseControllerTest {
     }
 
     @Test
-    @WithUserDetails(STUDY_LEAD)
+    @WithUserDetails(ADMIN_EMAIL)
     @ExpectedDatabase(value = "/data/study/datasource/study-data-source1-virtual.xml", assertionMode = NON_STRICT)
     public void testAddVirtualDataSource() throws Exception {
 
@@ -96,7 +96,7 @@ public class StudyDataSourceControllerTests extends BaseControllerTest {
     }
 
     @Test
-    @WithUserDetails(STUDY_LEAD)
+    @WithUserDetails(ADMIN_EMAIL)
     @DatabaseSetups({
             @DatabaseSetup("/data/datanode-with-datasources.xml"),
             @DatabaseSetup("/data/study/datasource/study-data-source-before-deleting.xml")

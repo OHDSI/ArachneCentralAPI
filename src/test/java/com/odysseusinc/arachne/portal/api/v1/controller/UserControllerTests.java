@@ -23,6 +23,7 @@
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
 import static com.github.springtestdbunit.assertion.DatabaseAssertionMode.NON_STRICT;
+import static com.odysseusinc.arachne.portal.config.Constants.*;
 import static java.lang.Boolean.FALSE;
 import static java.util.Calendar.MILLISECOND;
 import static org.hamcrest.Matchers.hasSize;
@@ -82,7 +83,6 @@ public class UserControllerTests extends BaseControllerTest {
     static final String ADMIN_FIRST_NAME = "adminFirstName";
     static final String ADMIN_MIDDLE_NAME = "adminMiddleName";
     static final String ADMIN_LAST_NAME = "adminLastName";
-    static final Long ADMIN_ID = 1L;
 
     private static final String EMAIL = "mail@mail.com";
     private static final String MIDDLE_NAME = "middleName";
@@ -112,9 +112,9 @@ public class UserControllerTests extends BaseControllerTest {
             .put("lastname", ADMIN_LAST_NAME);
 
     private final JSONObject USER_JSON_OBJECT = new JSONObject()
-            .put("firstname", FIRST_NAME)
+            .put("firstname", USER_FIRST_NAME)
             .put("middlename", MIDDLE_NAME)
-            .put("lastname", LAST_NAME);
+            .put("lastname", USER_LAST_NAME);
 
     private final JSONObject USER_LINK = new JSONObject()
             .put("description", USER_LINK_DESCRIPTION)
@@ -185,8 +185,8 @@ public class UserControllerTests extends BaseControllerTest {
 
         CommonUserRegistrationDTO inputDTO = new CommonUserRegistrationDTO();
         inputDTO.setEmail(EMAIL);
-        inputDTO.setFirstname(FIRST_NAME);
-        inputDTO.setLastname(LAST_NAME);
+        inputDTO.setFirstname(USER_FIRST_NAME);
+        inputDTO.setLastname(USER_LAST_NAME);
         inputDTO.setMiddlename(MIDDLE_NAME);
         inputDTO.setPassword(password);
         inputDTO.setProfessionalTypeId(PROFESSIONAL_TYPE_ID);

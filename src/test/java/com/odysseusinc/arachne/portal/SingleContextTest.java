@@ -21,7 +21,7 @@ import org.springframework.test.context.support.DependencyInjectionTestExecution
         DbUnitTestExecutionListener.class,
         WithSecurityContextTestExecutionListener.class})
 @DbUnitConfiguration(databaseConnection = {"primaryDataSource"})
-public class SingleContextTest {
+public abstract class SingleContextTest {
 
     public SingleContextTest() {
 

@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
+import static com.odysseusinc.arachne.portal.config.Constants.ADMIN_EMAIL;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;

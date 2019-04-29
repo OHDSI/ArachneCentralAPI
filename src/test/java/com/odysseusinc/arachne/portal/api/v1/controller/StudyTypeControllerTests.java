@@ -23,7 +23,7 @@
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
 import static com.github.springtestdbunit.assertion.DatabaseAssertionMode.NON_STRICT;
-import static com.odysseusinc.arachne.portal.api.v1.controller.BaseControllerTest.ADMIN_EMAIL;
+import static com.odysseusinc.arachne.portal.config.Constants.ADMIN_EMAIL;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;

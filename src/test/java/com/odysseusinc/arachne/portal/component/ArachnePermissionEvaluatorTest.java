@@ -21,6 +21,7 @@
 
 package com.odysseusinc.arachne.portal.component;
 
+import static com.odysseusinc.arachne.portal.config.Constants.ADMIN_EMAIL;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
@@ -29,20 +30,16 @@ import com.github.springtestdbunit.annotation.DatabaseSetup;
 import com.github.springtestdbunit.annotation.DatabaseSetups;
 import com.github.springtestdbunit.annotation.DatabaseTearDown;
 import com.odysseusinc.arachne.portal.SingleContextTest;
-import com.odysseusinc.arachne.portal.api.v1.controller.BaseControllerTest;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithUserDetails;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,7 +54,7 @@ public class ArachnePermissionEvaluatorTest extends SingleContextTest {
     private ArachnePermissionEvaluator<Paper, DataSource> permissionEvaluator;
 
     @Test
-    @WithUserDetails(value = "admin@odysseusinc.com")
+    @WithUserDetails(value = ADMIN_EMAIL)
     @DatabaseSetup({"/data/study/study-before-updating.xml"})
     public void leadStudyPermissions() {
 
@@ -101,7 +98,7 @@ public class ArachnePermissionEvaluatorTest extends SingleContextTest {
     }
 
     @Test
-    @WithUserDetails(value = "admin@odysseusinc.com")
+    @WithUserDetails(value = ADMIN_EMAIL)
     @DatabaseSetups({
             @DatabaseSetup("/data/users.xml"),
             @DatabaseSetup("/data/study-with-contributor.xml"),
@@ -137,7 +134,7 @@ public class ArachnePermissionEvaluatorTest extends SingleContextTest {
     }
 
     @Test
-    @WithUserDetails(value = "admin@odysseusinc.com")
+    @WithUserDetails(value = ADMIN_EMAIL)
     @DatabaseSetups({
             @DatabaseSetup("/data/users.xml"),
             @DatabaseSetup("/data/study-with-contributor.xml"),
@@ -182,7 +179,7 @@ public class ArachnePermissionEvaluatorTest extends SingleContextTest {
     }
 
     @Test
-    @WithUserDetails("admin@odysseusinc.com")
+    @WithUserDetails(ADMIN_EMAIL)
     @DatabaseSetups({
             @DatabaseSetup("/data/users.xml"),
             @DatabaseSetup("/data/study-with-contributor.xml"),
