@@ -270,7 +270,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
             HttpServletResponse response) throws PermissionDeniedException, NotExistException, IOException {
 
         String archiveName = "submission_result_" + submissionId + "_"
-                + Long.toString(System.currentTimeMillis())
+                + System.currentTimeMillis()
                 + ".zip";
         String contentType = "application/zip, application/octet-stream";
         response.setContentType(contentType);
@@ -310,7 +310,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
         HttpUtils.putFileContentToResponse(
                 response,
                 analysisFile.getContentType(),
-                StringUtils.getFilename(analysisFile.getRealName()),
+                StringUtils.getFilename(analysisFile.getName()),
                 analysisService.getSubmissionFile(analysisFile));
     }
 
@@ -509,7 +509,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
             HttpServletResponse response) throws PermissionDeniedException, NotExistException, IOException {
 
         String archiveName = "submission_" + submissionGroupId + "_"
-                + Long.toString(System.currentTimeMillis())
+                + System.currentTimeMillis()
                 + ".zip";
         String contentType = "application/zip, application/octet-stream";
         response.setContentType(contentType);

@@ -90,6 +90,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -223,9 +224,9 @@ public abstract class BaseAnalysisController<T extends Analysis,
         return conversionService.convert(analysis, ShortBaseAnalysisDTO.class);
     }
 
-    abstract protected Class<T> getAnalysisClass();
+    protected abstract Class<T> getAnalysisClass();
 
-    abstract protected Class<D> getAnalysisDTOClass();
+    protected abstract Class<D> getAnalysisDTOClass();
 
     @ApiOperation("Get analysis.")
     @RequestMapping(value = "/api/v1/analysis-management/analyses/{analysisId}", method = GET)
@@ -379,7 +380,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
                                 final String fileName = baseName + "."
                                         + dialect.getLabel().replaceAll(" ", "-")
                                         + "." + extension;
-                                ZipUtil.addZipEntry(zos, fileName, new ByteArrayInputStream(sql.getBytes("UTF-8")));
+                                ZipUtil.addZipEntry(zos, fileName, new ByteArrayInputStream(sql.getBytes(StandardCharsets.UTF_8)));
                             }
                             final String shortBaseName = baseName.replaceAll("\\.ohdsi", "");
                             if (!generatedFileName.value.contains(shortBaseName)) {
@@ -542,7 +543,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
             putFileContentToResponse(
                     response,
                     analysisFile.getContentType(),
-                    StringUtils.getFilename(analysisFile.getRealName()),
+                    StringUtils.getFilename(analysisFile.getName()),
                     analysisService.getAnalysisFile(analysisFile));
         } catch (IOException ex) {
             LOGGER.info("Error writing file to output stream. Filename was '{}'", uuid, ex);
@@ -644,7 +645,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
             HttpServletResponse response) throws PermissionDeniedException, NotExistException, IOException {
 
         String archiveName = "analysis_" + analysisId + "_"
-                + Long.toString(System.currentTimeMillis())
+                + System.currentTimeMillis()
                 + ".zip";
         String contentType = "application/zip, application/octet-stream";
         response.setContentType(contentType);

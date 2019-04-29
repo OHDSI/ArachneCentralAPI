@@ -26,9 +26,6 @@ import com.odysseusinc.arachne.portal.api.v1.dto.CommentableSubmissionFileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserInfoDTO;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
 import com.odysseusinc.arachne.portal.model.SubmissionInsightSubmissionFile;
-import org.springframework.beans.factory.annotation.Autowired;
-import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
-import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -42,7 +39,7 @@ public class SubmissionInsightSubmissionFileToCommentableSubmissionFileDTOConver
         final SubmissionFile submissionFile = submissionInsightSubmissionFile.getSubmissionFile();
         dto.setLabel(submissionFile.getLabel());
         dto.setUuid(submissionFile.getUuid());
-        dto.setName(submissionFile.getRealName());
+        dto.setName(submissionFile.getName());
         dto.setCreated(submissionFile.getCreated());
         dto.setCommentTopicId(submissionInsightSubmissionFile.getCommentTopic().getId());
         dto.setCommentCount(submissionInsightSubmissionFile.getCommentTopic().getCount());

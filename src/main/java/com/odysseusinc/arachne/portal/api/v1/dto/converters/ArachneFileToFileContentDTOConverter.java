@@ -36,7 +36,7 @@ public class ArachneFileToFileContentDTOConverter extends BaseConversionServiceA
 
         AnalysisFileDTO fileContentDTO = new AnalysisFileDTO();
         fileContentDTO.setUuid(source.getUuid());
-        fileContentDTO.setName(source.getRealName());
+        fileContentDTO.setName(source.getName());
         fileContentDTO.setCreated(source.getCreated());
         fileContentDTO.setLabel(source.getLabel());
         if (source instanceof AnalysisFile && ((AnalysisFile) source).getAnalysis() != null) {

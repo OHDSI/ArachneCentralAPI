@@ -37,7 +37,7 @@ public class SubmissionFileToCommonAnalysisFileDTOConverter extends BaseConversi
 
         CommonAnalysisFileDTO dto = new CommonAnalysisFileDTO();
         dto.setContentType(submissionFile.getContentType());
-        dto.setFileName(submissionFile.getRealName());
+        dto.setFileName(submissionFile.getName());
         dto.setUuid(submissionFile.getUuid());
         return dto;
     }

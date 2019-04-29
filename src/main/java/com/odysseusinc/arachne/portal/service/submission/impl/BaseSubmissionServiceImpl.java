@@ -393,7 +393,7 @@ public abstract class BaseSubmissionServiceImpl<
             submissionFile.setCreated(analysisFile.getCreated());
             submissionFile.setUpdated(analysisFile.getUpdated());
             submissionFile.setLabel(analysisFile.getLabel());
-            submissionFile.setRealName(analysisFile.getRealName());
+            submissionFile.setRealName(analysisFile.getName());
             submissionFile.setEntryPoint(analysisFile.getEntryPoint());
             submissionFile.setUuid(uuid);
             submissionFile.setAuthor(analysisFile.getAuthor());
@@ -568,7 +568,7 @@ public abstract class BaseSubmissionServiceImpl<
         Path storeFilesPath = analysisHelper.getSubmissionGroupFolder(submissionGroup);
         try (ZipOutputStream zos = new ZipOutputStream(os)) {
             for (SubmissionFile submissionFile : submissionGroup.getFiles()) {
-                String realName = submissionFile.getRealName();
+                String realName = submissionFile.getName();
                 Path file = storeFilesPath.resolve(submissionFile.getUuid());
                 if (Files.notExists(file)) {
                     file = legacyAnalysisHelper.getOldSubmissionFile(submissionFile).orElseThrow(FileNotFoundException::new);

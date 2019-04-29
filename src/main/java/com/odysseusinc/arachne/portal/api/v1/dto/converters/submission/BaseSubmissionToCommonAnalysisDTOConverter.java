@@ -64,7 +64,7 @@ public abstract class BaseSubmissionToCommonAnalysisDTOConverter<T extends Submi
         dto.setCentralDataSourceId(source.getDataSource().getId());
         for (SubmissionFile submissionFile : source.getSubmissionGroup().getFiles()) {
             if (submissionFile.getExecutable() && StringUtils.isEmpty(dto.getExecutableFileName())) {
-                dto.setExecutableFileName(submissionFile.getRealName());
+                dto.setExecutableFileName(submissionFile.getName());
                 dto.setInnerExecutableFilename(submissionFile.getEntryPoint());
             }
         }
