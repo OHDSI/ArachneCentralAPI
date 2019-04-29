@@ -10,7 +10,7 @@
            lastname="updatedLastName"
            password="password"
            enabled = "true"
-           email = "admin@odysseusinc.com"
+           email = "admin-dbtests@odysseusinc.com"
            email_confirmed = "true"
            affiliation ="updatedAffiliation"
            personal_summary = "updatedPersonalSummary"

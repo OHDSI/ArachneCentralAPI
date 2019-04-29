@@ -23,7 +23,9 @@
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
 import static com.github.springtestdbunit.assertion.DatabaseAssertionMode.NON_STRICT;
-import static com.odysseusinc.arachne.portal.config.Constants.*;
+import static com.odysseusinc.arachne.portal.config.Constants.ADMIN_EMAIL;
+import static com.odysseusinc.arachne.portal.config.Constants.USER_FIRST_NAME;
+import static com.odysseusinc.arachne.portal.config.Constants.USER_LAST_NAME;
 import static java.lang.Boolean.FALSE;
 import static java.util.Calendar.MILLISECOND;
 import static org.hamcrest.Matchers.hasSize;
@@ -139,7 +141,7 @@ public class UserControllerTests extends BaseControllerTest {
 
     static {
         Calendar c = Calendar.getInstance();
-        c.set(2017, 0, 1, 0, 0, 0);
+        c.set(2017, Calendar.JANUARY, 1, 0, 0, 0);
         c.clear(MILLISECOND);
         DATE = c.getTime();
     }

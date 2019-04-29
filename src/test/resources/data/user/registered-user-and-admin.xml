@@ -8,7 +8,7 @@
             middlename="adminMiddleName"
             lastname="adminLastName"
             enabled="true"
-            email="admin@odysseusinc.com"
+            email="admin-dbtests@odysseusinc.com"
             email_confirmed="true"
             professional_type_id="1"
     />

@@ -23,6 +23,9 @@
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
 import static com.github.springtestdbunit.assertion.DatabaseAssertionMode.NON_STRICT;
+import static com.odysseusinc.arachne.portal.config.Constants.ADMIN_EMAIL;
+import static com.odysseusinc.arachne.portal.config.Constants.USER1_EMAIL;
+import static com.odysseusinc.arachne.portal.config.Constants.USER2_EMAIL;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA;
@@ -92,9 +95,9 @@ public class AnalysisSubmissionControllerTests extends BaseControllerTest {
     private static final long NOT_STUDY_DATASOURCE_ID = 3L;
     private static final long DATA_NODE_ONWER_ID = 2L;
 
-    private static final String STUDY_LEAD = "admin@odysseusinc.com";
-    private static final String DATA_NODE_ONWER = "user1@odysseusinc.com";
-    private static final String DATA_NODE_USER = "user2@odysseusinc.com";
+    private static final String STUDY_LEAD = ADMIN_EMAIL;
+    private static final String DATA_NODE_ONWER = USER1_EMAIL;
+    private static final String DATA_NODE_USER = USER2_EMAIL;
 
     @Autowired
     private AnalysisHelper analysisHelper;
@@ -124,7 +127,7 @@ public class AnalysisSubmissionControllerTests extends BaseControllerTest {
                 Node fileNode = session.getNode(path);
                 fileNode.remove();
                 session.save();
-            } catch (Exception ex) {}
+            } catch (Exception ignored) {}
             return null;
         });
     }
