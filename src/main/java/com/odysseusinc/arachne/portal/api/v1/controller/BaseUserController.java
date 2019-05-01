@@ -713,6 +713,17 @@ public abstract class BaseUserController<
         return result;
     }
 
+    @ApiOperation("List DataNode users")
+    @RequestMapping(value = "/api/v1/user-management/datanodes/{dataNodeId}/users", method = GET)
+    public List<CommonUserDTO> listDataNodeUsers(@PathVariable("dataNodeId") Long dataNodeId) {
+
+        final DN dataNode = baseDataNodeService.getById(dataNodeId);
+        List<DataNodeUser> users = baseDataNodeService.listOwners(dataNode);
+        return users.stream()
+                .map(user -> conversionService.convert(user.getUser(), CommonUserDTO.class))
+                .collect(Collectors.toList());
+    }
+
     @ApiOperation("Link U to DataNode")
     @RequestMapping(value = "/api/v1/user-management/datanodes/{datanodeSid}/users", method = POST)
     public JsonResult linkUserToDataNode(@PathVariable("datanodeSid") Long datanodeId,

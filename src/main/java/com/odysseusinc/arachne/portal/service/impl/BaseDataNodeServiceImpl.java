@@ -204,7 +204,7 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode, DS extends ID
 
     @Transactional
     @Override
-    @PreAuthorize("#dataNode == authentication.principal")
+    @PreAuthorize("#dataNode == authentication.principal || hasPermission(#dataNode, T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_DATANODE)")
     public void linkUserToDataNode(DN dataNode, IUser user)
             throws NotExistException, AlreadyExistException {
 
@@ -225,7 +225,7 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode, DS extends ID
 
     @Transactional
     @Override
-    @PreAuthorize("#dataNode == authentication.principal")
+    @PreAuthorize("#dataNode == authentication.principal || hasPermission(#dataNode, T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_DATANODE)")
     public void unlinkUserToDataNode(DN dataNode, IUser user) throws NotExistException {
 
         LOGGER.info(UNLINKING_USER_LOG, user.getId(), dataNode.getId());
@@ -255,6 +255,13 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode, DS extends ID
             dataNodeUser.setDataNode(dataNode);
             saveOrUpdateDataNodeUser(dataNode, dataNodeUser);
         });
+    }
+
+    @Override
+    @PreAuthorize("#dataNode == authentication.principal || hasPermission(#dataNode, T(com.odysseusinc.arachne.portal.security.ArachnePermission).EDIT_DATANODE)")
+    public List<DataNodeUser> listOwners(DN dataNode) {
+
+        return dataNodeUserRepository.findByDataNode(dataNode);
     }
 
     @Override
