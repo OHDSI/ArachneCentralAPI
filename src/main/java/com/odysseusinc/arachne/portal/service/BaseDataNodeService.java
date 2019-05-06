@@ -56,6 +56,8 @@ public interface BaseDataNodeService<DN extends DataNode> {
 
     void relinkAllUsersToDataNode(DN dataNode, Set<DataNodeUser> user) throws NotExistException;
 
+    List<DataNodeUser> listOwners(DN dataNodeId);
+
     Optional<DN> findByToken(String token);
 
     DN getBySid(String uuid) throws NotExistException;
