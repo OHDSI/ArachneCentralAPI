@@ -24,11 +24,14 @@ package com.odysseusinc.arachne.portal.util;
 
 import static com.odysseusinc.arachne.storage.service.ContentStorageService.PATH_SEPARATOR;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
+import com.google.gson.stream.JsonReader;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.commons.utils.cohortcharacterization.CohortCharacterizationDocType;
 import com.odysseusinc.arachne.portal.model.Submission;
@@ -36,14 +39,14 @@ import com.odysseusinc.arachne.portal.repository.SubmissionResultFileRepository;
 import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.storage.model.QuerySpec;
 import com.odysseusinc.arachne.storage.service.ContentStorageService;
-import com.odysseusinc.arachne.storage.service.JcrContentStorageServiceImpl;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -107,7 +110,7 @@ public class SubmissionHelper {
                 break;
             }
             case COHORT_PATHWAY: {
-                strategy = new PathwaySubmissionExtednInfoStrategy();
+                strategy = new PathwaySubmissionExtendInfoStrategy();
                 break;
             }
             default: {
@@ -316,14 +319,22 @@ public class SubmissionHelper {
         }
     }
 
-    private class PathwaySubmissionExtednInfoStrategy extends SubmissionExtendInfoAnalyzeStrategy {
+    private class PathwaySubmissionExtendInfoStrategy extends SubmissionExtendInfoAnalyzeStrategy {
 
         @Override
         public void updateExtendInfo(Submission submission) {
 
             JsonObject resultInfo = new JsonObject();
             try {
-                final String resultsDir = filePath(contentStorageHelper.getResultFilesDir(submission), "results");
+                final String rootDir = contentStorageHelper.getResultFilesDir(submission);
+                final String resultsDir = filePath(rootDir, "results");
+
+                JsonElement design;
+                try(JsonReader jsonReader = new JsonReader(new InputStreamReader(contentStorageService.getContentByFilepath(rootDir + PATH_SEPARATOR + "pathways.json")))) {
+                    JsonParser parser = new JsonParser();
+                    design = parser.parse(jsonReader);
+                }
+                resultInfo.add("design", design);
 
                 // Pathway codes
                 String path = filePath(resultsDir, "pathway_codes.csv");
