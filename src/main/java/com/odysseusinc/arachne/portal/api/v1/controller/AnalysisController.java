@@ -161,7 +161,7 @@ public class AnalysisController extends BaseAnalysisController<Analysis, Analysi
 
 
     @Override
-    protected void attachCohortCharacterizationFiles(List<MultipartFile> files) throws IOException, URISyntaxException {
+    protected void attachCohortHeraclesFiles(List<MultipartFile> files) throws IOException, URISyntaxException {
 
         files.add(new MockMultipartFile(RUN_CC_REPORTS_FILE_NAME, RUN_CC_REPORTS_FILE_NAME, null,
                 readResource("r/" + RUN_CC_REPORTS_FILE_NAME)));

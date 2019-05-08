@@ -47,15 +47,19 @@ import com.odysseusinc.arachne.portal.exception.ValidationRuntimeException;
 import com.odysseusinc.arachne.portal.exception.WrongFileFormatException;
 import com.odysseusinc.arachne.portal.security.LoginRequestContext;
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
-import javax.servlet.http.Cookie;
-import java.util.Collection;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolationException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
@@ -78,6 +82,8 @@ public class ExceptionHandlingController extends BaseController {
 
     private static final String ERROR_MESSAGE = "An error has occurred. Please contact system administrator";
 
+    private final Map<Class<? extends Throwable>, Method> exceptionHandlersMap = new HashMap<>();
+
     private static final Consumer<HttpServletResponse> ADD_COOKIE_FUNCTION = response -> {
 
         if (Objects.nonNull(LoginRequestContext.getUserName())) {
@@ -94,6 +100,19 @@ public class ExceptionHandlingController extends BaseController {
         this.noHandlerFoundExceptionUtils = noHandlerFoundExceptionUtils;
     }
 
+    @PostConstruct
+    public void mapExceptionHandlers() {
+
+        Method[] methods = ExceptionHandlingController.class.getDeclaredMethods();
+        for(Method method : methods) {
+            if (method.isAnnotationPresent(ExceptionHandler.class)) {
+                ExceptionHandler annotation = method.getAnnotation(ExceptionHandler.class);
+                Arrays.stream(annotation.value())
+                        .forEach(clz -> exceptionHandlersMap.put(clz, method));
+            }
+        }
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<JsonResult> exceptionHandler(Exception ex) {
 
@@ -101,6 +120,21 @@ public class ExceptionHandlingController extends BaseController {
         JsonResult result = new JsonResult<>(SYSTEM_ERROR);
         result.setErrorMessage(ex.getMessage());
         return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<JsonResult> exceptionHandler(HttpServletRequest req, HttpServletResponse res, RuntimeException ex) throws Exception {
+
+        if (Objects.isNull(ex.getCause())) {
+            handleNotFoundError(req, res);
+            return null;
+        }
+        Method method = exceptionHandlersMap.get(ex.getCause().getClass());
+        if (Objects.nonNull(method)) {
+            return (ResponseEntity<JsonResult>) method.invoke(this, ex.getCause());
+        } else {
+            return exceptionHandler((Exception) ex.getCause());
+        }
     }
 
     @ExceptionHandler(ValidationException.class)
