@@ -156,7 +156,7 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends I
                 Analysis byId = analysisRepository.findOne(analysis.getId());
                 result = byId != null ? getRolesByStudy(user, byId.getStudy()) : result;
             }
-            if (analysis.getAuthor().getId().equals(user.getId())) {
+            if (Objects.nonNull(analysis.getAuthor()) && Objects.equals(analysis.getAuthor().getId(), user.getId())) {
                 result.add(ParticipantRole.ANALYSIS_OWNER);
             }
         }

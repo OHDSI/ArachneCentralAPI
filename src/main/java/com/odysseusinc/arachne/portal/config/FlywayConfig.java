@@ -22,7 +22,7 @@
 
 package com.odysseusinc.arachne.portal.config;
 
-import com.odysseusinc.arachne.portal.config.flyway.ApplicationContextAwareSpringJdbcMigrationResolver;
+import com.odysseusinc.arachne.commons.config.flyway.ApplicationContextAwareSpringJdbcMigrationResolver;
 import org.flywaydb.core.Flyway;
 import org.springframework.boot.autoconfigure.flyway.FlywayMigrationInitializer;
 import org.springframework.context.annotation.Bean;

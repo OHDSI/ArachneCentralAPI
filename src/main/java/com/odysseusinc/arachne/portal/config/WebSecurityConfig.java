@@ -273,7 +273,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/v1/auth/method**").permitAll()
                 .antMatchers("/api/v1/user-management/activation/**").permitAll()
                 .antMatchers("/api/v1/data-sources/dbms-types").permitAll()
-                .antMatchers("/api/v1/user-management/datanodes/**").hasRole(Roles.ROLE_DATA_NODE)
                 .antMatchers("/api/v1/user-management/professional-types**").permitAll()
                 .antMatchers("/api/v1/user-management/countries/**").permitAll()
                 .antMatchers("/api/v1/user-management/state-province/**").permitAll()
