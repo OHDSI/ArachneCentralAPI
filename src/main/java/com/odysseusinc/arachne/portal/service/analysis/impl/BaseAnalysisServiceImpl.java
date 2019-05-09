@@ -32,6 +32,7 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
@@ -295,7 +296,7 @@ public abstract class BaseAnalysisServiceImpl<
     public A update(A analysis)
             throws NotUniqueException, NotExistException, ValidationException {
 
-        A forUpdate = analysisRepository.findOne(analysis.getId());
+        A forUpdate = analysisRepository.findById(analysis.getId());
         if (forUpdate == null) {
             throw new NotExistException("update: analysis with id=" + analysis.getId() + " not exist", Analysis.class);
         }
@@ -319,11 +320,6 @@ public abstract class BaseAnalysisServiceImpl<
         return saved;
     }
 
-    @Override
-    public void delete(Long id) throws NotExistException {
-
-        super.delete(id);
-    }
 
     @Override
     public A getById(Long id) throws NotExistException {
@@ -355,7 +351,7 @@ public abstract class BaseAnalysisServiceImpl<
     @Override
     public Boolean moveAnalysis(Long id, Integer index) {
 
-        A analysis = analysisRepository.findOne(id);
+        A analysis = analysisRepository.findById(id);
         Study study = analysis.getStudy();
         List<A> list = list(study);
         list.remove(analysis);
@@ -458,7 +454,7 @@ public abstract class BaseAnalysisServiceImpl<
             }
 
             preprocessorService.preprocessFile(analysis, analysisFile);
-            eventPublisher.publishEvent(new AntivirusJobEvent(this, new AntivirusJob(saved.getId(), saved.getRealName(), new FileInputStream(targetPath.toString()), AntivirusJobFileType.ANALYSIS_FILE)));
+            eventPublisher.publishEvent(new AntivirusJobEvent(this, new AntivirusJob(saved.getId(), saved.getName(), new FileInputStream(targetPath.toString()), AntivirusJobFileType.ANALYSIS_FILE)));
             return saved;
 
         } catch (IOException | RuntimeException ex) {
@@ -558,7 +554,7 @@ public abstract class BaseAnalysisServiceImpl<
     @Override
     public Path getAnalysisFile(AnalysisFile analysisFile) throws FileNotFoundException {
 
-        Optional.of(analysisFile).orElseThrow(FileNotFoundException::new);
+        Preconditions.checkNotNull(analysisFile);
         Path file = Paths.get(analysisHelper.getStoreFilesPath(),
                 analysisFile.getAnalysis().getStudy().getId().toString(),
                 analysisFile.getAnalysis().getId().toString(),
@@ -595,7 +591,7 @@ public abstract class BaseAnalysisServiceImpl<
     @Override
     public void lockAnalysisFiles(Long analysisId, Boolean locked) throws NotExistException {
 
-        final Optional<A> analysisOptional = Optional.of(analysisRepository.findOne(analysisId));
+        final Optional<A> analysisOptional = Optional.of(analysisRepository.findById(analysisId));
         final A analysis = analysisOptional.orElseThrow(() -> {
             String message = String.format(ANALYSIS_NOT_FOUND_EXCEPTION, analysisId);
             return new NotExistException(message, Analysis.class);
@@ -657,7 +653,7 @@ public abstract class BaseAnalysisServiceImpl<
     @Override
     public Path getSubmissionFile(SubmissionFile submissionFile) throws FileNotFoundException {
 
-        Optional.of(submissionFile).orElseThrow(FileNotFoundException::new);
+        Preconditions.checkNotNull(submissionFile);
         Path file = analysisHelper.getSubmissionFile(submissionFile);
         if (Files.notExists(file)) {
             try {
@@ -692,7 +688,7 @@ public abstract class BaseAnalysisServiceImpl<
     public void updateFile(String uuid, MultipartFile file, Long analysisId, Boolean isExecutable)
             throws IOException {
 
-        A analysis = analysisRepository.findOne(analysisId);
+        A analysis = analysisRepository.findById(analysisId);
         throwAccessDeniedExceptionIfLocked(analysis);
         Study study = analysis.getStudy();
         try {
@@ -730,14 +726,14 @@ public abstract class BaseAnalysisServiceImpl<
             final IUser updatedBy) throws IOException {
 
         final Analysis analysis = analysisFile.getAnalysis();
-        
+
         throwAccessDeniedExceptionIfLocked(analysis);
 
         final String content = fileDTO.getContent();
         if (content != null) {
             writeContentAndCheckForViruses(analysisFile, updatedBy, content);
         }
-        
+
         final String name = fileDTO.getName();
         if (!StringUtils.isEmpty(name)) {
             analysisFile.setLabel(name);
@@ -797,7 +793,7 @@ public abstract class BaseAnalysisServiceImpl<
             Path path = getPath(file);
             Files.deleteIfExists(path);
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.warn("cannot delete file {}", file, e);
         }
         submissionFileRepository.delete(file);
     }
@@ -852,7 +848,7 @@ public abstract class BaseAnalysisServiceImpl<
     private void checkIfEntryPointIsEmpty(AnalysisFile file) {
 
         if (StringUtils.isEmpty(file.getEntryPoint())) {
-            file.setEntryPoint(file.getRealName());
+            file.setEntryPoint(file.getName());
         }
     }
 
@@ -901,11 +897,11 @@ public abstract class BaseAnalysisServiceImpl<
     @Override
     public void getAnalysisAllFiles(Long analysisId, String archiveName, OutputStream os) throws IOException {
 
-        Analysis analysis = analysisRepository.findOne(analysisId);
+        Analysis analysis = analysisRepository.findById(analysisId);
         Path storeFilesPath = analysisHelper.getAnalysisFolder(analysis);
         try (ZipOutputStream zos = new ZipOutputStream(os)) {
             for (AnalysisFile analysisFile : analysis.getFiles()) {
-                String realName = analysisFile.getRealName();
+                String realName = analysisFile.getName();
                 Path file = storeFilesPath.resolve(analysisFile.getUuid());
                 ZipUtil.addZipEntry(zos, realName, file);
             }
@@ -971,7 +967,7 @@ public abstract class BaseAnalysisServiceImpl<
     @Override
     public List<A> getByStudyId(Long id, EntityGraph graph) {
 
-        return analysisRepository.findByStudyId(id, graph);
+        return analysisRepository.findByStudyIdOrderByOrd(id, graph);
     }
 
     @EventListener
