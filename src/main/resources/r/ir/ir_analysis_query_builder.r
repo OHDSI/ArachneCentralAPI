@@ -925,7 +925,7 @@ buildAnalysisQuery <- function(analysisExpression, analysisId, dbms, cdmSchema, 
   strataInsert <- list()
   for(i in seq_along(analysisExpression$strata)){
     strata <- analysisExpression$strata[[i]]
-    cg <- strata[[1]]$expression
+    cg <- strata$expression
     st <- getStrataQuery(cg, dbms)
     stratumInsert <- gsub("@strata_sequence", i, st)
     strataInsert[[i]] <- stratumInsert
