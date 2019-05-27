@@ -361,7 +361,7 @@ public class SubmissionHelper {
                 Map<Integer, JsonArray> pathwayResults  = parseCsv(path, rec -> {
                    JsonObject result = new JsonObject();
                    result.add("targetCohortId", getJsonPrimitive(rec.get("TARGET_COHORT_ID")));
-                   result.add("personCount", getJsonPrimitive("COUNT_VALUE"));
+                   result.add("personCount", getJsonPrimitive(rec.get("COUNT_VALUE")));
                    List<String> cohortPath = new ArrayList<>();
                    for(int i = 1; i <= 10; i++) {
                        String column = "STEP_" + i;
