@@ -28,7 +28,6 @@ import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.Study;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.query.Param;
@@ -54,5 +53,5 @@ public interface BaseAnalysisRepository<T extends Analysis> extends EntityGraphJ
 
     List<T> findByIdIn(List<Long> ids);
 
-    List<T> findByStudyId(Long studyId, EntityGraph entityGraph);
+    List<T> findByStudyIdOrderByOrd(Long studyId, EntityGraph entityGraph);
 }

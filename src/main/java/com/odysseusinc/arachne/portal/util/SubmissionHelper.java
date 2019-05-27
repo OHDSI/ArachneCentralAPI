@@ -47,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -93,8 +94,8 @@ public class SubmissionHelper {
                 strategy = new CohortSubmissionExtendInfoStrategy();
                 break;
             }
-            case COHORT_CHARACTERIZATION: {
-                strategy = new CohortCharacterizationSubmissionExtendInfoStrategy();
+            case COHORT_HERACLES: {
+                strategy = new CohortHeraclesSubmissionExtendInfoStrategy();
                 break;
             }
             case INCIDENCE: {
@@ -107,6 +108,10 @@ public class SubmissionHelper {
             }
             case PREDICTION: {
                 strategy = new PredictionSubmissionExtendInfoStrategy();
+                break;
+            }
+            case COHORT_CHARACTERIZATION: {
+                strategy = new CohortCharacterizationExtendInfoStrategy();
                 break;
             }
             case COHORT_PATHWAY: {
@@ -174,7 +179,7 @@ public class SubmissionHelper {
         }
     }
 
-    private class CohortCharacterizationSubmissionExtendInfoStrategy extends SubmissionExtendInfoAnalyzeStrategy {
+    private class CohortHeraclesSubmissionExtendInfoStrategy extends SubmissionExtendInfoAnalyzeStrategy {
 
         @Override
         public void updateExtendInfo(final Submission submission) {
@@ -315,6 +320,27 @@ public class SubmissionHelper {
                 LOGGER.warn(CAN_NOT_BUILD_EXTEND_INFO_LOG, submission.getId());
                 LOGGER.warn("Error: ", e);
             }
+            submission.setResultInfo(resultInfo);
+        }
+    }
+
+    private class CohortCharacterizationExtendInfoStrategy extends SubmissionExtendInfoAnalyzeStrategy {
+
+        @Override
+        public void updateExtendInfo(Submission submission) {
+
+            JsonObject resultInfo = new JsonObject();
+
+            final String resultsDir = contentStorageHelper.getResultFilesDir(submission)
+                    + JcrContentStorageServiceImpl.PATH_SEPARATOR + "results";
+            QuerySpec querySpec = new QuerySpec();
+            querySpec.setPath(resultsDir);
+            querySpec.setName("%.csv");
+            querySpec.setNameLike(true);
+            long reportCount = contentStorageService.searchFiles(querySpec)
+                    .stream().filter(f -> !Objects.equals(f.getName(), "raw_data.csv"))
+                    .count();
+            resultInfo.add("reports", new JsonPrimitive(reportCount));
             submission.setResultInfo(resultInfo);
         }
     }
