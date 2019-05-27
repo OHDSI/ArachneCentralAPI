@@ -39,6 +39,7 @@ import com.odysseusinc.arachne.portal.repository.SubmissionResultFileRepository;
 import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.storage.model.QuerySpec;
 import com.odysseusinc.arachne.storage.service.ContentStorageService;
+import com.odysseusinc.arachne.storage.service.JcrContentStorageServiceImpl;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
