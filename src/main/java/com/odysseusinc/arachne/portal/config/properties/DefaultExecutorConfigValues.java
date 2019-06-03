@@ -15,28 +15,46 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Alexandr Ryabokon, Vitaly Koulakov, Anton Gackovka, Maria Pozhidaeva, Mikhail Mironov
- * Created: May 19, 2017
+ * Authors: Ing. Alexandr Cumarav
+ * Created: May 23, 2019
  *
  */
 
 package com.odysseusinc.arachne.portal.config.properties;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.validation.annotation.Validated;
+public class DefaultExecutorConfigValues {
 
-@ConfigurationProperties(prefix = "achilles")
-@Validated
-public class AchillesProperties {
+    private Integer corePoolSize = 1;
+    private Integer maxPoolSize = 2;
+    private Integer queueCapacity = 10;
 
-    private DefaultExecutorConfigValues executor = new DefaultExecutorConfigValues();
+    public Integer getCorePoolSize() {
 
-    public DefaultExecutorConfigValues getExecutor() {
-        return executor;
+        return corePoolSize;
     }
 
-    public void setExecutor(DefaultExecutorConfigValues executor) {
-        this.executor = executor;
+    public void setCorePoolSize(Integer corePoolSize) {
+
+        this.corePoolSize = corePoolSize;
     }
 
+    public Integer getMaxPoolSize() {
+
+        return maxPoolSize;
+    }
+
+    public void setMaxPoolSize(Integer maxPoolSize) {
+
+        this.maxPoolSize = maxPoolSize;
+    }
+
+    public Integer getQueueCapacity() {
+
+        return queueCapacity;
+    }
+
+    public void setQueueCapacity(Integer queueCapacity) {
+
+        this.queueCapacity = queueCapacity;
+    }
 }

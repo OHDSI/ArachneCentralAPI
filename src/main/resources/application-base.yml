@@ -146,6 +146,8 @@ jodconverter:
 antivirus:
   host: localhost
   port: 3310
+  executor:
+    queueCapacity: 50
   retry:
     max-attempts: 10
     backoff:

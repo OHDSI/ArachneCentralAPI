@@ -52,7 +52,7 @@ public class AnalysisPreprocessorService extends AbstractPreprocessorService<Ana
     public void preprocessFile(Analysis analysis, AnalysisFile file) {
 
         Path analysisFolder = analysisHelper.getAnalysisFolder(analysis);
-        File target = analysisFolder.resolve(file.getRealName()).toFile();
+        File target = analysisFolder.resolve(file.getName()).toFile();
         getPreprocessorRegistry().getPreprocessor(file.getContentType())
                 .preprocess(analysis, target);
     }
@@ -64,7 +64,7 @@ public class AnalysisPreprocessorService extends AbstractPreprocessorService<Ana
         return analysis
                 .getFiles()
                 .stream()
-                .map(analysisFile -> analysisFolder.resolve(analysisFile.getRealName()).toFile())
+                .map(analysisFile -> analysisFolder.resolve(analysisFile.getName()).toFile())
                 .collect(Collectors.toList());
     }
 
@@ -74,7 +74,7 @@ public class AnalysisPreprocessorService extends AbstractPreprocessorService<Ana
         return analysis
                 .getFiles()
                 .stream()
-                .filter(analysisFile -> analysisFile.getRealName().equals(file.getName()))
+                .filter(analysisFile -> analysisFile.getName().equals(file.getName()))
                 .findFirst().map(ArachneFile::getContentType);
     }
 }
