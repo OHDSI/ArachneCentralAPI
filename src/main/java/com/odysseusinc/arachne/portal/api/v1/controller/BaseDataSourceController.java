@@ -25,10 +25,10 @@ package com.odysseusinc.arachne.portal.api.v1.controller;
 import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.NO_ERROR;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonBaseDataSourceDTO;
-import com.odysseusinc.arachne.commons.api.v1.dto.CommonCDMVersionDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataSourceDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.OptionDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
+import com.odysseusinc.arachne.commons.types.CommonCDMVersionDTO;
 import com.odysseusinc.arachne.commons.types.DBMSType;
 import com.odysseusinc.arachne.portal.api.v1.dto.FacetedSearchResultDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.IDataSourceDTO;
