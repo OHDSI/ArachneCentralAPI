@@ -22,23 +22,15 @@
 
 package com.odysseusinc.arachne.portal.model;
 
-import com.odysseusinc.arachne.commons.api.v1.dto.CommonCDMVersionDTO;
-import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
-import com.odysseusinc.arachne.commons.api.v1.dto.CommonModelType;
-import com.odysseusinc.arachne.portal.model.security.Tenant;
-import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
-import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
-import java.io.Serializable;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-import javax.persistence.*;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
 import org.hibernate.annotations.DiscriminatorFormula;
 import org.hibernate.annotations.SQLDelete;
-import org.hibernate.validator.constraints.NotBlank;
+
+import javax.persistence.Entity;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
+import javax.persistence.Table;
+import java.io.Serializable;
 
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
