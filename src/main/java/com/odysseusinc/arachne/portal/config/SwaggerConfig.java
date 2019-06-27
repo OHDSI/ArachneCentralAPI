@@ -23,7 +23,6 @@
 package com.odysseusinc.arachne.portal.config;
 
 import com.odysseusinc.arachne.commons.config.DocketWrapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -37,29 +36,27 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @ConditionalOnProperty(prefix = "swagger", name = "enable")
 public class SwaggerConfig {
 
+    @Value("${project.version}")
+    private String projectVersion;
+
     @Value("${arachne.token.header}")
     private String arachneTokenHeader;
 
-    @Autowired
-    private DocketWrapper docketWrapper;
-
     @Bean
-    public Docket api() {
-
+    public Docket docket(DocketWrapper docketWrapper) {
         return docketWrapper.getDocket();
     }
 
     @Bean
     public DocketWrapper docketWrapper() {
-
-        return new DocketWrapper("Arachne Central",
+        return DocketWrapper.createDocketWrapper(
+                "Arachne Central",
                 "Arachne Central API",
-                "1.0.0",
+                projectVersion,
                 "",
                 arachneTokenHeader,
                 RestController.class,
                 "com.odysseusinc.arachne.portal.api.v1.controller"
         );
     }
-
 }
