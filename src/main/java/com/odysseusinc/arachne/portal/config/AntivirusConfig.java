@@ -59,7 +59,7 @@ public class AntivirusConfig {
         AntivirusProperties.RetryConfig retryConfig = properties.getRetry();
         Map<Class<? extends Throwable>, Boolean> retryableExceptions = new HashMap<>();
         retryableExceptions.put(CommunicationException.class, true);
-        RetryPolicy policy = new ExpressionRetryPolicy(retryConfig.getMaxAttempts(), retryableExceptions, true, "#{message.contains('Error while communicating with the server')}");
+        RetryPolicy policy = new ExpressionRetryPolicy(retryConfig.getMaxAttempts(), retryableExceptions, true, "#{message.contains('Error while communicating with the server')}",true);
         retryTemplate.setRetryPolicy(policy);
         AntivirusProperties.BackOffPolicyConfig backOffPolicyConfig = retryConfig.getBackoff();
         ExponentialBackOffPolicy backOffPolicy = new ExponentialBackOffPolicy();

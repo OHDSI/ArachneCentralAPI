@@ -53,6 +53,8 @@ import java.util.List;
 import javax.jms.JMSException;
 import javax.jms.ObjectMessage;
 import javax.validation.Valid;
+
+import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,6 +94,7 @@ public abstract class BaseDataNodeMessagingController<DN extends DataNode, A ext
      * Returns pending requests for CommonEntity list
      * (for polling by Node's back)
      */
+    @ApiOperation("Returns pending requests for CommonEntity list")
     @RequestMapping(
             value = "/api/v1/data-nodes/entity-lists/requests",
             method = GET
@@ -108,6 +111,7 @@ public abstract class BaseDataNodeMessagingController<DN extends DataNode, A ext
      * Posts responses for for CommonEntity list requests
      * (for pushing by Node's back)
      */
+    @ApiOperation("Posts responses for for CommonEntity list requests")
     @RequestMapping(
             value = "/api/v1/data-nodes/entity-lists/responses",
             method = POST
@@ -133,6 +137,7 @@ public abstract class BaseDataNodeMessagingController<DN extends DataNode, A ext
         }
     }
 
+    @ApiOperation("Create or update Atlas instance entry")
     @RequestMapping(value = "/api/v1/data-nodes/atlases", method = POST)
     public AtlasShortDTO createOrUpdateAtlas(
             @RequestBody @Valid AtlasShortDTO atlasShortDTO,
@@ -162,6 +167,7 @@ public abstract class BaseDataNodeMessagingController<DN extends DataNode, A ext
         return conversionService.convert(updated, AtlasShortDTO.class);
     }
 
+    @ApiOperation("Delete instance entry")
     @RequestMapping(value = "/api/v1/data-nodes/atlases/{id}", method = DELETE)
     public void deleteAtlas(
             @PathVariable("id") Long id
@@ -170,6 +176,7 @@ public abstract class BaseDataNodeMessagingController<DN extends DataNode, A ext
         atlasService.delete(id);
     }
 
+    @ApiOperation("List all EntityRequests")
     @RequestMapping(
             value = "/api/v1/data-nodes/entities",
             method = GET
@@ -200,6 +207,7 @@ public abstract class BaseDataNodeMessagingController<DN extends DataNode, A ext
         return cohortRequests;
     }
 
+    @ApiOperation("Save entity")
     @RequestMapping(
             value = "/api/v1/data-nodes/common-entity/{id}",
             method = POST
