@@ -31,13 +31,12 @@ import static com.odysseusinc.arachne.portal.model.SubmissionStatus.FAILED_REJEC
 import static com.odysseusinc.arachne.portal.model.SubmissionStatus.IN_PROGRESS;
 import static com.odysseusinc.arachne.portal.model.SubmissionStatus.NOT_APPROVED;
 import static com.odysseusinc.arachne.portal.model.SubmissionStatus.PENDING;
-import static com.odysseusinc.arachne.portal.model.SubmissionStatus.valueOf;
 import static com.odysseusinc.arachne.portal.service.impl.submission.SubmissionActionType.EXECUTE;
 import static com.odysseusinc.arachne.portal.service.impl.submission.SubmissionActionType.PUBLISH;
 import static com.odysseusinc.arachne.portal.util.DataNodeUtils.isDataNodeOwner;
 
 import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
-import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraphUtils;
+import com.odysseusinc.arachne.commons.utils.UUIDGenerator;
 import com.odysseusinc.arachne.portal.api.v1.dto.ApproveDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdateNotificationDTO;
 import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
@@ -79,7 +78,6 @@ import com.odysseusinc.arachne.portal.util.DataNodeUtils;
 import com.odysseusinc.arachne.portal.util.EntityUtils;
 import com.odysseusinc.arachne.portal.util.LegacyAnalysisHelper;
 import com.odysseusinc.arachne.portal.util.SubmissionHelper;
-import com.odysseusinc.arachne.portal.util.UUIDGenerator;
 import com.odysseusinc.arachne.portal.util.ZipUtil;
 import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.storage.model.QuerySpec;
