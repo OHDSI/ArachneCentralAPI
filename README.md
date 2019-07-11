@@ -1,10 +1,10 @@
 #Arachne Community Edition build and run manual
 
 ##Prerequisites
-For building and run the Arachne machine should have following applications:
+For building and run the Arachne please install following applications:
 - Maven 
 - JDK 8 
-- LibreOffice  - for running the ArachneCentralApi only
+- LibreOffice  - for running the ArachneCentralAPI only
 - Solr 7 
 - Postgres DBMS 
 
