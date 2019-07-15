@@ -2,11 +2,11 @@
 
 ##Prerequisites
 For building and run the Arachne please install following applications:
-- Maven 
-- JDK 8 
-- LibreOffice  - for running the ArachneCentralAPI only
-- Solr 7 
-- Postgres DBMS 
+- Apache Maven 3 https://maven.apache.org/download.cgi
+- JDK 8 https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
+- LibreOffice 6  - for running the ArachneCentralAPI only - https://www.libreoffice.org/download/download/
+- Apache Solr 7 http://lucene.apache.org/solr/downloads.html
+- Postgres DBMS https://www.postgresql.org/download/windows/
 
 ####Prepare databases: 
 Please create ohdsi user and 2 databases: arachne_portal and datanode. That can achieved by running following command in psql console:
@@ -74,7 +74,7 @@ Start application using following command:
 ```
 java -jar ArachneCentralAPI/target/portal-exec.jar --office.home=/usr/lib/libreoffice/ --jasypt.encryptor.password=dummy "--spring.datasource.password=ENC(3b0hKjcVNZjGGLwd85Q+tw==)" "--spring.mail.password=ENC(O8Of4J1ejz9r7tZo05CS/Q==)" --portal.urlWhiteList=https://localhost:8080
 ```
-spring.mail.password and spring.mail.username contains dummy values in this example, please replace them with your settings, otherwise send mail functionality will not work. 
+spring.mail.password and spring.mail.username contains dummy values in this example, please replace them with your settings, otherwise send mail functionality will not work. Please encrypt email and database passwords with the same jasypt password. You can do it via online tool or jasypt cli - see http://www.jasypt.org/cli.html.  
 
 ArachneCentralAPI should be available at: https://localhost:8080
 
