@@ -57,6 +57,9 @@ import java.security.Principal;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.ohdsi.authenticator.model.AuthenticationRequest;
+import org.ohdsi.authenticator.model.UserInfo;
+import org.ohdsi.authenticator.service.Authenticator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -81,8 +84,11 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
     private String tokenHeader;
     @Value("${portal.authMethod}")
     private String userOrigin;
+    @Value("${security.method}")
+    private String authMethod;
 
     private AuthenticationManager authenticationManager;
+    protected Authenticator authenticator;
     private TokenUtils tokenUtils;
     protected BaseUserService userService;
     private UserDetailsService userDetailsService;
@@ -92,6 +98,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
     protected LoginAttemptService loginAttemptService;
 
     public BaseAuthenticationController(AuthenticationManager authenticationManager,
+                                        Authenticator authenticator,
                                         TokenUtils tokenUtils,
                                         BaseUserService userService,
                                         UserDetailsService userDetailsService,
@@ -101,6 +108,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
                                         LoginAttemptService loginAttemptService) {
 
         this.authenticationManager = authenticationManager;
+        this.authenticator = authenticator;
         this.tokenUtils = tokenUtils;
         this.userService = userService;
         this.userDetailsService = userDetailsService;
@@ -131,7 +139,9 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
             checkIfUserBlocked(username);
             checkIfUserHasTenant(username);
             authenticate(authenticationRequest);
-            String token = this.tokenUtils.generateToken(username);
+            UserInfo userInfo = authenticator.authenticate(authMethod,
+                    new AuthenticationRequest(username, authenticationRequest.getPassword()));
+            String token = userInfo.getToken();
             CommonAuthenticationResponse authenticationResponse = new CommonAuthenticationResponse(token);
             jsonResult = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, authenticationResponse);
             loginAttemptService.loginSucceeded(username);
@@ -196,7 +206,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
         try {
             String token = request.getHeader(tokenHeader);
             if (token != null) {
-                tokenUtils.addInvalidateToken(token);
+                authenticator.invalidateToken(token);
             }
             result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
             result.setResult(true);
@@ -216,15 +226,11 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
         JsonResult<String> result;
         try {
             String token = request.getHeader(this.tokenHeader);
-            String username = this.tokenUtils.getUsernameFromToken(token);
-            ArachneUser user = (ArachneUser) this.userDetailsService.loadUserByUsername(username);
-            if (this.tokenUtils.canTokenBeRefreshed(token, user.getLastPasswordReset())) {
-                String refreshedToken = this.tokenUtils.refreshToken(token);
-                result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
-                result.setResult(refreshedToken);
-            } else {
-                result = new JsonResult<>(JsonResult.ErrorCode.UNAUTHORIZED);
-            }
+            UserInfo userInfo = authenticator.refreshToken(token);
+//            String username = userInfo.getUsername();
+//            this.userDetailsService.loadUserByUsername(username);
+            result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
+            result.setResult(userInfo.getToken());
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
             result = new JsonResult<>(JsonResult.ErrorCode.UNAUTHORIZED);
