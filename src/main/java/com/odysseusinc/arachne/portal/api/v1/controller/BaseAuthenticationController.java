@@ -41,7 +41,6 @@ import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.PasswordReset;
-import com.odysseusinc.arachne.portal.model.security.ArachneUser;
 import com.odysseusinc.arachne.portal.security.TokenUtils;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordData;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidationResult;
@@ -57,9 +56,9 @@ import java.security.Principal;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.ohdsi.authenticator.model.AuthenticationRequest;
 import org.ohdsi.authenticator.model.UserInfo;
 import org.ohdsi.authenticator.service.Authenticator;
+import org.pac4j.core.credentials.UsernamePasswordCredentials;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -140,7 +139,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
             checkIfUserHasTenant(username);
             authenticate(authenticationRequest);
             UserInfo userInfo = authenticator.authenticate(authMethod,
-                    new AuthenticationRequest(username, authenticationRequest.getPassword()));
+                    new UsernamePasswordCredentials(username, authenticationRequest.getPassword()));
             String token = userInfo.getToken();
             CommonAuthenticationResponse authenticationResponse = new CommonAuthenticationResponse(token);
             jsonResult = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, authenticationResponse);
