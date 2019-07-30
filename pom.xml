@@ -6,18 +6,18 @@
 
     <artifactId>portal</artifactId>
     <groupId>com.odysseusinc.arachne</groupId>
-    <version>1.14.0-SNAPSHOT</version>
+    <version>1.15.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>1.5.9.RELEASE</version>
+        <version>1.5.20.RELEASE</version>
         <relativePath/>
     </parent>
 
     <properties>
-        <spring.boot.version>1.5.4.RELEASE</spring.boot.version>
+        <spring.boot.version>1.5.20.RELEASE</spring.boot.version>
         <spring.security.acl.version>4.2.1.RELEASE</spring.security.acl.version>
         <start-class>com.odysseusinc.arachne.portal.PortalStarter</start-class>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -26,7 +26,7 @@
         <ehcache.version>1.3.0</ehcache.version>
         <postgresql.version>42.2.1</postgresql.version>
         <gson.version>2.7</gson.version>
-        <commons.lang3.version>3.5</commons.lang3.version>
+        <commons.lang3.version>3.8.1</commons.lang3.version>
         <hikaricp.version>2.6.3</hikaricp.version>
         <build.number>${BUILD_NUMBER}</build.number>
         <build.id>${BUILD_TIMESTAMP}</build.id>
@@ -34,7 +34,7 @@
         <jodConverter.version>4.1.0</jodConverter.version>
         <hibernate.version>5.2.12.Final</hibernate.version>
         <clamav.version>2.0.1</clamav.version>
-        <springRetryVersion>1.2.1.RELEASE</springRetryVersion>
+        <springRetryVersion>1.2.4.RELEASE</springRetryVersion>
     </properties>
 
     <profiles>
@@ -120,6 +120,11 @@
             <artifactId>arachne-commons</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>com.odysseusinc.arachne</groupId>
+            <artifactId>arachne-common-utils</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.odysseusinc.arachne</groupId>

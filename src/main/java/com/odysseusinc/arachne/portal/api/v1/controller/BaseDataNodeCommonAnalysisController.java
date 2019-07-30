@@ -30,6 +30,7 @@ import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.messaging.BaseDataNodeMessageService;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -61,6 +62,7 @@ public abstract class BaseDataNodeCommonAnalysisController<DN extends DataNode> 
      * Returns list of cohorts defined in Atlas connected to the Data node
      * (for Central's UI)
      */
+    @ApiOperation("Returns list of cohorts defined in Atlas connected to the Data node")
     @RequestMapping(
             value = "/api/v1/data-nodes/{dataNodeId}/{type}",
             method = GET

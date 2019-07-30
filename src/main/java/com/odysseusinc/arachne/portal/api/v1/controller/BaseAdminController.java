@@ -120,7 +120,7 @@ public abstract class BaseAdminController<
                                final ProfessionalTypeService professionalTypeService,
                                final BaseAdminService<S, DS, SS, SU, A, P, PS, SB> adminService,
                                final BaseStudyService<S, DS, SS, SU> studyService,
-                               final BaseAnalysisService<A> analysisService, 
+                               final BaseAnalysisService<A> analysisService,
                                final BasePaperService<P, PS, S, DS, SS, SU> paperService,
                                final BaseTenantService tenantService,
                                final ConverterUtils converterUtils,
@@ -178,7 +178,7 @@ public abstract class BaseAdminController<
                     Pageable pageable,
             UserSearch userSearch)
             throws UserNotFoundException {
-      
+
         final Page<U> users = userService.getPage(pageable, userSearch);
         final DeletableUserWithTenantsListDTO userDtoList = conversionService.convert(users.getContent(), DeletableUserWithTenantsListDTO.class);
         return new CustomPageImpl<>(userDtoList, new PageRequest(pageable.getPageNumber() - 1, pageable.getPageSize()), users.getTotalElements());
@@ -217,7 +217,7 @@ public abstract class BaseAdminController<
     @RequestMapping(value = "/api/v1/admin/users/ids", method = RequestMethod.GET)
     public List<String> getListOfUserIdsByFilter(final UserSearch userSearch)
             throws UserNotFoundException {
-  
+
         final List<U> users = userService.getList(userSearch);
         return users.stream().map(IUser::getId).map(UserIdUtils::idToUuid).collect(Collectors.toList());
     }
@@ -250,6 +250,7 @@ public abstract class BaseAdminController<
         return result;
     }
 
+    @ApiOperation(value = "Grant admin role to user", hidden = true)
     @RequestMapping(value = "/api/v1/admin/admins/{id}", method = RequestMethod.POST)
     public JsonResult addAdminRole(@PathVariable Long id) {
 
@@ -275,6 +276,7 @@ public abstract class BaseAdminController<
         return result;
     }
 
+    @ApiOperation(value = "Remove admin role from user", hidden = true)
     @RequestMapping(value = "/api/v1/admin/admins/{id}", method = RequestMethod.DELETE)
     public JsonResult removeAdminRole(@PathVariable Long id) {
 
@@ -282,6 +284,7 @@ public abstract class BaseAdminController<
         return new JsonResult<>(NO_ERROR);
     }
 
+    @ApiOperation(value = "Trigger Solr reindexing for the specified domain", hidden = true)
     @RequestMapping(value = "/api/v1/admin/{domain}/reindex-solr", method = RequestMethod.POST)
     public JsonResult reindexSolr(@PathVariable("domain") final String domain)
             throws IllegalAccessException, NotExistException, NoSuchFieldException, SolrServerException, IOException {
@@ -308,7 +311,8 @@ public abstract class BaseAdminController<
 
         return new JsonResult<>(NO_ERROR);
     }
-    
+
+    @ApiOperation(value = "Run standard operation for the set of users accounts", hidden = true)
     @RequestMapping(value = "/api/v1/admin/users/batch", method = RequestMethod.POST)
     public JsonResult doBatchOperation(@RequestBody BatchOperationDTO dto) {
 

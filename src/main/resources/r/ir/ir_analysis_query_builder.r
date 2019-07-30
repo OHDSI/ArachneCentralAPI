@@ -112,14 +112,14 @@ convertPeriod <- function(period){
 convertNumericRange <- function(range){
   r <- .jnew("org/ohdsi/circe/cohortdefinition/NumericRange")
   if (!is.null(range$Value)){
-    value <- .jnew("java/lang/Integer", toString(range$Value))
+    value <- .jcast(.jnew("java/lang/Integer", toString(range$Value)), new.class = "java/lang/Number")
     `.jfield<-`(r, 'value', value)
   }
   if (!is.null(range$Op)){
     `.jfield<-`(r, 'op', range$Op)
   }
   if (!is.null(range$Extent)){
-    extent <- .jnew("java/lang/Integer")
+    extent <- .jcast(.jnew("java/lang/Integer", toString(range$Extent)), new.class = "java/lang/Number")
     `.jfield<-`(r, 'extent', extent)
   }
   return(r)
@@ -783,10 +783,7 @@ convertStrata <- function(strata){
     criteria <- strata$DemographicCriteria[[i]]
     dc <- .jnew("org/ohdsi/circe/cohortdefinition/DemographicCriteria")
     if (!is.null(criteria$Age)){
-      age <- .jnew("org/ohdsi/circe/cohortdefinition/NumericRange")
-      `.jfield<-`(age, 'value', criteria$Age$Value)
-      `.jfield<-`(age, 'op', criteria$Age$Op)
-      `.jfield<-`(age, 'extent', criteria$Age$Extent)
+      age <- convertNumericRange(criteria$Age)
       `.jfield<-`(dc, 'age', age)
     }
     if (!is.null(criteria$Gender)){

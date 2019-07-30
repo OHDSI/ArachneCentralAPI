@@ -22,13 +22,9 @@
 
 package com.odysseusinc.arachne.portal.service.impl;
 
-import static com.odysseusinc.arachne.commons.utils.TemplateUtils.loadTemplate;
-
-import com.github.jknack.handlebars.Template;
 import com.odysseusinc.arachne.portal.service.ImportService;
 import com.odysseusinc.arachne.portal.util.ImportedFile;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
