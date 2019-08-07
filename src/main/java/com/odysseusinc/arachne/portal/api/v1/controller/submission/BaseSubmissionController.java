@@ -222,9 +222,9 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
 
         if (archive) {
             submissionService.uploadResultsByDataOwner(id, tempFile);
-            return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, true);
+        } else {
+            submissionService.uploadResultsByDataOwner(id, uploadFileName, tempFile);
         }
-        submissionService.uploadResultsByDataOwner(id, uploadFileName, tempFile);
         return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, true);
     }
 
