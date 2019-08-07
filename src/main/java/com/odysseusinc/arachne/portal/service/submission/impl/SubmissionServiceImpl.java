@@ -53,10 +53,12 @@ import com.odysseusinc.arachne.portal.util.LegacyAnalysisHelper;
 import com.odysseusinc.arachne.portal.util.SubmissionHelper;
 import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.storage.service.ContentStorageService;
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import javax.persistence.EntityManager;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PostAuthorize;
@@ -147,11 +149,18 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
         return super.deleteSubmissionResultFile(submissionId, resultFile);
     }
 
+
     @Override
     @PreAuthorize("hasPermission(#submissionId, 'Submission', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).APPROVE_SUBMISSION)")
-    public ResultFile uploadResultsByDataOwner(Long submissionId, String name, MultipartFile file) throws NotExistException, IOException {
+    public void uploadResultsByDataOwner(Long submissionId, File compressedFile) throws IOException {
+        super.uploadResultsByDataOwner(submissionId, compressedFile);
+    }
 
+    @Override
+    @PreAuthorize("hasPermission(#submissionId, 'Submission', "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).APPROVE_SUBMISSION)")
+    public ResultFile uploadResultsByDataOwner(Long submissionId, String name, File file) throws NotExistException, IOException {
         return super.uploadResultsByDataOwner(submissionId, name, file);
     }
 
