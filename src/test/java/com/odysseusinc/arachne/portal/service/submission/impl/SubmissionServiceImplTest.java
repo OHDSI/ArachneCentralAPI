@@ -90,7 +90,7 @@ public class SubmissionServiceImplTest {
                 .when(submissionService)
                 .uploadResultsByDataOwner(any(), any(), any(File.class));
 
-        URL zipFileUrl = getClass().getClassLoader().getResource("data/submission/test.zip");
+        URL zipFileUrl = getClass().getClassLoader().getResource("submission/test.zip");
 
         submissionService.uploadResultsByDataOwner(1L, new File(zipFileUrl.getPath()));
 
