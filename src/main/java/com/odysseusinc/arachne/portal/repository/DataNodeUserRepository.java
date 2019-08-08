@@ -33,4 +33,6 @@ public interface DataNodeUserRepository extends JpaRepository<DataNodeUser, Long
     List<DataNodeUser> findByDataNode(DataNode dataNode);
 
     Optional<DataNodeUser> findByDataNodeAndUserId(DataNode dataNode, Long userId);
+
+    Optional<DataNodeUser> findByDataNodeAndUser_Username(DataNode dataNode, String username);
 }
