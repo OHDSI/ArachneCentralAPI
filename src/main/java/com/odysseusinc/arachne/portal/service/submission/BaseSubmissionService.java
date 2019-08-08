@@ -41,15 +41,15 @@ import com.odysseusinc.arachne.portal.model.search.SubmissionGroupSearch;
 import com.odysseusinc.arachne.portal.service.impl.submission.SubmissionAction;
 import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.storage.util.FileSaveRequest;
-import org.springframework.data.domain.Page;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.multipart.MultipartFile;
-
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface BaseSubmissionService<T extends Submission, A extends Analysis> {
     T approveSubmissionResult(Long submissionId, ApproveDTO approveDTO, IUser user);
@@ -99,7 +99,9 @@ public interface BaseSubmissionService<T extends Submission, A extends Analysis>
 
     void notifyOwnersAboutSubmissionUpdateViaSocket(T submission);
 
-    ResultFile uploadResultsByDataOwner(Long submissionId, String name, MultipartFile file) throws NotExistException, IOException;
+    void uploadResultsByDataOwner(Long submissionId, File compressedFile) throws IOException;
+
+    ResultFile uploadResultsByDataOwner(Long submissionId, String fileName, File file) throws IOException;
 
     @PreAuthorize("hasPermission(#submissionId, 'Submission', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
