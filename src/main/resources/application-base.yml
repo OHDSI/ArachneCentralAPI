@@ -88,6 +88,8 @@ arachne:
     expiration: 900
   systemToken:
     header: Arachne-System-Token
+  impersonate:
+    header: Arachne-Auth-Impersonate
   resetPasswordToken:
     expiresMinutes: 60
   loginAttempts:
