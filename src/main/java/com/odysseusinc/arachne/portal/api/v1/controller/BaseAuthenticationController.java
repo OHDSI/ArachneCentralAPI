@@ -174,9 +174,9 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
         }
     }
 
-    protected void checkIfUserHasTenant(String email) throws AuthenticationException {
+    protected void checkIfUserHasTenant(String username) throws AuthenticationException {
 
-        IUser user = userService.getByEmailInAnyTenant(email);
+        IUser user = userService.getByUsernameInAnyTenant(username);
         if (user == null) {
             throw new BadCredentialsException(ErrorMessages.BAD_CREDENTIALS.getMessage());
         }
@@ -298,7 +298,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
     public JsonResult<UserInfoDTO> info(Principal principal) {
 
         final JsonResult<UserInfoDTO> result;
-        IUser user = userService.getByEmailInAnyTenant(principal.getName());
+        IUser user = userService.getByUsernameInAnyTenant(principal.getName());
         final UserInfoDTO userInfo = conversionService.convert(user, UserInfoDTO.class);
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
         result.setResult(userInfo);

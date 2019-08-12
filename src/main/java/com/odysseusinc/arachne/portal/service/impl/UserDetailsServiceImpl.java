@@ -44,15 +44,15 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     private UserService userService;
 
     @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        IUser user = userService.getByEmailInAnyTenant(email);
+        IUser user = userService.getByUsernameInAnyTenant(username);
         if (user == null) {
-            throw new UsernameNotFoundException(String.format("No user found with email '%s'.", email));
+            throw new UsernameNotFoundException(String.format("No user found with username '%s'.", username));
         }
         if (!user.getEnabled()) {
             if (!user.getEmailConfirmed()) {
-                throw new UserNotActivatedException(String.format("User with email='%s' is not activated", email));
+                throw new UserNotActivatedException(String.format("User with username='%s' is not activated", username));
             }
             throw new BadCredentialsException(ErrorMessages.BAD_CREDENTIALS.getMessage()); // temp solution - change in ARACHNE-2490
         }

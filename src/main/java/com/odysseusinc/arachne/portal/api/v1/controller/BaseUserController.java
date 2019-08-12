@@ -733,7 +733,10 @@ public abstract class BaseUserController<
         final DN dataNode = Optional.ofNullable(baseDataNodeService.getById(datanodeId)).orElseThrow(() ->
                 new NotExistException(String.format(DATA_NODE_NOT_FOUND_EXCEPTION, datanodeId),
                         DataNode.class));
-        final U user = userService.getByUnverifiedEmailInAnyTenant(linkUserToDataNode.getUserName());
+        final U user = userService.getByUsernameInAnyTenant(linkUserToDataNode.getUserName());
+        if (Objects.isNull(user)) {
+            throw new NotExistException(String.format("User %s not found", linkUserToDataNode.getUserName()), IUser.class);
+        }
         baseDataNodeService.linkUserToDataNode(dataNode, user);
         return new JsonResult(NO_ERROR);
     }
@@ -762,7 +765,7 @@ public abstract class BaseUserController<
         final DN dataNode = baseDataNodeService.getById(dataNodeId);
 
         final Set<DataNodeUser> users = linkUserToDataNodes.stream()
-                .map(link -> new DataNodeUser(userService.getByUnverifiedEmailInAnyTenant(link.getUserName()), dataNode))
+                .map(link -> new DataNodeUser(userService.getByUsernameInAnyTenant(link.getUserName()), dataNode))
                 .collect(Collectors.toSet());
 
         baseDataNodeService.relinkAllUsersToDataNode(dataNode, users);
