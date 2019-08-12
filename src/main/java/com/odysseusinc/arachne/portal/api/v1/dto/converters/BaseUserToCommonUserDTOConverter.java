@@ -47,6 +47,7 @@ public abstract class BaseUserToCommonUserDTOConverter<DTO extends CommonUserDTO
         dto.setEnabled(user.getEnabled());
         dto.setCreated(user.getCreated());
         dto.setUpdated(user.getUpdated());
+        dto.setCentralToken(user.getToken());
         if (user.getProfessionalType() != null) {
             if (conversionService.canConvert(ProfessionalType.class, CommonProfessionalTypeDTO.class)) {
                 dto.setProfessionalType(conversionService.convert(user.getProfessionalType(), CommonProfessionalTypeDTO.class));

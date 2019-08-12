@@ -87,7 +87,7 @@ public abstract class BaseExpertFinderController<U extends IUser, SK extends Ski
             Principal principal,
             @PathVariable("userId") String userId) {
 
-        IUser logginedUser = userService.getByEmail(principal.getName());
+        IUser logginedUser = userService.getByUsername(principal.getName());
         JsonResult<UserProfileDTO> result;
         IUser user = userService.getByUuidAndInitializeCollections(userId);
         UserProfileDTO userProfileDTO = conversionService.convert(user, UserProfileDTO.class);

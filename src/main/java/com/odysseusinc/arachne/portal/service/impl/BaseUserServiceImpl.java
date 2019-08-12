@@ -99,6 +99,7 @@ import com.odysseusinc.arachne.portal.service.mail.NewUserMailMessage;
 import com.odysseusinc.arachne.portal.service.mail.RegistrationMailMessage;
 import com.odysseusinc.arachne.portal.service.mail.RemindPasswordMailMessage;
 import com.odysseusinc.arachne.portal.util.EntityUtils;
+import com.odysseusinc.arachne.portal.util.UUIDGenerator;
 import edu.vt.middleware.password.Password;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -388,6 +389,9 @@ public abstract class BaseUserServiceImpl<
 
     private void setFields(U user) {
 
+        if (Objects.isNull(user.getToken())) {
+            user.setToken(UUIDGenerator.generateUUID());
+        }
         if (userOrigin.equals(UserOrigin.NATIVE)) {
             user.setUsername(user.getEmail());
         }

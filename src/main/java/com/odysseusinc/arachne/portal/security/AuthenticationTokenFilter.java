@@ -25,8 +25,11 @@ package com.odysseusinc.arachne.portal.security;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.config.tenancy.TenantContext;
+import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
+import com.odysseusinc.arachne.portal.service.DataNodeService;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.Objects;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -63,6 +66,9 @@ public class AuthenticationTokenFilter extends UsernamePasswordAuthenticationFil
     private UserDetailsService userDetailsService;
     @Autowired
     private Authenticator authenticator;
+    @Autowired
+    private DataNodeService dataNodeService;
+
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
@@ -92,6 +98,10 @@ public class AuthenticationTokenFilter extends UsernamePasswordAuthenticationFil
             } else if (impersonate != null && systemToken != null) {
                 TextEncryptor encryptor = getEncryptor(systemToken);
                 username = encryptor.decrypt(impersonate);
+                DataNode dataNode = dataNodeService.findByToken(systemToken).orElseThrow(() -> new BadCredentialsException("DataNode not registered"));
+                String message = MessageFormat.format("User %s is not linked to DataNode", username);
+                dataNodeService.findNodeUser(dataNode, username).orElseThrow(() -> new BadCredentialsException(message));
+
                 SecurityContextHolder.getContext().setAuthentication(null); //reset datanode authentication
             }
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {

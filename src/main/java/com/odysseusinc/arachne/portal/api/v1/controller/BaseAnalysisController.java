@@ -308,7 +308,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
             throws PermissionDeniedException, NotExistException {
 
         JsonResult<List<D>> result;
-        IUser user = userService.getByEmail(principal.getName());
+        IUser user = userService.getByUsername(principal.getName());
         if (user == null) {
             result = new JsonResult<>(PERMISSION_DENIED);
             return result;

@@ -190,6 +190,9 @@ public class BaseUser implements IUser, Serializable {
     @JoinColumn(name = "active_tenant_id")
     protected Tenant activeTenant;
 
+    @Column
+    protected String token;
+
     @Override
     public SolrCollection getCollection() {
 
@@ -604,5 +607,15 @@ public class BaseUser implements IUser, Serializable {
     public void setActiveTenant(Tenant activeTenant) {
 
         this.activeTenant = activeTenant;
+    }
+
+    public String getToken() {
+
+        return token;
+    }
+
+    public void setToken(String token) {
+
+        this.token = token;
     }
 }

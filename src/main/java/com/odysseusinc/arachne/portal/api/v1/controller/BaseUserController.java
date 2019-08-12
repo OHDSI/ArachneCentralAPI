@@ -280,7 +280,7 @@ public abstract class BaseUserController<
             throws IOException, WrongFileFormatException, ValidationException, ImageProcessingException, MetadataException, IllegalAccessException, SolrServerException, NoSuchFieldException {
 
         JsonResult<Boolean> result;
-        U user = userService.getByEmail(principal.getName());
+        U user = userService.getByUsername(principal.getName());
         if (file != null && file.length > 0) {
             userService.saveAvatar(user, file[0]);
         } else {
@@ -299,7 +299,7 @@ public abstract class BaseUserController<
             HttpServletResponse response) throws IOException {
 
         final Optional<String> userName = Optional.ofNullable(principal != null ? principal.getName() : null);
-        U user = userName.map(userService::getByEmail).orElse(null);
+        U user = userName.map(userService::getByUsername).orElse(null);
         userService.putAvatarToResponse(response, user);
     }
 
@@ -327,7 +327,7 @@ public abstract class BaseUserController<
             NoSuchFieldException {
 
         JsonResult<UserProfileDTO> result;
-        IUser owner = userService.getByEmail(principal.getName());
+        IUser owner = userService.getByUsername(principal.getName());
         if (binding.hasErrors()) {
             result = setValidationErrors(binding);
         } else {
@@ -349,7 +349,7 @@ public abstract class BaseUserController<
     ) throws ValidationException, PasswordValidationException {
 
         JsonResult result;
-        U loggedUser = userService.getByEmail(principal.getName());
+        U loggedUser = userService.getByUsername(principal.getName());
         try {
             userService.updatePassword(loggedUser, changePasswordDTO.getOldPassword(), changePasswordDTO.getNewPassword());
             result = new JsonResult<>(NO_ERROR);
@@ -368,7 +368,7 @@ public abstract class BaseUserController<
     ) throws NotExistException, IllegalAccessException, SolrServerException, IOException, NoSuchFieldException {
 
         JsonResult<UserProfileDTO> result;
-        U user = userService.getByEmail(principal.getName());
+        U user = userService.getByUsername(principal.getName());
         user = userService.addSkillToUser(user.getId(), skillId);
         UserProfileDTO userProfileDTO = conversionService.convert(user, UserProfileDTO.class);
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
@@ -384,7 +384,7 @@ public abstract class BaseUserController<
     ) throws NotExistException, IllegalAccessException, SolrServerException, IOException, NoSuchFieldException {
 
         JsonResult<UserProfileDTO> result;
-        U user = userService.getByEmail(principal.getName());
+        U user = userService.getByUsername(principal.getName());
         user = userService.removeSkillFromUser(user.getId(), skillId);
         UserProfileDTO userProfileDTO = conversionService.convert(user, UserProfileDTO.class);
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
@@ -407,7 +407,7 @@ public abstract class BaseUserController<
                 result.getValidatorErrors().put(fieldError.getField(), fieldError.getDefaultMessage());
             }
         } else {
-            U user = userService.getByEmail(principal.getName());
+            U user = userService.getByUsername(principal.getName());
             user = userService.addLinkToUser(user.getId(), conversionService.convert(userLinkDTO, UserLink.class));
 
             UserProfileDTO userProfileDTO = conversionService.convert(user, UserProfileDTO.class);
@@ -425,7 +425,7 @@ public abstract class BaseUserController<
     ) throws NotExistException {
 
         JsonResult<UserProfileDTO> result;
-        U user = userService.getByEmail(principal.getName());
+        U user = userService.getByUsername(principal.getName());
         user = userService.removeLinkFromUser(user.getId(), linkId);
         UserProfileDTO userProfileDTO = conversionService.convert(user, UserProfileDTO.class);
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
@@ -449,7 +449,7 @@ public abstract class BaseUserController<
             }
         } else {
 
-            U user = userService.getByEmail(principal.getName());
+            U user = userService.getByUsername(principal.getName());
             user = userService.addPublicationToUser(user.getId(), conversionService.convert(userPublicationDTO,
                     UserPublication.class));
             UserProfileDTO userProfileDTO = conversionService.convert(user, UserProfileDTO.class);
@@ -467,7 +467,7 @@ public abstract class BaseUserController<
     ) throws NotExistException {
 
         JsonResult<UserProfileDTO> result;
-        U user = userService.getByEmail(principal.getName());
+        U user = userService.getByUsername(principal.getName());
         user = userService.removePublicationFromUser(user.getId(), publicationId);
         UserProfileDTO userProfileDTO = conversionService.convert(user, UserProfileDTO.class);
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
@@ -482,7 +482,7 @@ public abstract class BaseUserController<
             @RequestParam(value = "studyId", required = false) Long studyId
     ) throws NotExistException {
 
-        U user = userService.getByEmail(principal.getName());
+        U user = userService.getByUsername(principal.getName());
 
         Stream<? extends Invitationable> invitationables;
         if (studyId != null) {
@@ -606,7 +606,7 @@ public abstract class BaseUserController<
             @Valid @RequestBody InvitationActionDTO invitationActionDTO
     ) throws NotExistException, AlreadyExistException, IOException {
 
-        U user = userService.getByEmail(principal.getName());
+        U user = userService.getByUsername(principal.getName());
         return invitationAccept(invitationActionDTO, user);
     }
 
@@ -726,7 +726,7 @@ public abstract class BaseUserController<
 
     @ApiOperation("Link U to DataNode")
     @RequestMapping(value = "/api/v1/user-management/datanodes/{datanodeSid}/users", method = POST)
-    public JsonResult linkUserToDataNode(@PathVariable("datanodeSid") Long datanodeId,
+    public JsonResult<CommonUserDTO> linkUserToDataNode(@PathVariable("datanodeSid") Long datanodeId,
                                          @RequestBody CommonLinkUserToDataNodeDTO linkUserToDataNode
     ) throws NotExistException, AlreadyExistException {
 
@@ -738,7 +738,8 @@ public abstract class BaseUserController<
             throw new NotExistException(String.format("User %s not found", linkUserToDataNode.getUserName()), IUser.class);
         }
         baseDataNodeService.linkUserToDataNode(dataNode, user);
-        return new JsonResult(NO_ERROR);
+        CommonUserDTO result = conversionService.convert(user, CommonUserDTO.class);
+        return new JsonResult<>(NO_ERROR, result);
     }
 
     @ApiOperation("Unlink User to DataNode")
