@@ -25,8 +25,11 @@ package com.odysseusinc.arachne.portal.security;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.config.tenancy.TenantContext;
+import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
+import com.odysseusinc.arachne.portal.service.DataNodeService;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.Objects;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -35,6 +38,8 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.jasypt.util.text.StrongTextEncryptor;
+import org.jasypt.util.text.TextEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -51,10 +56,15 @@ public class AuthenticationTokenFilter extends UsernamePasswordAuthenticationFil
     public static final String USER_REQUEST_HEADER = "Arachne-User-Request";
     @Value("${arachne.token.header}")
     private String tokenHeader;
+    @Value("${arachne.impersonate.header}")
+    private String impersonateHeader;
+    @Value("${arachne.systemToken.header}")
+    private String systemTokenHeader;
 
     @Autowired
     private TokenUtils tokenUtils;
-
+    @Autowired
+    private DataNodeService dataNodeService;
 
     @Autowired
     private UserDetailsService userDetailsService;
@@ -66,6 +76,8 @@ public class AuthenticationTokenFilter extends UsernamePasswordAuthenticationFil
 
         try {
             HttpServletRequest httpRequest = (HttpServletRequest) request;
+            String impersonate = httpRequest.getHeader(impersonateHeader);
+            String systemToken = httpRequest.getHeader(systemTokenHeader);
             String authToken = httpRequest.getHeader(tokenHeader);
             if (authToken == null && httpRequest.getCookies() != null) {
                 for (Cookie cookie : httpRequest.getCookies()) {
@@ -74,8 +86,9 @@ public class AuthenticationTokenFilter extends UsernamePasswordAuthenticationFil
                     }
                 }
             }
+            String username = null;
             if (authToken != null) {
-                String username = this.tokenUtils.getUsernameFromToken(authToken);
+                username = this.tokenUtils.getUsernameFromToken(authToken);
                 String requested = httpRequest.getHeader(USER_REQUEST_HEADER);
                 if (requested != null && username != null && !Objects.equals(username, requested)){
                     throw new BadCredentialsException("forced logout");
@@ -88,18 +101,27 @@ public class AuthenticationTokenFilter extends UsernamePasswordAuthenticationFil
                     }
                 }
 
-                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                    UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
-                    if (this.tokenUtils.validateToken(authToken, userDetails)) {
-                        UsernamePasswordAuthenticationToken authentication =
-                                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(httpRequest));
-                        SecurityContextHolder.getContext().setAuthentication(authentication);
+            } else if (impersonate != null && systemToken != null) {
+                TextEncryptor encryptor = getEncryptor(systemToken);
+                username = encryptor.decrypt(impersonate);
+                DataNode dataNode = dataNodeService.findByToken(systemToken).orElseThrow(() -> new BadCredentialsException("DataNode not registered"));
+                String message = MessageFormat.format("User %s is not linked to DataNode", username);
+                dataNodeService.findNodeUser(dataNode, username).orElseThrow(() -> new BadCredentialsException(message));
 
-                        TenantContext.setCurrentTenant(((ArachneUser) userDetails).getActiveTenantId());
-                    }
+                SecurityContextHolder.getContext().setAuthentication(null); //reset datanode authentication
+            }
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+                if (this.tokenUtils.validateToken(authToken, userDetails)) {
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(httpRequest));
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                    TenantContext.setCurrentTenant(((ArachneUser) userDetails).getActiveTenantId());
                 }
             }
+
             chain.doFilter(request, response);
         } catch (AuthenticationException ex) {
             logger.debug(ex.getMessage(), ex);
@@ -110,6 +132,13 @@ public class AuthenticationTokenFilter extends UsernamePasswordAuthenticationFil
             response.getOutputStream().write(objectMapper.writeValueAsString(result).getBytes());
             response.setContentType("application/json");
         }
+    }
+
+    private TextEncryptor getEncryptor(String token) {
+
+        StrongTextEncryptor encryptor = new StrongTextEncryptor();
+        encryptor.setPassword(token);
+        return encryptor;
     }
 
 }
