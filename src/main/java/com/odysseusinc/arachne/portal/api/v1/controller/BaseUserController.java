@@ -728,7 +728,7 @@ public abstract class BaseUserController<
 
     @ApiOperation("Link U to DataNode")
     @RequestMapping(value = "/api/v1/user-management/datanodes/{datanodeSid}/users", method = POST)
-    public JsonResult<CommonUserDTO> linkUserToDataNode(@PathVariable("datanodeSid") Long datanodeId,
+    public JsonResult linkUserToDataNode(@PathVariable("datanodeSid") Long datanodeId,
                                          @RequestBody CommonLinkUserToDataNodeDTO linkUserToDataNode
     ) throws NotExistException, AlreadyExistException {
 
@@ -740,8 +740,7 @@ public abstract class BaseUserController<
             throw new NotExistException(String.format("User %s not found", linkUserToDataNode.getUserName()), IUser.class);
         }
         baseDataNodeService.linkUserToDataNode(dataNode, user);
-        CommonUserDTO result = conversionService.convert(user, CommonUserDTO.class);
-        return new JsonResult<>(NO_ERROR, result);
+        return new JsonResult<>(NO_ERROR);
     }
 
     @ApiOperation("Unlink User to DataNode")

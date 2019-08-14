@@ -160,8 +160,4 @@ public interface IUser extends Breadcrumb, SolrEntity {
     Tenant getActiveTenant();
 
     void setActiveTenant(Tenant activeTenant);
-
-    String getToken();
-
-    void setToken(String token);
 }

@@ -389,9 +389,6 @@ public abstract class BaseUserServiceImpl<
 
     private void setFields(U user) {
 
-        if (Objects.isNull(user.getToken())) {
-            user.setToken(UUIDGenerator.generateUUID());
-        }
         if (userOrigin.equals(UserOrigin.NATIVE)) {
             user.setUsername(user.getEmail());
         }
