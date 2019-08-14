@@ -91,7 +91,7 @@ public class AuthenticationTokenFilter extends UsernamePasswordAuthenticationFil
                 }
             }
             chain.doFilter(request, response);
-        } catch (AuthenticationException ex) {
+        } catch (AuthenticationException | org.springframework.security.core.AuthenticationException ex) {
             logger.debug(ex.getMessage(), ex);
             ((HttpServletResponse) response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             JsonResult<Boolean> result = new JsonResult<>(JsonResult.ErrorCode.UNAUTHORIZED);
