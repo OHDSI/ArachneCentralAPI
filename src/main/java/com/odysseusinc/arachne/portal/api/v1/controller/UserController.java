@@ -26,7 +26,6 @@ import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserRegistrationDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserProfileGeneralDTO;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.DataNode;
-import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Paper;
@@ -37,7 +36,6 @@ import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.PaperSearch;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
-import com.odysseusinc.arachne.portal.security.TokenUtils;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
 import com.odysseusinc.arachne.portal.service.AnalysisUnlockRequestService;
 import com.odysseusinc.arachne.portal.service.DataNodeService;
@@ -46,6 +44,7 @@ import com.odysseusinc.arachne.portal.service.StudyService;
 import com.odysseusinc.arachne.portal.service.UserService;
 import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
 import com.odysseusinc.arachne.portal.service.submission.SubmissionService;
+import org.ohdsi.authenticator.service.Authenticator;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -54,8 +53,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController extends BaseUserController<IUser, Study, IDataSource, StudySearch, StudyViewItem, DataNode, Paper, PaperSearch, Skill, Analysis, Submission> {
 
 
-    public UserController(TokenUtils tokenUtils,
-                          UserService userService,
+    public UserController(UserService userService,
                           StudyService studyService,
                           GenericConversionService conversionService,
                           DataNodeService dataNodeService,
@@ -63,11 +61,11 @@ public class UserController extends BaseUserController<IUser, Study, IDataSource
                           AnalysisUnlockRequestService analysisUnlockRequestService,
                           PaperService paperService,
                           SubmissionService submissionService,
-                          ArachnePasswordValidator passwordValidator
+                          ArachnePasswordValidator passwordValidator,
+                          Authenticator authenticator
     ) {
 
-        super(tokenUtils,
-                userService,
+        super(  userService,
                 studyService,
                 conversionService,
                 dataNodeService,
@@ -75,7 +73,8 @@ public class UserController extends BaseUserController<IUser, Study, IDataSource
                 analysisUnlockRequestService,
                 paperService,
                 submissionService,
-                passwordValidator);
+                passwordValidator,
+                authenticator);
     }
 
     @Override

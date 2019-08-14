@@ -68,8 +68,8 @@ spring:
     packages:
       trust-all: true
 build:
-#  number: @build.number@
-#  id: @build.id@
+  number: @build.number@
+  id: @build.id@
 flyway:
   datasource:
     driverClassName: org.postgresql.Driver

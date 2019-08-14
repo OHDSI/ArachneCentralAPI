@@ -61,6 +61,4 @@ public interface BaseDataNodeService<DN extends DataNode> {
     Optional<DN> findByToken(String token);
 
     DN getBySid(String uuid) throws NotExistException;
-
-    Optional<DataNodeUser> findNodeUser(DN dataNode, String username);
 }

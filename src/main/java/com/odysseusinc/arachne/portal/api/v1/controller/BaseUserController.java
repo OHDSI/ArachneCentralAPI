@@ -81,7 +81,6 @@ import com.odysseusinc.arachne.portal.model.UserPublication;
 import com.odysseusinc.arachne.portal.model.UserStudy;
 import com.odysseusinc.arachne.portal.model.search.PaperSearch;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
-import com.odysseusinc.arachne.portal.security.TokenUtils;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
 import com.odysseusinc.arachne.portal.service.AnalysisUnlockRequestService;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
@@ -94,6 +93,7 @@ import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -114,8 +114,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.ohdsi.authenticator.service.Authenticator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -144,7 +146,6 @@ public abstract class BaseUserController<
     private static final String DATA_NODE_NOT_FOUND_EXCEPTION = "dataNode %s not found";
     private static final String INVITATION_HOME_PAGE = "/study-manager/studies/";
 
-    protected final TokenUtils tokenUtils;
     protected final BaseUserService<U, SK> userService;
     protected final BaseStudyService<S, DS, SS, SU> studyService;
     protected final GenericConversionService conversionService;
@@ -154,9 +155,11 @@ public abstract class BaseUserController<
     protected final BasePaperService<P, PS, S, DS, SS, SU> paperService;
     protected final BaseSubmissionService<SB, A> submissionService;
     protected final ArachnePasswordValidator passwordValidator;
+    protected final Authenticator authenticator;
+    @Value("${arachne.token.header}")
+    private String tokenHeader;
 
-    public BaseUserController(TokenUtils tokenUtils,
-                              BaseUserService<U, SK> userService,
+    public BaseUserController(BaseUserService<U, SK> userService,
                               BaseStudyService<S, DS, SS, SU> studyService,
                               GenericConversionService conversionService,
                               BaseDataNodeService<DN> baseDataNodeService,
@@ -164,9 +167,9 @@ public abstract class BaseUserController<
                               AnalysisUnlockRequestService analysisUnlockRequestService,
                               BasePaperService<P, PS, S, DS, SS, SU> paperService,
                               BaseSubmissionService<SB, A> submissionService,
-                              ArachnePasswordValidator passwordValidator) {
+                              ArachnePasswordValidator passwordValidator,
+                              Authenticator authenticator) {
 
-        this.tokenUtils = tokenUtils;
         this.userService = userService;
         this.studyService = studyService;
         this.conversionService = conversionService;
@@ -176,6 +179,7 @@ public abstract class BaseUserController<
         this.paperService = paperService;
         this.submissionService = submissionService;
         this.passwordValidator = passwordValidator;
+        this.authenticator = authenticator;
     }
 
     @ApiOperation("Password restrictions")
@@ -250,9 +254,7 @@ public abstract class BaseUserController<
             throws IOException, UserNotFoundException, NotExistException,
             NoSuchFieldException, IllegalAccessException, SolrServerException, URISyntaxException {
 
-        tokenUtils
-                .getAuthToken(request)
-                .forEach(token -> tokenUtils.addInvalidateToken(token));
+        getAuthToken(request).forEach(authenticator::invalidateToken);
 
         Boolean activated;
         try {
@@ -825,4 +827,26 @@ public abstract class BaseUserController<
             userService.setActiveTenant(user, dto.getActiveTenantId());
         }
     }
+
+    protected List<String> getAuthToken(HttpServletRequest request) {
+
+        List<String> tokens = new ArrayList<>();
+
+        // Get token from header
+        String headerToken = request.getHeader(tokenHeader);
+        if (headerToken != null) {
+            tokens.add(headerToken);
+        }
+
+        // Get token from cookie
+        if (request.getCookies() != null) {
+            Arrays.stream(request.getCookies())
+                    .filter(cookie -> cookie.getName().equalsIgnoreCase(tokenHeader) && cookie.getValue() != null)
+                    .findFirst()
+                    .ifPresent(cookie -> tokens.add(cookie.getValue()));
+        }
+
+        return tokens;
+    }
+
 }

@@ -41,7 +41,6 @@ import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.PasswordReset;
-import com.odysseusinc.arachne.portal.security.TokenUtils;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordData;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidationResult;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
@@ -88,9 +87,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
 
     private AuthenticationManager authenticationManager;
     protected Authenticator authenticator;
-    private TokenUtils tokenUtils;
     protected BaseUserService userService;
-    private UserDetailsService userDetailsService;
     private PasswordResetService passwordResetService;
     private ArachnePasswordValidator passwordValidator;
     protected ProfessionalTypeService professionalTypeService;
@@ -98,9 +95,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
 
     public BaseAuthenticationController(AuthenticationManager authenticationManager,
                                         Authenticator authenticator,
-                                        TokenUtils tokenUtils,
                                         BaseUserService userService,
-                                        UserDetailsService userDetailsService,
                                         PasswordResetService passwordResetService,
                                         @Qualifier("passwordValidator") ArachnePasswordValidator passwordValidator,
                                         ProfessionalTypeService professionalTypeService,
@@ -108,9 +103,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
 
         this.authenticationManager = authenticationManager;
         this.authenticator = authenticator;
-        this.tokenUtils = tokenUtils;
         this.userService = userService;
-        this.userDetailsService = userDetailsService;
         this.passwordResetService = passwordResetService;
         this.passwordValidator = passwordValidator;
         this.professionalTypeService = professionalTypeService;
@@ -226,8 +219,6 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
         try {
             String token = request.getHeader(this.tokenHeader);
             UserInfo userInfo = authenticator.refreshToken(token);
-//            String username = userInfo.getUsername();
-//            this.userDetailsService.loadUserByUsername(username);
             result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
             result.setResult(userInfo.getToken());
         } catch (Exception ex) {
@@ -266,7 +257,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
 
         if (principal != null) {
             String token = request.getHeader(tokenHeader);
-            tokenUtils.addInvalidateToken(token);
+            authenticator.invalidateToken(token);
         }
         JsonResult result;
         if (binding.hasErrors()) {

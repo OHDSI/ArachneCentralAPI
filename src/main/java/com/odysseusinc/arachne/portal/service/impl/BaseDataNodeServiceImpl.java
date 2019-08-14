@@ -280,10 +280,4 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode, DS extends ID
                 .ifPresent(existing -> dataNodeUser.setId(existing.getId()));
         dataNodeUserRepository.save(dataNodeUser);
     }
-
-    @Override
-    public Optional<DataNodeUser> findNodeUser(DN dataNode, String username) {
-
-        return dataNodeUserRepository.findByDataNodeAndUser_Username(dataNode, username);
-    }
 }

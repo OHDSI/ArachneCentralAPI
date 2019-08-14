@@ -22,7 +22,6 @@
 
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
-import com.odysseusinc.arachne.portal.security.TokenUtils;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
 import com.odysseusinc.arachne.portal.service.LoginAttemptService;
 import com.odysseusinc.arachne.portal.service.PasswordResetService;
@@ -38,7 +37,6 @@ public class AuthenticationController extends BaseAuthenticationController {
 
     public AuthenticationController(AuthenticationManager authenticationManager,
                                     Authenticator authenticator,
-                                    TokenUtils tokenUtils,
                                     UserService userService,
                                     UserDetailsService userDetailsService,
                                     PasswordResetService passwordResetService,
@@ -48,9 +46,7 @@ public class AuthenticationController extends BaseAuthenticationController {
 
         super(authenticationManager,
                 authenticator,
-                tokenUtils,
                 userService,
-                userDetailsService,
                 passwordResetService,
                 passwordValidator,
                 professionalTypeService,
