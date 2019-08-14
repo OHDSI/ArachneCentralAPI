@@ -12,14 +12,8 @@ For building and run the Arachne please install following applications:
 Please create ohdsi user and 2 databases: arachne_portal and datanode. That can achieved by running following command in psql console:
 ```   
 create role ohdsi with LOGIN password 'ohdsi';
-alter role ohdsi with superuser;
 create database arachne_portal owner ohdsi;
 create database datanode owner ohdsi;
-```
-
-**Note:** Superuser is required to execute some migrations, after first run you might want to revoke superuser permissions from database user;
-```
-alter role ohdsi with nosuperuser;
 ```
 
 ##Getting sources
