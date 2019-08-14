@@ -35,11 +35,12 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.ohdsi.authenticator.exception.AuthenticationException;
+import org.ohdsi.authenticator.service.Authenticator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -53,11 +54,10 @@ public class AuthenticationTokenFilter extends UsernamePasswordAuthenticationFil
     private String tokenHeader;
 
     @Autowired
-    private TokenUtils tokenUtils;
-
-
-    @Autowired
     private UserDetailsService userDetailsService;
+    @Autowired
+    private Authenticator authenticator;
+
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
@@ -75,33 +75,23 @@ public class AuthenticationTokenFilter extends UsernamePasswordAuthenticationFil
                 }
             }
             if (authToken != null) {
-                String username = this.tokenUtils.getUsernameFromToken(authToken);
+                String username = authenticator.resolveUsername(authToken);
                 String requested = httpRequest.getHeader(USER_REQUEST_HEADER);
-                if (requested != null && username != null && !Objects.equals(username, requested)){
+                if (requested != null && username != null && !Objects.equals(username, requested)) {
                     throw new BadCredentialsException("forced logout");
                 }
-                if (tokenUtils.isExpired(authToken)) {
-                    if (((HttpServletRequest) request).getRequestURI().startsWith("/api")) {
-                        if (username != null) {
-                            throw new BadCredentialsException("token expired");
-                        }
-                    }
-                }
-
                 if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                     UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
-                    if (this.tokenUtils.validateToken(authToken, userDetails)) {
-                        UsernamePasswordAuthenticationToken authentication =
-                                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(httpRequest));
-                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(httpRequest));
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                        TenantContext.setCurrentTenant(((ArachneUser) userDetails).getActiveTenantId());
-                    }
+                    TenantContext.setCurrentTenant(((ArachneUser) userDetails).getActiveTenantId());
                 }
             }
             chain.doFilter(request, response);
-        } catch (AuthenticationException ex) {
+        } catch (AuthenticationException | org.springframework.security.core.AuthenticationException ex) {
             logger.debug(ex.getMessage(), ex);
             ((HttpServletResponse) response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             JsonResult<Boolean> result = new JsonResult<>(JsonResult.ErrorCode.UNAUTHORIZED);

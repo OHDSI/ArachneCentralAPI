@@ -128,7 +128,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
         if (principal == null) {
             throw new PermissionDeniedException();
         }
-        IUser user = userService.getByEmail(principal.getName());
+        IUser user = userService.getByUsername(principal.getName());
         if (user == null) {
             throw new PermissionDeniedException();
         }
@@ -192,7 +192,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
         approveDTO.setIsSuccess(true);
 
         Submission updatedSubmission = submissionService.approveSubmissionResult(submissionId, approveDTO, userService
-                .getByEmail(principal.getName()));
+                .getByUsername(principal.getName()));
 
         DTO submissionDTO = conversionService.convert(updatedSubmission, getSubmissionDTOClass());
         return new JsonResult<>(NO_ERROR, submissionDTO);
@@ -285,7 +285,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
                 "attachment; filename=" + archiveName);
 
         Submission submission = submissionService.getSubmissionById(submissionId);
-        IUser user = userService.getByEmail(principal.getName());
+        IUser user = userService.getByUsername(principal.getName());
         submissionService
                 .getSubmissionResultAllFiles(user, submission.getSubmissionGroup().getAnalysis().getId(),
                         submissionId, archiveName, response.getOutputStream());
@@ -349,7 +349,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
             @RequestParam(value = "real-name", required = false) String realName
     ) throws PermissionDeniedException, IOException {
 
-        IUser user = userService.getByEmail(principal.getName());
+        IUser user = userService.getByUsername(principal.getName());
 
         ResultFileSearch resultFileSearch = new ResultFileSearch();
         resultFileSearch.setPath(path);
@@ -462,7 +462,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
             throws NotExistException, PermissionDeniedException {
 
         Submission submission = submissionService.getSubmissionById(submissionId);
-        IUser user = userService.getByEmail(principal.getName());
+        IUser user = userService.getByUsername(principal.getName());
         return submissionService.getResultFileAndCheckPermission(user, submission, submission.getSubmissionGroup().getAnalysis().getId(), fileUuid);
     }
 

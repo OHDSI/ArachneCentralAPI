@@ -99,6 +99,7 @@ import com.odysseusinc.arachne.portal.service.mail.NewUserMailMessage;
 import com.odysseusinc.arachne.portal.service.mail.RegistrationMailMessage;
 import com.odysseusinc.arachne.portal.service.mail.RemindPasswordMailMessage;
 import com.odysseusinc.arachne.portal.util.EntityUtils;
+import com.odysseusinc.arachne.portal.util.UUIDGenerator;
 import edu.vt.middleware.password.Password;
 import java.awt.image.BufferedImage;
 import java.io.File;

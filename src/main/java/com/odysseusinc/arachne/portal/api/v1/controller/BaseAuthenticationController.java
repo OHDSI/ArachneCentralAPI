@@ -41,8 +41,6 @@ import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.PasswordReset;
-import com.odysseusinc.arachne.portal.model.security.ArachneUser;
-import com.odysseusinc.arachne.portal.security.TokenUtils;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordData;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidationResult;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
@@ -57,6 +55,9 @@ import java.security.Principal;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.ohdsi.authenticator.model.UserInfo;
+import org.ohdsi.authenticator.service.Authenticator;
+import org.pac4j.core.credentials.UsernamePasswordCredentials;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -81,29 +82,28 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
     private String tokenHeader;
     @Value("${portal.authMethod}")
     private String userOrigin;
+    @Value("${security.method}")
+    private String authMethod;
 
     private AuthenticationManager authenticationManager;
-    private TokenUtils tokenUtils;
+    protected Authenticator authenticator;
     protected BaseUserService userService;
-    private UserDetailsService userDetailsService;
     private PasswordResetService passwordResetService;
     private ArachnePasswordValidator passwordValidator;
     protected ProfessionalTypeService professionalTypeService;
     protected LoginAttemptService loginAttemptService;
 
     public BaseAuthenticationController(AuthenticationManager authenticationManager,
-                                        TokenUtils tokenUtils,
+                                        Authenticator authenticator,
                                         BaseUserService userService,
-                                        UserDetailsService userDetailsService,
                                         PasswordResetService passwordResetService,
                                         @Qualifier("passwordValidator") ArachnePasswordValidator passwordValidator,
                                         ProfessionalTypeService professionalTypeService,
                                         LoginAttemptService loginAttemptService) {
 
         this.authenticationManager = authenticationManager;
-        this.tokenUtils = tokenUtils;
+        this.authenticator = authenticator;
         this.userService = userService;
-        this.userDetailsService = userDetailsService;
         this.passwordResetService = passwordResetService;
         this.passwordValidator = passwordValidator;
         this.professionalTypeService = professionalTypeService;
@@ -131,7 +131,9 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
             checkIfUserBlocked(username);
             checkIfUserHasTenant(username);
             authenticate(authenticationRequest);
-            String token = this.tokenUtils.generateToken(username);
+            UserInfo userInfo = authenticator.authenticate(authMethod,
+                    new UsernamePasswordCredentials(username, authenticationRequest.getPassword()));
+            String token = userInfo.getToken();
             CommonAuthenticationResponse authenticationResponse = new CommonAuthenticationResponse(token);
             jsonResult = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, authenticationResponse);
             loginAttemptService.loginSucceeded(username);
@@ -165,9 +167,9 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
         }
     }
 
-    protected void checkIfUserHasTenant(String email) throws AuthenticationException {
+    protected void checkIfUserHasTenant(String username) throws AuthenticationException {
 
-        IUser user = userService.getByEmailInAnyTenant(email);
+        IUser user = userService.getByUsernameInAnyTenant(username);
         if (user == null) {
             throw new BadCredentialsException(ErrorMessages.BAD_CREDENTIALS.getMessage());
         }
@@ -196,7 +198,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
         try {
             String token = request.getHeader(tokenHeader);
             if (token != null) {
-                tokenUtils.addInvalidateToken(token);
+                authenticator.invalidateToken(token);
             }
             result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
             result.setResult(true);
@@ -216,15 +218,9 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
         JsonResult<String> result;
         try {
             String token = request.getHeader(this.tokenHeader);
-            String username = this.tokenUtils.getUsernameFromToken(token);
-            ArachneUser user = (ArachneUser) this.userDetailsService.loadUserByUsername(username);
-            if (this.tokenUtils.canTokenBeRefreshed(token, user.getLastPasswordReset())) {
-                String refreshedToken = this.tokenUtils.refreshToken(token);
-                result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
-                result.setResult(refreshedToken);
-            } else {
-                result = new JsonResult<>(JsonResult.ErrorCode.UNAUTHORIZED);
-            }
+            UserInfo userInfo = authenticator.refreshToken(token);
+            result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
+            result.setResult(userInfo.getToken());
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
             result = new JsonResult<>(JsonResult.ErrorCode.UNAUTHORIZED);
@@ -261,7 +257,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
 
         if (principal != null) {
             String token = request.getHeader(tokenHeader);
-            tokenUtils.addInvalidateToken(token);
+            authenticator.invalidateToken(token);
         }
         JsonResult result;
         if (binding.hasErrors()) {
@@ -293,7 +289,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
     public JsonResult<UserInfoDTO> info(Principal principal) {
 
         final JsonResult<UserInfoDTO> result;
-        IUser user = userService.getByEmailInAnyTenant(principal.getName());
+        IUser user = userService.getByUsernameInAnyTenant(principal.getName());
         final UserInfoDTO userInfo = conversionService.convert(user, UserInfoDTO.class);
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
         result.setResult(userInfo);

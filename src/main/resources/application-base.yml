@@ -83,11 +83,13 @@ flyway:
   #locations: db/migration,classpath:com.odysseusinc.arachne.portal.db.migration
 arachne:
   token:
-    secret: sssshhhh!
+    secret: 129DF19C8A91AFD8375A2826A33539K01ACQ778QOJFAA9MGWLWH73PLXVFVHBR7860MTIE2O8EEVF9KCO77P6A7NUNX4XHAGCRFSBWG879XPDOIN6C2LFCKJI002OIABS4D6Q9VMJJIX8UCE48EF
     header: Arachne-Auth-Token
     expiration: 900
   systemToken:
     header: Arachne-System-Token
+  impersonate:
+    header: Arachne-Auth-Impersonate
   resetPasswordToken:
     expiresMinutes: 60
   loginAttempts:
@@ -155,3 +157,23 @@ antivirus:
 tmp:
   holder:
     cron: 0 0 6 * * ?
+authenticator:
+  methods:
+    db:
+      service: org.ohdsi.authenticator.service.jdbc.JdbcAuthService
+      config:
+        jdbcUrl: ${spring.datasource.url}
+        username: ${spring.datasource.username}
+        password: ${spring.datasource.password}
+        query: SELECT password, firstname, middlename, lastname FROM users_data WHERE email = :username
+        passwordEncoder: org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+        fieldsToExtract:
+          firstName: firstname
+          middleName: middlename
+          lastName: lastname
+security:
+  method: db
+  jwt:
+    token:
+      secretKey: ${arachne.token.secret}
+      validityInSeconds: ${arachne.token.expiration}
