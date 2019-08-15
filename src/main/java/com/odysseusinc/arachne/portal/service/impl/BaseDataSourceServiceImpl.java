@@ -245,9 +245,14 @@ public abstract class BaseDataSourceServiceImpl<
         });
     }
 
+    private boolean isNameUnique(Long sourceId, String dsName) {
+
+        return dataSourceRepository.findByNameAndIdNot(dsName, sourceId).isEmpty();
+    }
+
     private DS baseUpdate(DS exist, DS dataSource) {
 
-        if (dataSource.getName() != null) {
+        if (isNameUnique(exist.getId(), dataSource.getName()) && StringUtils.isNotBlank(dataSource.getName())) {
             exist.setName(dataSource.getName());
         }
 
