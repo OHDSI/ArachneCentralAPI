@@ -22,8 +22,6 @@
 
 package com.odysseusinc.arachne.portal.security;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.config.tenancy.TenantContext;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
 import java.io.IOException;
@@ -34,20 +32,24 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.ohdsi.authenticator.exception.AuthenticationException;
 import org.ohdsi.authenticator.service.Authenticator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.web.filter.GenericFilterBean;
 
-public class AuthenticationTokenFilter extends UsernamePasswordAuthenticationFilter {
+public class AuthenticationTokenFilter extends GenericFilterBean {
+
+    Logger log = LoggerFactory.getLogger(AuthenticationTokenFilter.class);
 
     public static final String USER_REQUEST_HEADER = "Arachne-User-Request";
     @Value("${arachne.token.header}")
@@ -58,14 +60,12 @@ public class AuthenticationTokenFilter extends UsernamePasswordAuthenticationFil
     @Autowired
     private Authenticator authenticator;
 
-    private ObjectMapper objectMapper = new ObjectMapper();
-
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException,
             ServletException, AuthenticationException {
 
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
         try {
-            HttpServletRequest httpRequest = (HttpServletRequest) request;
             String authToken = httpRequest.getHeader(tokenHeader);
             if (authToken == null && httpRequest.getCookies() != null) {
                 for (Cookie cookie : httpRequest.getCookies()) {
@@ -90,16 +90,17 @@ public class AuthenticationTokenFilter extends UsernamePasswordAuthenticationFil
                     TenantContext.setCurrentTenant(((ArachneUser) userDetails).getActiveTenantId());
                 }
             }
-            chain.doFilter(request, response);
         } catch (AuthenticationException | org.springframework.security.core.AuthenticationException ex) {
-            logger.debug(ex.getMessage(), ex);
-            ((HttpServletResponse) response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            JsonResult<Boolean> result = new JsonResult<>(JsonResult.ErrorCode.UNAUTHORIZED);
-            result.setResult(Boolean.FALSE);
-
-            response.getOutputStream().write(objectMapper.writeValueAsString(result).getBytes());
-            response.setContentType("application/json");
+            String method = httpRequest.getMethod();
+            if (!HttpMethod.OPTIONS.matches(method)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Authentication failed", ex);
+                } else {
+                    log.error("Authentication failed: {}, requested: {} {}", ex.getMessage(), method, httpRequest.getRequestURI());
+                }
+            }
         }
+        chain.doFilter(request, response);
     }
 
 }
