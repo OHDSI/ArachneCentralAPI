@@ -22,8 +22,6 @@
 
 package com.odysseusinc.arachne.portal.security;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.config.tenancy.TenantContext;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
 import java.io.IOException;
@@ -34,7 +32,6 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.ohdsi.authenticator.exception.AuthenticationException;
 import org.ohdsi.authenticator.service.Authenticator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,8 +54,6 @@ public class AuthenticationTokenFilter extends UsernamePasswordAuthenticationFil
     private UserDetailsService userDetailsService;
     @Autowired
     private Authenticator authenticator;
-
-    private ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException,
@@ -90,16 +85,10 @@ public class AuthenticationTokenFilter extends UsernamePasswordAuthenticationFil
                     TenantContext.setCurrentTenant(((ArachneUser) userDetails).getActiveTenantId());
                 }
             }
-            chain.doFilter(request, response);
         } catch (AuthenticationException | org.springframework.security.core.AuthenticationException ex) {
-            logger.debug(ex.getMessage(), ex);
-            ((HttpServletResponse) response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            JsonResult<Boolean> result = new JsonResult<>(JsonResult.ErrorCode.UNAUTHORIZED);
-            result.setResult(Boolean.FALSE);
-
-            response.getOutputStream().write(objectMapper.writeValueAsString(result).getBytes());
-            response.setContentType("application/json");
+            logger.error(ex.getMessage(), ex);
         }
+        chain.doFilter(request, response);
     }
 
 }
