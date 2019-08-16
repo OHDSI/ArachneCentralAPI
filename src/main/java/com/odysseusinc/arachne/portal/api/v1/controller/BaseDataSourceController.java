@@ -115,7 +115,6 @@ public abstract class BaseDataSourceController<
         if (bindingResult.hasErrors()) {
             result = setValidationErrors(bindingResult);
         } else {
-            IUser user = getUser(principal);
             final DS exist = dataSourceService.getByIdInAnyTenant(dataSourceId);
             DS dataSource = convertDTOToDataSource(commonDataSourceDTO);
             dataSource.setId(dataSourceId);
