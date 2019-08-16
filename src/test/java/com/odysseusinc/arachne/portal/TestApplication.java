@@ -164,9 +164,7 @@ public class TestApplication {
         @Bean
         public AuthenticationTokenFilter authenticationTokenFilterBean() throws Exception {
 
-            AuthenticationTokenFilter authenticationTokenFilter = new AuthenticationTokenFilter();
-            authenticationTokenFilter.setAuthenticationManager(authenticationManagerBean());
-            return authenticationTokenFilter;
+            return new AuthenticationTokenFilter();
         }
 
         @Autowired

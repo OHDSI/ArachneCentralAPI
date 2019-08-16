@@ -41,10 +41,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.web.filter.GenericFilterBean;
 
-public class AuthenticationTokenFilter extends UsernamePasswordAuthenticationFilter {
+public class AuthenticationTokenFilter extends GenericFilterBean {
 
     public static final String USER_REQUEST_HEADER = "Arachne-User-Request";
     @Value("${arachne.token.header}")
