@@ -34,8 +34,11 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import org.ohdsi.authenticator.exception.AuthenticationException;
 import org.ohdsi.authenticator.service.Authenticator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -45,6 +48,8 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.web.filter.GenericFilterBean;
 
 public class AuthenticationTokenFilter extends GenericFilterBean {
+
+    Logger log = LoggerFactory.getLogger(AuthenticationTokenFilter.class);
 
     public static final String USER_REQUEST_HEADER = "Arachne-User-Request";
     @Value("${arachne.token.header}")
@@ -59,8 +64,8 @@ public class AuthenticationTokenFilter extends GenericFilterBean {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException,
             ServletException, AuthenticationException {
 
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
         try {
-            HttpServletRequest httpRequest = (HttpServletRequest) request;
             String authToken = httpRequest.getHeader(tokenHeader);
             if (authToken == null && httpRequest.getCookies() != null) {
                 for (Cookie cookie : httpRequest.getCookies()) {
@@ -86,7 +91,14 @@ public class AuthenticationTokenFilter extends GenericFilterBean {
                 }
             }
         } catch (AuthenticationException | org.springframework.security.core.AuthenticationException ex) {
-            logger.error(ex.getMessage(), ex);
+            String method = httpRequest.getMethod();
+            if (!HttpMethod.OPTIONS.matches(method)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Authentication failed", ex);
+                } else {
+                    log.error("Authentication failed: {}, requested: {} {}", ex.getMessage(), method, httpRequest.getRequestURI());
+                }
+            }
         }
         chain.doFilter(request, response);
     }
