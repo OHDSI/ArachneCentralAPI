@@ -22,8 +22,6 @@
 
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
-import static com.odysseusinc.arachne.portal.api.v1.controller.util.ControllerUtils.emulateEmailSent;
-
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAuthMethodDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAuthenticationRequest;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAuthenticationResponse;
@@ -50,10 +48,6 @@ import com.odysseusinc.arachne.portal.service.PasswordResetService;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
 import edu.vt.middleware.password.Password;
 import io.swagger.annotations.ApiOperation;
-import java.io.IOException;
-import java.security.Principal;
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.ohdsi.authenticator.model.UserInfo;
 import org.ohdsi.authenticator.service.Authenticator;
@@ -68,11 +62,17 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+import java.io.IOException;
+import java.security.Principal;
+
+import static com.odysseusinc.arachne.portal.api.v1.controller.util.ControllerUtils.emulateEmailSent;
 
 public abstract class BaseAuthenticationController extends BaseController<DataNode, IUser> {
 
@@ -162,8 +162,10 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
 
     private void checkIfUserBlocked(String username) throws PermissionDeniedException {
 
-        if (loginAttemptService.isBlocked(username)) {
-            throw new PermissionDeniedException("You have exceeded the number of allowed login attempts. Please try again later.");
+        final Long remainingAccountLockPeriodSeconds = loginAttemptService.getRemainingAccountLockPeriod(username);
+        if (remainingAccountLockPeriodSeconds != null) {
+            final String errorMessage = String.format("You have exceeded the number of allowed login attempts. Please try again in %s seconds.", remainingAccountLockPeriodSeconds);
+            throw new PermissionDeniedException(errorMessage);
         }
     }
 
