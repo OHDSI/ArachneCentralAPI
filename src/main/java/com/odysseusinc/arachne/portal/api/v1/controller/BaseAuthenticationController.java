@@ -162,8 +162,9 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
 
     private void checkIfUserBlocked(String username) throws PermissionDeniedException {
 
-        if (loginAttemptService.isBlocked(username)) {
-            final String errorMessage = String.format("You have exceeded the number of allowed login attempts. Please try again in %s minutes.", loginAttemptService.getAttemptsResetMinutes());
+        final Long remainingAccountLockPeriodSeconds = loginAttemptService.getRemainingAccountLockPeriod(username);
+        if (remainingAccountLockPeriodSeconds != null) {
+            final String errorMessage = String.format("You have exceeded the number of allowed login attempts. Please try again in %s seconds.", remainingAccountLockPeriodSeconds);
             throw new PermissionDeniedException(errorMessage);
         }
     }
