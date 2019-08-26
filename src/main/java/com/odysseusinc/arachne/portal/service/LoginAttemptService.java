@@ -30,4 +30,6 @@ public interface LoginAttemptService {
     void loginFailed(String key);
 
     boolean isBlocked(String key);
+
+    int getAttemptsResetMinutes();
 }

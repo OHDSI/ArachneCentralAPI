@@ -26,12 +26,13 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.odysseusinc.arachne.portal.service.LoginAttemptService;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import javax.annotation.PostConstruct;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import javax.annotation.PostConstruct;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 
 @Service
@@ -56,11 +57,13 @@ public class LoginAttemptServiceImpl implements LoginAttemptService {
         });
     }
 
+    @Override
     public void loginSucceeded(String key) {
 
         attemptsCache.invalidate(key);
     }
 
+    @Override
     public void loginFailed(String key) {
 
         int attempts = ObjectUtils.firstNonNull(attemptsCache.getIfPresent(key), 0);
@@ -68,6 +71,7 @@ public class LoginAttemptServiceImpl implements LoginAttemptService {
         attemptsCache.put(key, attempts);
     }
 
+    @Override
     public boolean isBlocked(String key) {
 
         try {
@@ -75,5 +79,11 @@ public class LoginAttemptServiceImpl implements LoginAttemptService {
         } catch (ExecutionException e) {
             return false;
         }
+    }
+
+    @Override
+    public int getAttemptsResetMinutes() {
+
+        return attemptsResetMinutes;
     }
 }
