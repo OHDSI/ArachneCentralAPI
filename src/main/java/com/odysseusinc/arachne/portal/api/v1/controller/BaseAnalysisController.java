@@ -31,6 +31,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
+import com.google.common.collect.ImmutableMap;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonEntityRequestDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.OptionDTO;
@@ -62,6 +63,7 @@ import com.odysseusinc.arachne.portal.exception.NotUniqueException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ServiceNotAvailableException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
+import com.odysseusinc.arachne.portal.exception.ValidationRuntimeException;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.AnalysisFile;
 import com.odysseusinc.arachne.portal.model.AnalysisUnlockRequest;
@@ -93,8 +95,10 @@ import java.net.URISyntaxException;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -158,6 +162,8 @@ public abstract class BaseAnalysisController<T extends Analysis,
     protected final BaseSubmissionService<Submission, Analysis> submissionService;
     protected final ToPdfConverter toPdfConverter;
     protected final SubmissionInsightService submissionInsightService;
+
+    private final Set<Long> analysisModificationLock= Collections.synchronizedSet(new HashSet<>());
 
     @Value("${datanode.messaging.importTimeout}")
     private Long datanodeImportTimeout;
@@ -341,14 +347,26 @@ public abstract class BaseAnalysisController<T extends Analysis,
                                                 @RequestParam(value = "type", required = false,
                                                         defaultValue = "COHORT") CommonAnalysisType analysisType,
                                                 Principal principal)
-            throws NotExistException, JMSException, IOException, PermissionDeniedException, URISyntaxException {
+            throws NotExistException, JMSException, IOException, PermissionDeniedException, URISyntaxException, InterruptedException {
 
-        final IUser user = getUser(principal);
-        final DataNode dataNode = dataNodeService.getById(entityReference.getDataNodeId());
-        final T analysis = analysisService.getById(analysisId);
-        final DataReference dataReference = dataReferenceService.addOrUpdate(entityReference.getEntityGuid(), dataNode);
-        final List<MultipartFile> entityFiles = getEntityFiles(entityReference, dataNode, analysisType);
-        return doAddCommonEntityToAnalysis(analysis, dataReference, user, analysisType, entityFiles);
+        if (analysisModificationLock.contains(analysisId)) {
+            throw new ValidationRuntimeException("Analysis import rejected", ImmutableMap.of(entityReference.getEntityGuid(), Arrays.asList("Another import into this analysis is in progress")));
+        }
+
+        try {
+            analysisModificationLock.add(analysisId);
+            LOGGER.debug("Started import into analysis {}", analysisId);
+
+            final IUser user = getUser(principal);
+            final DataNode dataNode = dataNodeService.getById(entityReference.getDataNodeId());
+            final T analysis = analysisService.getById(analysisId);
+            final DataReference dataReference = dataReferenceService.addOrUpdate(entityReference.getEntityGuid(), dataNode);
+            final List<MultipartFile> entityFiles = getEntityFiles(entityReference, dataNode, analysisType);
+            return doAddCommonEntityToAnalysis(analysis, dataReference, user, analysisType, entityFiles);
+        } finally {
+            analysisModificationLock.remove(analysisId);
+            LOGGER.debug("Completed import into analysis {}", analysisId);
+        }
     }
 
     protected JsonResult doAddCommonEntityToAnalysis(T analysis, DataReference dataReference, IUser user,
