@@ -21,17 +21,6 @@
 
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
-import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.NO_ERROR;
-import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.PERMISSION_DENIED;
-import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.VALIDATION_ERROR;
-import static com.odysseusinc.arachne.portal.util.CommentUtils.getRecentCommentables;
-import static com.odysseusinc.arachne.portal.util.HttpUtils.putFileContentToResponse;
-import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
-import static org.springframework.web.bind.annotation.RequestMethod.PUT;
-
-import com.google.common.collect.ImmutableMap;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonEntityRequestDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.OptionDTO;
@@ -87,31 +76,6 @@ import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightServic
 import com.odysseusinc.arachne.portal.util.ImportedFile;
 import com.odysseusinc.arachne.portal.util.ZipUtil;
 import io.swagger.annotations.ApiOperation;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URISyntaxException;
-import java.security.Principal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
-import java.util.zip.ZipOutputStream;
-import javax.jms.JMSException;
-import javax.jms.ObjectMessage;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.api.exception.RuntimeIOException;
@@ -139,6 +103,42 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.jms.JMSException;
+import javax.jms.ObjectMessage;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.security.Principal;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+import java.util.zip.ZipOutputStream;
+
+import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.NO_ERROR;
+import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.PERMISSION_DENIED;
+import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.VALIDATION_ERROR;
+import static com.odysseusinc.arachne.portal.util.CommentUtils.getRecentCommentables;
+import static com.odysseusinc.arachne.portal.util.HttpUtils.putFileContentToResponse;
+import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
+import static org.springframework.web.bind.annotation.RequestMethod.PUT;
+
 public abstract class BaseAnalysisController<T extends Analysis,
         D extends AnalysisDTO,
         DN extends DataNode,
@@ -163,7 +163,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
     protected final ToPdfConverter toPdfConverter;
     protected final SubmissionInsightService submissionInsightService;
 
-    private final Set<Long> analysisModificationLock= Collections.synchronizedSet(new HashSet<>());
+    private final Set<Long> analysisModificationLock= new ConcurrentSkipListSet();
 
     @Value("${datanode.messaging.importTimeout}")
     private Long datanodeImportTimeout;
@@ -347,16 +347,20 @@ public abstract class BaseAnalysisController<T extends Analysis,
                                                 @RequestParam(value = "type", required = false,
                                                         defaultValue = "COHORT") CommonAnalysisType analysisType,
                                                 Principal principal)
-            throws NotExistException, JMSException, IOException, PermissionDeniedException, URISyntaxException, InterruptedException {
+            throws NotExistException, JMSException, IOException, PermissionDeniedException, URISyntaxException {
 
-        if (analysisModificationLock.contains(analysisId)) {
-            throw new ValidationRuntimeException("Analysis import rejected", ImmutableMap.of(entityReference.getEntityGuid(), Arrays.asList("Another import into this analysis is in progress")));
+        if (!analysisModificationLock.add(analysisId)) {
+            throw new ValidationRuntimeException(
+                    "Analysis import rejected",
+                    Collections.singletonMap(
+                            entityReference.getEntityGuid(),
+                            Collections.singletonList("Another import into this analysis is in progress")
+                    )
+            );
         }
 
         try {
-            analysisModificationLock.add(analysisId);
             LOGGER.debug("Started import into analysis {}", analysisId);
-
             final IUser user = getUser(principal);
             final DataNode dataNode = dataNodeService.getById(entityReference.getDataNodeId());
             final T analysis = analysisService.getById(analysisId);
