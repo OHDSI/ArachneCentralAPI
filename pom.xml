@@ -114,7 +114,7 @@
             <dependency>
                 <groupId>org.ohdsi</groupId>
                 <artifactId>authenticator</artifactId>
-                <version>0.0.1-SNAPSHOT</version>
+                <version>0.0.1-QA</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
