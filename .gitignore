@@ -118,3 +118,8 @@ hs_err_pid*
 
 # build dir
 target
+
+### Developer's personal properties ###
+**/resources/application*-dev-*.properties
+**/resources/application*-dev-*.yaml
+**/resources/application*-dev-*.yml

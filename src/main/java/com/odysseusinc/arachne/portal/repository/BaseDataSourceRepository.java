@@ -94,4 +94,6 @@ public interface BaseDataSourceRepository<T extends IDataSource> extends EntityG
             + " SET deleted_at = NULL "
             + " WHERE data_source_id = :dataSourceId")
     void makeLinksWithTenantsNotDeleted(@Param("dataSourceId") Long dataSourceId);
+
+    List<T> findByNameAndIdNot(String name, Long id);
 }

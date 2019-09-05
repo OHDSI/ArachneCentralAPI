@@ -21,16 +21,6 @@
 
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
-import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.NO_ERROR;
-import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.PERMISSION_DENIED;
-import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.VALIDATION_ERROR;
-import static com.odysseusinc.arachne.portal.util.CommentUtils.getRecentCommentables;
-import static com.odysseusinc.arachne.portal.util.HttpUtils.putFileContentToResponse;
-import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
-import static org.springframework.web.bind.annotation.RequestMethod.PUT;
-
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonEntityRequestDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.OptionDTO;
@@ -62,6 +52,7 @@ import com.odysseusinc.arachne.portal.exception.NotUniqueException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ServiceNotAvailableException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
+import com.odysseusinc.arachne.portal.exception.ValidationRuntimeException;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.AnalysisFile;
 import com.odysseusinc.arachne.portal.model.AnalysisUnlockRequest;
@@ -85,29 +76,6 @@ import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightServic
 import com.odysseusinc.arachne.portal.util.ImportedFile;
 import com.odysseusinc.arachne.portal.util.ZipUtil;
 import io.swagger.annotations.ApiOperation;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URISyntaxException;
-import java.security.Principal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
-import java.util.zip.ZipOutputStream;
-import javax.jms.JMSException;
-import javax.jms.ObjectMessage;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.api.exception.RuntimeIOException;
@@ -135,6 +103,42 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.jms.JMSException;
+import javax.jms.ObjectMessage;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.security.Principal;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+import java.util.zip.ZipOutputStream;
+
+import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.NO_ERROR;
+import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.PERMISSION_DENIED;
+import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.VALIDATION_ERROR;
+import static com.odysseusinc.arachne.portal.util.CommentUtils.getRecentCommentables;
+import static com.odysseusinc.arachne.portal.util.HttpUtils.putFileContentToResponse;
+import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
+import static org.springframework.web.bind.annotation.RequestMethod.PUT;
+
 public abstract class BaseAnalysisController<T extends Analysis,
         D extends AnalysisDTO,
         DN extends DataNode,
@@ -158,6 +162,8 @@ public abstract class BaseAnalysisController<T extends Analysis,
     protected final BaseSubmissionService<Submission, Analysis> submissionService;
     protected final ToPdfConverter toPdfConverter;
     protected final SubmissionInsightService submissionInsightService;
+
+    private final Set<Long> analysisModificationLock= new ConcurrentSkipListSet();
 
     @Value("${datanode.messaging.importTimeout}")
     private Long datanodeImportTimeout;
@@ -308,7 +314,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
             throws PermissionDeniedException, NotExistException {
 
         JsonResult<List<D>> result;
-        IUser user = userService.getByEmail(principal.getName());
+        IUser user = userService.getByUsername(principal.getName());
         if (user == null) {
             result = new JsonResult<>(PERMISSION_DENIED);
             return result;
@@ -343,12 +349,28 @@ public abstract class BaseAnalysisController<T extends Analysis,
                                                 Principal principal)
             throws NotExistException, JMSException, IOException, PermissionDeniedException, URISyntaxException {
 
-        final IUser user = getUser(principal);
-        final DataNode dataNode = dataNodeService.getById(entityReference.getDataNodeId());
-        final T analysis = analysisService.getById(analysisId);
-        final DataReference dataReference = dataReferenceService.addOrUpdate(entityReference.getEntityGuid(), dataNode);
-        final List<MultipartFile> entityFiles = getEntityFiles(entityReference, dataNode, analysisType);
-        return doAddCommonEntityToAnalysis(analysis, dataReference, user, analysisType, entityFiles);
+        if (!analysisModificationLock.add(analysisId)) {
+            throw new ValidationRuntimeException(
+                    "Analysis import rejected",
+                    Collections.singletonMap(
+                            entityReference.getEntityGuid(),
+                            Collections.singletonList("Another import into this analysis is in progress")
+                    )
+            );
+        }
+
+        try {
+            LOGGER.debug("Started import into analysis {}", analysisId);
+            final IUser user = getUser(principal);
+            final DataNode dataNode = dataNodeService.getById(entityReference.getDataNodeId());
+            final T analysis = analysisService.getById(analysisId);
+            final DataReference dataReference = dataReferenceService.addOrUpdate(entityReference.getEntityGuid(), dataNode);
+            final List<MultipartFile> entityFiles = getEntityFiles(entityReference, dataNode, analysisType);
+            return doAddCommonEntityToAnalysis(analysis, dataReference, user, analysisType, entityFiles);
+        } finally {
+            analysisModificationLock.remove(analysisId);
+            LOGGER.debug("Completed import into analysis {}", analysisId);
+        }
     }
 
     protected JsonResult doAddCommonEntityToAnalysis(T analysis, DataReference dataReference, IUser user,

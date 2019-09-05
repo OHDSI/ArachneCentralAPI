@@ -22,16 +22,17 @@
 
 package com.odysseusinc.arachne.portal.service.impl;
 
+import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.odysseusinc.arachne.portal.service.LoginAttemptService;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import javax.annotation.PostConstruct;
-import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import javax.annotation.PostConstruct;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.concurrent.TimeUnit;
 
 
 @Service
@@ -42,38 +43,40 @@ public class LoginAttemptServiceImpl implements LoginAttemptService {
     @Value("${arachne.loginAttempts.resetMinutes}")
     private int attemptsResetMinutes;
 
-    private LoadingCache<String, Integer> attemptsCache;
+    private Cache<String, Pair<Integer, LocalDateTime>> attemptsCache;
 
     @PostConstruct
     private void init() {
 
         attemptsCache = CacheBuilder.newBuilder().
-                expireAfterWrite(attemptsResetMinutes, TimeUnit.MINUTES).build(new CacheLoader<String, Integer>() {
-            public Integer load(String key) {
-
-                return 0;
-            }
-        });
+                expireAfterWrite(attemptsResetMinutes, TimeUnit.MINUTES).build();
     }
 
+    @Override
     public void loginSucceeded(String key) {
 
         attemptsCache.invalidate(key);
     }
 
+    @Override
     public void loginFailed(String key) {
 
-        int attempts = ObjectUtils.firstNonNull(attemptsCache.getIfPresent(key), 0);
-        attempts++;
-        attemptsCache.put(key, attempts);
+        final Pair<Integer, LocalDateTime> attemptsCounter = attemptsCache.getIfPresent(key);
+        if (attemptsCounter == null) {
+            attemptsCache.put(key, Pair.of(1, LocalDateTime.now()));
+        } else if (attemptsCounter.getKey() <= maxAttempts) {
+            final Integer failedAttemptsBefore = attemptsCounter.getKey();
+            attemptsCache.put(key, Pair.of(failedAttemptsBefore + 1, LocalDateTime.now()));
+        }
     }
 
-    public boolean isBlocked(String key) {
+    @Override
+    public Long getRemainingAccountLockPeriod(String key) {
 
-        try {
-            return attemptsCache.get(key) >= maxAttempts;
-        } catch (ExecutionException e) {
-            return false;
+        final Pair<Integer, LocalDateTime> attemptsCounter = this.attemptsCache.getIfPresent(key);
+        if (attemptsCounter != null && attemptsCounter.getKey() >= maxAttempts) {
+            return Duration.between(LocalDateTime.now(), attemptsCounter.getValue().plusMinutes(attemptsResetMinutes)).getSeconds();
         }
+        return null;
     }
 }

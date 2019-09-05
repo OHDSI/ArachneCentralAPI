@@ -30,7 +30,6 @@ import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.Role;
 import com.odysseusinc.arachne.portal.service.RoleService;
-import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import java.util.LinkedList;
 import java.util.List;
@@ -46,11 +45,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import springfox.documentation.annotations.ApiIgnore;
 
-/**
- * Created by AKrutov on 19.10.2016.
- */
-@Api(hidden = true)
+@ApiIgnore
 @Validated
 @RestController
 public class RoleController extends BaseController {
@@ -61,7 +58,7 @@ public class RoleController extends BaseController {
     private RoleService roleService;
 
 
-    @ApiOperation(value = "Register new role.", hidden = true)
+    @ApiOperation(value = "Register new role.")
     @RequestMapping(value = "/api/v1/admin/roles", method = RequestMethod.POST)
     public JsonResult<RoleDTO> create(
             @RequestBody @Valid RoleDTO roleDTO,
@@ -84,7 +81,7 @@ public class RoleController extends BaseController {
     }
 
 
-    @ApiOperation(value = "Get role description.", hidden = true)
+    @ApiOperation(value = "Get role description.")
     @RequestMapping(value = "/api/v1/admin/roles/{roleId}", method = RequestMethod.GET)
     public JsonResult<RoleDTO> get(@PathVariable("roleId") Long id) throws NotExistException {
 
@@ -100,7 +97,7 @@ public class RoleController extends BaseController {
         return result;
     }
 
-    @ApiOperation(value = "Edit role.", hidden = true)
+    @ApiOperation(value = "Edit role.")
     @RequestMapping(value = "/api/v1/admin/roles/{roleId}", method = RequestMethod.PUT)
     public JsonResult<RoleDTO> update(@PathVariable("roleId") Long id, @RequestBody @Valid RoleDTO roleDTO,
                                       BindingResult binding) throws NotExistException, NotUniqueException, ValidationException {
@@ -123,7 +120,7 @@ public class RoleController extends BaseController {
         return result;
     }
 
-    @ApiOperation(value = "Delete role.", hidden = true)
+    @ApiOperation(value = "Delete role.")
     @RequestMapping(value = "/api/v1/admin/roles/{roleId}", method = RequestMethod.DELETE)
     public JsonResult<Boolean> delete(@PathVariable("roleId") Long id) throws NotExistException {
 
@@ -139,7 +136,7 @@ public class RoleController extends BaseController {
         return result;
     }
 
-    @ApiOperation(value = "List roles.", hidden = true)
+    @ApiOperation(value = "List roles.")
     @RequestMapping(value = "/api/v1/admin/roles", method = RequestMethod.GET)
     public JsonResult<List<RoleDTO>> list() {
 

@@ -87,7 +87,7 @@ public abstract class BaseExpertFinderController<U extends IUser, SK extends Ski
             Principal principal,
             @PathVariable("userId") String userId) {
 
-        IUser logginedUser = userService.getByEmail(principal.getName());
+        IUser logginedUser = userService.getByUsername(principal.getName());
         JsonResult<UserProfileDTO> result;
         IUser user = userService.getByUuidAndInitializeCollections(userId);
         UserProfileDTO userProfileDTO = conversionService.convert(user, UserProfileDTO.class);
@@ -103,10 +103,19 @@ public abstract class BaseExpertFinderController<U extends IUser, SK extends Ski
             @PathVariable("id") Long id
     ) {
 
-        JsonResult<CommonUserDTO> result;
-        U user = userService.getByIdInAnyTenant(id);
+        return buildResponse(userService.getByIdInAnyTenant(id));
+    }
+
+    @RequestMapping(value = "/api/v1/user-management/users/byusername/{username:.+}", method = GET)
+    public JsonResult<CommonUserDTO> getByUsername(@PathVariable("username") String username) {
+
+        return buildResponse(userService.getByUsernameInAnyTenant(username));
+    }
+
+    private JsonResult<CommonUserDTO> buildResponse(U user) {
+
         CommonUserDTO userDTO = conversionService.convert(user, CommonUserDTO.class);
-        result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
+        JsonResult<CommonUserDTO> result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
         result.setResult(userDTO);
         return result;
     }

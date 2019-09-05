@@ -248,9 +248,9 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends I
     public boolean checkDataNodeAdmin(ArachneUser user, DataNode dataNode) {
 
         final RawUser standardUser = new RawUser();
-        standardUser.setId(user.getId());
+        standardUser.setUsername(user.getUsername());
 
-        return dataNodeUserRepository.findByDataNodeAndUserId(dataNode, standardUser.getId()).isPresent();
+        return dataNodeUserRepository.findByDataNodeAndUser_Username(dataNode, standardUser.getUsername()).isPresent();
     }
 
     @Override

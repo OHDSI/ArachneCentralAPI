@@ -22,8 +22,6 @@
 
 package com.odysseusinc.arachne.portal.security;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.config.tenancy.TenantContext;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
 import java.io.IOException;
@@ -34,38 +32,40 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import org.ohdsi.authenticator.exception.AuthenticationException;
+import org.ohdsi.authenticator.service.Authenticator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.web.filter.GenericFilterBean;
 
-public class AuthenticationTokenFilter extends UsernamePasswordAuthenticationFilter {
+public class AuthenticationTokenFilter extends GenericFilterBean {
+
+    Logger log = LoggerFactory.getLogger(AuthenticationTokenFilter.class);
 
     public static final String USER_REQUEST_HEADER = "Arachne-User-Request";
     @Value("${arachne.token.header}")
     private String tokenHeader;
 
     @Autowired
-    private TokenUtils tokenUtils;
-
-
-    @Autowired
     private UserDetailsService userDetailsService;
-    private ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
+    private Authenticator authenticator;
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException,
             ServletException, AuthenticationException {
 
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
         try {
-            HttpServletRequest httpRequest = (HttpServletRequest) request;
             String authToken = httpRequest.getHeader(tokenHeader);
             if (authToken == null && httpRequest.getCookies() != null) {
                 for (Cookie cookie : httpRequest.getCookies()) {
@@ -75,41 +75,32 @@ public class AuthenticationTokenFilter extends UsernamePasswordAuthenticationFil
                 }
             }
             if (authToken != null) {
-                String username = this.tokenUtils.getUsernameFromToken(authToken);
+                String username = authenticator.resolveUsername(authToken);
                 String requested = httpRequest.getHeader(USER_REQUEST_HEADER);
-                if (requested != null && username != null && !Objects.equals(username, requested)){
+                if (requested != null && username != null && !Objects.equals(username, requested)) {
                     throw new BadCredentialsException("forced logout");
                 }
-                if (tokenUtils.isExpired(authToken)) {
-                    if (((HttpServletRequest) request).getRequestURI().startsWith("/api")) {
-                        if (username != null) {
-                            throw new BadCredentialsException("token expired");
-                        }
-                    }
-                }
-
                 if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                     UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
-                    if (this.tokenUtils.validateToken(authToken, userDetails)) {
-                        UsernamePasswordAuthenticationToken authentication =
-                                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(httpRequest));
-                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(httpRequest));
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                        TenantContext.setCurrentTenant(((ArachneUser) userDetails).getActiveTenantId());
-                    }
+                    TenantContext.setCurrentTenant(((ArachneUser) userDetails).getActiveTenantId());
                 }
             }
-            chain.doFilter(request, response);
-        } catch (AuthenticationException ex) {
-            logger.debug(ex.getMessage(), ex);
-            ((HttpServletResponse) response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            JsonResult<Boolean> result = new JsonResult<>(JsonResult.ErrorCode.UNAUTHORIZED);
-            result.setResult(Boolean.FALSE);
-
-            response.getOutputStream().write(objectMapper.writeValueAsString(result).getBytes());
-            response.setContentType("application/json");
+        } catch (AuthenticationException | org.springframework.security.core.AuthenticationException ex) {
+            String method = httpRequest.getMethod();
+            if (!HttpMethod.OPTIONS.matches(method)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Authentication failed", ex);
+                } else {
+                    log.error("Authentication failed: {}, requested: {} {}", ex.getMessage(), method, httpRequest.getRequestURI());
+                }
+            }
         }
+        chain.doFilter(request, response);
     }
 
 }
