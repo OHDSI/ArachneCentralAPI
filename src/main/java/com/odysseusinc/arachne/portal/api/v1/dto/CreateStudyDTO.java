@@ -38,7 +38,7 @@ public class CreateStudyDTO {
     })
     private String title;
 
-    @NotNull
+    @NotNull(message = "Study type should be defined")
     private Long typeId;
 
     public String getTitle() {
