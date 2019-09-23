@@ -1,1 +1,0 @@
-INSERT INTO @results_schema.ir_strata (analysis_id, strata_sequence, name, description) VALUES (@analysis_id,@strata_sequence,'@name','@description')
