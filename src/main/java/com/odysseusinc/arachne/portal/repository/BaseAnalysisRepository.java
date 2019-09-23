@@ -56,5 +56,5 @@ public interface BaseAnalysisRepository<T extends Analysis> extends EntityGraphJ
 
     List<T> findByStudyIdOrderByOrd(Long studyId, EntityGraph entityGraph);
 
-    List<T> findByType(CommonAnalysisType type);
+    List<T> findByType(CommonAnalysisType type, EntityGraph entityGraph);
 }
