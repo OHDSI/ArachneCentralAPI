@@ -43,6 +43,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -207,7 +208,7 @@ public class SubmissionHelper {
         @Override
         public void updateExtendInfo(Submission submission) {
 
-            final JsonObject resultInfo = new JsonObject();
+            final JsonArray result = new JsonArray();
             try {
                 final String resultsDir = contentStorageHelper.getResultFilesDir(submission);
                 ArachneFileMeta arachneFile = contentStorageService.getFileByPath(resultsDir
@@ -216,44 +217,53 @@ public class SubmissionHelper {
                 final CSVParser parser = CSVParser.parse(contentStorageService.getContentByFilepath(arachneFile.getPath()), Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
                 final Map<String, Integer> headers = parser.getHeaderMap();
 
+                final String targetIdHeader = "TARGET_ID";
+                final String outcomeIdHeader = "OUTCOME_ID";
                 final String personCountHeader = "PERSON_COUNT";
                 final String timeAtRiskHeader = "TIME_AT_RISK";
                 final String casesHeader = "CASES";
 
                 Map<String, Integer> values =
-                        Arrays.asList(personCountHeader, timeAtRiskHeader, casesHeader)
-                                .stream()
+                        Stream.of(targetIdHeader, outcomeIdHeader, personCountHeader, timeAtRiskHeader, casesHeader)
                                 .collect(Collectors.toMap(header -> header, headers::get));
                 final List<CSVRecord> records = parser.getRecords();
 
                 if (!CollectionUtils.isEmpty(records)) {
-                    final CSVRecord firstRecord = records.get(0);
-                    final String personCount = firstRecord.get(values.get(personCountHeader));
-                    final String timeAtRisk = firstRecord.get(values.get(timeAtRiskHeader));
-                    final String cases = firstRecord.get(values.get(casesHeader));
+                    records.forEach(record -> {
 
-                    resultInfo.add(personCountHeader, getJsonPrimitive(personCount));
-                    resultInfo.add(timeAtRiskHeader, getJsonPrimitive(timeAtRisk));
-                    resultInfo.add(casesHeader, getJsonPrimitive(cases));
-                    try {
-                        final float casesFloat = cast(cases).floatValue();
+                        final String targetId = record.get(values.get(targetIdHeader));
+                        final String outcomeId = record.get(values.get(outcomeIdHeader));
+                        final String personCount = record.get(values.get(personCountHeader));
+                        final String timeAtRisk = record.get(values.get(timeAtRiskHeader));
+                        final String cases = record.get(values.get(casesHeader));
+
+                        final JsonObject resultInfo = new JsonObject();
+                        resultInfo.add(targetIdHeader, getJsonPrimitive(targetId));
+                        resultInfo.add(outcomeIdHeader, getJsonPrimitive(outcomeId));
+                        resultInfo.add(personCountHeader, getJsonPrimitive(personCount));
+                        resultInfo.add(timeAtRiskHeader, getJsonPrimitive(timeAtRisk));
+                        resultInfo.add(casesHeader, getJsonPrimitive(cases));
                         try {
-                            final float timeAtRiskFloat = cast(timeAtRisk).floatValue();
-                            final float rate = timeAtRiskFloat > 0 ? casesFloat / timeAtRiskFloat * 1000 : 0F;
-                            resultInfo.add("RATE", new JsonPrimitive(rate));
+                            final float casesFloat = cast(cases).floatValue();
+                            try {
+                                final float timeAtRiskFloat = cast(timeAtRisk).floatValue();
+                                final float rate = timeAtRiskFloat > 0 ? casesFloat / timeAtRiskFloat * 1000 : 0F;
+                                resultInfo.add("RATE", new JsonPrimitive(rate));
+                            } catch (IllegalArgumentException e) {
+                                LOGGER.debug("'TIME_AT_RISK' is not correct value, skipping calculate 'RATE' value");
+                            }
+                            try {
+                                final float personsFloat = cast(personCount).floatValue();
+                                final float proportion = personsFloat > 0 ? casesFloat / personsFloat * 1000 : 0F;
+                                resultInfo.add("PROPORTION", new JsonPrimitive(proportion));
+                            } catch (IllegalArgumentException e) {
+                                LOGGER.debug("'TIME_AT_RISK' is not correct value, skipping calculate 'PROPORTION' value");
+                            }
+                            result.add(resultInfo);
                         } catch (IllegalArgumentException e) {
-                            LOGGER.debug("'TIME_AT_RISK' is not correct value, skipping calculate 'RATE' value");
+                            LOGGER.debug("'PERSON_COUNT' is not correct value, skipping calculate 'RATE' & 'PROPORTION' values");
                         }
-                        try {
-                            final float personsFloat = cast(personCount).floatValue();
-                            final float proportion = personsFloat > 0 ? casesFloat / personsFloat * 1000 : 0F;
-                            resultInfo.add("PROPORTION", new JsonPrimitive(proportion));
-                        } catch (IllegalArgumentException e) {
-                            LOGGER.debug("'TIME_AT_RISK' is not correct value, skipping calculate 'PROPORTION' value");
-                        }
-                    } catch (IllegalArgumentException e) {
-                        LOGGER.debug("'PERSON_COUNT' is not correct value, skipping calculate 'RATE' & 'PROPORTION' values");
-                    }
+                    });
 
                 }
             } catch (IOException e) {
@@ -262,7 +272,7 @@ public class SubmissionHelper {
                 LOGGER.warn(CAN_NOT_BUILD_EXTEND_INFO_LOG, submission.getId());
                 LOGGER.warn("Error: ", e);
             }
-            submission.setResultInfo(resultInfo);
+            submission.setResultInfo(result);
         }
     }
 

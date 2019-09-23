@@ -79,7 +79,7 @@ public class JsonbType implements UserType {
         }
 
         final JsonParser jsonParser = new JsonParser();
-        return jsonParser.parse(json).getAsJsonObject();
+        return jsonParser.parse(json);
     }
 
     @Override
@@ -100,7 +100,7 @@ public class JsonbType implements UserType {
             return null;
         }
         final JsonParser jsonParser = new JsonParser();
-        return jsonParser.parse(value.toString()).getAsJsonObject();
+        return jsonParser.parse(value.toString());
     }
 
     @Override
