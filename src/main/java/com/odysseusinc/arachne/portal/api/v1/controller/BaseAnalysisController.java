@@ -737,14 +737,9 @@ public abstract class BaseAnalysisController<T extends Analysis,
 						if (entityType.equals(CommonAnalysisType.COHORT_HERACLES)) {
 							attachCohortHeraclesFiles(files);
 						}
-            if (entityType.equals(CommonAnalysisType.INCIDENCE)) {
-                attachIncidenceRatesFiles(files);
-            }
         }
         return files;
     }
-
-    protected abstract void attachIncidenceRatesFiles(List<MultipartFile> files) throws IOException;
 
     protected byte[] readResource(final String path) throws IOException {
 
