@@ -24,6 +24,7 @@ package com.odysseusinc.arachne.portal.repository;
 
 import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
 import com.cosium.spring.data.jpa.entity.graph.repository.EntityGraphJpaRepository;
+import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.Study;
 import java.util.List;
@@ -54,4 +55,6 @@ public interface BaseAnalysisRepository<T extends Analysis> extends EntityGraphJ
     List<T> findByIdIn(List<Long> ids);
 
     List<T> findByStudyIdOrderByOrd(Long studyId, EntityGraph entityGraph);
+
+    List<T> findByType(CommonAnalysisType type, EntityGraph entityGraph);
 }

@@ -23,6 +23,7 @@
 package com.odysseusinc.arachne.portal.model;
 
 import com.google.common.base.Objects;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.odysseusinc.arachne.portal.api.v1.dto.InvitationType;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
@@ -109,7 +110,7 @@ public class Submission implements HasArachnePermissions, Breadcrumb, Invitation
 
     @Column
     @Type(type = "com.odysseusinc.arachne.portal.repository.hibernate.JsonbType")
-    private JsonObject resultInfo;
+    private JsonElement resultInfo;
 
     @Column
     private Boolean hidden = false;
@@ -334,12 +335,12 @@ public class Submission implements HasArachnePermissions, Breadcrumb, Invitation
         this.token = token;
     }
 
-    public JsonObject getResultInfo() {
+    public JsonElement getResultInfo() {
 
         return resultInfo;
     }
 
-    public void setResultInfo(JsonObject resultInfo) {
+    public void setResultInfo(JsonElement resultInfo) {
 
         this.resultInfo = resultInfo;
     }
