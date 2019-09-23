@@ -334,6 +334,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
             throws PermissionDeniedException, NotExistException {
 
         List<OptionDTO> analysisOptionDTOs = Arrays.stream(CommonAnalysisType.values())
+                .filter(type -> type != CommonAnalysisType.COHORT_HERACLES) // NOTE: Temporary disable Heracles analysis type due to dysfunctional Packrat
                 .map(type -> new OptionDTO(type.name(), type.getTitle()))
                 .collect(Collectors.toList());
 
