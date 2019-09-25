@@ -29,7 +29,6 @@ import com.odysseusinc.arachne.portal.model.statemachine.ObjectRepository;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.NoRepositoryBean;
@@ -48,6 +47,7 @@ public interface BaseStudyRepository<T extends Study> extends EntityGraphJpaRepo
                     + " studies.id NOT IN (SELECT study_id FROM users_studies_extended "
                     + "                    WHERE user_id=:participantId "
                     + "                    AND lower(status) IN ('pending', 'approved')) "
+                    + " AND studies.kind  <> 'WORKSPACE' "
                     + " AND studies_users.user_id=:ownerId AND lower(title) SIMILAR TO :suggestRequest"
                     + " AND lower(studies_users.status) = 'approved'")
     Iterable<T> suggestByParticipantId(@Param("suggestRequest") String suggestRequest,
