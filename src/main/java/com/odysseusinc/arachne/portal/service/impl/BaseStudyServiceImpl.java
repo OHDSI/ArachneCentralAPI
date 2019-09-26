@@ -961,7 +961,7 @@ public abstract class BaseStudyServiceImpl<
         final String suggestRequest = "%" + query.toLowerCase() + "%";
         switch (region) {
             case PARTICIPANT: {
-                suggest = studyRepository.suggestByParticipantId(suggestRequest, owner.getId(), id);
+                suggest = studyRepository.suggestByParticipantIdAndStudyKind(suggestRequest, owner.getId(), id, StudyKind.REGULAR.name());
                 break;
             }
 
