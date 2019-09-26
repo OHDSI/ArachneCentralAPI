@@ -47,12 +47,13 @@ public interface BaseStudyRepository<T extends Study> extends EntityGraphJpaRepo
                     + " studies.id NOT IN (SELECT study_id FROM users_studies_extended "
                     + "                    WHERE user_id=:participantId "
                     + "                    AND lower(status) IN ('pending', 'approved')) "
-                    + " AND studies.kind  <> 'WORKSPACE' "
+                    + " AND studies.kind=:studyKind "
                     + " AND studies_users.user_id=:ownerId AND lower(title) SIMILAR TO :suggestRequest"
                     + " AND lower(studies_users.status) = 'approved'")
-    Iterable<T> suggestByParticipantId(@Param("suggestRequest") String suggestRequest,
+    Iterable<T> suggestByParticipantIdAndStudyKind(@Param("suggestRequest") String suggestRequest,
                                        @Param("ownerId") Long id,
-                                       @Param("participantId") Long participantId);
+                                       @Param("participantId") Long participantId,
+                                       @Param("studyKind") String studyKind);
 
     @Query(nativeQuery = true,
             value = "SELECT studies.* " +
