@@ -335,6 +335,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
 
         List<OptionDTO> analysisOptionDTOs = Arrays.stream(CommonAnalysisType.values())
                 .filter(type -> type != CommonAnalysisType.COHORT_HERACLES) // NOTE: Temporary disable Heracles analysis type due to dysfunctional Packrat
+                .filter(type -> type != CommonAnalysisType.COHORT_PATHWAY) // NOTE: Temporary disable Pathways until it completely implemented
                 .map(type -> new OptionDTO(type.name(), type.getTitle()))
                 .collect(Collectors.toList());
 
