@@ -34,7 +34,7 @@ import org.springframework.jms.annotation.EnableJms;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @Configuration
-@ComponentScan(basePackages = {"com.odysseusinc.arachne.*"})
+@ComponentScan(basePackages = {"com.odysseusinc.arachne.*", "org.ohdsi.authenticator.*"})
 @EnableAutoConfiguration
 @EnableScheduling
 @EnableJpaRepositories(

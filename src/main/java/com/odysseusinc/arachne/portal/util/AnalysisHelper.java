@@ -44,14 +44,16 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import net.lingala.zip4j.core.ZipFile;
+import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.ZipParameters;
-import net.lingala.zip4j.util.Zip4jConstants;
+import net.lingala.zip4j.model.enums.CompressionLevel;
+import net.lingala.zip4j.model.enums.CompressionMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
 
 @Component
 public class AnalysisHelper implements AnalysisPaths {
@@ -156,9 +158,9 @@ public class AnalysisHelper implements AnalysisPaths {
         try {
             ZipFile zipFile = new ZipFile(zipArchive.getAbsoluteFile());
             ZipParameters parameters = new ZipParameters();
-            parameters.setCompressionMethod(Zip4jConstants.COMP_DEFLATE);
-            parameters.setCompressionLevel(Zip4jConstants.DEFLATE_LEVEL_NORMAL);
-            zipFile.createZipFile(files, parameters, true, maximumSize);
+            parameters.setCompressionMethod(CompressionMethod.DEFLATE);
+            parameters.setCompressionLevel(CompressionLevel.NORMAL);
+            zipFile.createSplitZipFile(files, parameters, true, maximumSize);
         } catch (ZipException ex) {
             LOGGER.error(ex.getMessage(), ex);
             throw new ConverterRuntimeException(ex.getMessage());

@@ -6,7 +6,9 @@ spring:
     username: ohdsi
     password: ENC(0Lpfvg9UPAyaaZpSIqwaDg==)
 logging:
-  level: debug
+  level:
+    root: INFO
+    com.odysseusinc: DEBUG
 portal:
    urlWhiteList: https://localhost:${server.port}
 build:

@@ -24,8 +24,8 @@ package com.odysseusinc.arachne.portal.config;
 
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.User;
-import com.odysseusinc.arachne.portal.security.TokenUtils;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
+import org.ohdsi.authenticator.service.Authenticator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -69,15 +69,15 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
     private String tokenHeader;
 
     private BaseUserService userService;
-    private TokenUtils tokenUtils;
+    private Authenticator authenticator;
     private DefaultSimpUserRegistry userRegistry = new DefaultSimpUserRegistry();
     private DefaultUserDestinationResolver resolver = new DefaultUserDestinationResolver(userRegistry);
 
     @Autowired
     public WebSocketConfig(@Lazy BaseUserService userService,
-                           TokenUtils tokenUtils) {
+                           Authenticator authenticator) {
         this.userService = userService;
-        this.tokenUtils = tokenUtils;
+        this.authenticator = authenticator;
     }
 
     @Bean
@@ -123,11 +123,11 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
                 List tokenList = accessor.getNativeHeader(tokenHeader);
                 if (tokenList != null && tokenList.size() > 0) {
                     String authToken = tokenList.get(0).toString();
-                    String username = tokenUtils.getUsernameFromToken(authToken);
-                    if (!tokenUtils.isExpired(authToken)) {
+                    String username = authenticator.resolveUsername(authToken);
+                    if (authenticator.refreshToken(authToken) != null) {
                         IUser user = userService.getByUsername(username);
                         if (user != null) {
-                            principal = () -> user.getUsername();
+                            principal = user::getUsername;
                             accessor.setUser(principal);
                         }
                     }

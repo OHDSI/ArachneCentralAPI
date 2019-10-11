@@ -25,8 +25,8 @@ package com.odysseusinc.arachne.portal.util;
 import static com.odysseusinc.arachne.commons.api.v1.dto.CommonModelType.CDM;
 import static com.odysseusinc.arachne.portal.service.AnalysisPaths.CONTENT_DIR;
 
-import com.odysseusinc.arachne.commons.api.v1.dto.CommonCDMVersionDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
+import com.odysseusinc.arachne.commons.types.CommonCDMVersionDTO;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.DataNodeUser;
 import com.odysseusinc.arachne.portal.model.IDataSource;

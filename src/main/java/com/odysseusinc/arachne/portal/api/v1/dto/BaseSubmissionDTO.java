@@ -12,7 +12,7 @@ public class BaseSubmissionDTO extends DTO {
     private PermissionsDTO permissions;
     private Date createdAt;
     private ShortUserDTO author;
-    private Map<String, Object> resultInfo;
+    private Object resultInfo;
     private Boolean hidden;
 
     public BaseSubmissionDTO() {
@@ -86,11 +86,11 @@ public class BaseSubmissionDTO extends DTO {
         this.author = author;
     }
 
-    public Map<String, Object> getResultInfo() {
+    public Object getResultInfo() {
         return resultInfo;
     }
 
-    public void setResultInfo(Map<String, Object> resultInfo) {
+    public void setResultInfo(Object resultInfo) {
         this.resultInfo = resultInfo;
     }
 

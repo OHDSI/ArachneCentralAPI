@@ -22,9 +22,9 @@
 
 package com.odysseusinc.arachne.portal.model;
 
-import com.odysseusinc.arachne.commons.api.v1.dto.CommonCDMVersionDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonModelType;
+import com.odysseusinc.arachne.commons.types.CommonCDMVersionDTO;
 import com.odysseusinc.arachne.commons.types.DBMSType;
 import com.odysseusinc.arachne.portal.api.v1.dto.converters.DataSourceSolrExtractors;
 import com.odysseusinc.arachne.portal.model.security.Tenant;
@@ -151,7 +151,7 @@ public abstract class BaseDataSource implements IDataSource, Serializable, HasAr
         if (this == obj) {
             return true;
         }
-        if (obj == null || !(obj instanceof BaseDataSource)) {
+        if (!(obj instanceof BaseDataSource)) {
             return false;
         }
         final BaseDataSource s = (BaseDataSource) obj;

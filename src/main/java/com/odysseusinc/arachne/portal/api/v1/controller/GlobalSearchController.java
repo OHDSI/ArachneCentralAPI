@@ -61,7 +61,7 @@ public class GlobalSearchController {
             final @ModelAttribute SearchGlobalDTO searchDto)
             throws NotExistException, SolrServerException, NoSuchFieldException, IOException, PermissionDeniedException {
 
-        final IUser user = userService.getByEmail(principal.getName());
+        final IUser user = userService.getByUsername(principal.getName());
 
         if (user == null) {
             throw new PermissionDeniedException();            

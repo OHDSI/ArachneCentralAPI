@@ -234,6 +234,7 @@ public abstract class BaseDataNodeController<
         }
     }
 
+    @ApiOperation("List datasources for the specified data node")
     @GetMapping(value = "/api/v1/data-nodes/{dataNodeId}/data-sources")
     public List<DataSourceDTO> getDataSourcesForDataNode(@PathVariable("dataNodeId") Long dataNodeId) {
 
@@ -244,6 +245,7 @@ public abstract class BaseDataNodeController<
         return converterUtils.convertList(dataSources, DataSourceDTO.class);
     }
 
+    @ApiOperation("Get information about specified Data node")
     @RequestMapping(value = "/api/v1/data-nodes/{dataNodeId}", method = RequestMethod.GET)
     public JsonResult<DataNodeDTO> getDataNode(@PathVariable("dataNodeId") Long dataNodeId) {
 
@@ -254,6 +256,7 @@ public abstract class BaseDataNodeController<
         return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, conversionService.convert(dataNode, DataNodeDTO.class));
     }
 
+    @ApiOperation("List all non-virtual data nodes")
     @RequestMapping(value = "/api/v1/data-nodes", method = RequestMethod.GET)
     public List<DataNodeDTO> getDataNodes() {
 
@@ -261,6 +264,7 @@ public abstract class BaseDataNodeController<
         return converterUtils.convertList(dataNodes, DataNodeDTO.class);
     }
 
+    @ApiOperation("List all accessble for the specified user non-virtual data nodes")
     @RequestMapping(value = "/api/v1/data-nodes/suggest", method = RequestMethod.GET)
     public List<CommonDataNodeDTO> suggestDataNodes(Principal principal) throws PermissionDeniedException {
 
