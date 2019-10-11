@@ -31,13 +31,12 @@ import static com.odysseusinc.arachne.portal.model.SubmissionStatus.FAILED_REJEC
 import static com.odysseusinc.arachne.portal.model.SubmissionStatus.IN_PROGRESS;
 import static com.odysseusinc.arachne.portal.model.SubmissionStatus.NOT_APPROVED;
 import static com.odysseusinc.arachne.portal.model.SubmissionStatus.PENDING;
-import static com.odysseusinc.arachne.portal.model.SubmissionStatus.valueOf;
 import static com.odysseusinc.arachne.portal.service.impl.submission.SubmissionActionType.EXECUTE;
 import static com.odysseusinc.arachne.portal.service.impl.submission.SubmissionActionType.PUBLISH;
 import static com.odysseusinc.arachne.portal.util.DataNodeUtils.isDataNodeOwner;
 
 import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
-import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraphUtils;
+import com.odysseusinc.arachne.commons.utils.UUIDGenerator;
 import com.odysseusinc.arachne.portal.api.v1.dto.ApproveDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdateNotificationDTO;
 import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
@@ -79,7 +78,6 @@ import com.odysseusinc.arachne.portal.util.DataNodeUtils;
 import com.odysseusinc.arachne.portal.util.EntityUtils;
 import com.odysseusinc.arachne.portal.util.LegacyAnalysisHelper;
 import com.odysseusinc.arachne.portal.util.SubmissionHelper;
-import com.odysseusinc.arachne.portal.util.UUIDGenerator;
 import com.odysseusinc.arachne.portal.util.ZipUtil;
 import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.storage.model.QuerySpec;
@@ -111,6 +109,9 @@ import java.util.stream.Stream;
 import java.util.zip.ZipOutputStream;
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
+import net.lingala.zip4j.ZipFile;
+import net.lingala.zip4j.model.FileHeader;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -125,6 +126,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 public abstract class BaseSubmissionServiceImpl<
@@ -132,13 +134,14 @@ public abstract class BaseSubmissionServiceImpl<
         A extends Analysis,
         DS extends IDataSource>
         implements BaseSubmissionService<T, A> {
+    protected static final Logger LOGGER = LoggerFactory.getLogger(BaseSubmissionService.class);
 
     public static final String SUBMISSION_NOT_EXIST_EXCEPTION = "Submission with id='%s' does not exist";
     public static final String ILLEGAL_SUBMISSION_STATE_EXCEPTION = "Submission must be in EXECUTED or FAILED state before approve result";
     public static final String RESULT_FILE_NOT_EXISTS_EXCEPTION = "Result file with id='%s' for submission with "
             + "id='%s' does not exist";
-    protected static final Logger LOGGER = LoggerFactory.getLogger(BaseSubmissionService.class);
     private static final String FILE_NOT_UPLOADED_MANUALLY_EXCEPTION = "File %s was not uploaded manually";
+
     protected final BaseSubmissionRepository<T> submissionRepository;
     protected final BaseDataSourceService<DS> dataSourceService;
     protected final ArachneMailSender mailSender;
@@ -533,8 +536,27 @@ public abstract class BaseSubmissionServiceImpl<
         return submissionRepository.findByIdAndToken(id, token).orElseThrow(() -> new NotExistException(Submission.class));
     }
 
+
     @Override
-    public ResultFile uploadResultsByDataOwner(Long submissionId, String name, MultipartFile file) throws NotExistException, IOException {
+    public void uploadResultsByDataOwner(Long submissionId, File compressedFile) throws IOException {
+        ZipFile zipFile = new ZipFile(compressedFile);
+        final List<FileHeader> fileHeaders = zipFile.getFileHeaders().stream()
+                .filter(fileHeader -> !fileHeader.isDirectory())
+                .collect(Collectors.toList());
+
+        for (FileHeader fileHeader : fileHeaders) {
+            File tempFile = File.createTempFile(fileHeader.getFileName(), "");
+            tempFile.deleteOnExit();
+            FileUtils.copyInputStreamToFile(zipFile.getInputStream(fileHeader), tempFile);
+
+            String filename = StringUtils.getFilename(fileHeader.getFileName());
+            uploadResultsByDataOwner(submissionId, filename, tempFile);
+        }
+    }
+
+
+    @Override
+    public ResultFile uploadResultsByDataOwner(Long submissionId, String fileName, File file) throws IOException {
 
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         IUser user = userService.getByUsername(userDetails.getUsername());
@@ -543,12 +565,9 @@ public abstract class BaseSubmissionServiceImpl<
                 Collections.singletonList(IN_PROGRESS.name()));
         throwNotExistExceptionIfNull(submission, submissionId);
 
-        File tempFile = File.createTempFile("manual-upload", name);
-        file.transferTo(tempFile);
-
         ResultFile resultFile = createResultFile(
-                tempFile.toPath(),
-                ObjectUtils.firstNonNull(name, file.getOriginalFilename()),
+                file.toPath(),
+                fileName,
                 submission,
                 user.getId()
         );

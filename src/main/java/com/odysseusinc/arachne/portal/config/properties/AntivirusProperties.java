@@ -28,16 +28,14 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties(prefix = "antivirus")
 @Validated
 public class AntivirusProperties {
-    private AchillesProperties.Executor executor = new AchillesProperties.Executor();
+    private DefaultExecutorConfigValues executor = new DefaultExecutorConfigValues();
     private RetryConfig retry = new RetryConfig();
 
-    public AchillesProperties.Executor getExecutor() {
-
+    public DefaultExecutorConfigValues getExecutor() {
         return executor;
     }
 
-    public void setExecutor(AchillesProperties.Executor executor) {
-
+    public void setExecutor(DefaultExecutorConfigValues executor) {
         this.executor = executor;
     }
 
@@ -46,42 +44,6 @@ public class AntivirusProperties {
         return retry;
     }
 
-    public static class Executor {
-
-        private Integer corePoolSize = 1;
-        private Integer maxPoolSize = 2;
-        private Integer queueCapacity = 10;
-
-        public Integer getCorePoolSize() {
-
-            return corePoolSize;
-        }
-
-        public void setCorePoolSize(Integer corePoolSize) {
-
-            this.corePoolSize = corePoolSize;
-        }
-
-        public Integer getMaxPoolSize() {
-
-            return maxPoolSize;
-        }
-
-        public void setMaxPoolSize(Integer maxPoolSize) {
-
-            this.maxPoolSize = maxPoolSize;
-        }
-
-        public Integer getQueueCapacity() {
-
-            return queueCapacity;
-        }
-
-        public void setQueueCapacity(Integer queueCapacity) {
-
-            this.queueCapacity = queueCapacity;
-        }
-    }
 
     public static class RetryConfig {
         private int maxAttempts = 5;

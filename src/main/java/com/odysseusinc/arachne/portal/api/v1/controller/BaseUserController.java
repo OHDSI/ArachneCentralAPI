@@ -81,7 +81,6 @@ import com.odysseusinc.arachne.portal.model.UserPublication;
 import com.odysseusinc.arachne.portal.model.UserStudy;
 import com.odysseusinc.arachne.portal.model.search.PaperSearch;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
-import com.odysseusinc.arachne.portal.security.TokenUtils;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
 import com.odysseusinc.arachne.portal.service.AnalysisUnlockRequestService;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
@@ -94,6 +93,7 @@ import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -114,8 +114,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.ohdsi.authenticator.service.Authenticator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -144,7 +146,6 @@ public abstract class BaseUserController<
     private static final String DATA_NODE_NOT_FOUND_EXCEPTION = "dataNode %s not found";
     private static final String INVITATION_HOME_PAGE = "/study-manager/studies/";
 
-    protected final TokenUtils tokenUtils;
     protected final BaseUserService<U, SK> userService;
     protected final BaseStudyService<S, DS, SS, SU> studyService;
     protected final GenericConversionService conversionService;
@@ -154,9 +155,11 @@ public abstract class BaseUserController<
     protected final BasePaperService<P, PS, S, DS, SS, SU> paperService;
     protected final BaseSubmissionService<SB, A> submissionService;
     protected final ArachnePasswordValidator passwordValidator;
+    protected final Authenticator authenticator;
+    @Value("${arachne.token.header}")
+    private String tokenHeader;
 
-    public BaseUserController(TokenUtils tokenUtils,
-                              BaseUserService<U, SK> userService,
+    public BaseUserController(BaseUserService<U, SK> userService,
                               BaseStudyService<S, DS, SS, SU> studyService,
                               GenericConversionService conversionService,
                               BaseDataNodeService<DN> baseDataNodeService,
@@ -164,9 +167,9 @@ public abstract class BaseUserController<
                               AnalysisUnlockRequestService analysisUnlockRequestService,
                               BasePaperService<P, PS, S, DS, SS, SU> paperService,
                               BaseSubmissionService<SB, A> submissionService,
-                              ArachnePasswordValidator passwordValidator) {
+                              ArachnePasswordValidator passwordValidator,
+                              Authenticator authenticator) {
 
-        this.tokenUtils = tokenUtils;
         this.userService = userService;
         this.studyService = studyService;
         this.conversionService = conversionService;
@@ -176,6 +179,7 @@ public abstract class BaseUserController<
         this.paperService = paperService;
         this.submissionService = submissionService;
         this.passwordValidator = passwordValidator;
+        this.authenticator = authenticator;
     }
 
     @ApiOperation("Password restrictions")
@@ -250,9 +254,7 @@ public abstract class BaseUserController<
             throws IOException, UserNotFoundException, NotExistException,
             NoSuchFieldException, IllegalAccessException, SolrServerException, URISyntaxException {
 
-        tokenUtils
-                .getAuthToken(request)
-                .forEach(token -> tokenUtils.addInvalidateToken(token));
+        getAuthToken(request).forEach(authenticator::invalidateToken);
 
         Boolean activated;
         try {
@@ -280,7 +282,7 @@ public abstract class BaseUserController<
             throws IOException, WrongFileFormatException, ValidationException, ImageProcessingException, MetadataException, IllegalAccessException, SolrServerException, NoSuchFieldException {
 
         JsonResult<Boolean> result;
-        U user = userService.getByEmail(principal.getName());
+        U user = userService.getByUsername(principal.getName());
         if (file != null && file.length > 0) {
             userService.saveAvatar(user, file[0]);
         } else {
@@ -299,7 +301,7 @@ public abstract class BaseUserController<
             HttpServletResponse response) throws IOException {
 
         final Optional<String> userName = Optional.ofNullable(principal != null ? principal.getName() : null);
-        U user = userName.map(userService::getByEmail).orElse(null);
+        U user = userName.map(userService::getByUsername).orElse(null);
         userService.putAvatarToResponse(response, user);
     }
 
@@ -327,7 +329,7 @@ public abstract class BaseUserController<
             NoSuchFieldException {
 
         JsonResult<UserProfileDTO> result;
-        IUser owner = userService.getByEmail(principal.getName());
+        IUser owner = userService.getByUsername(principal.getName());
         if (binding.hasErrors()) {
             result = setValidationErrors(binding);
         } else {
@@ -349,7 +351,7 @@ public abstract class BaseUserController<
     ) throws ValidationException, PasswordValidationException {
 
         JsonResult result;
-        U loggedUser = userService.getByEmail(principal.getName());
+        U loggedUser = userService.getByUsername(principal.getName());
         try {
             userService.updatePassword(loggedUser, changePasswordDTO.getOldPassword(), changePasswordDTO.getNewPassword());
             result = new JsonResult<>(NO_ERROR);
@@ -368,7 +370,7 @@ public abstract class BaseUserController<
     ) throws NotExistException, IllegalAccessException, SolrServerException, IOException, NoSuchFieldException {
 
         JsonResult<UserProfileDTO> result;
-        U user = userService.getByEmail(principal.getName());
+        U user = userService.getByUsername(principal.getName());
         user = userService.addSkillToUser(user.getId(), skillId);
         UserProfileDTO userProfileDTO = conversionService.convert(user, UserProfileDTO.class);
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
@@ -384,7 +386,7 @@ public abstract class BaseUserController<
     ) throws NotExistException, IllegalAccessException, SolrServerException, IOException, NoSuchFieldException {
 
         JsonResult<UserProfileDTO> result;
-        U user = userService.getByEmail(principal.getName());
+        U user = userService.getByUsername(principal.getName());
         user = userService.removeSkillFromUser(user.getId(), skillId);
         UserProfileDTO userProfileDTO = conversionService.convert(user, UserProfileDTO.class);
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
@@ -407,7 +409,7 @@ public abstract class BaseUserController<
                 result.getValidatorErrors().put(fieldError.getField(), fieldError.getDefaultMessage());
             }
         } else {
-            U user = userService.getByEmail(principal.getName());
+            U user = userService.getByUsername(principal.getName());
             user = userService.addLinkToUser(user.getId(), conversionService.convert(userLinkDTO, UserLink.class));
 
             UserProfileDTO userProfileDTO = conversionService.convert(user, UserProfileDTO.class);
@@ -425,7 +427,7 @@ public abstract class BaseUserController<
     ) throws NotExistException {
 
         JsonResult<UserProfileDTO> result;
-        U user = userService.getByEmail(principal.getName());
+        U user = userService.getByUsername(principal.getName());
         user = userService.removeLinkFromUser(user.getId(), linkId);
         UserProfileDTO userProfileDTO = conversionService.convert(user, UserProfileDTO.class);
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
@@ -449,7 +451,7 @@ public abstract class BaseUserController<
             }
         } else {
 
-            U user = userService.getByEmail(principal.getName());
+            U user = userService.getByUsername(principal.getName());
             user = userService.addPublicationToUser(user.getId(), conversionService.convert(userPublicationDTO,
                     UserPublication.class));
             UserProfileDTO userProfileDTO = conversionService.convert(user, UserProfileDTO.class);
@@ -467,7 +469,7 @@ public abstract class BaseUserController<
     ) throws NotExistException {
 
         JsonResult<UserProfileDTO> result;
-        U user = userService.getByEmail(principal.getName());
+        U user = userService.getByUsername(principal.getName());
         user = userService.removePublicationFromUser(user.getId(), publicationId);
         UserProfileDTO userProfileDTO = conversionService.convert(user, UserProfileDTO.class);
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
@@ -482,7 +484,7 @@ public abstract class BaseUserController<
             @RequestParam(value = "studyId", required = false) Long studyId
     ) throws NotExistException {
 
-        U user = userService.getByEmail(principal.getName());
+        U user = userService.getByUsername(principal.getName());
 
         Stream<? extends Invitationable> invitationables;
         if (studyId != null) {
@@ -606,7 +608,7 @@ public abstract class BaseUserController<
             @Valid @RequestBody InvitationActionDTO invitationActionDTO
     ) throws NotExistException, AlreadyExistException, IOException {
 
-        U user = userService.getByEmail(principal.getName());
+        U user = userService.getByUsername(principal.getName());
         return invitationAccept(invitationActionDTO, user);
     }
 
@@ -733,9 +735,12 @@ public abstract class BaseUserController<
         final DN dataNode = Optional.ofNullable(baseDataNodeService.getById(datanodeId)).orElseThrow(() ->
                 new NotExistException(String.format(DATA_NODE_NOT_FOUND_EXCEPTION, datanodeId),
                         DataNode.class));
-        final U user = userService.getByUnverifiedEmailInAnyTenant(linkUserToDataNode.getUserName());
+        final U user = userService.getByUsernameInAnyTenant(linkUserToDataNode.getUserName());
+        if (Objects.isNull(user)) {
+            throw new NotExistException(String.format("User %s not found", linkUserToDataNode.getUserName()), IUser.class);
+        }
         baseDataNodeService.linkUserToDataNode(dataNode, user);
-        return new JsonResult(NO_ERROR);
+        return new JsonResult<>(NO_ERROR);
     }
 
     @ApiOperation("Unlink User to DataNode")
@@ -762,7 +767,7 @@ public abstract class BaseUserController<
         final DN dataNode = baseDataNodeService.getById(dataNodeId);
 
         final Set<DataNodeUser> users = linkUserToDataNodes.stream()
-                .map(link -> new DataNodeUser(userService.getByUnverifiedEmailInAnyTenant(link.getUserName()), dataNode))
+                .map(link -> new DataNodeUser(userService.getByUsernameInAnyTenant(link.getUserName()), dataNode))
                 .collect(Collectors.toSet());
 
         baseDataNodeService.relinkAllUsersToDataNode(dataNode, users);
@@ -821,4 +826,26 @@ public abstract class BaseUserController<
             userService.setActiveTenant(user, dto.getActiveTenantId());
         }
     }
+
+    protected List<String> getAuthToken(HttpServletRequest request) {
+
+        List<String> tokens = new ArrayList<>();
+
+        // Get token from header
+        String headerToken = request.getHeader(tokenHeader);
+        if (headerToken != null) {
+            tokens.add(headerToken);
+        }
+
+        // Get token from cookie
+        if (request.getCookies() != null) {
+            Arrays.stream(request.getCookies())
+                    .filter(cookie -> cookie.getName().equalsIgnoreCase(tokenHeader) && cookie.getValue() != null)
+                    .findFirst()
+                    .ifPresent(cookie -> tokens.add(cookie.getValue()));
+        }
+
+        return tokens;
+    }
+
 }

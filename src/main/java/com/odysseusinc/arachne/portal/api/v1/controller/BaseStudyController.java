@@ -174,7 +174,7 @@ public abstract class BaseStudyController<
             throws NotExistException, NotUniqueException {
 
         JsonResult<SD> result;
-        IUser user = userService.getByEmail(principal.getName());
+        IUser user = userService.getByUsername(principal.getName());
         if (user != null) {
             if (binding.hasErrors()) {
                 result = setValidationErrors(binding);

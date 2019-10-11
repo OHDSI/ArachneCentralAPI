@@ -29,6 +29,7 @@ import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
 import com.odysseusinc.arachne.portal.config.tenancy.TenantContext;
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
+import com.odysseusinc.arachne.portal.exception.NotUniqueException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.DataSourceSortMapper;
@@ -214,6 +215,9 @@ public abstract class BaseDataSourceServiceImpl<
             throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException {
 
         DS forUpdate = getByIdInAnyTenant(dataSource.getId());
+        if (!isNameUnique(forUpdate.getId(), dataSource.getName())) {
+            throw new NotUniqueException("name", "Data source name is not unique");
+        }
         forUpdate = baseUpdate(forUpdate, dataSource);
 
         beforeUpdate.accept(new PairForUpdating<>(forUpdate, dataSource));
@@ -245,9 +249,14 @@ public abstract class BaseDataSourceServiceImpl<
         });
     }
 
+    private boolean isNameUnique(Long sourceId, String dsName) {
+
+        return dataSourceRepository.findByNameAndIdNot(dsName, sourceId).isEmpty();
+    }
+
     private DS baseUpdate(DS exist, DS dataSource) {
 
-        if (dataSource.getName() != null) {
+        if (StringUtils.isNotBlank(dataSource.getName())) {
             exist.setName(dataSource.getName());
         }
 

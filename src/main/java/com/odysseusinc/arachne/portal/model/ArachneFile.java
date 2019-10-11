@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.model;
 
+import com.odysseusinc.arachne.commons.utils.CommonFilenameUtils;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
 import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
@@ -61,7 +62,7 @@ public class ArachneFile extends AntivirusFile implements ArachneFileMeta, HasAr
 
         this.uuid = uuid;
         this.label = label;
-        this.realName = realName;
+        this.realName = CommonFilenameUtils.sanitizeFilename(realName);
         this.contentType = contentType;
         this.created = created;
         this.updated = updated;
@@ -80,17 +81,17 @@ public class ArachneFile extends AntivirusFile implements ArachneFileMeta, HasAr
     @Deprecated
     public String getRealName() {
 
-        return realName;
+        return getName();
     }
 
     public String getName() {
 
-        return realName;
+        return CommonFilenameUtils.sanitizeFilename(realName);
     }
 
     public void setRealName(String realName) {
 
-        this.realName = realName;
+        this.realName = CommonFilenameUtils.sanitizeFilename(realName);
     }
 
     public Date getCreated() {

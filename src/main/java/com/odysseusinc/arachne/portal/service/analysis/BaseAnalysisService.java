@@ -127,6 +127,8 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
 
     List<T> getByStudyId(Long id, EntityGraph author);
 
+    List<T> findByType(CommonAnalysisType type);
+
     void processAntivirusResponse(AntivirusJobAnalysisFileResponseEvent event);
 
     void indexAllBySolr()

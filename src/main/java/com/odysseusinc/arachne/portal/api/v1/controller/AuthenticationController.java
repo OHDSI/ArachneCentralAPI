@@ -22,12 +22,12 @@
 
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
-import com.odysseusinc.arachne.portal.security.TokenUtils;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
 import com.odysseusinc.arachne.portal.service.LoginAttemptService;
 import com.odysseusinc.arachne.portal.service.PasswordResetService;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
 import com.odysseusinc.arachne.portal.service.UserService;
+import org.ohdsi.authenticator.service.Authenticator;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.RestController;
@@ -36,7 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthenticationController extends BaseAuthenticationController {
 
     public AuthenticationController(AuthenticationManager authenticationManager,
-                                    TokenUtils tokenUtils,
+                                    Authenticator authenticator,
                                     UserService userService,
                                     UserDetailsService userDetailsService,
                                     PasswordResetService passwordResetService,
@@ -45,9 +45,8 @@ public class AuthenticationController extends BaseAuthenticationController {
                                     LoginAttemptService loginAttemptService) {
 
         super(authenticationManager,
-                tokenUtils,
+                authenticator,
                 userService,
-                userDetailsService,
                 passwordResetService,
                 passwordValidator,
                 professionalTypeService,

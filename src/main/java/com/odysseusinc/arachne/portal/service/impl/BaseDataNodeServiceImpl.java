@@ -49,6 +49,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Predicate;
 import javax.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -230,7 +231,7 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode, DS extends ID
 
         LOGGER.info(UNLINKING_USER_LOG, user.getId(), dataNode.getId());
         final DataNodeUser existDataNodeUser
-                = dataNodeUserRepository.findByDataNodeAndUserId(dataNode, user.getId())
+                = dataNodeUserRepository.findByDataNodeAndUser_Username(dataNode, user.getUsername())
                 .orElseThrow(() -> {
                     final String message = String.format(USER_IS_NOT_LINKED_EXC, user.getId(),
                             dataNode.getId());
@@ -239,6 +240,8 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode, DS extends ID
         dataNodeUserRepository.delete(existDataNodeUser);
     }
 
+    private Predicate<? super DataNodeUser> filterNullUsers = u -> Objects.nonNull(u.getUser());
+
     @Transactional
     @Override
     @PreAuthorize("#dataNode == authentication.principal")
@@ -246,12 +249,12 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode, DS extends ID
 
         LOGGER.info(RELINKING_ALL_USERS_LOG, dataNode.getId());
         final List<DataNodeUser> existingUsers = dataNodeUserRepository.findByDataNode(dataNode);
-        existingUsers.forEach(existingDataNodeUser -> {
-            if (!dataNodeUsers.contains(existingDataNodeUser)) {
+        existingUsers.stream().filter(filterNullUsers).forEach(existingDataNodeUser -> {
+            if (dataNodeUsers.stream().noneMatch(dnu -> Objects.equals(dnu.getUser().getUsername(), existingDataNodeUser.getUser().getUsername()))) {
                 dataNodeUserRepository.delete(existingDataNodeUser);
             }
         });
-        dataNodeUsers.stream().filter(user -> Objects.nonNull(user.getUser())).forEach(dataNodeUser -> {
+        dataNodeUsers.stream().filter(filterNullUsers).forEach(dataNodeUser -> {
             dataNodeUser.setDataNode(dataNode);
             saveOrUpdateDataNodeUser(dataNode, dataNodeUser);
         });
@@ -273,7 +276,7 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode, DS extends ID
     private void saveOrUpdateDataNodeUser(DataNode dataNode, DataNodeUser dataNodeUser) {
 
         dataNodeUser.setDataNode(dataNode);
-        dataNodeUserRepository.findByDataNodeAndUserId(dataNode, dataNodeUser.getUser().getId())
+        dataNodeUserRepository.findByDataNodeAndUser_Username(dataNode, dataNodeUser.getUser().getUsername())
                 .ifPresent(existing -> dataNodeUser.setId(existing.getId()));
         dataNodeUserRepository.save(dataNodeUser);
     }

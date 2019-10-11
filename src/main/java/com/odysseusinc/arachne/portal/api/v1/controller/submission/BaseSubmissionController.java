@@ -64,6 +64,7 @@ import com.odysseusinc.arachne.portal.util.HttpUtils;
 import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.storage.service.ContentStorageService;
 import io.swagger.annotations.ApiOperation;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -76,6 +77,7 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -86,6 +88,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 public abstract class BaseSubmissionController<T extends Submission, A extends Analysis, DTO extends SubmissionDTO>
         extends BaseController {
@@ -125,7 +128,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
         if (principal == null) {
             throw new PermissionDeniedException();
         }
-        IUser user = userService.getByEmail(principal.getName());
+        IUser user = userService.getByUsername(principal.getName());
         if (user == null) {
             throw new PermissionDeniedException();
         }
@@ -189,7 +192,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
         approveDTO.setIsSuccess(true);
 
         Submission updatedSubmission = submissionService.approveSubmissionResult(submissionId, approveDTO, userService
-                .getByEmail(principal.getName()));
+                .getByUsername(principal.getName()));
 
         DTO submissionDTO = conversionService.convert(updatedSubmission, getSubmissionDTOClass());
         return new JsonResult<>(NO_ERROR, submissionDTO);
@@ -202,24 +205,27 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     public JsonResult<Boolean> uploadSubmissionResults(
             Principal principal,
             @RequestParam("submissionId") Long id,
+            @RequestParam(value = "archive", defaultValue = "false") boolean archive,
             @Valid UploadFileDTO uploadFileDTO
-    ) throws IOException, NotExistException, ValidationException {
+    ) throws IOException, NotExistException {
 
         LOGGER.info("uploading result files for submission with id='{}'", id);
-
-        JsonResult.ErrorCode errorCode;
-        Boolean hasResult;
         if (uploadFileDTO.getFile() == null) {
-            errorCode = JsonResult.ErrorCode.VALIDATION_ERROR;
-            hasResult = false;
-        } else {
-            submissionService.uploadResultsByDataOwner(id, uploadFileDTO.getLabel(), uploadFileDTO.getFile());
-            errorCode = JsonResult.ErrorCode.NO_ERROR;
-            hasResult = true;
+            return new JsonResult<>(JsonResult.ErrorCode.VALIDATION_ERROR, false);
         }
-        JsonResult<Boolean> result = new JsonResult<>(errorCode);
-        result.setResult(hasResult);
-        return result;
+        MultipartFile file = uploadFileDTO.getFile();
+        String uploadFileName = ObjectUtils.firstNonNull(uploadFileDTO.getLabel(), file.getOriginalFilename());
+
+        File tempFile = File.createTempFile(uploadFileName, "");
+        tempFile.deleteOnExit();
+        file.transferTo(tempFile);
+
+        if (archive) {
+            submissionService.uploadResultsByDataOwner(id, tempFile);
+        } else {
+            submissionService.uploadResultsByDataOwner(id, uploadFileName, tempFile);
+        }
+        return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, true);
     }
 
     @ApiOperation("Delete manually uploaded submission result file")
@@ -279,7 +285,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
                 "attachment; filename=" + archiveName);
 
         Submission submission = submissionService.getSubmissionById(submissionId);
-        IUser user = userService.getByEmail(principal.getName());
+        IUser user = userService.getByUsername(principal.getName());
         submissionService
                 .getSubmissionResultAllFiles(user, submission.getSubmissionGroup().getAnalysis().getId(),
                         submissionId, archiveName, response.getOutputStream());
@@ -343,7 +349,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
             @RequestParam(value = "real-name", required = false) String realName
     ) throws PermissionDeniedException, IOException {
 
-        IUser user = userService.getByEmail(principal.getName());
+        IUser user = userService.getByUsername(principal.getName());
 
         ResultFileSearch resultFileSearch = new ResultFileSearch();
         resultFileSearch.setPath(path);
@@ -456,7 +462,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
             throws NotExistException, PermissionDeniedException {
 
         Submission submission = submissionService.getSubmissionById(submissionId);
-        IUser user = userService.getByEmail(principal.getName());
+        IUser user = userService.getByUsername(principal.getName());
         return submissionService.getResultFileAndCheckPermission(user, submission, submission.getSubmissionGroup().getAnalysis().getId(), fileUuid);
     }
 

@@ -25,10 +25,10 @@ package com.odysseusinc.arachne.portal.api.v1.controller;
 import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.NO_ERROR;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonBaseDataSourceDTO;
-import com.odysseusinc.arachne.commons.api.v1.dto.CommonCDMVersionDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataSourceDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.OptionDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
+import com.odysseusinc.arachne.commons.types.CommonCDMVersionDTO;
 import com.odysseusinc.arachne.commons.types.DBMSType;
 import com.odysseusinc.arachne.portal.api.v1.dto.FacetedSearchResultDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.IDataSourceDTO;
@@ -87,6 +87,7 @@ public abstract class BaseDataSourceController<
         this.studyDataSourceService = studyDataSourceService;
     }
 
+    @ApiOperation("Update and publish datasource")
     @RequestMapping(value = "/api/v1/data-sources/{id}", method = RequestMethod.PUT)
     public JsonResult<DTO> update(
             Principal principal,
@@ -114,7 +115,6 @@ public abstract class BaseDataSourceController<
         if (bindingResult.hasErrors()) {
             result = setValidationErrors(bindingResult);
         } else {
-            IUser user = getUser(principal);
             final DS exist = dataSourceService.getByIdInAnyTenant(dataSourceId);
             DS dataSource = convertDTOToDataSource(commonDataSourceDTO);
             dataSource.setId(dataSourceId);
@@ -129,6 +129,7 @@ public abstract class BaseDataSourceController<
         return result;
     }
 
+    @ApiOperation("Update datasource information")
     @RequestMapping(value = "/api/v1/data-sources/{id}/from-node", method = RequestMethod.PUT)
     public JsonResult<DTO> updateFieldsDefinedAtNode(
             @PathVariable("id") Long dataSourceId,
@@ -144,6 +145,7 @@ public abstract class BaseDataSourceController<
         return result;
     }
 
+    @ApiOperation("Suggest datasources for study")
     @RequestMapping(value = "/api/v1/data-sources/search-data-source", method = RequestMethod.GET)
     public JsonResult<Page<DS_DTO>> suggestDataSource(Principal principal,
                                                       @RequestParam("studyId") Long studyId,
@@ -166,6 +168,7 @@ public abstract class BaseDataSourceController<
 
     protected abstract Class<DS_DTO> getDataSourceDTOClass();
 
+    @ApiOperation("Suggest datasources")
     @RequestMapping(value = "/api/v1/data-sources", method = RequestMethod.GET)
     public JsonResult<R> list(Principal principal,
                               @ModelAttribute SearchDataCatalogDTO searchDTO
@@ -177,6 +180,7 @@ public abstract class BaseDataSourceController<
         return new JsonResult<>(NO_ERROR, conversionService.convert(searchResult, getSearchResultClass()));
     }
 
+    @ApiOperation("List accessible for user datasources")
     @RequestMapping(value = "/api/v1/data-sources/my", method = RequestMethod.GET)
     public Page<DS_DTO> getUserDataSources(Principal principal,
                                            @RequestParam(name = "query", required = false, defaultValue = "") String query,
@@ -192,6 +196,7 @@ public abstract class BaseDataSourceController<
         return new CustomPageImpl<>(dataSourceDTOs, pageRequest, dataSources.getTotalElements());
     }
 
+    @ApiOperation("Find unsecured datasource by uuid")
     @RequestMapping(value = "/api/v1/data-sources/byuuid/{uuid}", method = RequestMethod.GET)
     public JsonResult<DTO> getByUuid(@PathVariable("uuid") String dataSourceUuid) throws NotExistException {
 
@@ -201,6 +206,7 @@ public abstract class BaseDataSourceController<
         return result;
     }
 
+    @ApiOperation("Get datasource by id")
     @RequestMapping(value = "/api/v1/data-sources/{id}", method = RequestMethod.GET)
     public JsonResult<DTO> get(@PathVariable("id") Long dataSourceId) throws NotExistException {
 
@@ -210,6 +216,7 @@ public abstract class BaseDataSourceController<
         return result;
     }
 
+    @ApiOperation("List existing datasource entities by ids")
     @RequestMapping(value = "/api/v1/data-sources/commondata", method = RequestMethod.GET)
     public JsonResult<List<CommonDataSourceDTO>> getCommonBaseDataSourceDTOs(
             @RequestParam("id") List<Long> dataSourceIds) throws NotExistException {
@@ -256,6 +263,7 @@ public abstract class BaseDataSourceController<
         return updateDataSource(principal, dataSourceId, commonDataSourceDTO, bindingResult);
     }
 
+    @ApiOperation("List supported CDM versions")
     @RequestMapping(value = "/api/v1/data-sources/cdm-versions", method = RequestMethod.GET)
     public JsonResult<List<CommonCDMVersionDTO>> getCDMVersions() {
 
@@ -272,6 +280,7 @@ public abstract class BaseDataSourceController<
 
     protected abstract DS convertDTOToDataSource(DTO dto);
 
+    @ApiOperation("Get datasource by id in any tenant")
     @RequestMapping(value = "/api/v1/data-sources/{id}/complete", method = RequestMethod.GET)
     public JsonResult<DS_DTO> getWhole(@PathVariable("id") Long dataSourceId) throws NotExistException {
 
@@ -279,6 +288,7 @@ public abstract class BaseDataSourceController<
         return new JsonResult<>(NO_ERROR, conversionService.convert(dataSource, getDataSourceDTOClass()));
     }
 
+    @ApiOperation("List supported DBMS")
     @RequestMapping(value = "/api/v1/data-sources/dbms-types", method = RequestMethod.GET)
     public List<OptionDTO> getDBMSTypes() {
 

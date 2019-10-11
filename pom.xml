@@ -6,27 +6,27 @@
 
     <artifactId>portal</artifactId>
     <groupId>com.odysseusinc.arachne</groupId>
-    <version>1.14.0</version>
+    <version>1.15.0</version>
     <packaging>jar</packaging>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>1.5.9.RELEASE</version>
+        <version>1.5.20.RELEASE</version>
         <relativePath/>
     </parent>
 
     <properties>
-        <spring.boot.version>1.5.4.RELEASE</spring.boot.version>
+        <spring.boot.version>1.5.20.RELEASE</spring.boot.version>
         <spring.security.acl.version>4.2.1.RELEASE</spring.security.acl.version>
         <start-class>com.odysseusinc.arachne.portal.PortalStarter</start-class>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
-        <jjwt.version>0.6.0</jjwt.version>
+        <jjwt.version>0.10.5</jjwt.version>
         <ehcache.version>1.3.0</ehcache.version>
         <postgresql.version>42.2.1</postgresql.version>
         <gson.version>2.7</gson.version>
-        <commons.lang3.version>3.5</commons.lang3.version>
+        <commons.lang3.version>3.8.1</commons.lang3.version>
         <hikaricp.version>2.6.3</hikaricp.version>
         <build.number>${BUILD_NUMBER}</build.number>
         <build.id>${BUILD_TIMESTAMP}</build.id>
@@ -34,7 +34,7 @@
         <jodConverter.version>4.1.0</jodConverter.version>
         <hibernate.version>5.2.12.Final</hibernate.version>
         <clamav.version>2.0.1</clamav.version>
-        <springRetryVersion>1.2.1.RELEASE</springRetryVersion>
+        <springRetryVersion>1.2.4.RELEASE</springRetryVersion>
     </properties>
 
     <profiles>
@@ -111,6 +111,11 @@
                 <artifactId>flyway-core</artifactId>
                 <version>4.2.0</version>
             </dependency>
+            <dependency>
+                <groupId>org.ohdsi</groupId>
+                <artifactId>authenticator</artifactId>
+                <version>0.0.1-QA</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -120,6 +125,11 @@
             <artifactId>arachne-commons</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>com.odysseusinc.arachne</groupId>
+            <artifactId>arachne-common-utils</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.odysseusinc.arachne</groupId>
@@ -189,11 +199,7 @@
             <artifactId>spring-security-test</artifactId>
             <version>${spring-security.version}</version>
         </dependency>
-        <!--<dependency>-->
-            <!--<groupId>net.sf.ehcache</groupId>-->
-            <!--<artifactId>ehcache</artifactId>-->
-            <!--<version>${ehcache.version}</version>-->
-        <!--</dependency>-->
+
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
@@ -211,8 +217,20 @@
         </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt</artifactId>
+            <artifactId>jjwt-api</artifactId>
             <version>${jjwt.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.imgscalr</groupId>
@@ -233,7 +251,7 @@
         <dependency>
             <groupId>net.lingala.zip4j</groupId>
             <artifactId>zip4j</artifactId>
-            <version>1.3.2</version>
+            <version>2.1.1</version>
         </dependency>
         <dependency>
             <groupId>edu.vt.middleware</groupId>
@@ -355,6 +373,10 @@
             <groupId>net.htmlparser.jericho</groupId>
             <artifactId>jericho-html</artifactId>
             <version>3.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ohdsi</groupId>
+            <artifactId>authenticator</artifactId>
         </dependency>
     </dependencies>
 
@@ -504,6 +526,10 @@
             <testResource>
                 <directory>src/test/resources</directory>
                 <filtering>true</filtering>
+            </testResource>
+            <testResource>
+                <directory>src/test/resources-binary</directory>
+                <filtering>false</filtering>
             </testResource>
         </testResources>
         <pluginManagement>

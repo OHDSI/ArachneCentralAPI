@@ -43,6 +43,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
+import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -53,11 +54,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -186,25 +187,35 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-
-        return super.authenticationManagerBean();
-    }
-
-
-    @Bean
     public AuthenticationTokenFilter authenticationTokenFilterBean() throws Exception {
 
-        AuthenticationTokenFilter authenticationTokenFilter = new AuthenticationTokenFilter();
-        authenticationTokenFilter.setAuthenticationManager(authenticationManagerBean());
-        return authenticationTokenFilter;
+        return new AuthenticationTokenFilter();
+    }
+
+    @Bean
+    public FilterRegistrationBean authenticationTokenFilterRegistration(AuthenticationTokenFilter filter) {
+
+        return disableFilter(filter);
     }
 
     @Bean
     public AuthenticationSystemTokenFilter authenticationSystemTokenFilter() {
 
         return new AuthenticationSystemTokenFilter(baseDataNodeService);
+    }
+
+    @Bean
+    public FilterRegistrationBean authenticationSystemTokenFilterRegistration(AuthenticationSystemTokenFilter filter) {
+
+        return disableFilter(filter);
+    }
+
+    private FilterRegistrationBean disableFilter(Filter filter) {
+
+        FilterRegistrationBean registrationBean = new FilterRegistrationBean();
+        registrationBean.setFilter(filter);
+        registrationBean.setEnabled(false);
+        return registrationBean;
     }
 
     @Bean

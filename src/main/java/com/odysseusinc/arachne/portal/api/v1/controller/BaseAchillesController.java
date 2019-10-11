@@ -129,6 +129,7 @@ public abstract class BaseAchillesController<DS extends IDataSource> {
         return result;
     }
 
+    @ApiOperation("Retrieve Achilles reports for the specified datasource")
     @RequestMapping(value = "datasource/{id}/reports", method = RequestMethod.GET)
     public JsonResult<List<AchillesReportDTO>> reports(
             @PathVariable("id") Long datasourceId) throws NotExistException {
