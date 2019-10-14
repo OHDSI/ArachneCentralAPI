@@ -23,16 +23,27 @@
 package com.odysseusinc.arachne.portal.api.v1.dto.converters.submission;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.odysseusinc.arachne.portal.api.v1.dto.*;
+import com.google.gson.JsonElement;
+import com.google.gson.reflect.TypeToken;
+import com.odysseusinc.arachne.portal.api.v1.dto.BaseSubmissionDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.DataSourceDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.PermissionsDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionStatusDTO;
+import com.odysseusinc.arachne.portal.api.v1.dto.SubmissionStatusHistoryElementDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.converters.BaseConversionServiceAwareConverter;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
-import com.odysseusinc.arachne.portal.model.*;
+import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.model.Submission;
+import com.odysseusinc.arachne.portal.model.SubmissionStatus;
+import com.odysseusinc.arachne.portal.model.SubmissionStatusHistoryElement;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
 import com.odysseusinc.arachne.portal.util.DataNodeUtils;
-import org.springframework.security.core.context.SecurityContextHolder;
-
+import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 public abstract class BaseSubmissionToBaseSubmissionDTOConverter<T extends Submission, DTO extends BaseSubmissionDTO>
         extends BaseConversionServiceAwareConverter<T, DTO> {
@@ -66,9 +77,19 @@ public abstract class BaseSubmissionToBaseSubmissionDTOConverter<T extends Submi
         }
         dto.setPermissions(conversionService.convert(source, PermissionsDTO.class));
         proceedAdditionalFields(dto, source);
-        final JsonObject resultInfo = source.getResultInfo();
-        final Map map = new Gson().fromJson(resultInfo, Map.class);
-        dto.setResultInfo(map);
+        final JsonElement resultInfo = source.getResultInfo();
+        Gson gson = new Gson();
+        Object result = null;
+        if (Objects.nonNull(resultInfo)) {
+            if (resultInfo.isJsonObject()) {
+                result = gson.fromJson(resultInfo, Map.class);
+            } else if (resultInfo.isJsonArray()) {
+                Type type = new TypeToken<List<HashMap<String, Object>>>() {
+                }.getType();
+                result = gson.fromJson(resultInfo, type);
+            }
+        }
+        dto.setResultInfo(result);
         dto.setHidden(source.getHidden());
         return dto;
     }

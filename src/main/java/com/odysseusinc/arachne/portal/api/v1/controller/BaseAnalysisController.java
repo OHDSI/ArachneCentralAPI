@@ -334,6 +334,8 @@ public abstract class BaseAnalysisController<T extends Analysis,
             throws PermissionDeniedException, NotExistException {
 
         List<OptionDTO> analysisOptionDTOs = Arrays.stream(CommonAnalysisType.values())
+                .filter(type -> type != CommonAnalysisType.COHORT_HERACLES) // NOTE: Temporary disable Heracles analysis type due to dysfunctional Packrat
+                .filter(type -> type != CommonAnalysisType.COHORT_PATHWAY) // NOTE: Temporary disable Pathways until it completely implemented
                 .map(type -> new OptionDTO(type.name(), type.getTitle()))
                 .collect(Collectors.toList());
 
@@ -736,14 +738,9 @@ public abstract class BaseAnalysisController<T extends Analysis,
 						if (entityType.equals(CommonAnalysisType.COHORT_HERACLES)) {
 							attachCohortHeraclesFiles(files);
 						}
-            if (entityType.equals(CommonAnalysisType.INCIDENCE)) {
-                attachIncidenceRatesFiles(files);
-            }
         }
         return files;
     }
-
-    protected abstract void attachIncidenceRatesFiles(List<MultipartFile> files) throws IOException;
 
     protected byte[] readResource(final String path) throws IOException {
 
