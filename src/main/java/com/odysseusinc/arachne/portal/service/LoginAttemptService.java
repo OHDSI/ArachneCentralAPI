@@ -29,5 +29,5 @@ public interface LoginAttemptService {
 
     void loginFailed(String key);
 
-    boolean isBlocked(String key);
+    Long getRemainingAccountLockPeriod(String key);
 }

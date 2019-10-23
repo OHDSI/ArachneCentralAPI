@@ -34,33 +34,49 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.stream.JsonReader;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.commons.utils.cohortcharacterization.CohortCharacterizationDocType;
+import com.odysseusinc.arachne.execution_engine_common.util.CommonFileUtils;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.repository.SubmissionResultFileRepository;
 import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.storage.model.QuerySpec;
 import com.odysseusinc.arachne.storage.service.ContentStorageService;
 import com.odysseusinc.arachne.storage.service.JcrContentStorageServiceImpl;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.Reader;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import java.util.stream.StreamSupport;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 @Component
@@ -86,6 +102,7 @@ public class SubmissionHelper {
         this.contentStorageHelper = contentStorageHelper;
     }
 
+    @Transactional
     public void updateSubmissionExtendedInfo(final Submission submission) {
 
         final CommonAnalysisType analysisType = submission.getSubmissionGroup().getAnalysisType();
@@ -219,56 +236,116 @@ public class SubmissionHelper {
 
     private class IncidenceSubmissionExtendInfoStrategy extends SubmissionExtendInfoAnalyzeStrategy {
 
+        private static final String STUDY_SPECIFICATION_JSON = "StudySpecification.json";
+
         @Override
         public void updateExtendInfo(Submission submission) {
 
-            final JsonObject resultInfo = new JsonObject();
+            final JsonArray result = new JsonArray();
             try {
                 final String resultsDir = contentStorageHelper.getResultFilesDir(submission);
+                final Map<String, String> cohortNames = new HashMap<>();
+                List<ArachneFileMeta> packageFiles = searchFiles(submission, "IncidenceRate%.zip");
+                if (!packageFiles.isEmpty()) {
+                    Path tmpDir = Files.createTempDirectory("incidencerate");
+                    try {
+                        File archiveFile = tmpDir.resolve("IncidenceRate.zip").toFile();
+                        try(OutputStream out = new FileOutputStream(archiveFile);
+                            InputStream fileIn = contentStorageService.getContentByFilepath(packageFiles.get(0).getPath())) {
+                            IOUtils.copy(fileIn, out);
+                        }
+                        try(FileInputStream in = new FileInputStream(archiveFile);
+                            ZipInputStream zip = new ZipInputStream(in)) {
+                            ZipEntry entry = zip.getNextEntry();
+                            while(entry != null) {
+                                if (entry.getName().endsWith(STUDY_SPECIFICATION_JSON)) {
+                                    File jsonFile = tmpDir.resolve(STUDY_SPECIFICATION_JSON).toFile();
+                                    try(FileOutputStream out = new FileOutputStream(jsonFile)) {
+                                        IOUtils.copy(zip, out);
+                                    }
+                                }
+                                zip.closeEntry();
+                                entry = zip.getNextEntry();
+                            }
+                        }
+
+                        Path specFile = tmpDir.resolve(STUDY_SPECIFICATION_JSON);
+                        if (Files.exists(specFile) && Files.isRegularFile(specFile)) {
+                            JsonParser parser = new JsonParser();
+                            try (Reader json = new FileReader(specFile.toFile())) {
+                                JsonObject spec = parser.parse(json).getAsJsonObject();
+                                JsonArray targets = spec.get("targetCohorts").getAsJsonArray();
+                                cohortNames.putAll(getCohortNames(targets));
+                                JsonArray outcomes = spec.get("outcomeCohorts").getAsJsonArray();
+                                cohortNames.putAll(getCohortNames(outcomes));
+                            }
+                        }
+                    } catch (Exception e) {
+                        LOGGER.warn("Failed to parse cohort names, {}", e.getMessage());
+                    } finally {
+                        FileUtils.deleteQuietly(tmpDir.toFile());
+                    }
+                }
+
                 ArachneFileMeta arachneFile = contentStorageService.getFileByPath(resultsDir
                         + PATH_SEPARATOR
                         + INCIDENCE_SUMMARY_FILENAME);
                 final CSVParser parser = CSVParser.parse(contentStorageService.getContentByFilepath(arachneFile.getPath()), Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
                 final Map<String, Integer> headers = parser.getHeaderMap();
 
+                final String targetIdHeader = "TARGET_ID";
+                final String outcomeIdHeader = "OUTCOME_ID";
+                final String targetNameHeader = "TARGET_NAME";
+                final String outcomeNameHeader = "OUTCOME_NAME";
                 final String personCountHeader = "PERSON_COUNT";
                 final String timeAtRiskHeader = "TIME_AT_RISK";
                 final String casesHeader = "CASES";
 
                 Map<String, Integer> values =
-                        Arrays.asList(personCountHeader, timeAtRiskHeader, casesHeader)
-                                .stream()
+                        Stream.of(targetIdHeader, outcomeIdHeader, personCountHeader, timeAtRiskHeader, casesHeader)
                                 .collect(Collectors.toMap(header -> header, headers::get));
                 final List<CSVRecord> records = parser.getRecords();
 
                 if (!CollectionUtils.isEmpty(records)) {
-                    final CSVRecord firstRecord = records.get(0);
-                    final String personCount = firstRecord.get(values.get(personCountHeader));
-                    final String timeAtRisk = firstRecord.get(values.get(timeAtRiskHeader));
-                    final String cases = firstRecord.get(values.get(casesHeader));
+                    records.forEach(record -> {
 
-                    resultInfo.add(personCountHeader, getJsonPrimitive(personCount));
-                    resultInfo.add(timeAtRiskHeader, getJsonPrimitive(timeAtRisk));
-                    resultInfo.add(casesHeader, getJsonPrimitive(cases));
-                    try {
-                        final float casesFloat = cast(cases).floatValue();
+                        final String targetId = record.get(values.get(targetIdHeader));
+                        final String targetName = cohortNames.getOrDefault(targetId, "");
+                        final String outcomeId = record.get(values.get(outcomeIdHeader));
+                        final String outcomeName = cohortNames.getOrDefault(outcomeId, "");
+                        final String personCount = record.get(values.get(personCountHeader));
+                        final String timeAtRisk = record.get(values.get(timeAtRiskHeader));
+                        final String cases = record.get(values.get(casesHeader));
+
+                        final JsonObject resultInfo = new JsonObject();
+                        resultInfo.add(targetIdHeader, getJsonPrimitive(targetId));
+                        resultInfo.add(targetNameHeader, getJsonPrimitive(targetName));
+                        resultInfo.add(outcomeIdHeader, getJsonPrimitive(outcomeId));
+                        resultInfo.add(outcomeNameHeader, getJsonPrimitive(outcomeName));
+                        resultInfo.add(personCountHeader, getJsonPrimitive(personCount));
+                        resultInfo.add(timeAtRiskHeader, getJsonPrimitive(timeAtRisk));
+                        resultInfo.add(casesHeader, getJsonPrimitive(cases));
                         try {
-                            final float timeAtRiskFloat = cast(timeAtRisk).floatValue();
-                            final float rate = timeAtRiskFloat > 0 ? casesFloat / timeAtRiskFloat * 1000 : 0F;
-                            resultInfo.add("RATE", new JsonPrimitive(rate));
+                            final float casesFloat = cast(cases).floatValue();
+                            try {
+                                final float timeAtRiskFloat = cast(timeAtRisk).floatValue();
+                                final float rate = timeAtRiskFloat > 0 ? casesFloat / timeAtRiskFloat * 1000 : 0F;
+                                resultInfo.add("RATE", new JsonPrimitive(rate));
+                            } catch (IllegalArgumentException e) {
+                                LOGGER.debug("'TIME_AT_RISK' is not correct value, skipping calculate 'RATE' value");
+                            }
+                            try {
+                                final float personsFloat = cast(personCount).floatValue();
+                                final float proportion = personsFloat > 0 ? casesFloat / personsFloat * 1000 : 0F;
+                                resultInfo.add("PROPORTION", new JsonPrimitive(proportion));
+                            } catch (IllegalArgumentException e) {
+                                LOGGER.debug("'TIME_AT_RISK' is not correct value, skipping calculate 'PROPORTION' value");
+                            }
+                            result.add(resultInfo);
                         } catch (IllegalArgumentException e) {
-                            LOGGER.debug("'TIME_AT_RISK' is not correct value, skipping calculate 'RATE' value");
+                            LOGGER.debug("'PERSON_COUNT' is not correct value, skipping calculate 'RATE' & 'PROPORTION' values");
                         }
-                        try {
-                            final float personsFloat = cast(personCount).floatValue();
-                            final float proportion = personsFloat > 0 ? casesFloat / personsFloat * 1000 : 0F;
-                            resultInfo.add("PROPORTION", new JsonPrimitive(proportion));
-                        } catch (IllegalArgumentException e) {
-                            LOGGER.debug("'TIME_AT_RISK' is not correct value, skipping calculate 'PROPORTION' value");
-                        }
-                    } catch (IllegalArgumentException e) {
-                        LOGGER.debug("'PERSON_COUNT' is not correct value, skipping calculate 'RATE' & 'PROPORTION' values");
-                    }
+                    });
 
                 }
             } catch (IOException e) {
@@ -277,7 +354,18 @@ public class SubmissionHelper {
                 LOGGER.warn(CAN_NOT_BUILD_EXTEND_INFO_LOG, submission.getId());
                 LOGGER.warn("Error: ", e);
             }
-            submission.setResultInfo(resultInfo);
+            submission.setResultInfo(result);
+        }
+
+        private Map<String, String> getCohortNames(JsonArray cohorts) {
+
+            Map<String, String> result = new HashMap<>();
+            cohorts.forEach(c -> {
+                String id = c.getAsJsonObject().get("id").getAsString();
+                String name = c.getAsJsonObject().get("name").getAsString();
+                result.put(id, name);
+            });
+            return result;
         }
     }
 

@@ -251,10 +251,11 @@ public abstract class BaseAdminController<
     }
 
     @ApiOperation(value = "Grant admin role to user", hidden = true)
-    @RequestMapping(value = "/api/v1/admin/admins/{id}", method = RequestMethod.POST)
-    public JsonResult addAdminRole(@PathVariable Long id) {
+    @RequestMapping(value = "/api/v1/admin/admins/{username:.+}", method = RequestMethod.POST)
+    public JsonResult addAdminRole(@PathVariable String username) {
 
-        userService.addUserToAdmins(id);
+        U user = userService.getByUsername(username);
+        userService.addUserToAdmins(user.getId());
         return new JsonResult<>(NO_ERROR);
     }
 
@@ -277,10 +278,11 @@ public abstract class BaseAdminController<
     }
 
     @ApiOperation(value = "Remove admin role from user", hidden = true)
-    @RequestMapping(value = "/api/v1/admin/admins/{id}", method = RequestMethod.DELETE)
-    public JsonResult removeAdminRole(@PathVariable Long id) {
+    @RequestMapping(value = "/api/v1/admin/admins/{username:.+}", method = RequestMethod.DELETE)
+    public JsonResult removeAdminRole(@PathVariable String username) {
 
-        userService.removeUserFromAdmins(id);
+        U user = userService.getByUsername(username);
+        userService.removeUserFromAdmins(user.getId());
         return new JsonResult<>(NO_ERROR);
     }
 

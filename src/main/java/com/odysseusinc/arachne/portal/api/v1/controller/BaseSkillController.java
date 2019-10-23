@@ -132,7 +132,7 @@ public abstract class BaseSkillController<S extends Skill, U extends IUser> {
     @RequestMapping(value = "/api/v1/user-management/skills", method = RequestMethod.GET)
     public JsonResult<List<SkillDTO>> list(Principal principal) {
 
-        Long userId = userService.getByEmail(principal.getName()).getId();
+        Long userId = userService.getByUsername(principal.getName()).getId();
         JsonResult<List<SkillDTO>> result;
         List<S> skills = skillService.getAllExpectOfUserSkills(userId);
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);

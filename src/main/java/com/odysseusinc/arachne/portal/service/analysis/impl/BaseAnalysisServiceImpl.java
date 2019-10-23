@@ -31,6 +31,7 @@ import static com.odysseusinc.arachne.portal.model.SubmissionStatus.FAILED_REJEC
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
+import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraphUtils;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
@@ -1004,5 +1005,12 @@ public abstract class BaseAnalysisServiceImpl<
             throws IllegalAccessException, IOException, SolrServerException, NotExistException, NoSuchFieldException {
 
         solrService.indexBySolr(analysis);
+    }
+
+    @Override
+    @Transactional
+    public List<A> findByType(CommonAnalysisType type) {
+
+        return analysisRepository.findByType(type, EntityGraphUtils.fromAttributePaths("submissions", "submissions.submissionGroup"));
     }
 }
