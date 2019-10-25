@@ -24,7 +24,6 @@ package com.odysseusinc.arachne.portal.util;
 
 import static com.odysseusinc.arachne.storage.service.ContentStorageService.PATH_SEPARATOR;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
@@ -34,7 +33,6 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.stream.JsonReader;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.commons.utils.cohortcharacterization.CohortCharacterizationDocType;
-import com.odysseusinc.arachne.execution_engine_common.util.CommonFileUtils;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.repository.SubmissionResultFileRepository;
 import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
@@ -47,9 +45,9 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
-import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -63,9 +61,9 @@ import java.util.Set;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import java.util.stream.StreamSupport;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -443,9 +441,10 @@ public class SubmissionHelper {
             try {
                 final String rootDir = contentStorageHelper.getResultFilesDir(submission);
                 final String resultsDir = filePath(rootDir, "results");
+                final String designDir = filePath(rootDir, "design");
 
                 JsonElement design;
-                try(JsonReader jsonReader = new JsonReader(new InputStreamReader(contentStorageService.getContentByFilepath(rootDir + PATH_SEPARATOR + "pathways.json")))) {
+                try(JsonReader jsonReader = new JsonReader(new InputStreamReader(contentStorageService.getContentByFilepath(designDir + PATH_SEPARATOR + "StudySpecification.json")))) {
                     JsonParser parser = new JsonParser();
                     design = parser.parse(jsonReader);
                 }

@@ -110,13 +110,6 @@ public class AnalysisController extends BaseAnalysisController<Analysis, Analysi
     }
 
     @Override
-    protected void attachCohortPathwayFiles(List<MultipartFile> files) throws IOException {
-
-        files.add(new MockMultipartFile(RUN_PATHWAY_ANALYSIS_FILE_NAME, RUN_PATHWAY_ANALYSIS_FILE_NAME, null,
-                readResource("r/" + RUN_PATHWAY_ANALYSIS_FILE_NAME)));
-    }
-
-    @Override
     protected void attachPredictionFiles(List<MultipartFile> files) throws IOException {
 
         files.add(new MockMultipartFile(RUN_PLP_ANALYSIS_FILE_NAME, RUN_PLP_ANALYSIS_FILE_NAME, null,
