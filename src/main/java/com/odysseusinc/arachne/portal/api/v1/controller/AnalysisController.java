@@ -63,7 +63,6 @@ public class AnalysisController extends BaseAnalysisController<Analysis, Analysi
     public static final String RUN_PLP_ANALYSIS_FILE_NAME = "run_plp_analysis.r";
     public static final String RUN_IR_ANALYSIS_FILE_NAME = "run_ir_analysis.r";
     private static final String RUN_CC_REPORTS_FILE_NAME = "run_cc_reports.R";
-    private static final String RUN_PATHWAY_ANALYSIS_FILE_NAME = "run_pathways.R";
     private static final String CC_SQLS_DIR = "sql/cc";
 
     static {
