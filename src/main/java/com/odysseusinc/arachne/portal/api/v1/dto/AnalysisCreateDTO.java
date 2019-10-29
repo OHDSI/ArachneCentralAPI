@@ -30,10 +30,10 @@ public class AnalysisCreateDTO extends DTO {
     @NotNull
     private Long studyId;
 
-    @NotBlank
+    @NotBlank(message = "Analysis title should be defined")
     private String title;
 
-    @NotNull
+    @NotBlank(message = "Analysis type should be defined")
     private String typeId;
 
     private String description;
