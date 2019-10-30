@@ -146,6 +146,10 @@ public abstract class BaseDataSourceServiceImpl<
             throws FieldException,
             NotExistException {
 
+        if (!isNameUnique(dataSource.getName())) {
+            throw new NotUniqueException("name", "Data source name is not unique");
+        }
+
         final Boolean virtual = dataSource.getDataNode().getVirtual();
         beforeCreate(dataSource, virtual);
 
@@ -252,6 +256,11 @@ public abstract class BaseDataSourceServiceImpl<
     private boolean isNameUnique(Long sourceId, String dsName) {
 
         return dataSourceRepository.findByNameAndIdNot(dsName, sourceId).isEmpty();
+    }
+
+    private boolean isNameUnique(String dsName) {
+
+        return !dataSourceRepository.findByName(dsName).isPresent();
     }
 
     private DS baseUpdate(DS exist, DS dataSource) {
