@@ -114,6 +114,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.ohdsi.authenticator.service.AccessToken;
 import org.ohdsi.authenticator.service.Authenticator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -254,7 +255,7 @@ public abstract class BaseUserController<
             throws IOException, UserNotFoundException, NotExistException,
             NoSuchFieldException, IllegalAccessException, SolrServerException, URISyntaxException {
 
-        getAuthToken(request).forEach(authenticator::invalidateToken);
+        getAuthToken(request).forEach(token -> authenticator.invalidateToken(AccessToken.jwt(token)));
 
         Boolean activated;
         try {

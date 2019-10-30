@@ -25,6 +25,7 @@ package com.odysseusinc.arachne.portal.config;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
+import org.ohdsi.authenticator.service.AccessToken;
 import org.ohdsi.authenticator.service.Authenticator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -123,8 +124,8 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
                 List tokenList = accessor.getNativeHeader(tokenHeader);
                 if (tokenList != null && tokenList.size() > 0) {
                     String authToken = tokenList.get(0).toString();
-                    String username = authenticator.resolveUsername(authToken);
-                    if (authenticator.refreshToken(authToken) != null) {
+                    String username = authenticator.resolveUsername(AccessToken.jwt(authToken));
+                    if (authenticator.refreshToken(AccessToken.jwt(authToken)) != null) {
                         IUser user = userService.getByUsername(username);
                         if (user != null) {
                             principal = user::getUsername;

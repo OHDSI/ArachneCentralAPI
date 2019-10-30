@@ -33,6 +33,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import org.ohdsi.authenticator.exception.AuthenticationException;
+import org.ohdsi.authenticator.service.AccessToken;
 import org.ohdsi.authenticator.service.Authenticator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,7 +76,7 @@ public class AuthenticationTokenFilter extends GenericFilterBean {
                 }
             }
             if (authToken != null) {
-                String username = authenticator.resolveUsername(authToken);
+                String username = authenticator.resolveUsername(AccessToken.jwt(authToken));
                 String requested = httpRequest.getHeader(USER_REQUEST_HEADER);
                 if (requested != null && username != null && !Objects.equals(username, requested)) {
                     throw new BadCredentialsException("forced logout");
