@@ -50,7 +50,6 @@ import edu.vt.middleware.password.Password;
 import io.swagger.annotations.ApiOperation;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.ohdsi.authenticator.model.UserInfo;
-import org.ohdsi.authenticator.service.AccessToken;
 import org.ohdsi.authenticator.service.Authenticator;
 import org.pac4j.core.credentials.UsernamePasswordCredentials;
 import org.slf4j.Logger;
@@ -201,7 +200,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
         try {
             String token = request.getHeader(tokenHeader);
             if (token != null) {
-                authenticator.invalidateToken(AccessToken.jwt(token));
+                authenticator.invalidateToken(token);
             }
             result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
             result.setResult(true);
@@ -221,7 +220,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
         JsonResult<String> result;
         try {
             String token = request.getHeader(this.tokenHeader);
-            UserInfo userInfo = authenticator.refreshToken(AccessToken.jwt(token));
+            UserInfo userInfo = authenticator.refreshToken(token);
             result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
             result.setResult(userInfo.getToken());
         } catch (Exception ex) {
@@ -260,7 +259,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
 
         if (principal != null) {
             String token = request.getHeader(tokenHeader);
-            authenticator.invalidateToken(AccessToken.jwt(token));
+            authenticator.invalidateToken(token);
         }
         JsonResult result;
         if (binding.hasErrors()) {
