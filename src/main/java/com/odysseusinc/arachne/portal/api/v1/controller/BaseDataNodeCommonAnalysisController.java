@@ -55,6 +55,7 @@ public abstract class BaseDataNodeCommonAnalysisController<DN extends DataNode> 
         analysisTypeMap.put("predictions", CommonAnalysisType.PREDICTION);
         analysisTypeMap.put("incidence-rates", CommonAnalysisType.INCIDENCE);
         analysisTypeMap.put("cohort-characterizations", CommonAnalysisType.COHORT_CHARACTERIZATION);
+        analysisTypeMap.put("cohort-pathways", CommonAnalysisType.COHORT_PATHWAY);
     }
 
     /**
