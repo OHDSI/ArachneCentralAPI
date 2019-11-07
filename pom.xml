@@ -6,7 +6,7 @@
 
     <artifactId>portal</artifactId>
     <groupId>com.odysseusinc.arachne</groupId>
-    <version>1.15.0-QA</version>
+    <version>1.15.1-QA</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -114,7 +114,7 @@
             <dependency>
                 <groupId>org.ohdsi</groupId>
                 <artifactId>authenticator</artifactId>
-                <version>0.0.1-QA</version>
+                <version>0.0.2-SNAPSHOT</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
