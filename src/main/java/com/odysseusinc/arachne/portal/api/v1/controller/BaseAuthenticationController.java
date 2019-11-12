@@ -50,7 +50,7 @@ import edu.vt.middleware.password.Password;
 import io.swagger.annotations.ApiOperation;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.ohdsi.authenticator.model.UserInfo;
-import org.ohdsi.authenticator.service.Authenticator;
+import org.ohdsi.authenticator.service.authentication.Authenticator;
 import org.pac4j.core.credentials.UsernamePasswordCredentials;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
