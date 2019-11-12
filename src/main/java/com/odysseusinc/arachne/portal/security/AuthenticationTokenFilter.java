@@ -41,8 +41,6 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 
 public class AuthenticationTokenFilter extends JWTAuthenticationFilter {
 
-    Logger log = LoggerFactory.getLogger(AuthenticationTokenFilter.class);
-
     public static final String USER_REQUEST_HEADER = "Arachne-User-Request";
     @Value("${arachne.token.header}")
     private String tokenHeader;
