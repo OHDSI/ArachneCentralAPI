@@ -112,7 +112,6 @@ import javax.transaction.Transactional;
 import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.model.FileHeader;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -126,7 +125,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
-import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 public abstract class BaseSubmissionServiceImpl<
@@ -538,25 +536,29 @@ public abstract class BaseSubmissionServiceImpl<
 
 
     @Override
-    public void uploadResultsByDataOwner(Long submissionId, File compressedFile) throws IOException {
+    public void uploadCompressedResultsByDataOwner(Long submissionId, File compressedFile) throws IOException {
         ZipFile zipFile = new ZipFile(compressedFile);
         final List<FileHeader> fileHeaders = zipFile.getFileHeaders().stream()
                 .filter(fileHeader -> !fileHeader.isDirectory())
                 .collect(Collectors.toList());
 
-        for (FileHeader fileHeader : fileHeaders) {
-            File tempFile = File.createTempFile(fileHeader.getFileName(), "");
-            tempFile.deleteOnExit();
-            FileUtils.copyInputStreamToFile(zipFile.getInputStream(fileHeader), tempFile);
+        Path tempDirectory = com.google.common.io.Files.createTempDir().toPath();
+        try {
 
-            String filename = StringUtils.getFilename(fileHeader.getFileName());
-            uploadResultsByDataOwner(submissionId, filename, tempFile);
+            for (FileHeader fileHeader : fileHeaders) {
+                final File localFile = tempDirectory.resolve(fileHeader.getFileName()).toFile();
+                localFile.createNewFile();
+                FileUtils.copyInputStreamToFile(zipFile.getInputStream(fileHeader), localFile);
+                uploadResultFileByDataOwner(submissionId, localFile);
+            }
+        } finally {
+            FileUtils.deleteDirectory(tempDirectory.toFile());
         }
     }
 
 
     @Override
-    public ResultFile uploadResultsByDataOwner(Long submissionId, String fileName, File file) throws IOException {
+    public ResultFile uploadResultFileByDataOwner(Long submissionId, File localFile) throws IOException {
 
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         IUser user = userService.getByUsername(userDetails.getUsername());
@@ -565,8 +567,9 @@ public abstract class BaseSubmissionServiceImpl<
                 Collections.singletonList(IN_PROGRESS.name()));
         throwNotExistExceptionIfNull(submission, submissionId);
 
+        String fileName = localFile.getName();
         ResultFile resultFile = createResultFile(
-                file.toPath(),
+                localFile,
                 fileName,
                 submission,
                 user.getId()
@@ -587,7 +590,7 @@ public abstract class BaseSubmissionServiceImpl<
         Path storeFilesPath = analysisHelper.getSubmissionGroupFolder(submissionGroup);
         try (ZipOutputStream zos = new ZipOutputStream(os)) {
             for (SubmissionFile submissionFile : submissionGroup.getFiles()) {
-                String realName = submissionFile.getRealName();
+                String realName = submissionFile.getName();
                 Path file = storeFilesPath.resolve(submissionFile.getUuid());
                 if (Files.notExists(file)) {
                     file = legacyAnalysisHelper.getOldSubmissionFile(submissionFile).orElseThrow(FileNotFoundException::new);
@@ -720,22 +723,18 @@ public abstract class BaseSubmissionServiceImpl<
     @Override
     @Transactional
     public ResultFile createResultFile(
-            Path filePath,
-            String name,
+            File localFile,
+            String fileName,
             Submission submission,
             Long createById
-    ) throws IOException {
+    ) {
+
+        String filesDir = contentStorageHelper.getResultFilesDir(submission, fileName);
+        ArachneFileMeta fileMeta = contentStorageService.saveFile(localFile, filesDir, createById);
 
         ResultFile resultFile = new ResultFile();
         resultFile.setSubmission(submission);
-
-        ArachneFileMeta fileMeta = contentStorageService.saveFile(
-                filePath.toFile(), contentStorageHelper.getResultFilesDir(submission, name),
-                createById
-        );
-
         resultFile.setPath(fileMeta.getPath());
-
         return resultFile;
     }
 
