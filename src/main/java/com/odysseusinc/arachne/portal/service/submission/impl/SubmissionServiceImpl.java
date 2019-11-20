@@ -58,14 +58,13 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import javax.persistence.EntityManager;
-import org.apache.commons.lang3.ObjectUtils;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @Transactional(rollbackFor = Exception.class)
@@ -153,15 +152,15 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
     @Override
     @PreAuthorize("hasPermission(#submissionId, 'Submission', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).APPROVE_SUBMISSION)")
-    public void uploadResultsByDataOwner(Long submissionId, File compressedFile) throws IOException {
-        super.uploadResultsByDataOwner(submissionId, compressedFile);
+    public void uploadCompressedResultsByDataOwner(Long submissionId, File compressedFile) throws IOException {
+        super.uploadCompressedResultsByDataOwner(submissionId, compressedFile);
     }
 
     @Override
     @PreAuthorize("hasPermission(#submissionId, 'Submission', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).APPROVE_SUBMISSION)")
-    public ResultFile uploadResultsByDataOwner(Long submissionId, String name, File file) throws NotExistException, IOException {
-        return super.uploadResultsByDataOwner(submissionId, name, file);
+    public ResultFile uploadResultFileByDataOwner(Long submissionId, File file) throws NotExistException, IOException {
+        return super.uploadResultFileByDataOwner(submissionId, file);
     }
 
     @Override
