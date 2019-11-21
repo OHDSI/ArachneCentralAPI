@@ -38,6 +38,7 @@
         <assertj.version>3.13.2</assertj.version>
         <commonsCsv.version>1.7</commonsCsv.version>
         <commons.fileupload.version>1.4</commons.fileupload.version>
+        <commons.io.version>2.5</commons.io.version>
     </properties>
 
     <profiles>
@@ -118,6 +119,11 @@
                 <groupId>org.ohdsi</groupId>
                 <artifactId>authenticator</artifactId>
                 <version>0.0.1-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons.io.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
