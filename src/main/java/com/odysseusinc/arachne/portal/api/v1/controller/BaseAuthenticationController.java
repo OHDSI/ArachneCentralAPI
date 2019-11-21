@@ -121,7 +121,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
 
     @ApiOperation("Login with specified credentials.")
     @RequestMapping(value = "/api/v1/auth/login", method = RequestMethod.POST)
-    public JsonResult<CommonAuthenticationResponse> login(@RequestBody CommonAuthenticationRequest authenticationRequest)
+    public JsonResult<CommonAuthenticationResponse> login(@Valid @RequestBody CommonAuthenticationRequest authenticationRequest)
             throws AuthenticationException {
 
         JsonResult<CommonAuthenticationResponse> jsonResult;
