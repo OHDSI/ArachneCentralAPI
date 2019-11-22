@@ -61,6 +61,7 @@ public class LoginAttemptServiceImpl implements LoginAttemptService {
 
     @Override
     public void loginFailed(String key) {
+
         if (StringUtils.isEmpty(key)) {
             return;
         }
@@ -75,6 +76,7 @@ public class LoginAttemptServiceImpl implements LoginAttemptService {
 
     @Override
     public Long getRemainingAccountLockPeriod(String key) {
+
         if (StringUtils.isEmpty(key)) {
             return null;
         }
