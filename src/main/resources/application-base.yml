@@ -171,6 +171,10 @@ authenticator:
           firstName: firstname
           middleName: middlename
           lastName: lastname
+        fieldsToUser:
+          firstName: firstname
+          middleName: middlename
+          lastName: lastname
 security:
   method: db
   jwt:

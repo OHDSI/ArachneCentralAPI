@@ -22,6 +22,8 @@
 
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
+import static com.odysseusinc.arachne.portal.api.v1.controller.util.ControllerUtils.emulateEmailSent;
+
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAuthMethodDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAuthenticationRequest;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAuthenticationResponse;
@@ -42,37 +44,30 @@ import com.odysseusinc.arachne.portal.model.PasswordReset;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordData;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidationResult;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
+import com.odysseusinc.arachne.portal.service.AuthenticationService;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
 import com.odysseusinc.arachne.portal.service.LoginAttemptService;
 import com.odysseusinc.arachne.portal.service.PasswordResetService;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
 import edu.vt.middleware.password.Password;
 import io.swagger.annotations.ApiOperation;
+import java.io.IOException;
+import java.security.Principal;
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.ohdsi.authenticator.model.UserInfo;
 import org.ohdsi.authenticator.service.authentication.Authenticator;
-import org.pac4j.core.credentials.UsernamePasswordCredentials;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-import java.io.IOException;
-import java.security.Principal;
-
-import static com.odysseusinc.arachne.portal.api.v1.controller.util.ControllerUtils.emulateEmailSent;
 
 public abstract class BaseAuthenticationController extends BaseController<DataNode, IUser> {
 
@@ -82,32 +77,29 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
     private String tokenHeader;
     @Value("${portal.authMethod}")
     private String userOrigin;
-    @Value("${security.method}")
-    private String authMethod;
 
-    private AuthenticationManager authenticationManager;
     protected Authenticator authenticator;
     protected BaseUserService userService;
     private PasswordResetService passwordResetService;
     private ArachnePasswordValidator passwordValidator;
     protected ProfessionalTypeService professionalTypeService;
     protected LoginAttemptService loginAttemptService;
+    private AuthenticationService authenticationService;
 
-    public BaseAuthenticationController(AuthenticationManager authenticationManager,
-                                        Authenticator authenticator,
+    public BaseAuthenticationController(Authenticator authenticator,
                                         BaseUserService userService,
                                         PasswordResetService passwordResetService,
                                         @Qualifier("passwordValidator") ArachnePasswordValidator passwordValidator,
                                         ProfessionalTypeService professionalTypeService,
-                                        LoginAttemptService loginAttemptService) {
+                                        LoginAttemptService loginAttemptService, AuthenticationService authenticationService) {
 
-        this.authenticationManager = authenticationManager;
         this.authenticator = authenticator;
         this.userService = userService;
         this.passwordResetService = passwordResetService;
         this.passwordValidator = passwordValidator;
         this.professionalTypeService = professionalTypeService;
         this.loginAttemptService = loginAttemptService;
+        this.authenticationService = authenticationService;
     }
 
     @ApiOperation("Get auth method")
@@ -126,15 +118,13 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
 
         JsonResult<CommonAuthenticationResponse> jsonResult;
         String username = authenticationRequest.getUsername();
-
         try {
-//            checkIfUserBlocked(username);
+            checkIfUserBlocked(username);
             checkIfUserHasTenant(username);
-            authenticate(authenticationRequest);
-            UserInfo userInfo = authenticator.authenticate(authMethod,
-                    new UsernamePasswordCredentials(username, authenticationRequest.getPassword()));
-            String token = userInfo.getToken();
-            CommonAuthenticationResponse authenticationResponse = new CommonAuthenticationResponse(token);
+
+            String authToken = authenticationService.authenticateAndGetAuthToken(authenticationRequest);
+
+            CommonAuthenticationResponse authenticationResponse = new CommonAuthenticationResponse(authToken);
             jsonResult = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, authenticationResponse);
             loginAttemptService.loginSucceeded(username);
         } catch (Exception ex) {
@@ -180,18 +170,6 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
         }
     }
 
-    protected Authentication authenticate(CommonAuthenticationRequest authenticationRequest) {
-
-        Authentication authentication = this.authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        authenticationRequest.getUsername(),
-                        authenticationRequest.getPassword()
-                )
-        );
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        return authentication;
-    }
-
     @ApiOperation("Logout.")
     @RequestMapping(value = "/api/v1/auth/logout", method = RequestMethod.POST)
     public JsonResult logout(HttpServletRequest request) {
@@ -222,7 +200,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
             String token = request.getHeader(this.tokenHeader);
             UserInfo userInfo = authenticator.refreshToken(token);
             result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
-            result.setResult(userInfo.getToken());
+            result.setResult(userInfo.getAuthenticationInfo().getToken());
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
             result = new JsonResult<>(JsonResult.ErrorCode.UNAUTHORIZED);
