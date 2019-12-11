@@ -146,7 +146,6 @@ achilles:
 jodconverter:
   local:
     enabled: true
-    office-home: ${office.home}
 antivirus:
   host: localhost
   port: 3310
