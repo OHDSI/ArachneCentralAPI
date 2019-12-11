@@ -144,7 +144,9 @@ achilles:
     queueCapacity: 200
 #logging.level.org.hibernate.SQL=DEBUG
 jodconverter:
-  enabled: true
+  local:
+    enabled: true
+    office-home: ${office.home}
 antivirus:
   host: localhost
   port: 3310
