@@ -12,12 +12,10 @@ import java.util.List;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
-@Component
 public class V20190923174625__IncidenceRateResultInfo implements ApplicationContextAwareSpringMigration {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(V20190923174625__IncidenceRateResultInfo.class);
