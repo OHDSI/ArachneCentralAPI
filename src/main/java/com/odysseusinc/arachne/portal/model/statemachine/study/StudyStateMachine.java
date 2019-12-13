@@ -28,16 +28,13 @@ import com.odysseusinc.arachne.portal.model.StudyStatus;
 import com.odysseusinc.arachne.portal.model.statemachine.ObjectRepository;
 import com.odysseusinc.arachne.portal.model.statemachine.RepositoryBasedStateMachine;
 import com.odysseusinc.arachne.portal.model.statemachine.StateRepository;
-
 import java.util.Arrays;
 import java.util.function.Predicate;
-import javax.annotation.PostConstruct;
-
-import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 @Component
-@DependsOn("flywayInitializer")
 public class StudyStateMachine extends RepositoryBasedStateMachine<Study, StudyStatus, StudyTransition> {
 
     //TODO find a better way of doing this, but because of lack of time it's postponed
@@ -51,7 +48,9 @@ public class StudyStateMachine extends RepositoryBasedStateMachine<Study, StudyS
         super(objectRepository, statusRepository);
     }
 
-    @PostConstruct
+
+    //refresh event is generated when the spring context is initialized
+    @EventListener(classes = ContextRefreshedEvent.class)
     private void configure() {
 
         reconfigure();
