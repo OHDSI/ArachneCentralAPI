@@ -26,6 +26,8 @@ import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
 import com.cosium.spring.data.jpa.entity.graph.repository.EntityGraphJpaRepository;
 import com.odysseusinc.arachne.portal.model.IUser;
 import java.util.List;
+
+import org.hibernate.annotations.Where;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -35,6 +37,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.query.Param;
 
 @NoRepositoryBean
+@Where(clause = "deleted IS NULL")
 public interface BaseUserRepository<U extends IUser> extends EntityGraphJpaRepository<U, Long>,
         JpaSpecificationExecutor<U> {
 
@@ -57,6 +60,7 @@ public interface BaseUserRepository<U extends IUser> extends EntityGraphJpaRepos
             + " AND (lower(firstname) SIMILAR TO :suggestRequest OR\n"
             + "      lower(lastname) SIMILAR TO :suggestRequest OR\n"
             + "      lower(middlename) SIMILAR TO :suggestRequest)"
+            + " AND deleted IS NULL"
             + " AND enabled = TRUE"
             + " LIMIT :limit")
     List<U> suggestToStudy(@Param("suggestRequest") String suggestRequest,
@@ -74,6 +78,7 @@ public interface BaseUserRepository<U extends IUser> extends EntityGraphJpaRepos
             + " AND (lower(firstname) SIMILAR TO :suggestRequest OR "
             + "      lower(lastname) SIMILAR TO :suggestRequest OR "
             + "      lower(middlename) SIMILAR TO :suggestRequest) "
+            + " AND deleted IS NULL "
             + " AND enabled = TRUE "
             + " LIMIT :limit ")
     List<U> suggestToPaper(@Param("suggestRequest") String suggestRequest,

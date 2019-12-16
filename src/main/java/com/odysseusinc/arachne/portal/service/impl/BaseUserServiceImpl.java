@@ -24,6 +24,7 @@ package com.odysseusinc.arachne.portal.service.impl;
 
 import static com.odysseusinc.arachne.portal.model.ParticipantStatus.APPROVED;
 import static com.odysseusinc.arachne.portal.model.ParticipantStatus.DECLINED;
+import static com.odysseusinc.arachne.portal.repository.UserSpecifications.fieldIsNull;
 import static com.odysseusinc.arachne.portal.repository.UserSpecifications.emailConfirmed;
 import static com.odysseusinc.arachne.portal.repository.UserSpecifications.userEnabled;
 import static com.odysseusinc.arachne.portal.repository.UserSpecifications.usersIn;
@@ -107,6 +108,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.security.Principal;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -126,6 +128,8 @@ import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
+
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -728,6 +732,8 @@ public abstract class BaseUserServiceImpl<
         if (!isEmpty(tenantIds)) {
             spec = spec.and(usersIn(tenantIds));
         }
+
+        spec = spec.and(fieldIsNull("deleted"));
         return spec;
     }
 
@@ -1306,7 +1312,7 @@ public abstract class BaseUserServiceImpl<
                 toggleFlag(users, U::getEmailConfirmed, U::setEmailConfirmed);
                 break;
             case DELETE:
-                rawUserRepository.deleteInBatch(users);
+                deleteOrDeactivateUsers(users);
                 break;
             case ENABLE:
                 toggleFlag(users, U::getEnabled, U::setEnabled);
@@ -1338,6 +1344,27 @@ public abstract class BaseUserServiceImpl<
     public StateProvince findStateProvinceByCode(String isoCode) {
 
         return stateProvinceRepository.findByIsoCode(isoCode);
+    }
+
+    @Override
+    public void deleteOrDeactivateUsers(List<U> users) {
+
+        final Set<Long> allUsersIds = users.stream().map(IUser::getId).collect(Collectors.toSet());
+        final Set<Long> deletableIds = this.checkIfUsersAreDeletable(allUsersIds);
+
+        final List<U> deletableUsers = users.stream().filter(user -> deletableIds.contains(user.getId())).collect(Collectors.toList());
+        final Collection<U> undeletableUsers = CollectionUtils.subtract(users, deletableUsers);
+
+        rawUserRepository.deleteInBatch(deletableUsers);
+
+        undeletableUsers.forEach(user -> {
+            user.setEnabled(false);
+            user.setDeleted(new Date());
+        });
+        rawUserRepository.save(undeletableUsers);
+        rawUserRepository.flush();
+
+        users.forEach(solrService::delete);
     }
 
     private void toggleFlag(

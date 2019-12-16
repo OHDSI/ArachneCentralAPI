@@ -32,6 +32,10 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.Specifications;
 
 public class UserSpecifications {
+
+    private UserSpecifications() {
+    }
+
     public static <U extends IUser> Specification<U> userEnabled() {
 
         return (root, query, cb) -> cb.equal(root.get("enabled"), true);
@@ -87,4 +91,8 @@ public class UserSpecifications {
         return spec.or(withEmailLike(pattern));
     }
 
+    public static <U extends IUser> Specification<U> fieldIsNull(String fieldName) {
+
+        return (root, query, criteriaBuilder) -> criteriaBuilder.isNull(root.get(fieldName));
+    }
 }

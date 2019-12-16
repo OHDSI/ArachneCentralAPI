@@ -1,5 +1,7 @@
 package com.odysseusinc.arachne.portal.model;
 
+import org.hibernate.annotations.SQLDelete;
+
 import static com.odysseusinc.arachne.portal.model.RawUser.CHECK_IF_USERS_ARE_DELETABLE;
 
 import javax.persistence.Entity;
@@ -20,9 +22,9 @@ import javax.persistence.Table;
                         @StoredProcedureParameter(mode = ParameterMode.IN, name = "excluded_tables", type = String.class),
                         @StoredProcedureParameter(mode = ParameterMode.OUT, name = "filtered_ids", type = String.class)
                 })
-        })
+})
 public class RawUser extends BaseUser implements IUser {
-    
+
     public static final String CHECK_IF_USERS_ARE_DELETABLE = "check_if_users_are_deletable";
 }
 

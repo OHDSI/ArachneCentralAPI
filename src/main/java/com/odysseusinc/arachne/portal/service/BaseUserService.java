@@ -249,6 +249,8 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
 
     void performBatchOperation(List<String> ids, BatchOperationType type);
 
+    void deleteOrDeactivateUsers(List<U> users);
+
     Set<Long> checkIfUsersAreDeletable(Set<Long> users);
 
 	  Country findCountryByCode(String countryCode);

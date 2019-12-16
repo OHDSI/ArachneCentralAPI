@@ -88,6 +88,10 @@ public interface IUser extends Breadcrumb, SolrEntity {
 
     void setUpdated(Date updated);
 
+    Date getDeleted();
+
+    void setDeleted(Date deleted);
+
     String getRegistrationCode();
 
     void setRegistrationCode(String registrationCode);
