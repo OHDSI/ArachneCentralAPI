@@ -10,6 +10,7 @@ import org.ohdsi.authenticator.model.UserInfo;
 import org.ohdsi.authenticator.service.authentication.Authenticator;
 import org.pac4j.core.credentials.UsernamePasswordCredentials;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -49,6 +50,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             authenticateBaseOnExternalUser(authenticationRequest, userInfo);
             synchronizeExternalAndInternalUserAccounts(username);
             authenticateBaseOnInternalUser(authenticationRequest, username);
+            if (userInfo == null || userInfo.getAdditionalInfo() == null || userInfo.getAuthenticationInfo().getToken() == null) {
+                throw new AuthenticationServiceException("Cannot refresh token user info is either null or does not contain token");
+            }
             return userInfo.getAuthenticationInfo().getToken();
         } catch (Exception e) {
             SecurityContextHolder.clearContext();

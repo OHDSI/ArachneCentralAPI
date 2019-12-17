@@ -62,6 +62,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.BindingResult;
@@ -200,6 +201,9 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
             String token = request.getHeader(this.tokenHeader);
             UserInfo userInfo = authenticator.refreshToken(token);
             result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
+            if (userInfo == null || userInfo.getAdditionalInfo() == null || userInfo.getAuthenticationInfo().getToken() == null) {
+                throw new AuthenticationServiceException("Cannot refresh token user info is either null or does not contain token");
+            }
             result.setResult(userInfo.getAuthenticationInfo().getToken());
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
