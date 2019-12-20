@@ -25,22 +25,22 @@ import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.DeletableUserWithTenantsDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.DeletableUserWithTenantsListDTO;
 import com.odysseusinc.arachne.portal.model.IUser;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import com.odysseusinc.arachne.portal.service.UsersOperationsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 @Component
 public class UsersToDeletableUserWithTenantsDTOListConverter extends BaseConversionServiceAwareConverter<List<IUser>, DeletableUserWithTenantsListDTO> {
-    
+
     @Autowired
     private ConverterUtils converterUtils;
     @Autowired
     private UsersOperationsService usersOperationsService;
-    
+
     @Override
     public DeletableUserWithTenantsListDTO convert(final List<IUser> source) {
 
@@ -57,7 +57,7 @@ public class UsersToDeletableUserWithTenantsDTOListConverter extends BaseConvers
                 userDto.setDeletable(false);
             }
         }
-        
-        return new DeletableUserWithTenantsListDTO(convertedList);        
+
+        return new DeletableUserWithTenantsListDTO(convertedList);
     }
 }
