@@ -1,7 +1,5 @@
 package com.odysseusinc.arachne.portal.model;
 
-import org.hibernate.annotations.SQLDelete;
-
 import static com.odysseusinc.arachne.portal.model.RawUser.CHECK_IF_USERS_ARE_DELETABLE;
 
 import javax.persistence.Entity;

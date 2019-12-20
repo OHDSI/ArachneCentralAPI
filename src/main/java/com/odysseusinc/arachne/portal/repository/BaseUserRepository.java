@@ -37,7 +37,6 @@ import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.query.Param;
 
 @NoRepositoryBean
-@Where(clause = "deleted IS NULL")
 public interface BaseUserRepository<U extends IUser> extends EntityGraphJpaRepository<U, Long>,
         JpaSpecificationExecutor<U> {
 

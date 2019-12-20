@@ -22,8 +22,6 @@
 
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
-import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.NO_ERROR;
-
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.commons.types.SuggestionTarget;
@@ -36,11 +34,6 @@ import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
 import io.swagger.annotations.ApiOperation;
-import java.io.IOException;
-import java.security.Principal;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
@@ -50,6 +43,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.io.IOException;
+import java.security.Principal;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.NO_ERROR;
 
 public abstract class BaseExpertFinderController<U extends IUser, SK extends Skill> extends BaseController {
 
@@ -91,8 +92,8 @@ public abstract class BaseExpertFinderController<U extends IUser, SK extends Ski
         IUser logginedUser = userService.getByUsername(principal.getName());
         JsonResult<UserProfileDTO> result;
         IUser user = userService.getByUuidAndInitializeCollections(userId);
-        if(!Objects.isNull(user.getDeleted())){
-            throw new PermissionDeniedException("Profile has been marked as deleted");
+        if (!Objects.isNull(user.getDeleted())) {
+            throw new PermissionDeniedException("Profile not found");
         }
 
         UserProfileDTO userProfileDTO = conversionService.convert(user, UserProfileDTO.class);
