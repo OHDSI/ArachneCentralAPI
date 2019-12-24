@@ -22,47 +22,49 @@
 
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
-import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.NO_ERROR;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.commons.types.SuggestionTarget;
 import com.odysseusinc.arachne.portal.api.v1.dto.ExpertListSearchResultDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchExpertListDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserProfileDTO;
+import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
 import io.swagger.annotations.ApiOperation;
-import java.io.IOException;
-import java.security.Principal;
-import java.util.List;
-import java.util.stream.Collectors;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.io.IOException;
+import java.security.Principal;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.NO_ERROR;
 
 public abstract class BaseExpertFinderController<U extends IUser, SK extends Skill> extends BaseController {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(BaseExpertFinderController.class);
+    private static final Logger log = LoggerFactory.getLogger(BaseExpertFinderController.class);
 
-    protected final BaseUserService<U, SK> userService;
+    private final BaseUserService<U, SK> baseUserService;
 
     public BaseExpertFinderController(BaseUserService<U, SK> userService) {
 
-        this.userService = userService;
+        this.baseUserService = userService;
     }
 
     @ApiOperation("Get expert list")
-    @RequestMapping(value = "/api/v1/user-management/users", method = GET)
+    @GetMapping(value = "/api/v1/user-management/users")
     public JsonResult<ExpertListSearchResultDTO> list(
             @ModelAttribute SearchExpertListDTO searchDTO
     ) throws IOException, SolrServerException, NoSuchFieldException {
@@ -70,7 +72,7 @@ public abstract class BaseExpertFinderController<U extends IUser, SK extends Ski
         JsonResult result = new JsonResult<ExpertListSearchResultDTO>(NO_ERROR);
 
         SolrQuery solrQuery = conversionService.convert(searchDTO, SolrQuery.class);
-        SearchResult searchResult = userService.search(solrQuery);
+        SearchResult searchResult = baseUserService.search(solrQuery);
 
         result.setResult(
                 this.conversionService.convert(
@@ -82,7 +84,7 @@ public abstract class BaseExpertFinderController<U extends IUser, SK extends Ski
     }
 
     @ApiOperation("View user profile.")
-    @RequestMapping(value = "/api/v1/user-management/users/{userId}/profile", method = GET)
+    @GetMapping(value = "/api/v1/user-management/users/{userId}/profile")
     public JsonResult<UserProfileDTO> viewProfile(
             Principal principal,
             @PathVariable("userId") String userId) {
@@ -90,6 +92,10 @@ public abstract class BaseExpertFinderController<U extends IUser, SK extends Ski
         IUser logginedUser = userService.getByUsername(principal.getName());
         JsonResult<UserProfileDTO> result;
         IUser user = userService.getByUuidAndInitializeCollections(userId);
+        if (!Objects.isNull(user.getDeleted())) {
+            throw new PermissionDeniedException("Profile not found");
+        }
+
         UserProfileDTO userProfileDTO = conversionService.convert(user, UserProfileDTO.class);
         userProfileDTO.setIsEditable(logginedUser.getUuid().equals(userId));
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
@@ -98,18 +104,18 @@ public abstract class BaseExpertFinderController<U extends IUser, SK extends Ski
     }
 
     @ApiOperation("Get user by id")
-    @RequestMapping(value = "/api/v1/user-management/users/{id}", method = GET)
+    @GetMapping(value = "/api/v1/user-management/users/{id}")
     public JsonResult<CommonUserDTO> get(
             @PathVariable("id") Long id
     ) {
 
-        return buildResponse(userService.getByIdInAnyTenant(id));
+        return buildResponse(baseUserService.getByIdInAnyTenant(id));
     }
 
-    @RequestMapping(value = "/api/v1/user-management/users/byusername/{username:.+}", method = GET)
+    @GetMapping(value = "/api/v1/user-management/users/byusername/{username:.+}")
     public JsonResult<CommonUserDTO> getByUsername(@PathVariable("username") String username) {
 
-        return buildResponse(userService.getByUsernameInAnyTenant(username));
+        return buildResponse(baseUserService.getByUsernameInAnyTenant(username));
     }
 
     private JsonResult<CommonUserDTO> buildResponse(U user) {
@@ -121,7 +127,7 @@ public abstract class BaseExpertFinderController<U extends IUser, SK extends Ski
     }
 
     @ApiOperation("Suggest user according to query")
-    @RequestMapping(value = "/api/v1/user-management/users/suggest")
+    @GetMapping(value = "/api/v1/user-management/users/suggest")
     public List<CommonUserDTO> suggest(@RequestParam(value = "target") SuggestionTarget target,
                                        @RequestParam(value = "id", required = false) Long id,
                                        @RequestParam(value = "excludeEmails", required = false) List<String> excludeEmails,
@@ -134,21 +140,21 @@ public abstract class BaseExpertFinderController<U extends IUser, SK extends Ski
                 if (id == null) {
                     throw new javax.validation.ValidationException("Id must be specified when SuggestionTarget=STUDY");
                 }
-                users = userService.suggestUserToStudy(query, id, limit);
+                users = baseUserService.suggestUserToStudy(query, id, limit);
                 break;
             }
             case PAPER: {
                 if (id == null) {
                     throw new javax.validation.ValidationException("Id must be specified when SuggestionTarget=PAPER");
                 }
-                users = userService.suggestUserToPaper(query, id, limit);
+                users = baseUserService.suggestUserToPaper(query, id, limit);
                 break;
             }
             case DATANODE: {
                 if (CollectionUtils.isEmpty(excludeEmails)) {
                     throw new javax.validation.ValidationException("Emails for excluding must be specified when SuggestionTarget=DATANODE");
                 }
-                users = userService.suggestUserFromAnyTenant(query, excludeEmails, limit);
+                users = baseUserService.suggestUserFromAnyTenant(query, excludeEmails, limit);
                 break;
             }
             default: {

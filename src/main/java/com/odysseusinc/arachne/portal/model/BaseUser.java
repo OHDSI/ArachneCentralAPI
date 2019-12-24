@@ -30,6 +30,7 @@ import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.EntityType;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashSet;
@@ -189,6 +190,9 @@ public class BaseUser implements IUser, Serializable {
     @OneToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "active_tenant_id")
     protected Tenant activeTenant;
+
+    @Column
+    private Date deleted;
 
     @Override
     public SolrCollection getCollection() {
@@ -606,4 +610,13 @@ public class BaseUser implements IUser, Serializable {
         this.activeTenant = activeTenant;
     }
 
+    public Date getDeleted() {
+
+        return deleted;
+    }
+
+    public void setDeleted(Date deleted) {
+
+        this.deleted = deleted;
+    }
 }
