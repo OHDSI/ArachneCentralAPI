@@ -201,10 +201,10 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
             String token = request.getHeader(this.tokenHeader);
             UserInfo userInfo = authenticator.refreshToken(token);
             result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
-            if (userInfo == null || userInfo.getAdditionalInfo() == null || userInfo.getAuthenticationInfo().getToken() == null) {
+            if (userInfo == null || userInfo.getAdditionalInfo() == null || userInfo.getToken() == null) {
                 throw new AuthenticationServiceException("Cannot refresh token user info is either null or does not contain token");
             }
-            result.setResult(userInfo.getAuthenticationInfo().getToken());
+            result.setResult(userInfo.getToken());
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
             result = new JsonResult<>(JsonResult.ErrorCode.UNAUTHORIZED);

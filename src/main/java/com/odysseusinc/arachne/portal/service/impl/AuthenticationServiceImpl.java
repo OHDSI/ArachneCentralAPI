@@ -50,10 +50,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             authenticateBaseOnExternalUser(authenticationRequest, userInfo);
             synchronizeExternalAndInternalUserAccounts(username);
             authenticateBaseOnInternalUser(authenticationRequest, username);
-            if (userInfo == null || userInfo.getAdditionalInfo() == null || userInfo.getAuthenticationInfo().getToken() == null) {
+            if (userInfo == null || userInfo.getAdditionalInfo() == null || userInfo.getToken() == null) {
                 throw new AuthenticationServiceException("Cannot refresh token user info is either null or does not contain token");
             }
-            return userInfo.getAuthenticationInfo().getToken();
+            return userInfo.getToken();
         } catch (Exception e) {
             SecurityContextHolder.clearContext();
             throw e;
