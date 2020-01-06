@@ -31,13 +31,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.ohdsi.authenticator.model.UserInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UserInfoToUserConverter extends BaseConversionServiceAwareConverter<UserInfo, User> {
+public class UserInfoToUserConverter extends BaseConversionServiceAwareConverter<org.ohdsi.authenticator.model.User, User> {
 
     @Autowired
     private CountryRepository countryRepository;
@@ -52,11 +51,10 @@ public class UserInfoToUserConverter extends BaseConversionServiceAwareConverter
     }
 
     @Override
-    public User convert(UserInfo userInfo) {
+    public User convert(org.ohdsi.authenticator.model.User authUser) {
 
         User user = new User();
 
-        UserInfo.User authUser = userInfo.getUser();
         user.setUsername(authUser.getUsername());
         user.setEmail(authUser.getEmail());
         user.setFirstname(authUser.getFirstname());
@@ -77,7 +75,7 @@ public class UserInfoToUserConverter extends BaseConversionServiceAwareConverter
         return user;
     }
 
-    private List<Role> getRoles(UserInfo.User authUser) {
+    private List<Role> getRoles(org.ohdsi.authenticator.model.User authUser) {
 
         if (CollectionUtils.isEmpty(authUser.getRoles())) {
             return Collections.emptyList();

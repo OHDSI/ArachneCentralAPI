@@ -6,6 +6,7 @@ import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.factory.ArachneUserFactory;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
 import com.odysseusinc.arachne.portal.service.AuthenticationService;
+import java.util.Collections;
 import org.ohdsi.authenticator.model.UserInfo;
 import org.ohdsi.authenticator.service.authentication.Authenticator;
 import org.pac4j.core.credentials.UsernamePasswordCredentials;
@@ -62,7 +63,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     public void authenticateBaseOnExternalUser(CommonAuthenticationRequest authenticationRequest, UserInfo userInfo) {
 
-        User user = userConverter.convert(userInfo);
+        User user = new User();
+        user.setUsername(userInfo.getUsername());
+        user.setRoles(Collections.emptyList());
+
         ArachneUser arachneUser = ArachneUserFactory.create(user);
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(arachneUser, authenticationRequest.getPassword(), ((UserDetails) arachneUser).getAuthorities());
