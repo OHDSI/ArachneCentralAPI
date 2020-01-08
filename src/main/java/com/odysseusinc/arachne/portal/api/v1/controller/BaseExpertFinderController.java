@@ -92,9 +92,6 @@ public abstract class BaseExpertFinderController<U extends IUser, SK extends Ski
         IUser logginedUser = userService.getByUsername(principal.getName());
         JsonResult<UserProfileDTO> result;
         IUser user = userService.getByUuidAndInitializeCollections(userId);
-        if (!Objects.isNull(user.getDeleted())) {
-            throw new PermissionDeniedException("Profile not found");
-        }
 
         UserProfileDTO userProfileDTO = conversionService.convert(user, UserProfileDTO.class);
         userProfileDTO.setIsEditable(logginedUser.getUuid().equals(userId));

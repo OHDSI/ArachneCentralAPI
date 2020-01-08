@@ -19,10 +19,8 @@ import java.util.List;
 import java.util.Set;
 
 import static com.odysseusinc.arachne.portal.model.PortalConstants.TENANTS_USERS_TABLE_NAME;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -60,26 +58,9 @@ public class UsersOperationsServiceTest {
         when(baseRawUserRepository.findByIdIn(any())).thenReturn(users);
         when(baseRawUserRepository.checkIfUsersAreDeletable("1,2", TENANTS_USERS_TABLE_NAME)).thenReturn("1,2");
 
-        usersOperationsService.deleteOrDeactivateUsers(users);
+        usersOperationsService.deleteAllUsers(users);
 
         verify(baseRawUserRepository).deleteInBatch(users);
-        verify(solrService, times(2)).delete(any(IUser.class));
-    }
-
-    @Test
-    public void shouldDeactivateUsersRecord() {
-
-        final List<IUser> users = Arrays.asList(userA, userB);
-        when(baseRawUserRepository.findByIdIn(any())).thenReturn(users);
-        when(baseRawUserRepository.checkIfUsersAreDeletable("1,2", TENANTS_USERS_TABLE_NAME)).thenReturn(EMPTY);
-
-        usersOperationsService.deleteOrDeactivateUsers(users);
-
-        assertThat(userA.getDeleted()).isNotNull();
-        assertThat(userB.getDeleted()).isNotNull();
-        assertThat(userA.getEnabled()).isFalse();
-        assertThat(userB.getEnabled()).isFalse();
-        verify(baseRawUserRepository, never()).deleteInBatch(any());
         verify(solrService, times(2)).delete(any(IUser.class));
     }
 

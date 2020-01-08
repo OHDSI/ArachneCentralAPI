@@ -24,9 +24,8 @@ package com.odysseusinc.arachne.portal.service.impl;
 
 import static com.odysseusinc.arachne.portal.model.ParticipantStatus.APPROVED;
 import static com.odysseusinc.arachne.portal.model.ParticipantStatus.DECLINED;
-import static com.odysseusinc.arachne.portal.repository.UserSpecifications.fieldIsNull;
 import static com.odysseusinc.arachne.portal.repository.UserSpecifications.emailConfirmed;
-import static com.odysseusinc.arachne.portal.repository.UserSpecifications.userEnabled;
+import static com.odysseusinc.arachne.portal.repository.UserSpecifications.userStatus;
 import static com.odysseusinc.arachne.portal.repository.UserSpecifications.usersIn;
 import static com.odysseusinc.arachne.portal.repository.UserSpecifications.withNameOrEmailLike;
 import static com.odysseusinc.arachne.portal.service.RoleService.ROLE_ADMIN;
@@ -42,7 +41,6 @@ import com.drew.metadata.exif.ExifIFD0Directory;
 import com.google.common.collect.Sets;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.commons.utils.UserIdUtils;
-import com.odysseusinc.arachne.portal.api.v1.dto.BatchOperationType;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchExpertListDTO;
 import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
 import com.odysseusinc.arachne.portal.exception.ArachneSystemRuntimeException;
@@ -108,7 +106,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.security.Principal;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -120,8 +117,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.imageio.ImageIO;
@@ -129,7 +124,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -717,11 +711,11 @@ public abstract class BaseUserServiceImpl<
     private Specifications<U> buildSpecification(final UserSearch userSearch) {
 
         Specifications<U> spec = where(UserSpecifications.hasEmail());
-        if (userSearch.getEmailConfirmed() != null && userSearch.getEmailConfirmed()) {
-            spec = spec.and(emailConfirmed());
+        if (userSearch.getEmailConfirmed() != null) {
+            spec = spec.and(emailConfirmed(userSearch.getEmailConfirmed()));
         }
-        if (userSearch.getEnabled() != null && userSearch.getEnabled()) {
-            spec = spec.and(userEnabled());
+        if (userSearch.getEnabled() != null) {
+            spec = spec.and(userStatus(userSearch.getEnabled()));
         }
         if (!StringUtils.isEmpty(userSearch.getQuery())) {
             String pattern = "%" + userSearch.getQuery().toLowerCase() + "%";
@@ -733,7 +727,6 @@ public abstract class BaseUserServiceImpl<
             spec = spec.and(usersIn(tenantIds));
         }
 
-        spec = spec.and(fieldIsNull("deleted"));
         return spec;
     }
 
