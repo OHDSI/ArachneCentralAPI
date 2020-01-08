@@ -36,14 +36,14 @@ public class UserSpecifications {
     private UserSpecifications() {
     }
 
-    public static <U extends IUser> Specification<U> userEnabled() {
+    public static <U extends IUser> Specification<U> userStatus(boolean userStatus) {
 
-        return (root, query, cb) -> cb.equal(root.get("enabled"), true);
+        return (root, query, cb) -> cb.equal(root.get("enabled"), userStatus);
     }
 
-    public static <U extends IUser> Specification<U> emailConfirmed() {
+    public static <U extends IUser> Specification<U> emailConfirmed(boolean confirmationStatus) {
 
-        return (root, query, cb) -> cb.equal(root.get("emailConfirmed"), true);
+        return (root, query, cb) -> cb.equal(root.get("emailConfirmed"), confirmationStatus);
     }
 
     public static <U extends IUser> Specification<U> hasEmail() {

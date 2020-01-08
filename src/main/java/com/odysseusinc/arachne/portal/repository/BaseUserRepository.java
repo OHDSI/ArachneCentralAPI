@@ -59,7 +59,6 @@ public interface BaseUserRepository<U extends IUser> extends EntityGraphJpaRepos
             + " AND (lower(firstname) SIMILAR TO :suggestRequest OR\n"
             + "      lower(lastname) SIMILAR TO :suggestRequest OR\n"
             + "      lower(middlename) SIMILAR TO :suggestRequest)"
-            + " AND deleted IS NULL"
             + " AND enabled = TRUE"
             + " LIMIT :limit")
     List<U> suggestToStudy(@Param("suggestRequest") String suggestRequest,
@@ -77,7 +76,6 @@ public interface BaseUserRepository<U extends IUser> extends EntityGraphJpaRepos
             + " AND (lower(firstname) SIMILAR TO :suggestRequest OR "
             + "      lower(lastname) SIMILAR TO :suggestRequest OR "
             + "      lower(middlename) SIMILAR TO :suggestRequest) "
-            + " AND deleted IS NULL "
             + " AND enabled = TRUE "
             + " LIMIT :limit ")
     List<U> suggestToPaper(@Param("suggestRequest") String suggestRequest,

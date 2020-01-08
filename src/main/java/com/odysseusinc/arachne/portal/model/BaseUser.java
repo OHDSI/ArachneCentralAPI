@@ -191,9 +191,6 @@ public class BaseUser implements IUser, Serializable {
     @JoinColumn(name = "active_tenant_id")
     protected Tenant activeTenant;
 
-    @Column
-    private Date deleted;
-
     @Override
     public SolrCollection getCollection() {
 
@@ -608,15 +605,5 @@ public class BaseUser implements IUser, Serializable {
     public void setActiveTenant(Tenant activeTenant) {
 
         this.activeTenant = activeTenant;
-    }
-
-    public Date getDeleted() {
-
-        return deleted;
-    }
-
-    public void setDeleted(Date deleted) {
-
-        this.deleted = deleted;
     }
 }

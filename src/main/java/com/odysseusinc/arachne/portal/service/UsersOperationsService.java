@@ -10,7 +10,7 @@ public interface UsersOperationsService {
 
     Set<Long> checkIfUsersAreDeletable(Set<Long> users);
 
-    void deleteOrDeactivateUsers(List<IUser> users);
+    void deleteAllUsers(List<IUser> users);
 
     void performBatchOperation(List<String> ids, BatchOperationType type);
 }

@@ -7,12 +7,9 @@ import com.odysseusinc.arachne.portal.repository.BaseRawUserRepository;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
 import com.odysseusinc.arachne.portal.service.SolrService;
 import com.odysseusinc.arachne.portal.service.UsersOperationsService;
-import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -38,25 +35,9 @@ public class UsersOperationsServiceImpl implements UsersOperationsService {
     }
 
     @Override
-    public void deleteOrDeactivateUsers(List<IUser> users) {
+    public void deleteAllUsers(List<IUser> users) {
 
-        final Set<Long> allUsersIds = users.stream().map(IUser::getId).collect(Collectors.toSet());
-        final Set<Long> deletableIds = this.checkIfUsersAreDeletable(allUsersIds);
-
-        final List<IUser> deletableUsers = users.stream().filter(user -> deletableIds.contains(user.getId())).collect(Collectors.toList());
-        final Collection<IUser> undeletableUsers = CollectionUtils.subtract(users, deletableUsers);
-
-        if (!deletableUsers.isEmpty()) {
-            baseRawUserRepository.deleteInBatch(deletableUsers);
-        }
-
-        if (!undeletableUsers.isEmpty()) {
-            undeletableUsers.forEach(user-> user.setEnabled(Boolean.FALSE));
-            undeletableUsers.forEach(user-> user.setDeleted(new Date()));
-            baseRawUserRepository.save(undeletableUsers);
-            baseRawUserRepository.flush();
-        }
-
+        baseRawUserRepository.deleteInBatch(users);
         users.forEach(solrService::delete);
     }
 
@@ -70,7 +51,7 @@ public class UsersOperationsServiceImpl implements UsersOperationsService {
                 toggleFlag(users, IUser::getEmailConfirmed, IUser::setEmailConfirmed);
                 break;
             case DELETE:
-                deleteOrDeactivateUsers(users);
+                deleteAllUsers(users);
                 break;
             case ENABLE:
                 toggleFlag(users, IUser::getEnabled, IUser::setEnabled);
