@@ -49,6 +49,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
+import org.ohdsi.authenticator.service.authentication.Authenticator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanInitializationException;
@@ -132,6 +133,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected UserDetailsService userDetailsService;
 
     @Autowired
+    protected Authenticator authenticator;
+
+    @Autowired
     public void configureAuthentication(
             AuthenticationManagerBuilder authenticationManagerBuilder
     ) throws SecurityConfigException {
@@ -187,9 +191,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public AuthenticationTokenFilter authenticationTokenFilterBean() throws Exception {
+    public AuthenticationTokenFilter authenticationTokenFilterBean(Authenticator authenticator) throws Exception {
 
-        return new AuthenticationTokenFilter();
+        return new AuthenticationTokenFilter(authenticator);
     }
 
     @Bean
@@ -310,7 +314,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
         // Custom JWT based authentication
         http.addFilterBefore(loginRequestFilter(), UsernamePasswordAuthenticationFilter.class);
-        http.addFilterBefore(authenticationTokenFilterBean(), LoginRequestFilter.class);
+        http.addFilterBefore(authenticationTokenFilterBean(authenticator), LoginRequestFilter.class);
         // DataNode authentication
         http.addFilterBefore(authenticationSystemTokenFilter(), AuthenticationTokenFilter.class);
         http.addFilterBefore(hostfilter, AuthenticationSystemTokenFilter.class);

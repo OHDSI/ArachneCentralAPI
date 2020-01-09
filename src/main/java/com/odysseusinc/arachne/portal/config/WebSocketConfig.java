@@ -23,9 +23,8 @@
 package com.odysseusinc.arachne.portal.config;
 
 import com.odysseusinc.arachne.portal.model.IUser;
-import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
-import org.ohdsi.authenticator.service.Authenticator;
+import org.ohdsi.authenticator.service.authentication.Authenticator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

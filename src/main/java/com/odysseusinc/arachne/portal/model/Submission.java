@@ -22,9 +22,8 @@
 
 package com.odysseusinc.arachne.portal.model;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.odysseusinc.arachne.portal.api.v1.dto.InvitationType;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
 import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
@@ -317,7 +316,7 @@ public class Submission implements HasArachnePermissions, Breadcrumb, Invitation
     @Override
     public String toString() {
 
-        return Objects.toStringHelper(this)
+        return MoreObjects.toStringHelper(this)
                 .add("id", id)
                 .add("author", author != null ? author.getId() : null)
                 .add("submissionGroup", submissionGroup != null ? submissionGroup.getId() : null)

@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import org.ohdsi.authenticator.service.authentication.Authenticator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -106,6 +107,8 @@ public class TestApplication {
         private EntryPointUnauthorizedHandler unauthorizedHandler;
         @Autowired
         private UserDetailsService userDetailsService;
+        @Autowired
+        private Authenticator authenticator;
 
         @Override
         protected void configure(AuthenticationManagerBuilder builder) throws Exception {
@@ -157,14 +160,14 @@ public class TestApplication {
                     .antMatchers("/api*//**").authenticated()
                     .anyRequest().permitAll();
             http
-                    .addFilterBefore(authenticationTokenFilterBean(), UsernamePasswordAuthenticationFilter.class);
+                    .addFilterBefore(authenticationTokenFilterBean(authenticator), UsernamePasswordAuthenticationFilter.class);
 
         }
 
         @Bean
-        public AuthenticationTokenFilter authenticationTokenFilterBean() throws Exception {
+        public AuthenticationTokenFilter authenticationTokenFilterBean(Authenticator authenticator) throws Exception {
 
-            return new AuthenticationTokenFilter();
+            return new AuthenticationTokenFilter(authenticator);
         }
 
         @Autowired
