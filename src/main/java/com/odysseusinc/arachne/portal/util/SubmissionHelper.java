@@ -425,7 +425,8 @@ public class SubmissionHelper {
             querySpec.setName("%.csv");
             querySpec.setNameLike(true);
             long reportCount = contentStorageService.searchFiles(querySpec)
-                    .stream().filter(f -> !Objects.equals(f.getName(), "raw_data.csv"))
+                    .stream()
+                    .filter(f -> !Objects.equals(f.getName(), "raw_data.csv"))
                     .count();
             resultInfo.add("reports", new JsonPrimitive(reportCount));
             submission.setResultInfo(resultInfo);

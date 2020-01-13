@@ -57,9 +57,9 @@ public class UserInfoToUserConverter extends BaseConversionServiceAwareConverter
 
         user.setUsername(authUser.getUsername());
         user.setEmail(authUser.getEmail());
-        user.setFirstname(authUser.getFirstname());
-        user.setMiddlename(authUser.getMiddlename());
-        user.setLastname(authUser.getLastname());
+        user.setFirstname(authUser.getFirstName());
+        user.setMiddlename(authUser.getMiddleName());
+        user.setLastname(authUser.getLastName());
         user.setOrganization(authUser.getOrganization());
         user.setDepartment(authUser.getDepartment());
         user.setAffiliation(authUser.getAffiliation());

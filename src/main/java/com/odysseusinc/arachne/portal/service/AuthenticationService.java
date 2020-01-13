@@ -7,8 +7,6 @@ public interface AuthenticationService {
 
     String authenticateAndGetAuthToken(CommonAuthenticationRequest authenticationRequest);
 
-    void authenticateBaseOnExternalUser(CommonAuthenticationRequest authenticationRequest, UserInfo userInfo);
-
-    void authenticateBaseOnInternalUser(CommonAuthenticationRequest authenticationRequest, String username);
+    void authenticate(CommonAuthenticationRequest authenticationRequest, String username, UserInfo userInfo);
 
 }
