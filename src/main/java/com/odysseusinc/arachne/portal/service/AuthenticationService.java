@@ -7,6 +7,6 @@ public interface AuthenticationService {
 
     String authenticateAndGetAuthToken(CommonAuthenticationRequest authenticationRequest);
 
-    void authenticate(CommonAuthenticationRequest authenticationRequest, String username, UserInfo userInfo);
+    void authenticate(String username, String password);
 
 }
