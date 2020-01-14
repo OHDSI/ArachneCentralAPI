@@ -345,7 +345,7 @@ public abstract class BaseUserServiceImpl<
 
         updateFields(user);
 
-        return userRepository.save(user);
+        return rawUserRepository.saveAndFlush(user);
     }
 
     @Override
@@ -353,7 +353,7 @@ public abstract class BaseUserServiceImpl<
 
         setFields(user);
 
-        return userRepository.save(user);
+        return rawUserRepository.saveAndFlush(user);
     }
 
     @Override
@@ -575,9 +575,9 @@ public abstract class BaseUserServiceImpl<
     public U update(final U user)
             throws IllegalAccessException, SolrServerException, IOException, NotExistException, NoSuchFieldException {
 
-        U forUpdate = userRepository.findOne(user.getId());
+        U forUpdate = rawUserRepository.findOne(user.getId());
         forUpdate = baseUpdate(forUpdate, user);
-        U savedUser = userRepository.save(forUpdate);
+        U savedUser = rawUserRepository.saveAndFlush(forUpdate);
         savedUser = initUserCollections(savedUser);
         afterUpdate(savedUser);
         return savedUser;
@@ -798,7 +798,7 @@ public abstract class BaseUserServiceImpl<
         }
         validatePassword(user.getUsername(), user.getFirstname(), user.getLastname(), user.getMiddlename(), newPassword);
         exists.setPassword(passwordEncoder.encode(newPassword));
-        userRepository.save(exists);
+        rawUserRepository.save(exists);
     }
 
     @Override
@@ -808,7 +808,7 @@ public abstract class BaseUserServiceImpl<
         U forUpdate = userRepository.findOne(userId);
         S skill = skillService.getById(skillId);
         forUpdate.getSkills().add(skill);
-        U savedUser = initUserCollections(userRepository.save(forUpdate));
+        U savedUser = initUserCollections(rawUserRepository.save(forUpdate));
         indexBySolr(savedUser);
 
         return savedUser;
@@ -821,7 +821,7 @@ public abstract class BaseUserServiceImpl<
         U forUpdate = userRepository.findOne(userId);
         Skill skill = skillService.getById(skillId);
         forUpdate.getSkills().remove(skill);
-        U savedUser = initUserCollections(userRepository.save(forUpdate));
+        U savedUser = initUserCollections(rawUserRepository.save(forUpdate));
         indexBySolr(savedUser);
 
         return savedUser;
@@ -938,7 +938,7 @@ public abstract class BaseUserServiceImpl<
                 Scalr.OP_ANTIALIAS);
         ImageIO.write(thumbnail, fileExt, avatar);
         user.setUpdated(new Date());
-        U savedUser = userRepository.save(user);
+        U savedUser = rawUserRepository.save(user);
         indexBySolr(savedUser);
 
 
@@ -1258,7 +1258,7 @@ public abstract class BaseUserServiceImpl<
         for (Tenant t : user.getTenants()) {
             if (t.getId().equals(tenantId)) {
                 user.setActiveTenant(t);
-                userRepository.save(user);
+                rawUserRepository.save(user);
                 return;
             }
         }
