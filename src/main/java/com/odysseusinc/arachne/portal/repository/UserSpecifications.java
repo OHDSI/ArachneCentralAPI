@@ -32,14 +32,18 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.Specifications;
 
 public class UserSpecifications {
-    public static <U extends IUser> Specification<U> userEnabled() {
 
-        return (root, query, cb) -> cb.equal(root.get("enabled"), true);
+    private UserSpecifications() {
     }
 
-    public static <U extends IUser> Specification<U> emailConfirmed() {
+    public static <U extends IUser> Specification<U> userStatus(boolean userStatus) {
 
-        return (root, query, cb) -> cb.equal(root.get("emailConfirmed"), true);
+        return (root, query, cb) -> cb.equal(root.get("enabled"), userStatus);
+    }
+
+    public static <U extends IUser> Specification<U> emailConfirmed(boolean confirmationStatus) {
+
+        return (root, query, cb) -> cb.equal(root.get("emailConfirmed"), confirmationStatus);
     }
 
     public static <U extends IUser> Specification<U> hasEmail() {
@@ -87,4 +91,8 @@ public class UserSpecifications {
         return spec.or(withEmailLike(pattern));
     }
 
+    public static <U extends IUser> Specification<U> fieldIsNull(String fieldName) {
+
+        return (root, query, criteriaBuilder) -> criteriaBuilder.isNull(root.get(fieldName));
+    }
 }

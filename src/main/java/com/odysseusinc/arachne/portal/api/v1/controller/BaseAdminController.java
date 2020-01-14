@@ -29,11 +29,9 @@ import com.odysseusinc.arachne.commons.utils.ConverterUtils;
 import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.AdminUserDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ArachneConsts;
-import com.odysseusinc.arachne.portal.api.v1.dto.BatchOperationDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.BulkUsersRegistrationDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.DeletableUserWithTenantsDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.DeletableUserWithTenantsListDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.UserWithTenantsDTO;
 import com.odysseusinc.arachne.portal.exception.EmailNotUniqueException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
@@ -222,16 +220,6 @@ public abstract class BaseAdminController<
         return users.stream().map(IUser::getId).map(UserIdUtils::idToUuid).collect(Collectors.toList());
     }
 
-    @ApiOperation(value = "Get undeletable user ids.", hidden = true)
-    @RequestMapping(value = "/api/v1/admin/users/ids/undeletable", method = RequestMethod.GET)
-    public List<String> getListOfUndeletableUserIdsByFilter(final UserSearch userSearch)
-            throws UserNotFoundException {
-
-        final List<U> users = userService.getList(userSearch);
-        final Set<Long> deletableIds = userService.checkIfUsersAreDeletable(users.stream().map(IUser::getId).collect(Collectors.toSet()));
-        return users.stream().map(IUser::getId).filter(id -> !deletableIds.contains(id)).map(UserIdUtils::idToUuid).collect(Collectors.toList());
-    }
-
     @ApiOperation(value = "Get all users.", hidden = true)
     @RequestMapping(value = "/api/v1/admin/admins", method = RequestMethod.GET)
     public JsonResult<List<AdminUserDTO>> getAdmins(
@@ -311,14 +299,6 @@ public abstract class BaseAdminController<
                 throw new UnsupportedOperationException("Reindex isn't allowed for domain: " + domain);
         }
 
-        return new JsonResult<>(NO_ERROR);
-    }
-
-    @ApiOperation(value = "Run standard operation for the set of users accounts", hidden = true)
-    @RequestMapping(value = "/api/v1/admin/users/batch", method = RequestMethod.POST)
-    public JsonResult doBatchOperation(@RequestBody BatchOperationDTO dto) {
-
-        userService.performBatchOperation(dto.getIds(), dto.getType());
         return new JsonResult<>(NO_ERROR);
     }
 

@@ -25,7 +25,7 @@ package com.odysseusinc.arachne.portal.service.impl;
 import static com.odysseusinc.arachne.portal.model.ParticipantStatus.APPROVED;
 import static com.odysseusinc.arachne.portal.model.ParticipantStatus.DECLINED;
 import static com.odysseusinc.arachne.portal.repository.UserSpecifications.emailConfirmed;
-import static com.odysseusinc.arachne.portal.repository.UserSpecifications.userEnabled;
+import static com.odysseusinc.arachne.portal.repository.UserSpecifications.userStatus;
 import static com.odysseusinc.arachne.portal.repository.UserSpecifications.usersIn;
 import static com.odysseusinc.arachne.portal.repository.UserSpecifications.withNameOrEmailLike;
 import static com.odysseusinc.arachne.portal.service.RoleService.ROLE_ADMIN;
@@ -41,7 +41,6 @@ import com.drew.metadata.exif.ExifIFD0Directory;
 import com.google.common.collect.Sets;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.commons.utils.UserIdUtils;
-import com.odysseusinc.arachne.portal.api.v1.dto.BatchOperationType;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchExpertListDTO;
 import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
 import com.odysseusinc.arachne.portal.exception.ArachneSystemRuntimeException;
@@ -118,14 +117,13 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
+
 import org.apache.commons.io.FilenameUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -713,11 +711,11 @@ public abstract class BaseUserServiceImpl<
     private Specifications<U> buildSpecification(final UserSearch userSearch) {
 
         Specifications<U> spec = where(UserSpecifications.hasEmail());
-        if (userSearch.getEmailConfirmed() != null && userSearch.getEmailConfirmed()) {
-            spec = spec.and(emailConfirmed());
+        if (userSearch.getEmailConfirmed() != null) {
+            spec = spec.and(emailConfirmed(userSearch.getEmailConfirmed()));
         }
-        if (userSearch.getEnabled() != null && userSearch.getEnabled()) {
-            spec = spec.and(userEnabled());
+        if (userSearch.getEnabled() != null) {
+            spec = spec.and(userStatus(userSearch.getEnabled()));
         }
         if (!StringUtils.isEmpty(userSearch.getQuery())) {
             String pattern = "%" + userSearch.getQuery().toLowerCase() + "%";
@@ -728,6 +726,7 @@ public abstract class BaseUserServiceImpl<
         if (!isEmpty(tenantIds)) {
             spec = spec.and(usersIn(tenantIds));
         }
+
         return spec;
     }
 
@@ -1297,38 +1296,6 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    public void performBatchOperation(final List<String> ids, final BatchOperationType type) {
-
-        final List<U> users = rawUserRepository.findByIdIn(UserIdUtils.uuidsToIds(ids));
-
-        switch (type) {
-            case CONFIRM:
-                toggleFlag(users, U::getEmailConfirmed, U::setEmailConfirmed);
-                break;
-            case DELETE:
-                rawUserRepository.deleteInBatch(users);
-                break;
-            case ENABLE:
-                toggleFlag(users, U::getEnabled, U::setEnabled);
-                break;
-            case RESEND:
-                users.forEach(this::resendActivationEmail);
-                break;
-            default:
-                throw new IllegalArgumentException("Batch operation type " + type + " isn't supported");
-        }
-    }
-
-    @Override
-    public Set<Long> checkIfUsersAreDeletable(final Set<Long> users) {
-
-        final String delimiter = ",";
-        final String userIds = users.stream().map(String::valueOf).collect(Collectors.joining(delimiter));
-        final String deletableUsers = rawUserRepository.checkIfUsersAreDeletable(userIds, "tenants_users");
-        return Stream.of(org.apache.commons.lang3.StringUtils.split(deletableUsers, delimiter)).map(Long::valueOf).collect(Collectors.toSet());
-    }
-
-    @Override
     public Country findCountryByCode(String countryCode) {
 
         return countryRepository.findByIsoCode(countryCode);
@@ -1338,17 +1305,6 @@ public abstract class BaseUserServiceImpl<
     public StateProvince findStateProvinceByCode(String isoCode) {
 
         return stateProvinceRepository.findByIsoCode(isoCode);
-    }
-
-    private void toggleFlag(
-            final List<U> entities,
-            final Function<U, Boolean> getter,
-            final BiConsumer<U, Boolean> setter) {
-
-        for (final U entity : entities) {
-            setter.accept(entity, !getter.apply(entity));
-        }
-        rawUserRepository.save(entities);
     }
 
     private class AvatarResolver implements AutoCloseable {

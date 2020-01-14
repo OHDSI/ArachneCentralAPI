@@ -30,6 +30,7 @@ import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.EntityType;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashSet;
@@ -605,5 +606,4 @@ public class BaseUser implements IUser, Serializable {
 
         this.activeTenant = activeTenant;
     }
-
 }
