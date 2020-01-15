@@ -30,11 +30,15 @@ import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
 import com.odysseusinc.arachne.portal.util.DataNodeUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 @Component
 public class DataNodeToDataNodeDTOConverter extends BaseConversionServiceAwareConverter<DataNode, DataNodeDTO> {
+
+    @Autowired(required = false)
+    private DataNodeHealthStatusStub dataNodeHealthStatusStub;
 
     @Override
     public DataNodeDTO convert(DataNode dataNode) {
@@ -47,7 +51,7 @@ public class DataNodeToDataNodeDTOConverter extends BaseConversionServiceAwareCo
         dataNodeDTO.setPublished(dataNode.getPublished());
         dataNodeDTO.setAtlasVersion(dataNode.getAtlasVersion());
         dataNodeDTO.setPermissions(conversionService.convert(dataNode, PermissionsDTO.class));
-        CommonHealthStatus healthStatus = dataNode.getHealthStatus();
+        CommonHealthStatus healthStatus = (dataNodeHealthStatusStub == null) ? dataNode.getHealthStatus() : dataNodeHealthStatusStub.get();
         dataNodeDTO.setHealthStatus(healthStatus);
         dataNodeDTO.setHealthStatusTitle(healthStatus.toString());
         final Object principal = SecurityContextHolder
