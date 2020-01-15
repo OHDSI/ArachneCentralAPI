@@ -49,6 +49,7 @@ import com.odysseusinc.arachne.portal.service.BaseUserService;
 import com.odysseusinc.arachne.portal.service.LoginAttemptService;
 import com.odysseusinc.arachne.portal.service.PasswordResetService;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
+import com.odysseusinc.arachne.portal.service.AuthenticationHelperService;
 import edu.vt.middleware.password.Password;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
@@ -76,8 +77,6 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
 
     @Value("${arachne.token.header}")
     private String tokenHeader;
-    @Value("${portal.authMethod}")
-    private String userOrigin;
 
     protected Authenticator authenticator;
     protected BaseUserService userService;
@@ -86,13 +85,15 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
     protected ProfessionalTypeService professionalTypeService;
     protected LoginAttemptService loginAttemptService;
     private AuthenticationService authenticationService;
+    protected AuthenticationHelperService authenticationHelperService;
 
     public BaseAuthenticationController(Authenticator authenticator,
                                         BaseUserService userService,
                                         PasswordResetService passwordResetService,
                                         @Qualifier("passwordValidator") ArachnePasswordValidator passwordValidator,
                                         ProfessionalTypeService professionalTypeService,
-                                        LoginAttemptService loginAttemptService, AuthenticationService authenticationService) {
+                                        LoginAttemptService loginAttemptService,
+                                        AuthenticationService authenticationService, AuthenticationHelperService authenticationHelperService) {
 
         this.authenticator = authenticator;
         this.userService = userService;
@@ -101,6 +102,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
         this.professionalTypeService = professionalTypeService;
         this.loginAttemptService = loginAttemptService;
         this.authenticationService = authenticationService;
+        this.authenticationHelperService = authenticationHelperService;
     }
 
     @ApiOperation("Get auth method")
@@ -108,7 +110,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
     public JsonResult<CommonAuthMethodDTO> authMethod() {
 
         final JsonResult<CommonAuthMethodDTO> result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
-        result.setResult(new CommonAuthMethodDTO(userOrigin));
+        result.setResult(new CommonAuthMethodDTO(authenticationHelperService.getCurrentMethodType()));
         return result;
     }
 

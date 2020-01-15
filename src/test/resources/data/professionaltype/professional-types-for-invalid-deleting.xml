@@ -18,7 +18,7 @@
             enabled = "true"
             email = "admin@odysseusinc.com"
             email_confirmed = "true"
-            origin="NATIVE"
+            origin="DB"
             username="admin@odysseusinc.com"
             professional_type_id = "1"
             active_tenant_id="1"
