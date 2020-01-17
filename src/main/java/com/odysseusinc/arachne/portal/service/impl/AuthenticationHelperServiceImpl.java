@@ -3,6 +3,7 @@ package com.odysseusinc.arachne.portal.service.impl;
 import com.odysseusinc.arachne.portal.service.AuthenticationHelperService;
 import java.util.Collections;
 import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 import org.ohdsi.authenticator.exception.MethodNotSupportedAuthenticationException;
 import org.ohdsi.authenticator.service.AuthService;
 import org.ohdsi.authenticator.service.authentication.AuthServiceProvider;
@@ -36,7 +37,7 @@ public class AuthenticationHelperServiceImpl implements AuthenticationHelperServ
     @Override
     public String getCurrentMethodName() {
 
-        return authMethodName;
+        return StringUtils.lowerCase(authMethodName);
     }
 
     @Override
