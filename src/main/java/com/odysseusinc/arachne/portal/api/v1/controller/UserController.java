@@ -44,7 +44,7 @@ import com.odysseusinc.arachne.portal.service.StudyService;
 import com.odysseusinc.arachne.portal.service.UserService;
 import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
 import com.odysseusinc.arachne.portal.service.submission.SubmissionService;
-import org.ohdsi.authenticator.service.Authenticator;
+import org.ohdsi.authenticator.service.authentication.Authenticator;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.web.bind.annotation.RestController;
 

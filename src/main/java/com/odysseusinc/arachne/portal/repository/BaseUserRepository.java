@@ -26,8 +26,6 @@ import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
 import com.cosium.spring.data.jpa.entity.graph.repository.EntityGraphJpaRepository;
 import com.odysseusinc.arachne.portal.model.IUser;
 import java.util.List;
-
-import org.hibernate.annotations.Where;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
