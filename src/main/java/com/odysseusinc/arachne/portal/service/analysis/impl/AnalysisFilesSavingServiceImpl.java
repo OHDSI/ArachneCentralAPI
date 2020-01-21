@@ -159,8 +159,8 @@ public class AnalysisFilesSavingServiceImpl<A extends Analysis> implements Analy
 
             Path analysisPath = analysisHelper.getAnalysisPath(analysis);
             Path targetPath = Paths.get(analysisPath.toString(), fileNameLowerCase);
-            final String contentType = CommonFileUtils.getContentType(originalFilename, targetPath.toString());
             Files.copy(multipartFile.getInputStream(), targetPath, REPLACE_EXISTING);
+            final String contentType = CommonFileUtils.getContentType(originalFilename, targetPath.toString());
 
             AnalysisFile analysisFile = buildNewAnalysisFileEntry(user, analysis, label, isExecutable, originalFilename, fileNameLowerCase, contentType);
             analysisFile.setDataReference(dataReference);
