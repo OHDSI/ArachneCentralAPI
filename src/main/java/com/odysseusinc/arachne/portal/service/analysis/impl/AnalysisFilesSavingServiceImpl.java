@@ -66,8 +66,9 @@ import static com.odysseusinc.arachne.commons.utils.CommonFileUtils.ANALYSIS_INF
 import static com.odysseusinc.arachne.commons.utils.CommonFileUtils.OHDSI_JSON_EXT;
 import static com.odysseusinc.arachne.commons.utils.CommonFileUtils.OHDSI_SQL_EXT;
 import static com.odysseusinc.arachne.portal.service.analysis.impl.AnalysisUtils.throwAccessDeniedExceptionIfLocked;
-import static feign.Util.isNotBlank;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Transactional
 @Service
@@ -286,7 +287,7 @@ public class AnalysisFilesSavingServiceImpl<A extends Analysis> implements Analy
                 .filter(file -> ANALYSIS_INFO_FILE_DESCRIPTION.equals(file.getName()))
                 .findFirst().orElse(null);
 
-        if (descriptionFile != null) {
+        if (descriptionFile != null && isBlank(analysis.getDescription())) {
             String description = IOUtils.toString(descriptionFile.getInputStream(), StandardCharsets.UTF_8);
             if(isNotBlank(description)) {
                 analysis.setDescription(description);
