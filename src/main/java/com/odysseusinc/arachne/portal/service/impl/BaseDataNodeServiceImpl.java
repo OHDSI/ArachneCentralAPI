@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.service.impl;
 
+import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
@@ -270,6 +271,12 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode, DS extends ID
     public Optional<DN> findByToken(String token) {
 
         return dataNodeRepository.findByToken(token, EntityUtils.fromAttributePaths("dataSources"));
+    }
+
+    @Override
+    public CommonHealthStatus getHealthStatus(DataNode dataNode) {
+
+        return CommonHealthStatus.GREEN;
     }
 
     private void saveOrUpdateDataNodeUser(DataNode dataNode, DataNodeUser dataNodeUser) {
