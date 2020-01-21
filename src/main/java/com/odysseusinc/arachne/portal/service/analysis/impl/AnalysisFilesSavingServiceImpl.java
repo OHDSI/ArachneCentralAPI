@@ -24,6 +24,7 @@ import com.odysseusinc.arachne.portal.util.AnalysisHelper;
 import com.odysseusinc.arachne.portal.util.ZipUtil;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.jetbrains.annotations.NotNull;
 import org.ohdsi.sql.SqlRender;
 import org.ohdsi.sql.SqlTranslate;
 import org.slf4j.Logger;
@@ -105,7 +106,7 @@ public class AnalysisFilesSavingServiceImpl<A extends Analysis> implements Analy
                 } else if (f.getFile() != null) {
                     savedFiles.add(saveFile(f.getFile(), user, analysis, f.getLabel(), f.getExecutable(), null));
                 } else {
-                    errorFileMessages.add("Invalid file: \"" + f.getLabel() + "\"");
+                    errorFileMessages.add(String.format("Invalid file: \"%s\"", f.getLabel()));
                 }
             } catch (AlreadyExistException e) {
                 errorFileMessages.add(e.getMessage());
@@ -154,32 +155,18 @@ public class AnalysisFilesSavingServiceImpl<A extends Analysis> implements Analy
         String originalFilename = multipartFile.getOriginalFilename();
         String fileNameLowerCase = UUID.randomUUID().toString();
         try {
+
             Path analysisPath = analysisHelper.getAnalysisPath(analysis);
             Path targetPath = Paths.get(analysisPath.toString(), fileNameLowerCase);
-
+            final String contentType = CommonFileUtils.getContentType(originalFilename, targetPath.toString());
             Files.copy(multipartFile.getInputStream(), targetPath, REPLACE_EXISTING);
 
-            AnalysisFile analysisFile = new AnalysisFile();
+            AnalysisFile analysisFile = buildNewAnalysisFileEntry(user, analysis, label, isExecutable, originalFilename, fileNameLowerCase, contentType);
             analysisFile.setDataReference(dataReference);
-            analysisFile.setUuid(fileNameLowerCase);
-            analysisFile.setAnalysis(analysis);
-            analysisFile.setContentType(CommonFileUtils.getContentType(originalFilename, targetPath.toString()));
-            analysisFile.setLabel(label);
-            analysisFile.setAuthor(user);
-            analysisFile.setUpdatedBy(user);
-            analysisFile.setExecutable(false);
-            analysisFile.setRealName(originalFilename);
-            Date created = new Date();
-            analysisFile.setCreated(created);
-            analysisFile.setUpdated(created);
-            analysisFile.setVersion(1);
 
             AnalysisFile saved = analysisFileRepository.save(analysisFile);
             analysis.getFiles().add(saved);
 
-            if (Boolean.TRUE.equals(isExecutable)) {
-                analysisService.setIsExecutable(saved.getUuid());
-            }
 
             preprocessorService.preprocessFile(analysis, analysisFile);
             eventPublisher.publishEvent(new AntivirusJobEvent(this, new AntivirusJob(saved.getId(), saved.getName(), new FileInputStream(targetPath.toString()), AntivirusJobFileType.ANALYSIS_FILE)));
@@ -190,6 +177,25 @@ public class AnalysisFilesSavingServiceImpl<A extends Analysis> implements Analy
             log.error(message, ex);
             throw new ArachneSystemRuntimeException(message);
         }
+    }
+
+    @NotNull
+    private AnalysisFile buildNewAnalysisFileEntry(IUser user, A analysis, String label, Boolean isExecutable, String originalFilename, String fileNameLowerCase, String contentType) {
+
+        AnalysisFile analysisFile = new AnalysisFile();
+        analysisFile.setUuid(fileNameLowerCase);
+        analysisFile.setAnalysis(analysis);
+        analysisFile.setContentType(contentType);
+        analysisFile.setLabel(label);
+        analysisFile.setAuthor(user);
+        analysisFile.setUpdatedBy(user);
+        analysisFile.setExecutable(Boolean.TRUE.equals(isExecutable));
+        analysisFile.setRealName(originalFilename);
+        Date now = new Date();
+        analysisFile.setCreated(now);
+        analysisFile.setUpdated(now);
+        analysisFile.setVersion(1);
+        return analysisFile;
     }
 
     @Override
@@ -219,26 +225,13 @@ public class AnalysisFilesSavingServiceImpl<A extends Analysis> implements Analy
             if (response.getStatusCode() == HttpStatus.OK) {
 
                 final String contentType = response.getHeaders().getContentType().toString();
-
                 Path pathToAnalysis = analysisHelper.getAnalysisPath(analysis);
                 Path targetPath = Paths.get(pathToAnalysis.toString(), fileNameLowerCase);
+                Files.copy(new ByteArrayInputStream(response.getBody()), targetPath, REPLACE_EXISTING);
 
-                Files.copy(new ByteArrayInputStream(response.getBody()),
-                        targetPath, REPLACE_EXISTING);
-                AnalysisFile analysisFile = new AnalysisFile();
-                analysisFile.setUuid(fileNameLowerCase);
-                analysisFile.setAnalysis(analysis);
-                analysisFile.setContentType(contentType);
-                analysisFile.setLabel(label);
-                analysisFile.setAuthor(user);
-                analysisFile.setExecutable(Boolean.TRUE.equals(isExecutable));
-                analysisFile.setRealName(originalFileName);
+                AnalysisFile analysisFile = buildNewAnalysisFileEntry(user, analysis, label, isExecutable, originalFileName, fileNameLowerCase, contentType);
                 analysisFile.setEntryPoint(originalFileName);
 
-                Date created = new Date();
-                analysisFile.setCreated(created);
-                analysisFile.setUpdated(created);
-                analysisFile.setVersion(1);
                 return analysisFileRepository.save(analysisFile);
             }
         } catch (IOException | RuntimeException ex) {
@@ -257,20 +250,22 @@ public class AnalysisFilesSavingServiceImpl<A extends Analysis> implements Analy
         StringBuilder generatedFileNameBuilder = new StringBuilder();
         generatedFileNameBuilder.append(CommonAnalysisType.COHORT.getTitle());
         try (final ZipOutputStream zos = new ZipOutputStream(out)) {
-            files.forEach(file -> {
-                try {
-                    if (file.getName().endsWith(OHDSI_SQL_EXT)) {
-                        String shortBaseName = generateDialectVersions(zos, file);
-                        generatedFileNameBuilder.append("_");
-                        generatedFileNameBuilder.append(shortBaseName);
-                    } else {
-                        String fileName = file.getName();
-                        ZipUtil.addZipEntry(zos, fileName, file.getInputStream());
-                    }
-                } catch (IOException e) {
-                    throw new ArachneSystemRuntimeException("Failed to add file to archive: " + file.getName(), e);
-                }
-            });
+            files.stream()
+                    .filter(file -> !ANALYSIS_INFO_FILE_DESCRIPTION.equals(file.getName()))
+                    .forEach(file -> {
+                        try {
+                            if (file.getName().endsWith(OHDSI_SQL_EXT)) {
+                                String shortBaseName = generateDialectVersions(zos, file);
+                                generatedFileNameBuilder.append("_");
+                                generatedFileNameBuilder.append(shortBaseName);
+                            } else {
+                                String fileName = file.getName();
+                                ZipUtil.addZipEntry(zos, fileName, file.getInputStream());
+                            }
+                        } catch (IOException e) {
+                            throw new ArachneSystemRuntimeException("Failed to add file to archive: " + file.getName(), e);
+                        }
+                    });
         } catch (IOException e) {
             throw new ArachneSystemRuntimeException(e);
         }
