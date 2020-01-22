@@ -27,5 +27,5 @@ public interface AnalysisFilesSavingService<A extends Analysis>  {
     AnalysisFile saveFileByLink(String link, IUser user, A analysis, String label, Boolean isExecutable)
             throws IOException, AlreadyExistException;
 
-    void updateAnalysisFromMetaFiles(A analysis, List<MultipartFile> entityFiles) throws IOException;
+    String updateAnalysisFromMetaFiles(A analysis, List<MultipartFile> entityFiles) throws IOException;
 }

@@ -355,8 +355,8 @@ public abstract class BaseAnalysisController<T extends Analysis,
             final T analysis = analysisService.getById(analysisId);
             final DataReference dataReference = dataReferenceService.addOrUpdate(entityReference.getEntityGuid(), dataNode);
             final List<MultipartFile> entityFiles = getEntityFiles(entityReference, dataNode, analysisType);
-            doAddCommonEntityToAnalysis(analysis, dataReference, user, analysisType, entityFiles);
-            return new JsonResult(NO_ERROR);
+            String description = doAddCommonEntityToAnalysis(analysis, dataReference, user, analysisType, entityFiles);
+            return new JsonResult(NO_ERROR, description);
         } finally {
             analysisModificationLock.remove(analysisId);
             LOGGER.debug("Completed import into analysis {}", analysisId);
@@ -387,11 +387,11 @@ public abstract class BaseAnalysisController<T extends Analysis,
                     analysis.getFiles().remove(existingAnalysisFile);
                 }
         );
-        doAddCommonEntityToAnalysis(analysis, dataReference, user, analysisType, entityFiles);
-        return new JsonResult(NO_ERROR);
+        final String description = doAddCommonEntityToAnalysis(analysis, dataReference, user, analysisType, entityFiles);
+        return new JsonResult(NO_ERROR, description);
     }
 
-    private void doAddCommonEntityToAnalysis(T analysis, DataReference dataReference, IUser user,
+    private String doAddCommonEntityToAnalysis(T analysis, DataReference dataReference, IUser user,
                                                    CommonAnalysisType analysisType,
                                                    List<MultipartFile> files) throws IOException {
 
@@ -399,7 +399,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
         if (analysisType.equals(CommonAnalysisType.COHORT)) {
             analysisFilesSavingService.saveCOHORTAnalysisArchive(analysis, dataReference, user, files);
         }
-        analysisFilesSavingService.updateAnalysisFromMetaFiles(analysis, files);
+        return analysisFilesSavingService.updateAnalysisFromMetaFiles(analysis, files);
     }
 
     @ApiOperation("Upload file to attach to analysis.")

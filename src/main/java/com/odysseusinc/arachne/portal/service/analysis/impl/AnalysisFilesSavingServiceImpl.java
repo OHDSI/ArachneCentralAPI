@@ -24,6 +24,7 @@ import com.odysseusinc.arachne.portal.util.AnalysisHelper;
 import com.odysseusinc.arachne.portal.util.ZipUtil;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.ohdsi.sql.SqlRender;
 import org.ohdsi.sql.SqlTranslate;
@@ -41,7 +42,6 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -68,7 +68,6 @@ import static com.odysseusinc.arachne.commons.utils.CommonFileUtils.OHDSI_SQL_EX
 import static com.odysseusinc.arachne.portal.service.analysis.impl.AnalysisUtils.throwAccessDeniedExceptionIfLocked;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Transactional
 @Service
@@ -102,7 +101,7 @@ public class AnalysisFilesSavingServiceImpl<A extends Analysis> implements Analy
         List<AnalysisFile> savedFiles = new ArrayList<>();
         for (UploadFileDTO f : files) {
             try {
-                if (StringUtils.hasText(f.getLink())) {
+                if (StringUtils.isNotBlank(f.getLink())) {
                     savedFiles.add(saveFileByLink(f.getLink(), user, analysis, f.getLabel(), f.getExecutable()));
                 } else if (f.getFile() != null) {
                     savedFiles.add(saveFile(f.getFile(), user, analysis, f.getLabel(), f.getExecutable(), null));
@@ -281,18 +280,23 @@ public class AnalysisFilesSavingServiceImpl<A extends Analysis> implements Analy
     }
 
     @Override
-    public void updateAnalysisFromMetaFiles(A analysis, List<MultipartFile> entityFiles) throws IOException {
+    public String updateAnalysisFromMetaFiles(A analysis, List<MultipartFile> entityFiles) throws IOException {
 
         final MultipartFile descriptionFile = entityFiles.stream()
                 .filter(file -> ANALYSIS_INFO_FILE_DESCRIPTION.equals(file.getName()))
                 .findFirst().orElse(null);
 
-        if (descriptionFile != null && isBlank(analysis.getDescription())) {
+        if (descriptionFile != null) {
             String description = IOUtils.toString(descriptionFile.getInputStream(), StandardCharsets.UTF_8);
-            if(isNotBlank(description)) {
+            if (isBlank(analysis.getTitle())) {
                 analysis.setDescription(description);
+                return null;
+            }
+            if (!StringUtils.equals(description, analysis.getDescription())) {
+                return description;
             }
         }
+        return null;
     }
 
     private String generateDialectVersions(ZipOutputStream zos, MultipartFile file) throws IOException {
