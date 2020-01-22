@@ -397,7 +397,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
 
         analysisFilesSavingService.saveFiles(files, user, analysis, analysisType, dataReference);
         if (analysisType.equals(CommonAnalysisType.COHORT)) {
-            analysisFilesSavingService.saveCOHORTAnalysisArchive(analysis, dataReference, user, files);
+            analysisFilesSavingService.saveCohortAnalysisArchive(analysis, dataReference, user, files);
         }
         analysisFilesSavingService.updateAnalysisFromMetaFiles(analysis, files);
     }

@@ -19,7 +19,7 @@ public interface AnalysisFilesSavingService<A extends Analysis>  {
     List<AnalysisFile> saveFiles(List<MultipartFile> multipartFiles, IUser user, A analysis, CommonAnalysisType analysisType,
                                  DataReference dataReference) throws IOException;
 
-    void saveCOHORTAnalysisArchive(A analysis, DataReference dataReference, IUser user, List<MultipartFile> files) throws IOException;
+    void saveCohortAnalysisArchive(A analysis, DataReference dataReference, IUser user, List<MultipartFile> files) throws IOException;
 
     AnalysisFile saveFile(MultipartFile multipartFile, IUser user, A analysis, String label,
                           Boolean isExecutable, DataReference dataReference) throws IOException, AlreadyExistException;

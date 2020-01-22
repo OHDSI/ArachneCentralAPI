@@ -1,8 +1,21 @@
 package com.odysseusinc.arachne.portal.service.analysis.impl;
 
+import static com.odysseusinc.arachne.commons.types.DBMSType.MS_SQL_SERVER;
+import static com.odysseusinc.arachne.commons.types.DBMSType.ORACLE;
+import static com.odysseusinc.arachne.commons.types.DBMSType.PDW;
+import static com.odysseusinc.arachne.commons.types.DBMSType.POSTGRESQL;
+import static com.odysseusinc.arachne.commons.types.DBMSType.REDSHIFT;
+import static com.odysseusinc.arachne.commons.utils.CommonFileUtils.ANALYSIS_INFO_FILE_DESCRIPTION;
+import static com.odysseusinc.arachne.commons.utils.CommonFileUtils.OHDSI_JSON_EXT;
+import static com.odysseusinc.arachne.commons.utils.CommonFileUtils.OHDSI_SQL_EXT;
+import static com.odysseusinc.arachne.portal.service.analysis.impl.AnalysisUtils.throwAccessDeniedExceptionIfLocked;
+import static feign.Util.isNotBlank;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+
 import com.google.common.collect.ImmutableMap;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.commons.types.DBMSType;
+import com.odysseusinc.arachne.commons.utils.AnalysisArchiveUtils;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.UploadFileDTO;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
@@ -22,8 +35,27 @@ import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJob
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobFileType;
 import com.odysseusinc.arachne.portal.util.AnalysisHelper;
 import com.odysseusinc.arachne.portal.util.ZipUtil;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.zip.ZipOutputStream;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.ohdsi.sql.SqlRender;
 import org.ohdsi.sql.SqlTranslate;
 import org.slf4j.Logger;
@@ -43,30 +75,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.zip.ZipOutputStream;
-
-import static com.odysseusinc.arachne.commons.utils.CommonFileUtils.ANALYSIS_INFO_FILE_DESCRIPTION;
-import static com.odysseusinc.arachne.commons.utils.CommonFileUtils.OHDSI_JSON_EXT;
-import static com.odysseusinc.arachne.commons.utils.CommonFileUtils.OHDSI_SQL_EXT;
-import static com.odysseusinc.arachne.portal.service.analysis.impl.AnalysisUtils.throwAccessDeniedExceptionIfLocked;
-import static feign.Util.isNotBlank;
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 @Transactional
 @Service
@@ -251,36 +259,30 @@ public class AnalysisFilesSavingServiceImpl<A extends Analysis> implements Analy
 
     @PreAuthorize("hasPermission(#analysis, "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).UPLOAD_ANALYSIS_FILES)")
-    public void saveCOHORTAnalysisArchive(A analysis, DataReference dataReference, IUser user, List<MultipartFile> files) {
+    public void saveCohortAnalysisArchive(A analysis, DataReference dataReference, IUser user, List<MultipartFile> files) {
 
-        final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        StringBuilder generatedFileNameBuilder = new StringBuilder();
-        generatedFileNameBuilder.append(CommonAnalysisType.COHORT.getTitle());
-        try (final ZipOutputStream zos = new ZipOutputStream(out)) {
-            files.forEach(file -> {
-                try {
-                    if (file.getName().endsWith(OHDSI_SQL_EXT)) {
-                        String shortBaseName = generateDialectVersions(zos, file);
-                        generatedFileNameBuilder.append("_");
-                        generatedFileNameBuilder.append(shortBaseName);
-                    } else {
-                        String fileName = file.getName();
-                        ZipUtil.addZipEntry(zos, fileName, file.getInputStream());
-                    }
-                } catch (IOException e) {
-                    throw new ArachneSystemRuntimeException("Failed to add file to archive: " + file.getName(), e);
-                }
-            });
-        } catch (IOException e) {
-            throw new ArachneSystemRuntimeException(e);
-        }
-        String fileName = generatedFileNameBuilder.append(".zip").toString();
-        final MultipartFile sqlArchive = new MockMultipartFile(fileName, fileName, "application/zip",
-                out.toByteArray());
-        try {
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream();
+             ZipOutputStream zos = new ZipOutputStream(out)) {
+            MultipartFile genericSqlFile = files.stream()
+                    .filter(file -> file.getName().endsWith(OHDSI_SQL_EXT))
+                    .findAny()
+                    .orElseThrow(() -> new ArachneSystemRuntimeException(String.format("There is no sql file for %s analysis.", analysis.getId())));
+            generateFilesForEachDialectAndAddToZip(zos, genericSqlFile);
+
+            Collection<MultipartFile> allFilesWithoutSqlFile = files.stream()
+                    .filter(file -> ObjectUtils.notEqual(file, genericSqlFile))
+                    .collect(Collectors.toList());
+            ZipUtil.addZipEntries(zos, allFilesWithoutSqlFile);
+
+            String analysisName = getAnalysisName(genericSqlFile);
+            String fileName = AnalysisArchiveUtils.getArchiveFileName(CommonAnalysisType.COHORT, analysisName);
+            MultipartFile sqlArchive = new MockMultipartFile(fileName, fileName, com.google.common.net.MediaType.ZIP.toString(),
+                    out.toByteArray());
             saveFile(sqlArchive, user, analysis, fileName, false, dataReference);
-        } catch (AlreadyExistException e) {
-            log.error("Failed to save file", e);
+
+        } catch (Exception e) {
+            log.error("Failed to save zip file for {} analysis", e);
+            throw new ArachneSystemRuntimeException(e);
         }
     }
 
@@ -299,20 +301,22 @@ public class AnalysisFilesSavingServiceImpl<A extends Analysis> implements Analy
         }
     }
 
-    private String generateDialectVersions(ZipOutputStream zos, MultipartFile file) throws IOException {
+    private void generateFilesForEachDialectAndAddToZip(ZipOutputStream zos, MultipartFile file) throws IOException {
         String statement = IOUtils.toString(file.getInputStream(), StandardCharsets.UTF_8);
         String renderedSql = SqlRender.renderSql(statement, null, null);
         String baseName = FilenameUtils.getBaseName(file.getOriginalFilename());
         String extension = FilenameUtils.getExtension(file.getOriginalFilename());
-        DBMSType[] dbTypes = new DBMSType[]{DBMSType.POSTGRESQL, DBMSType.ORACLE, DBMSType.MS_SQL_SERVER,
-                DBMSType.REDSHIFT, DBMSType.PDW};
-        for (final DBMSType dialect : dbTypes) {
-            final String sql = SqlTranslate.translateSql(renderedSql, dialect.getOhdsiDB());
-            final String fileName = baseName + "."
-                    + dialect.getLabel().replace(" ", "-")
-                    + "." + extension;
+        List<DBMSType> dbTypes = Arrays.asList(POSTGRESQL, ORACLE, MS_SQL_SERVER, REDSHIFT, PDW);
+        for (DBMSType dialect : dbTypes) {
+            String sql = SqlTranslate.translateSql(renderedSql, dialect.getOhdsiDB());
+            String fileName = String.format("%s.%s.%s", baseName , dialect.getLabel().replace(" ", "-") , extension);
             ZipUtil.addZipEntry(zos, fileName, new ByteArrayInputStream(sql.getBytes(StandardCharsets.UTF_8)));
         }
+    }
+
+    private String getAnalysisName(MultipartFile file) {
+
+        String baseName = FilenameUtils.getBaseName(file.getOriginalFilename());
         return baseName.replaceAll("\\.ohdsi", "");
     }
 
