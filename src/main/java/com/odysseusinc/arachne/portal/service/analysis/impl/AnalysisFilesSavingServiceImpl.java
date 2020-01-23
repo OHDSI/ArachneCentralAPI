@@ -1,8 +1,5 @@
 package com.odysseusinc.arachne.portal.service.analysis.impl;
 
-import com.google.common.collect.ImmutableMap;
-import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
-import com.odysseusinc.arachne.commons.types.DBMSType;
 import static com.odysseusinc.arachne.commons.types.DBMSType.MS_SQL_SERVER;
 import static com.odysseusinc.arachne.commons.types.DBMSType.ORACLE;
 import static com.odysseusinc.arachne.commons.types.DBMSType.PDW;
@@ -12,7 +9,6 @@ import static com.odysseusinc.arachne.commons.utils.CommonFileUtils.ANALYSIS_INF
 import static com.odysseusinc.arachne.commons.utils.CommonFileUtils.OHDSI_JSON_EXT;
 import static com.odysseusinc.arachne.commons.utils.CommonFileUtils.OHDSI_SQL_EXT;
 import static com.odysseusinc.arachne.portal.service.analysis.impl.AnalysisUtils.throwAccessDeniedExceptionIfLocked;
-import static feign.Util.isNotBlank;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 import com.google.common.collect.ImmutableMap;
@@ -38,10 +34,6 @@ import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJob
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobFileType;
 import com.odysseusinc.arachne.portal.util.AnalysisHelper;
 import com.odysseusinc.arachne.portal.util.ZipUtil;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
@@ -63,6 +55,8 @@ import java.util.zip.ZipOutputStream;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.ohdsi.sql.SqlRender;
 import org.ohdsi.sql.SqlTranslate;
 import org.slf4j.Logger;
@@ -79,7 +73,6 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -287,7 +280,7 @@ public class AnalysisFilesSavingServiceImpl<A extends Analysis> implements Analy
     }
 
     @Override
-    public void updateAnalysisFromMetaFiles(A analysis, List<MultipartFile> entityFiles) throws IOException {
+    public String updateAnalysisFromMetaFiles(A analysis, List<MultipartFile> entityFiles) throws IOException {
 
         final MultipartFile descriptionFile = entityFiles.stream()
                 .filter(file -> ANALYSIS_INFO_FILE_DESCRIPTION.equals(file.getName()))
@@ -295,7 +288,7 @@ public class AnalysisFilesSavingServiceImpl<A extends Analysis> implements Analy
 
         if (descriptionFile != null) {
             String description = IOUtils.toString(descriptionFile.getInputStream(), StandardCharsets.UTF_8);
-            if (isBlank(analysis.getTitle())) {
+            if (StringUtils.isBlank(analysis.getTitle())) {
                 analysis.setDescription(description);
                 return null;
             }
@@ -306,7 +299,7 @@ public class AnalysisFilesSavingServiceImpl<A extends Analysis> implements Analy
         return null;
     }
 
-    private String generateDialectVersions(ZipOutputStream zos, MultipartFile file) throws IOException {
+    private void generateFilesForEachDialectAndAddToZip(ZipOutputStream zos, MultipartFile file) throws IOException {
         String statement = IOUtils.toString(file.getInputStream(), StandardCharsets.UTF_8);
         String renderedSql = SqlRender.renderSql(statement, null, null);
         String baseName = FilenameUtils.getBaseName(file.getOriginalFilename());
