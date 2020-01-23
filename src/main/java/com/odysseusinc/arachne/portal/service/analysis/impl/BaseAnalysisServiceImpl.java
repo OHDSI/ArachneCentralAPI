@@ -22,32 +22,20 @@
 
 package com.odysseusinc.arachne.portal.service.analysis.impl;
 
-import static com.odysseusinc.arachne.portal.model.SubmissionStatus.EXECUTED;
-import static com.odysseusinc.arachne.portal.model.SubmissionStatus.EXECUTED_PUBLISHED;
-import static com.odysseusinc.arachne.portal.model.SubmissionStatus.EXECUTED_REJECTED;
-import static com.odysseusinc.arachne.portal.model.SubmissionStatus.FAILED;
-import static com.odysseusinc.arachne.portal.model.SubmissionStatus.FAILED_PUBLISHED;
-import static com.odysseusinc.arachne.portal.model.SubmissionStatus.FAILED_REJECTED;
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-
 import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
 import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraphUtils;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableMap;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.ApproveDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.FileDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.UploadFileDTO;
 import com.odysseusinc.arachne.portal.config.WebSecurityConfig;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
-import com.odysseusinc.arachne.portal.exception.IORuntimeException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.NotUniqueException;
 import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
-import com.odysseusinc.arachne.portal.exception.ValidationRuntimeException;
 import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.AnalysisFile;
@@ -94,31 +82,7 @@ import com.odysseusinc.arachne.portal.util.EntityUtils;
 import com.odysseusinc.arachne.portal.util.FileUtils;
 import com.odysseusinc.arachne.portal.util.LegacyAnalysisHelper;
 import com.odysseusinc.arachne.portal.util.ZipUtil;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.zip.ZipOutputStream;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -128,20 +92,41 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.repository.CrudRepository;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.zip.ZipOutputStream;
+
+import static com.odysseusinc.arachne.portal.model.SubmissionStatus.EXECUTED;
+import static com.odysseusinc.arachne.portal.model.SubmissionStatus.EXECUTED_PUBLISHED;
+import static com.odysseusinc.arachne.portal.model.SubmissionStatus.EXECUTED_REJECTED;
+import static com.odysseusinc.arachne.portal.model.SubmissionStatus.FAILED;
+import static com.odysseusinc.arachne.portal.model.SubmissionStatus.FAILED_PUBLISHED;
+import static com.odysseusinc.arachne.portal.model.SubmissionStatus.FAILED_REJECTED;
+import static com.odysseusinc.arachne.portal.service.analysis.impl.AnalysisUtils.throwAccessDeniedExceptionIfLocked;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 public abstract class BaseAnalysisServiceImpl<
         A extends Analysis,
@@ -364,194 +349,6 @@ public abstract class BaseAnalysisServiceImpl<
         return true;
     }
 
-    protected boolean detectExecutable(CommonAnalysisType type, MultipartFile file) {
-
-        return false;
-    }
-
-    @Transactional
-    @Override
-    public List<AnalysisFile> saveFiles(List<UploadFileDTO> files, IUser user, A analysis) throws IOException {
-
-        List<String> errorFileMessages = new ArrayList<>();
-        List<AnalysisFile> savedFiles = new ArrayList<>();
-        for (UploadFileDTO f : files) {
-            try {
-                if (StringUtils.hasText(f.getLink())) {
-                    savedFiles.add(saveFileByLink(f.getLink(), user, analysis, f.getLabel(), f.getExecutable()));
-                } else if (f.getFile() != null) {
-                    savedFiles.add(saveFile(f.getFile(), user, analysis, f.getLabel(), f.getExecutable(), null));
-                } else {
-                    errorFileMessages.add("Invalid file: \"" + f.getLabel() + "\"");
-                }
-            } catch (AlreadyExistException e) {
-                errorFileMessages.add(e.getMessage());
-            }
-        }
-        if (!errorFileMessages.isEmpty()) {
-            throw new ValidationRuntimeException("Failed to save files", ImmutableMap.of("file", errorFileMessages));
-        }
-        return savedFiles;
-    }
-
-    @Transactional
-    @Override
-    public List<AnalysisFile> saveFiles(List<MultipartFile> multipartFiles, IUser user, A analysis, CommonAnalysisType analysisType,
-                                        DataReference dataReference) throws IOException {
-
-        List<MultipartFile> filteredFiles = multipartFiles.stream()
-                .filter(f -> !CommonAnalysisType.COHORT.equals(analysisType) || !f.getName().endsWith(CommonFileUtils.OHDSI_JSON_EXT))
-                .collect(Collectors.toList());
-        List<AnalysisFile> savedFiles = new ArrayList<>();
-        List<String> errorFileMessages = new ArrayList<>();
-        for (MultipartFile f : filteredFiles) {
-            try {
-                savedFiles.add(saveFile(f, user, analysis, f.getName(), detectExecutable(analysisType, f), dataReference));
-            } catch (AlreadyExistException e) {
-                errorFileMessages.add(e.getMessage());
-            }
-        }
-        if (!errorFileMessages.isEmpty()) {
-            throw new ValidationRuntimeException("Failed to save files", ImmutableMap.of(dataReference.getGuid(), errorFileMessages));
-        }
-        return savedFiles;
-    }
-
-    @Override
-    public AnalysisFile saveFile(MultipartFile multipartFile, IUser user, A analysis, String label,
-                                 Boolean isExecutable, DataReference dataReference) throws IOException, AlreadyExistException {
-
-        ensureLabelIsUnique(analysis.getId(), label);
-        String originalFilename = multipartFile.getOriginalFilename();
-        String fileNameLowerCase = UUID.randomUUID().toString();
-        try {
-            Path analysisPath = getAnalysisPath(analysis);
-            Path targetPath = Paths.get(analysisPath.toString(), fileNameLowerCase);
-
-            Files.copy(multipartFile.getInputStream(), targetPath, REPLACE_EXISTING);
-
-            AnalysisFile analysisFile = new AnalysisFile();
-            analysisFile.setDataReference(dataReference);
-            analysisFile.setUuid(fileNameLowerCase);
-            analysisFile.setAnalysis(analysis);
-            analysisFile.setContentType(CommonFileUtils.getContentType(originalFilename, targetPath.toString()));
-            analysisFile.setLabel(label);
-            analysisFile.setAuthor(user);
-            analysisFile.setUpdatedBy(user);
-            analysisFile.setExecutable(false);
-            analysisFile.setRealName(originalFilename);
-            Date created = new Date();
-            analysisFile.setCreated(created);
-            analysisFile.setUpdated(created);
-            analysisFile.setVersion(1);
-            beforeSaveAnalysisFile(analysisFile);
-
-            AnalysisFile saved = analysisFileRepository.save(analysisFile);
-            analysis.getFiles().add(saved);
-            afterSaveAnalysisFile(saved);
-
-            if (Boolean.TRUE.equals(isExecutable)) {
-                setIsExecutable(saved.getUuid());
-            }
-
-            preprocessorService.preprocessFile(analysis, analysisFile);
-            eventPublisher.publishEvent(new AntivirusJobEvent(this, new AntivirusJob(saved.getId(), saved.getName(), new FileInputStream(targetPath.toString()), AntivirusJobFileType.ANALYSIS_FILE)));
-            return saved;
-
-        } catch (IOException | RuntimeException ex) {
-            String message = "error save file to disk, filename=" + fileNameLowerCase + " ex=" + ex.toString();
-            LOGGER.error(message, ex);
-            throw new IOException(message);
-        }
-    }
-
-    protected void beforeSaveAnalysisFile(AnalysisFile file) {
-
-    }
-
-    protected void afterSaveAnalysisFile(AnalysisFile analysisFile) {
-
-    }
-
-    protected Path getAnalysisPath(Analysis analysis) throws IOException {
-
-        Study study = analysis.getStudy();
-
-        checkDirAndMakeIfNotExist(Paths.get(analysisHelper.getStoreFilesPath()));
-        checkDirAndMakeIfNotExist(Paths.get(analysisHelper.getStoreFilesPath(), study.getId().toString()));
-
-        Path desiredAnalysisDirectory = Paths.get(analysisHelper.getStoreFilesPath(),
-                study.getId().toString(), analysis.getId().toString());
-        checkDirAndMakeIfNotExist(desiredAnalysisDirectory);
-
-        return desiredAnalysisDirectory;
-    }
-
-    private void checkDirAndMakeIfNotExist(Path path) throws IOException {
-
-        File dir = path.toFile();
-        if (!dir.exists()) {
-            if (!dir.mkdirs()) {
-                throw new IOException("Can not create folder: " + dir.getAbsolutePath());
-            }
-        }
-    }
-
-    @Override
-    public AnalysisFile saveFileByLink(String link, IUser user, A analysis, String label, Boolean isExecutable)
-            throws IOException, AlreadyExistException {
-
-        ensureLabelIsUnique(analysis.getId(), label);
-        throwAccessDeniedExceptionIfLocked(analysis);
-        String fileNameLowerCase = UUID.randomUUID().toString();
-        try {
-            if (link == null) {
-                throw new IORuntimeException("wrong url");
-            }
-            HttpHeaders headers = new HttpHeaders();
-            headers.setAccept(Collections.singletonList(MediaType.APPLICATION_OCTET_STREAM));
-            HttpEntity<String> entity = new HttpEntity<>(headers);
-            URL url = new URL(link);
-
-            String originalFileName = FilenameUtils.getName(url.getPath());
-
-            ResponseEntity<byte[]> response = restTemplate.exchange(
-                    link,
-                    HttpMethod.GET, entity, byte[].class);
-
-            if (response.getStatusCode() == HttpStatus.OK) {
-
-                final String contentType = response.getHeaders().getContentType().toString();
-
-                Path pathToAnalysis = getAnalysisPath(analysis);
-                Path targetPath = Paths.get(pathToAnalysis.toString(), fileNameLowerCase);
-
-                Files.copy(new ByteArrayInputStream(response.getBody()),
-                        targetPath, REPLACE_EXISTING);
-                AnalysisFile analysisFile = new AnalysisFile();
-                analysisFile.setUuid(fileNameLowerCase);
-                analysisFile.setAnalysis(analysis);
-                analysisFile.setContentType(contentType);
-                analysisFile.setLabel(label);
-                analysisFile.setAuthor(user);
-                analysisFile.setExecutable(Boolean.TRUE.equals(isExecutable));
-                analysisFile.setRealName(originalFileName);
-                analysisFile.setEntryPoint(originalFileName);
-
-                Date created = new Date();
-                analysisFile.setCreated(created);
-                analysisFile.setUpdated(created);
-                analysisFile.setVersion(1);
-                return analysisFileRepository.save(analysisFile);
-            }
-        } catch (IOException | RuntimeException ex) {
-            String message = "error save file to disk, filename=" + fileNameLowerCase + " ex=" + ex.toString();
-            LOGGER.error(message, ex);
-            throw new IOException(message);
-        }
-        return null;
-    }
-
     @Override
     public Path getAnalysisFile(AnalysisFile analysisFile) throws FileNotFoundException {
 
@@ -691,7 +488,6 @@ public abstract class BaseAnalysisServiceImpl<
 
         A analysis = analysisRepository.findById(analysisId);
         throwAccessDeniedExceptionIfLocked(analysis);
-        Study study = analysis.getStudy();
         try {
             AnalysisFile analysisFile = analysisFileRepository.findByUuid(uuid);
 
@@ -772,19 +568,6 @@ public abstract class BaseAnalysisServiceImpl<
             LOGGER.error(message, ex);
             throw new IOException(message);
         }
-    }
-
-    @Override
-    public AnalysisFile saveAnalysisFile(AnalysisFile file) {
-
-        return analysisFileRepository.save(file);
-    }
-
-    @Override
-    public byte[] getAllBytes(ArachneFile arachneFile) throws IOException {
-
-        Path path = getPath(arachneFile);
-        return FileUtils.getBytes(path, arachneFile.getContentType());
     }
 
     @Override
@@ -916,22 +699,6 @@ public abstract class BaseAnalysisServiceImpl<
         return studyService.findLeads((S) analysis.getStudy());
     }
 
-    private void throwAccessDeniedExceptionIfLocked(Analysis analysis) {
-
-        if (analysis.getLocked()) {
-            final String ANALYSIS_LOCKE_EXCEPTION = "Analysis with id='%s' is locked, file access forbidden";
-            final String message = String.format(ANALYSIS_LOCKE_EXCEPTION, analysis.getId());
-            throw new AccessDeniedException(message);
-        }
-    }
-
-    private void ensureLabelIsUnique(Long analysisId, String label) throws AlreadyExistException {
-
-        if (!analysisFileRepository.findAllByAnalysisIdAndLabel(analysisId, label).isEmpty()) {
-            throw new AlreadyExistException("File with such name " + label + " already exists");
-        }
-    }
-
     @Override
     public List<? extends Invitationable> getWaitingForApprovalSubmissions(IUser user) {
 
@@ -951,18 +718,6 @@ public abstract class BaseAnalysisServiceImpl<
         }
 
         analysisRepository.delete(analyses);
-    }
-
-    @Override
-    public List<A> findByStudyIds(List<Long> ids) {
-
-        return analysisRepository.findByStudyIdIn(ids);
-    }
-
-    @Override
-    public List<A> getByIdIn(List<Long> ids) {
-
-        return analysisRepository.findByIdIn(ids);
     }
 
     @Override

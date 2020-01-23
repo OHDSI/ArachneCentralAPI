@@ -42,15 +42,17 @@ import com.odysseusinc.arachne.portal.model.SubmissionFile;
 import com.odysseusinc.arachne.portal.service.AnalysisPaths;
 import com.odysseusinc.arachne.portal.service.CRUDLService;
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobAnalysisFileResponseEvent;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.List;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.springframework.web.multipart.MultipartFile;
 
 public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>, AnalysisPaths {
+
     T create(T object) throws NotUniqueException, PermissionDeniedException, NotExistException;
 
     void delete(Long id) throws NotExistException;
@@ -61,10 +63,12 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
 
     Boolean moveAnalysis(Long id, Integer index);
 
-    List<AnalysisFile> saveFiles(List<UploadFileDTO> files, IUser user, T analysis) throws IOException;
+    default boolean detectExecutable(CommonAnalysisType type, MultipartFile file) {
 
-    List<AnalysisFile> saveFiles(List<MultipartFile> multipartFiles, IUser user, T analysis, CommonAnalysisType analysisType,
-                                 DataReference dataReference) throws IOException;
+        return false;
+    }
+
+    List<AnalysisFile> saveFiles(List<UploadFileDTO> files, IUser user, T analysis) throws IOException;
 
     AnalysisFile saveFile(MultipartFile multipartFile, IUser user, T analysis, String label,
                           Boolean isExecutable, DataReference dataReference) throws IOException, AlreadyExistException;
@@ -82,14 +86,6 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
 
     void lockAnalysisFiles(Long analysisId, Boolean locked) throws NotExistException;
 
-    AnalysisUnlockRequest sendAnalysisUnlockRequest(
-            Long analysisId,
-            AnalysisUnlockRequest analysisUnlockRequest
-    ) throws NotExistException, AlreadyExistException;
-
-    void processAnalysisUnlockRequest(IUser user, Long invitationId,
-                                      Boolean invitationAccepted) throws NotExistException;
-
     Path getSubmissionFile(SubmissionFile submissionFile) throws FileNotFoundException;
 
     Boolean deleteAnalysisFile(T analysis,
@@ -103,27 +99,27 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
     void updateCodeFile(AnalysisFile analysisFile,
                         FileDTO fileContentDTO, IUser updatedBy) throws IOException;
 
-    AnalysisFile saveAnalysisFile(AnalysisFile file);
-
-    byte[] getAllBytes(ArachneFile arachneFile) throws IOException;
-
     void deleteSubmissionFile(SubmissionFile file);
 
     Path getPath(ArachneFile arachneFile) throws FileNotFoundException;
 
+    void getAnalysisAllFiles(Long analysisId, String archiveName, OutputStream os) throws IOException;
+
+    void processAnalysisUnlockRequest(IUser user, Long invitationId,
+                                      Boolean invitationAccepted) throws NotExistException;
+
     void setIsExecutable(String uuid);
 
-    void getAnalysisAllFiles(Long analysisId, String archiveName, OutputStream os) throws IOException;
+    AnalysisUnlockRequest sendAnalysisUnlockRequest(
+            Long analysisId,
+            AnalysisUnlockRequest analysisUnlockRequest
+    ) throws NotExistException, AlreadyExistException;
 
     List<IUser> findLeads(T analysis);
 
     List<? extends Invitationable> getWaitingForApprovalSubmissions(IUser user);
 
     void fullDelete(List<T> analyses);
-
-    List<T> findByStudyIds(List<Long> ids);
-
-    List<T> getByIdIn(List<Long> longs);
 
     List<T> getByStudyId(Long id, EntityGraph author);
 

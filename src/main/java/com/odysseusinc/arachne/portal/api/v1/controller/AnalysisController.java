@@ -31,6 +31,7 @@ import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.DataReferenceService;
 import com.odysseusinc.arachne.portal.service.ImportService;
 import com.odysseusinc.arachne.portal.service.ToPdfConverter;
+import com.odysseusinc.arachne.portal.service.analysis.AnalysisFilesSavingService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.service.analysis.heracles.HeraclesAnalysisService;
 import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
@@ -67,7 +68,8 @@ public class AnalysisController extends BaseAnalysisController<Analysis, Analysi
             BaseSubmissionService submissionService,
             ToPdfConverter toPdfConverter,
             SubmissionInsightService submissionInsightService,
-            HeraclesAnalysisService heraclesAnalysisService) {
+            HeraclesAnalysisService heraclesAnalysisService,
+            AnalysisFilesSavingService analysisFilesSavingService) {
 
         super(analysisService,
                 submissionService,
@@ -79,7 +81,8 @@ public class AnalysisController extends BaseAnalysisController<Analysis, Analysi
                 wsTemplate,
                 toPdfConverter,
                 submissionInsightService,
-                heraclesAnalysisService);
+                heraclesAnalysisService,
+                analysisFilesSavingService);
     }
 
     @Override
