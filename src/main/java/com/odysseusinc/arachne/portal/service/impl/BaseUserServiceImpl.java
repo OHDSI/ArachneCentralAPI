@@ -63,7 +63,6 @@ import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.StateProvince;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.UserLink;
-import com.odysseusinc.arachne.portal.model.UserOrigin;
 import com.odysseusinc.arachne.portal.model.UserPublication;
 import com.odysseusinc.arachne.portal.model.UserRegistrant;
 import com.odysseusinc.arachne.portal.model.UserStudy;
@@ -89,6 +88,7 @@ import com.odysseusinc.arachne.portal.service.BaseUserPublicationService;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
 import com.odysseusinc.arachne.portal.service.TenantService;
+import com.odysseusinc.arachne.portal.service.AuthenticationHelperService;
 import com.odysseusinc.arachne.portal.service.UserRegistrantService;
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
@@ -182,14 +182,13 @@ public abstract class BaseUserServiceImpl<
     private final ArachnePasswordValidator passwordValidator;
     private final TenantService tenantService;
     protected final BaseRawUserRepository<U> rawUserRepository;
+    protected final AuthenticationHelperService authenticationHelperService;
 
     @Value("${files.store.path}")
     private String fileStorePath;
     @Value("${user.enabled.default}")
     private boolean userEnableDefault;
     private Resource defaultAvatar = new ClassPathResource("avatar.svg");
-    @Value("${portal.authMethod}")
-    protected String userOrigin;
 
     @Value("${portal.notifyAdminAboutNewUser}")
     protected boolean notifyAdminAboutNewUser;
@@ -216,6 +215,7 @@ public abstract class BaseUserServiceImpl<
                                RoleRepository roleRepository,
                                BaseUserLinkService<UserLink> userLinkService,
                                TenantService tenantService,
+                               AuthenticationHelperService authenticationHelperService,
                                BaseRawUserRepository<U> rawUserRepository) {
 
         this.stateProvinceRepository = stateProvinceRepository;
@@ -238,12 +238,13 @@ public abstract class BaseUserServiceImpl<
         this.userLinkService = userLinkService;
         this.tenantService = tenantService;
         this.rawUserRepository = rawUserRepository;
+        this.authenticationHelperService = authenticationHelperService;
     }
 
     @Override
     public U getByUsername(final String username) {
 
-        return getByUsername(this.userOrigin, username);
+        return getByUsername(this.authenticationHelperService.getCurrentMethodType(), username);
     }
 
     @Override
@@ -262,17 +263,16 @@ public abstract class BaseUserServiceImpl<
     public U getByUsernameInAnyTenant(final String username, boolean includeDeleted) {
 
         if (includeDeleted) {
-            return rawUserRepository.findByOriginAndUsername(this.userOrigin, username);
+            return rawUserRepository.findByOriginAndUsername(this.authenticationHelperService.getCurrentMethodType(), username);
         } else {
-            return rawUserRepository.findByOriginAndUsernameAndEnabledTrue(this.userOrigin, username);
+            return rawUserRepository.findByOriginAndUsernameAndEnabledTrue(this.authenticationHelperService.getCurrentMethodType(), username);
         }
     }
 
     @Override
     public U getByEmail(final String email) {
 
-        return getByUsername(this.userOrigin, email);
-        // return email != null ? userRepository.findByEmailAndEnabledTrue(email) : null;
+        return getByUsername(this.authenticationHelperService.getCurrentMethodType(), email);
     }
 
     @Override
@@ -297,7 +297,7 @@ public abstract class BaseUserServiceImpl<
     @Override
     public U getByEmailInAnyTenant(final String email) {
 
-        return rawUserRepository.findByOriginAndUsername(this.userOrigin, email);
+        return rawUserRepository.findByOriginAndUsername(this.authenticationHelperService.getCurrentMethodType(), email);
     }
 
     @Override
@@ -345,7 +345,7 @@ public abstract class BaseUserServiceImpl<
 
         updateFields(user);
 
-        return userRepository.save(user);
+        return rawUserRepository.saveAndFlush(user);
     }
 
     @Override
@@ -353,7 +353,7 @@ public abstract class BaseUserServiceImpl<
 
         setFields(user);
 
-        return userRepository.save(user);
+        return rawUserRepository.saveAndFlush(user);
     }
 
     @Override
@@ -386,18 +386,22 @@ public abstract class BaseUserServiceImpl<
 
     private void setFields(U user) {
 
-        if (userOrigin.equals(UserOrigin.NATIVE)) {
+        if (authenticationHelperService.isNative()) {
             user.setUsername(user.getEmail());
         }
         if (Objects.isNull(user.getEnabled())) {
             user.setEnabled(userEnableDefault);
         }
-				if (Objects.nonNull(user.getCountry())) {
-					user.setCountry(countryRepository.findByIsoCode(user.getCountry().getIsoCode()));
-				}
-				if (Objects.nonNull(user.getStateProvince())) {
-					user.setStateProvince(stateProvinceRepository.findByIsoCode(user.getStateProvince().getIsoCode()));
-				}
+        if (Objects.nonNull(user.getCountry())) {
+            user.setCountry(countryRepository.findByIsoCode(user.getCountry().getIsoCode()));
+        }
+        if (Objects.nonNull(user.getStateProvince())) {
+            user.setStateProvince(stateProvinceRepository.findByIsoCode(user.getStateProvince().getIsoCode()));
+        }
+        if (user.getOrigin() == null) {
+            user.setOrigin(authenticationHelperService.getCurrentMethodType());
+        }
+
         Date date = new Date();
         user.setCreated(date);
         user.setUpdated(date);
@@ -575,9 +579,9 @@ public abstract class BaseUserServiceImpl<
     public U update(final U user)
             throws IllegalAccessException, SolrServerException, IOException, NotExistException, NoSuchFieldException {
 
-        U forUpdate = userRepository.findOne(user.getId());
+        U forUpdate = rawUserRepository.findOne(user.getId());
         forUpdate = baseUpdate(forUpdate, user);
-        U savedUser = userRepository.save(forUpdate);
+        U savedUser = rawUserRepository.saveAndFlush(forUpdate);
         savedUser = initUserCollections(savedUser);
         afterUpdate(savedUser);
         return savedUser;
@@ -602,7 +606,6 @@ public abstract class BaseUserServiceImpl<
 
         users.forEach(user -> {
             user.setTenants(tenants);
-            user.setOrigin(UserOrigin.NATIVE);
             if (!emailConfirmationRequired) {
                 user.setEmailConfirmed(true);
             } else {
@@ -731,6 +734,7 @@ public abstract class BaseUserServiceImpl<
     }
 
     private Set<Long> getTenantIdsSet(Long[] tenantIds) {
+
         Set<Long> idsSet = new HashSet<>();
         if (tenantIds != null) {
             idsSet = Sets.newHashSet(tenantIds);
@@ -798,7 +802,7 @@ public abstract class BaseUserServiceImpl<
         }
         validatePassword(user.getUsername(), user.getFirstname(), user.getLastname(), user.getMiddlename(), newPassword);
         exists.setPassword(passwordEncoder.encode(newPassword));
-        userRepository.save(exists);
+        rawUserRepository.save(exists);
     }
 
     @Override
@@ -808,7 +812,7 @@ public abstract class BaseUserServiceImpl<
         U forUpdate = userRepository.findOne(userId);
         S skill = skillService.getById(skillId);
         forUpdate.getSkills().add(skill);
-        U savedUser = initUserCollections(userRepository.save(forUpdate));
+        U savedUser = initUserCollections(rawUserRepository.save(forUpdate));
         indexBySolr(savedUser);
 
         return savedUser;
@@ -821,7 +825,7 @@ public abstract class BaseUserServiceImpl<
         U forUpdate = userRepository.findOne(userId);
         Skill skill = skillService.getById(skillId);
         forUpdate.getSkills().remove(skill);
-        U savedUser = initUserCollections(userRepository.save(forUpdate));
+        U savedUser = initUserCollections(rawUserRepository.save(forUpdate));
         indexBySolr(savedUser);
 
         return savedUser;
@@ -938,7 +942,7 @@ public abstract class BaseUserServiceImpl<
                 Scalr.OP_ANTIALIAS);
         ImageIO.write(thumbnail, fileExt, avatar);
         user.setUpdated(new Date());
-        U savedUser = userRepository.save(user);
+        U savedUser = rawUserRepository.save(user);
         indexBySolr(savedUser);
 
 
@@ -1258,7 +1262,7 @@ public abstract class BaseUserServiceImpl<
         for (Tenant t : user.getTenants()) {
             if (t.getId().equals(tenantId)) {
                 user.setActiveTenant(t);
-                userRepository.save(user);
+                rawUserRepository.save(user);
                 return;
             }
         }

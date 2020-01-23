@@ -1,5 +1,8 @@
 package com.odysseusinc.arachne.portal.service.analysis.impl;
 
+import com.google.common.collect.ImmutableMap;
+import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
+import com.odysseusinc.arachne.commons.types.DBMSType;
 import static com.odysseusinc.arachne.commons.types.DBMSType.MS_SQL_SERVER;
 import static com.odysseusinc.arachne.commons.types.DBMSType.ORACLE;
 import static com.odysseusinc.arachne.commons.types.DBMSType.PDW;
@@ -35,6 +38,10 @@ import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJob
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobFileType;
 import com.odysseusinc.arachne.portal.util.AnalysisHelper;
 import com.odysseusinc.arachne.portal.util.ZipUtil;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
@@ -108,12 +115,12 @@ public class AnalysisFilesSavingServiceImpl<A extends Analysis> implements Analy
         List<AnalysisFile> savedFiles = new ArrayList<>();
         for (UploadFileDTO f : files) {
             try {
-                if (StringUtils.hasText(f.getLink())) {
+                if (StringUtils.isNotBlank(f.getLink())) {
                     savedFiles.add(saveFileByLink(f.getLink(), user, analysis, f.getLabel(), f.getExecutable()));
                 } else if (f.getFile() != null) {
                     savedFiles.add(saveFile(f.getFile(), user, analysis, f.getLabel(), f.getExecutable(), null));
                 } else {
-                    errorFileMessages.add("Invalid file: \"" + f.getLabel() + "\"");
+                    errorFileMessages.add(String.format("Invalid file: \"%s\"", f.getLabel()));
                 }
             } catch (AlreadyExistException e) {
                 errorFileMessages.add(e.getMessage());
@@ -162,32 +169,18 @@ public class AnalysisFilesSavingServiceImpl<A extends Analysis> implements Analy
         String originalFilename = multipartFile.getOriginalFilename();
         String fileNameLowerCase = UUID.randomUUID().toString();
         try {
+
             Path analysisPath = analysisHelper.getAnalysisPath(analysis);
             Path targetPath = Paths.get(analysisPath.toString(), fileNameLowerCase);
-
             Files.copy(multipartFile.getInputStream(), targetPath, REPLACE_EXISTING);
+            final String contentType = CommonFileUtils.getContentType(originalFilename, targetPath.toString());
 
-            AnalysisFile analysisFile = new AnalysisFile();
+            AnalysisFile analysisFile = buildNewAnalysisFileEntry(user, analysis, label, isExecutable, originalFilename, fileNameLowerCase, contentType);
             analysisFile.setDataReference(dataReference);
-            analysisFile.setUuid(fileNameLowerCase);
-            analysisFile.setAnalysis(analysis);
-            analysisFile.setContentType(CommonFileUtils.getContentType(originalFilename, targetPath.toString()));
-            analysisFile.setLabel(label);
-            analysisFile.setAuthor(user);
-            analysisFile.setUpdatedBy(user);
-            analysisFile.setExecutable(false);
-            analysisFile.setRealName(originalFilename);
-            Date created = new Date();
-            analysisFile.setCreated(created);
-            analysisFile.setUpdated(created);
-            analysisFile.setVersion(1);
 
             AnalysisFile saved = analysisFileRepository.save(analysisFile);
             analysis.getFiles().add(saved);
 
-            if (Boolean.TRUE.equals(isExecutable)) {
-                analysisService.setIsExecutable(saved.getUuid());
-            }
 
             preprocessorService.preprocessFile(analysis, analysisFile);
             eventPublisher.publishEvent(new AntivirusJobEvent(this, new AntivirusJob(saved.getId(), saved.getName(), new FileInputStream(targetPath.toString()), AntivirusJobFileType.ANALYSIS_FILE)));
@@ -198,6 +191,25 @@ public class AnalysisFilesSavingServiceImpl<A extends Analysis> implements Analy
             log.error(message, ex);
             throw new ArachneSystemRuntimeException(message);
         }
+    }
+
+    @NotNull
+    private AnalysisFile buildNewAnalysisFileEntry(IUser user, A analysis, String label, Boolean isExecutable, String originalFilename, String fileNameLowerCase, String contentType) {
+
+        AnalysisFile analysisFile = new AnalysisFile();
+        analysisFile.setUuid(fileNameLowerCase);
+        analysisFile.setAnalysis(analysis);
+        analysisFile.setContentType(contentType);
+        analysisFile.setLabel(label);
+        analysisFile.setAuthor(user);
+        analysisFile.setUpdatedBy(user);
+        analysisFile.setExecutable(Boolean.TRUE.equals(isExecutable));
+        analysisFile.setRealName(originalFilename);
+        Date now = new Date();
+        analysisFile.setCreated(now);
+        analysisFile.setUpdated(now);
+        analysisFile.setVersion(1);
+        return analysisFile;
     }
 
     @Override
@@ -227,26 +239,13 @@ public class AnalysisFilesSavingServiceImpl<A extends Analysis> implements Analy
             if (response.getStatusCode() == HttpStatus.OK) {
 
                 final String contentType = response.getHeaders().getContentType().toString();
-
                 Path pathToAnalysis = analysisHelper.getAnalysisPath(analysis);
                 Path targetPath = Paths.get(pathToAnalysis.toString(), fileNameLowerCase);
+                Files.copy(new ByteArrayInputStream(response.getBody()), targetPath, REPLACE_EXISTING);
 
-                Files.copy(new ByteArrayInputStream(response.getBody()),
-                        targetPath, REPLACE_EXISTING);
-                AnalysisFile analysisFile = new AnalysisFile();
-                analysisFile.setUuid(fileNameLowerCase);
-                analysisFile.setAnalysis(analysis);
-                analysisFile.setContentType(contentType);
-                analysisFile.setLabel(label);
-                analysisFile.setAuthor(user);
-                analysisFile.setExecutable(Boolean.TRUE.equals(isExecutable));
-                analysisFile.setRealName(originalFileName);
+                AnalysisFile analysisFile = buildNewAnalysisFileEntry(user, analysis, label, isExecutable, originalFileName, fileNameLowerCase, contentType);
                 analysisFile.setEntryPoint(originalFileName);
 
-                Date created = new Date();
-                analysisFile.setCreated(created);
-                analysisFile.setUpdated(created);
-                analysisFile.setVersion(1);
                 return analysisFileRepository.save(analysisFile);
             }
         } catch (IOException | RuntimeException ex) {
@@ -271,6 +270,7 @@ public class AnalysisFilesSavingServiceImpl<A extends Analysis> implements Analy
 
             Collection<MultipartFile> allFilesWithoutSqlFile = files.stream()
                     .filter(file -> ObjectUtils.notEqual(file, genericSqlFile))
+                    .filter(file -> !ANALYSIS_INFO_FILE_DESCRIPTION.equals(file.getName()))
                     .collect(Collectors.toList());
             ZipUtil.addZipEntries(zos, allFilesWithoutSqlFile);
 
@@ -295,13 +295,18 @@ public class AnalysisFilesSavingServiceImpl<A extends Analysis> implements Analy
 
         if (descriptionFile != null) {
             String description = IOUtils.toString(descriptionFile.getInputStream(), StandardCharsets.UTF_8);
-            if(isNotBlank(description)) {
+            if (isBlank(analysis.getTitle())) {
                 analysis.setDescription(description);
+                return null;
+            }
+            if (!StringUtils.equals(description, analysis.getDescription())) {
+                return description;
             }
         }
+        return null;
     }
 
-    private void generateFilesForEachDialectAndAddToZip(ZipOutputStream zos, MultipartFile file) throws IOException {
+    private String generateDialectVersions(ZipOutputStream zos, MultipartFile file) throws IOException {
         String statement = IOUtils.toString(file.getInputStream(), StandardCharsets.UTF_8);
         String renderedSql = SqlRender.renderSql(statement, null, null);
         String baseName = FilenameUtils.getBaseName(file.getOriginalFilename());
