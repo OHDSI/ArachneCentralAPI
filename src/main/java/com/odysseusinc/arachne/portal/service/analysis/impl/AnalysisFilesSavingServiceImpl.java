@@ -288,7 +288,7 @@ public class AnalysisFilesSavingServiceImpl<A extends Analysis> implements Analy
 
         if (descriptionFile != null) {
             String description = IOUtils.toString(descriptionFile.getInputStream(), StandardCharsets.UTF_8);
-            if (isBlank(analysis.getTitle())) {
+            if (isBlank(analysis.getDescription())) {
                 analysis.setDescription(description);
                 return null;
             }
