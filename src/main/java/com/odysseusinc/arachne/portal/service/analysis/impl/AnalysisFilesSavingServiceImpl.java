@@ -15,7 +15,6 @@ import com.odysseusinc.arachne.portal.model.DataReference;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.repository.AnalysisFileRepository;
 import com.odysseusinc.arachne.portal.service.analysis.AnalysisFilesSavingService;
-import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
 import com.odysseusinc.arachne.portal.service.impl.AnalysisPreprocessorService;
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJob;
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobEvent;
@@ -31,7 +30,6 @@ import org.ohdsi.sql.SqlTranslate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -78,16 +76,16 @@ public class AnalysisFilesSavingServiceImpl<A extends Analysis> implements Analy
     private final AnalysisFileRepository analysisFileRepository;
     private final AnalysisHelper analysisHelper;
     private final AnalysisPreprocessorService preprocessorService;
-    private final AnalysisService analysisService;
+    private final ExecutableDetector executableDetector;
     private final ApplicationEventPublisher eventPublisher;
     private final RestTemplate restTemplate;
 
-    public AnalysisFilesSavingServiceImpl(AnalysisFileRepository analysisFileRepository, AnalysisHelper analysisHelper, AnalysisPreprocessorService preprocessorService, @Lazy AnalysisService analysisService, ApplicationEventPublisher eventPublisher, RestTemplate restTemplate) {
+    public AnalysisFilesSavingServiceImpl(AnalysisFileRepository analysisFileRepository, AnalysisHelper analysisHelper, AnalysisPreprocessorService preprocessorService, ExecutableDetector executableDetector, ApplicationEventPublisher eventPublisher, RestTemplate restTemplate) {
 
         this.analysisFileRepository = analysisFileRepository;
         this.analysisHelper = analysisHelper;
         this.preprocessorService = preprocessorService;
-        this.analysisService = analysisService;
+        this.executableDetector = executableDetector;
         this.eventPublisher = eventPublisher;
         this.restTemplate = restTemplate;
     }
@@ -133,7 +131,7 @@ public class AnalysisFilesSavingServiceImpl<A extends Analysis> implements Analy
         List<String> errorFileMessages = new ArrayList<>();
         for (MultipartFile f : filteredFiles) {
             try {
-                final boolean isExecutable = analysisService.detectExecutable(analysisType, f);
+                final boolean isExecutable = executableDetector.detectExecutable(analysisType, f);
                 savedFiles.add(saveFile(f, user, analysis, f.getName(), isExecutable, dataReference));
             } catch (AlreadyExistException e) {
                 errorFileMessages.add(e.getMessage());
