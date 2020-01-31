@@ -131,7 +131,7 @@ public class AnalysisFilesSavingServiceImpl<A extends Analysis> implements Analy
         List<String> errorFileMessages = new ArrayList<>();
         for (MultipartFile f : filteredFiles) {
             try {
-                final boolean isExecutable = executableDetector.detectExecutable(analysisType, f);
+                final boolean isExecutable = executableDetector.isFileExecutable(analysisType, f);
                 savedFiles.add(saveFile(f, user, analysis, f.getName(), isExecutable, dataReference));
             } catch (AlreadyExistException e) {
                 errorFileMessages.add(e.getMessage());

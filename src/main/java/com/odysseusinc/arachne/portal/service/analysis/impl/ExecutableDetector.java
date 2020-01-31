@@ -7,7 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Component
 public class ExecutableDetector {
 
-    public boolean detectExecutable(CommonAnalysisType type, MultipartFile file) {
+    public boolean isFileExecutable(CommonAnalysisType type, MultipartFile file) {
 
         return false;
     }
