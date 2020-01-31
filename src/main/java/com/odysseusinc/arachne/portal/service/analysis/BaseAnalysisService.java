@@ -63,11 +63,6 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
 
     Boolean moveAnalysis(Long id, Integer index);
 
-    default boolean detectExecutable(CommonAnalysisType type, MultipartFile file) {
-
-        return false;
-    }
-
     List<AnalysisFile> saveFiles(List<UploadFileDTO> files, IUser user, T analysis) throws IOException;
 
     AnalysisFile saveFile(MultipartFile multipartFile, IUser user, T analysis, String label,
