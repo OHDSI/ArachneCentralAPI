@@ -9,6 +9,7 @@ public class ExecutableDetector {
 
     public boolean isFileExecutable(CommonAnalysisType type, MultipartFile file) {
 
+        // designed to be extended
         return false;
     }
 }
