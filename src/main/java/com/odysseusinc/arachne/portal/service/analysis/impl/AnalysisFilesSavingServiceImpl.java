@@ -43,6 +43,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 import java.util.zip.ZipOutputStream;
 import org.apache.commons.io.FilenameUtils;
@@ -67,31 +68,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-import java.util.function.BiPredicate;
-import java.util.stream.Collectors;
-import java.util.zip.ZipOutputStream;
-
-import static com.odysseusinc.arachne.commons.utils.CommonFileUtils.ANALYSIS_INFO_FILE_DESCRIPTION;
-import static com.odysseusinc.arachne.commons.utils.CommonFileUtils.OHDSI_JSON_EXT;
-import static com.odysseusinc.arachne.commons.utils.CommonFileUtils.OHDSI_SQL_EXT;
-import static com.odysseusinc.arachne.portal.service.analysis.impl.AnalysisUtils.throwAccessDeniedExceptionIfLocked;
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-import static org.apache.commons.lang3.StringUtils.isBlank;
 
 @Transactional
 @Service
