@@ -125,7 +125,7 @@ public class AnalysisFilesSavingServiceImpl<A extends Analysis> implements Analy
 
     @PreAuthorize("hasPermission(#analysis, "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).UPLOAD_ANALYSIS_FILES)")
-    protected List<AnalysisFile> saveFiles(List<MultipartFile> multipartFiles, IUser user, A analysis, DataReference dataReference, BiPredicate<String, CommonAnalysisType> isExecutableProvider) {
+    protected List<AnalysisFile> saveFiles(List<MultipartFile> multipartFiles, IUser user, A analysis, DataReference dataReference, BiPredicate<String, CommonAnalysisType> checkFileExecutabilityPredicate) {
 
         List<MultipartFile> filteredFiles = multipartFiles.stream()
                 .filter(file -> !(CommonAnalysisType.COHORT.equals(analysis.getType()) && file.getName().endsWith(OHDSI_JSON_EXT)))
@@ -136,7 +136,7 @@ public class AnalysisFilesSavingServiceImpl<A extends Analysis> implements Analy
         List<String> errorFileMessages = new ArrayList<>();
         for (MultipartFile file : filteredFiles) {
             try {
-                final boolean isExecutable = isExecutableProvider.test(file.getOriginalFilename(), analysis.getType());
+                final boolean isExecutable = checkFileExecutabilityPredicate.test(file.getOriginalFilename(), analysis.getType());
                 savedFiles.add(saveFile(file, user, analysis, file.getName(), isExecutable, dataReference));
             } catch (AlreadyExistException e) {
                 errorFileMessages.add(e.getMessage());
