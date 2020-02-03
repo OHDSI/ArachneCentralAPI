@@ -57,6 +57,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 import java.util.zip.ZipOutputStream;
 
@@ -76,16 +77,14 @@ public class AnalysisFilesSavingServiceImpl<A extends Analysis> implements Analy
     private final AnalysisFileRepository analysisFileRepository;
     private final AnalysisHelper analysisHelper;
     private final AnalysisPreprocessorService preprocessorService;
-    private final ExecutableDetector executableDetector;
     private final ApplicationEventPublisher eventPublisher;
     private final RestTemplate restTemplate;
 
-    public AnalysisFilesSavingServiceImpl(AnalysisFileRepository analysisFileRepository, AnalysisHelper analysisHelper, AnalysisPreprocessorService preprocessorService, ExecutableDetector executableDetector, ApplicationEventPublisher eventPublisher, RestTemplate restTemplate) {
+    public AnalysisFilesSavingServiceImpl(AnalysisFileRepository analysisFileRepository, AnalysisHelper analysisHelper, AnalysisPreprocessorService preprocessorService, ApplicationEventPublisher eventPublisher, RestTemplate restTemplate) {
 
         this.analysisFileRepository = analysisFileRepository;
         this.analysisHelper = analysisHelper;
         this.preprocessorService = preprocessorService;
-        this.executableDetector = executableDetector;
         this.eventPublisher = eventPublisher;
         this.restTemplate = restTemplate;
     }
@@ -119,20 +118,26 @@ public class AnalysisFilesSavingServiceImpl<A extends Analysis> implements Analy
     @Override
     @PreAuthorize("hasPermission(#analysis, "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).UPLOAD_ANALYSIS_FILES)")
-    public List<AnalysisFile> saveFiles(List<MultipartFile> multipartFiles, IUser user, A analysis, CommonAnalysisType analysisType,
-                                        DataReference dataReference) throws IOException {
+    public List<AnalysisFile> saveFiles(List<MultipartFile> multipartFiles, IUser user, A analysis, DataReference dataReference) {
+
+        return this.saveFiles(multipartFiles, user, analysis, dataReference, (fileName, analysisType) -> false);
+    }
+
+    @PreAuthorize("hasPermission(#analysis, "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).UPLOAD_ANALYSIS_FILES)")
+    protected List<AnalysisFile> saveFiles(List<MultipartFile> multipartFiles, IUser user, A analysis, DataReference dataReference, BiPredicate<String, CommonAnalysisType> isExecutableProvider) {
 
         List<MultipartFile> filteredFiles = multipartFiles.stream()
-                .filter(file -> !(CommonAnalysisType.COHORT.equals(analysisType) && file.getName().endsWith(OHDSI_JSON_EXT)))
+                .filter(file -> !(CommonAnalysisType.COHORT.equals(analysis.getType()) && file.getName().endsWith(OHDSI_JSON_EXT)))
                 .filter(file -> !file.getName().startsWith(ANALYSIS_INFO_FILE_DESCRIPTION))
                 .collect(Collectors.toList());
 
         List<AnalysisFile> savedFiles = new ArrayList<>();
         List<String> errorFileMessages = new ArrayList<>();
-        for (MultipartFile f : filteredFiles) {
+        for (MultipartFile file : filteredFiles) {
             try {
-                final boolean isExecutable = executableDetector.isFileExecutable(analysisType, f);
-                savedFiles.add(saveFile(f, user, analysis, f.getName(), isExecutable, dataReference));
+                final boolean isExecutable = isExecutableProvider.test(file.getOriginalFilename(), analysis.getType());
+                savedFiles.add(saveFile(file, user, analysis, file.getName(), isExecutable, dataReference));
             } catch (AlreadyExistException e) {
                 errorFileMessages.add(e.getMessage());
             }
