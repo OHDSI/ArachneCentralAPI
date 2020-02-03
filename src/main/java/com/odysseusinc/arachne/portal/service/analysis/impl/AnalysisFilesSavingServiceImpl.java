@@ -22,7 +22,6 @@ import com.odysseusinc.arachne.portal.model.DataReference;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.repository.AnalysisFileRepository;
 import com.odysseusinc.arachne.portal.service.analysis.AnalysisFilesSavingService;
-import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
 import com.odysseusinc.arachne.portal.service.impl.AnalysisPreprocessorService;
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJob;
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobEvent;
@@ -56,7 +55,6 @@ import org.ohdsi.sql.SqlTranslate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -70,6 +68,31 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+import java.util.function.BiPredicate;
+import java.util.stream.Collectors;
+import java.util.zip.ZipOutputStream;
+
+import static com.odysseusinc.arachne.commons.utils.CommonFileUtils.ANALYSIS_INFO_FILE_DESCRIPTION;
+import static com.odysseusinc.arachne.commons.utils.CommonFileUtils.OHDSI_JSON_EXT;
+import static com.odysseusinc.arachne.commons.utils.CommonFileUtils.OHDSI_SQL_EXT;
+import static com.odysseusinc.arachne.portal.service.analysis.impl.AnalysisUtils.throwAccessDeniedExceptionIfLocked;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 @Transactional
 @Service
 public class AnalysisFilesSavingServiceImpl<A extends Analysis> implements AnalysisFilesSavingService<A> {
@@ -79,16 +102,14 @@ public class AnalysisFilesSavingServiceImpl<A extends Analysis> implements Analy
     private final AnalysisFileRepository analysisFileRepository;
     private final AnalysisHelper analysisHelper;
     private final AnalysisPreprocessorService preprocessorService;
-    private final AnalysisService analysisService;
     private final ApplicationEventPublisher eventPublisher;
     private final RestTemplate restTemplate;
 
-    public AnalysisFilesSavingServiceImpl(AnalysisFileRepository analysisFileRepository, AnalysisHelper analysisHelper, AnalysisPreprocessorService preprocessorService, @Lazy AnalysisService analysisService, ApplicationEventPublisher eventPublisher, RestTemplate restTemplate) {
+    public AnalysisFilesSavingServiceImpl(AnalysisFileRepository analysisFileRepository, AnalysisHelper analysisHelper, AnalysisPreprocessorService preprocessorService, ApplicationEventPublisher eventPublisher, RestTemplate restTemplate) {
 
         this.analysisFileRepository = analysisFileRepository;
         this.analysisHelper = analysisHelper;
         this.preprocessorService = preprocessorService;
-        this.analysisService = analysisService;
         this.eventPublisher = eventPublisher;
         this.restTemplate = restTemplate;
     }
@@ -122,20 +143,26 @@ public class AnalysisFilesSavingServiceImpl<A extends Analysis> implements Analy
     @Override
     @PreAuthorize("hasPermission(#analysis, "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).UPLOAD_ANALYSIS_FILES)")
-    public List<AnalysisFile> saveFiles(List<MultipartFile> multipartFiles, IUser user, A analysis, CommonAnalysisType analysisType,
-                                        DataReference dataReference) {
+    public List<AnalysisFile> saveFiles(List<MultipartFile> multipartFiles, IUser user, A analysis, DataReference dataReference) {
+
+        return this.saveFiles(multipartFiles, user, analysis, dataReference, (fileName, analysisType) -> false);
+    }
+
+    @PreAuthorize("hasPermission(#analysis, "
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).UPLOAD_ANALYSIS_FILES)")
+    protected List<AnalysisFile> saveFiles(List<MultipartFile> multipartFiles, IUser user, A analysis, DataReference dataReference, BiPredicate<String, CommonAnalysisType> checkFileExecutabilityPredicate) {
 
         List<MultipartFile> filteredFiles = multipartFiles.stream()
-                .filter(file -> !(CommonAnalysisType.COHORT.equals(analysisType) && file.getName().endsWith(OHDSI_JSON_EXT)))
+                .filter(file -> !(CommonAnalysisType.COHORT.equals(analysis.getType()) && file.getName().endsWith(OHDSI_JSON_EXT)))
                 .filter(file -> !file.getName().startsWith(ANALYSIS_INFO_FILE_DESCRIPTION))
                 .collect(Collectors.toList());
 
         List<AnalysisFile> savedFiles = new ArrayList<>();
         List<String> errorFileMessages = new ArrayList<>();
-        for (MultipartFile f : filteredFiles) {
+        for (MultipartFile file : filteredFiles) {
             try {
-                final boolean isExecutable = analysisService.detectExecutable(analysisType, f);
-                savedFiles.add(saveFile(f, user, analysis, f.getName(), isExecutable, dataReference));
+                final boolean isExecutable = checkFileExecutabilityPredicate.test(file.getOriginalFilename(), analysis.getType());
+                savedFiles.add(saveFile(file, user, analysis, file.getName(), isExecutable, dataReference));
             } catch (AlreadyExistException e) {
                 errorFileMessages.add(e.getMessage());
             }
@@ -288,7 +315,7 @@ public class AnalysisFilesSavingServiceImpl<A extends Analysis> implements Analy
 
         if (descriptionFile != null) {
             String description = IOUtils.toString(descriptionFile.getInputStream(), StandardCharsets.UTF_8);
-            if (StringUtils.isBlank(analysis.getTitle())) {
+            if (StringUtils.isBlank(analysis.getDescription())) {
                 analysis.setDescription(description);
                 return null;
             }

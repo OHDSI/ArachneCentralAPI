@@ -38,7 +38,7 @@ public class AnalysisFileToAnalysisFileDTOConverter extends BaseConversionServic
         analysisFileDTO.setImported(source.getDataReference() != null);
         analysisFileDTO.setUuid(source.getUuid());
         analysisFileDTO.setFileId(source.getId());
-        analysisFileDTO.setName(source.getRealName());
+        analysisFileDTO.setName(source.getName());
         analysisFileDTO.setCreated(source.getCreated());
         analysisFileDTO.setUpdated(source.getUpdated());
         analysisFileDTO.setIsExecutable(source.getExecutable());
