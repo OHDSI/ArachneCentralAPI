@@ -606,4 +606,5 @@ public class BaseUser implements IUser, Serializable {
 
         this.activeTenant = activeTenant;
     }
+
 }
