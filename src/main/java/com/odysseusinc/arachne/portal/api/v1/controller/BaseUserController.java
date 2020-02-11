@@ -76,7 +76,6 @@ import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.UserLink;
-import com.odysseusinc.arachne.portal.model.UserOrigin;
 import com.odysseusinc.arachne.portal.model.UserPublication;
 import com.odysseusinc.arachne.portal.model.UserStudy;
 import com.odysseusinc.arachne.portal.model.search.PaperSearch;
@@ -197,7 +196,6 @@ public abstract class BaseUserController<
         try {
             U user = convertRegistrationDTO(dto);
             user.setUsername(user.getEmail());
-            user.setOrigin(UserOrigin.NATIVE);
             user.setEnabled(false);
             userService.createWithEmailVerification(user, dto.getRegistrantToken(), dto.getCallbackUrl());
         } catch (NotUniqueException ex) {
@@ -784,7 +782,6 @@ public abstract class BaseUserController<
     public CommonUserDTO create(@RequestBody @Valid CommonUserRegistrationDTO dto) throws PasswordValidationException {
 
         U user = convertRegistrationDTO(dto);
-        user.setOrigin(UserOrigin.NATIVE);
 
         user = userService.createWithEmailVerification(user, dto.getRegistrantToken(), dto.getCallbackUrl());
         return conversionService.convert(user, CommonUserDTO.class);

@@ -25,13 +25,16 @@ package com.odysseusinc.arachne.portal.security;
 import com.odysseusinc.arachne.portal.config.tenancy.TenantContext;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Objects;
+import java.util.Optional;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.StringUtils;
 import org.ohdsi.authenticator.exception.AuthenticationException;
 import org.ohdsi.authenticator.service.authentication.Authenticator;
 import org.slf4j.Logger;
@@ -60,47 +63,69 @@ public class AuthenticationTokenFilter extends GenericFilterBean {
     @Autowired
     private Authenticator authenticator;
 
+
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException,
             ServletException, AuthenticationException {
 
         HttpServletRequest httpRequest = (HttpServletRequest) request;
-        try {
-            String authToken = httpRequest.getHeader(tokenHeader);
-            if (authToken == null && httpRequest.getCookies() != null) {
-                for (Cookie cookie : httpRequest.getCookies()) {
-                    if (cookie.getName().equalsIgnoreCase(tokenHeader)) {
-                        authToken = cookie.getValue();
-                    }
-                }
-            }
-            if (authToken != null) {
-                String username = authenticator.resolveUsername(authToken);
-                String requested = httpRequest.getHeader(USER_REQUEST_HEADER);
-                if (requested != null && username != null && !Objects.equals(username, requested)) {
-                    throw new BadCredentialsException("forced logout");
-                }
-                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                    UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
-                    UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(httpRequest));
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
+        this.getAuthToken(httpRequest)
+                .ifPresent(authToken -> {
+                    try {
+                        String username = authenticator.resolveUsername(authToken);
+                        if (username == null) {
+                            return;
+                        }
+                        String requestedUsername = httpRequest.getHeader(USER_REQUEST_HEADER);
 
-                    TenantContext.setCurrentTenant(((ArachneUser) userDetails).getActiveTenantId());
-                }
-            }
-        } catch (AuthenticationException | org.springframework.security.core.AuthenticationException ex) {
-            String method = httpRequest.getMethod();
-            if (!HttpMethod.OPTIONS.matches(method)) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Authentication failed", ex);
-                } else {
-                    log.error("Authentication failed: {}, requested: {} {}", ex.getMessage(), method, httpRequest.getRequestURI());
-                }
-            }
-        }
+                        if (requestedUsername != null && !Objects.equals(username, requestedUsername)) {
+                            throw new BadCredentialsException("forced logout");
+                        }
+                        if (SecurityContextHolder.getContext().getAuthentication() == null) {
+                            this.putUserInSecurityContext(httpRequest, username);
+                        }
+                    } catch (AuthenticationException | org.springframework.security.core.AuthenticationException ex) {
+                        String method = httpRequest.getMethod();
+                        if (!HttpMethod.OPTIONS.matches(method)) {
+                            if (log.isDebugEnabled()) {
+                                log.debug("Authentication failed", ex);
+                            } else {
+                                log.error("Authentication failed: {}, requested: {} {}", ex.getMessage(), method, httpRequest.getRequestURI());
+                            }
+                        }
+                    }
+                });
         chain.doFilter(request, response);
+    }
+
+    private void putUserInSecurityContext(HttpServletRequest httpRequest, String username) {
+
+        UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(httpRequest));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        TenantContext.setCurrentTenant(((ArachneUser) userDetails).getActiveTenantId());
+    }
+
+    private Optional<String> getAuthToken(HttpServletRequest httpRequest) {
+
+        if (httpRequest == null) {
+            return Optional.empty();
+        }
+
+        String authToken = httpRequest.getHeader(tokenHeader);
+        if (authToken != null) {
+            return Optional.of(authToken);
+        }
+        if (httpRequest.getCookies() != null) {
+            return Arrays.stream(httpRequest.getCookies())
+                    .filter(cookie -> StringUtils.isNotEmpty(cookie.getName()))
+                    .filter(cookie -> cookie.getName().equalsIgnoreCase(tokenHeader))
+                    .map(Cookie::getValue)
+                    .findAny();
+        }
+        return Optional.empty();
     }
 
 }

@@ -6,18 +6,18 @@
 
     <artifactId>portal</artifactId>
     <groupId>com.odysseusinc.arachne</groupId>
-    <version>1.15.1-QA</version>
+    <version>1.16.0-QA</version>
     <packaging>jar</packaging>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>1.5.20.RELEASE</version>
+        <version>1.5.22.RELEASE</version>
         <relativePath/>
     </parent>
 
     <properties>
-        <spring.boot.version>1.5.20.RELEASE</spring.boot.version>
+        <spring.boot.version>1.5.22.RELEASE</spring.boot.version>
         <spring.security.acl.version>4.2.1.RELEASE</spring.security.acl.version>
         <start-class>com.odysseusinc.arachne.portal.PortalStarter</start-class>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -31,10 +31,14 @@
         <build.number>${BUILD_NUMBER}</build.number>
         <build.id>${BUILD_TIMESTAMP}</build.id>
         <dockerImagePrefix>hub.arachnenetwork.com</dockerImagePrefix>
-        <jodConverter.version>4.1.0</jodConverter.version>
+        <jodConverter.version>4.2.0</jodConverter.version>
         <hibernate.version>5.2.12.Final</hibernate.version>
         <clamav.version>2.0.1</clamav.version>
         <springRetryVersion>1.2.4.RELEASE</springRetryVersion>
+        <assertj.version>3.13.2</assertj.version>
+        <commonsCsv.version>1.7</commonsCsv.version>
+        <commons.fileupload.version>1.4</commons.fileupload.version>
+        <commons.io.version>2.5</commons.io.version>
     </properties>
 
     <profiles>
@@ -114,7 +118,12 @@
             <dependency>
                 <groupId>org.ohdsi</groupId>
                 <artifactId>authenticator</artifactId>
-                <version>0.0.2-QA</version>
+                <version>0.0.3-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons.io.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -183,6 +192,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <version>${spring.boot.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.assertj</groupId>
+                    <artifactId>assertj-core</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -321,7 +336,13 @@
         <dependency>
             <groupId>commons-fileupload</groupId>
             <artifactId>commons-fileupload</artifactId>
-            <version>1.3.2</version>
+            <version>${commons.fileupload.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${assertj.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -337,7 +358,7 @@
         <dependency>
             <groupId>org.ohdsi.sql</groupId>
             <artifactId>SqlRender</artifactId>
-            <version>1.6.1-SNAPSHOT</version>
+            <version>1.6.3</version>
         </dependency>
         <dependency>
             <groupId>com.cosium.spring.data</groupId>
@@ -357,7 +378,7 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-csv</artifactId>
-            <version>1.5</version>
+            <version>${commonsCsv.version}</version>
         </dependency>
         <dependency>
             <groupId>xyz.capybara</groupId>

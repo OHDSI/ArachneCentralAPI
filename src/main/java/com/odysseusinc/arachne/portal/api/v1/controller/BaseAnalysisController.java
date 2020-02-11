@@ -26,8 +26,6 @@ import com.odysseusinc.arachne.commons.api.v1.dto.CommonEntityRequestDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.OptionDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.commons.service.messaging.ProducerConsumerTemplate;
-import com.odysseusinc.arachne.commons.types.DBMSType;
-import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisCreateDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisFileDTO;
@@ -65,22 +63,19 @@ import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionInsight;
 import com.odysseusinc.arachne.portal.model.search.SubmissionGroupSearch;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
-import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.DataReferenceService;
 import com.odysseusinc.arachne.portal.service.ImportService;
 import com.odysseusinc.arachne.portal.service.ToPdfConverter;
+import com.odysseusinc.arachne.portal.service.analysis.AnalysisFilesSavingService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
+import com.odysseusinc.arachne.portal.service.analysis.heracles.HeraclesAnalysisKind;
+import com.odysseusinc.arachne.portal.service.analysis.heracles.HeraclesAnalysisService;
 import com.odysseusinc.arachne.portal.service.messaging.MessagingUtils;
 import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
 import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightService;
 import com.odysseusinc.arachne.portal.util.ImportedFile;
-import com.odysseusinc.arachne.portal.util.ZipUtil;
 import io.swagger.annotations.ApiOperation;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
-import org.assertj.core.api.exception.RuntimeIOException;
-import org.ohdsi.sql.SqlRender;
-import org.ohdsi.sql.SqlTranslate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -107,8 +102,6 @@ import javax.jms.JMSException;
 import javax.jms.ObjectMessage;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
@@ -117,17 +110,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-import java.util.zip.ZipOutputStream;
 
 import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.NO_ERROR;
 import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.PERMISSION_DENIED;
@@ -143,25 +132,23 @@ public abstract class BaseAnalysisController<T extends Analysis,
         D extends AnalysisDTO,
         DN extends DataNode,
         A_C_DTO extends AnalysisCreateDTO> extends BaseController<DN, IUser> {
-    protected static final Map<CommonAnalysisType, String> ANALISYS_MIMETYPE_MAP = new HashMap<>();
     private static final Logger LOGGER = LoggerFactory.getLogger(AnalysisController.class);
-    private static final String ENTITY_IS_NOT_AVAILABLE
-            = "'%s' with guid='%s' from DataNode with id='%d' is not available";
-    private static final String DEFAULT_EXTENSION = ".txt";
-    private static final String DEFAULT_MIMETYPE = "plain/text";
+
+    private static final String ENTITY_IS_NOT_AVAILABLE = "'%s' with guid='%s' from DataNode with id='%d' is not available";
     private static final String HYDRATED_ANALYSIS_RUNNER = "runAnalysis.R";
-    protected final BaseDataSourceService dataSourceService;
-    protected final BaseDataNodeService dataNodeService;
-    protected final BaseAnalysisService<T> analysisService;
-    protected final DataReferenceService dataReferenceService;
-    protected final GenericConversionService conversionService;
-    protected final SimpMessagingTemplate wsTemplate;
-    protected final JmsTemplate jmsTemplate;
-    protected final DestinationResolver destinationResolver;
-    protected final ImportService importService;
-    protected final BaseSubmissionService<Submission, Analysis> submissionService;
-    protected final ToPdfConverter toPdfConverter;
-    protected final SubmissionInsightService submissionInsightService;
+    private final BaseDataNodeService dataNodeService;
+    private final BaseAnalysisService<T> analysisService;
+    private final DataReferenceService dataReferenceService;
+    private final GenericConversionService conversionService;
+    private final SimpMessagingTemplate wsTemplate;
+    private final JmsTemplate jmsTemplate;
+    private final DestinationResolver destinationResolver;
+    private final ImportService importService;
+    private final BaseSubmissionService<Submission, Analysis> submissionService;
+    private final ToPdfConverter toPdfConverter;
+    private final SubmissionInsightService submissionInsightService;
+    private final HeraclesAnalysisService heraclesAnalysisService;
+    private final AnalysisFilesSavingService analysisFilesSavingService;
 
     private final Set<Long> analysisModificationLock= new ConcurrentSkipListSet();
 
@@ -174,11 +161,12 @@ public abstract class BaseAnalysisController<T extends Analysis,
                                   JmsTemplate jmsTemplate,
                                   GenericConversionService conversionService,
                                   BaseDataNodeService baseDataNodeService,
-                                  BaseDataSourceService dataSourceService,
                                   ImportService importService,
                                   SimpMessagingTemplate wsTemplate,
                                   ToPdfConverter toPdfConverter,
-                                  SubmissionInsightService submissionInsightService) {
+                                  SubmissionInsightService submissionInsightService,
+                                  HeraclesAnalysisService heraclesAnalysisService,
+                                  AnalysisFilesSavingService analysisFilesSavingService) {
 
         this.analysisService = analysisService;
         this.submissionService = submissionService;
@@ -187,11 +175,12 @@ public abstract class BaseAnalysisController<T extends Analysis,
         this.conversionService = conversionService;
         this.destinationResolver = jmsTemplate.getDestinationResolver();
         this.dataNodeService = baseDataNodeService;
-        this.dataSourceService = dataSourceService;
         this.importService = importService;
         this.wsTemplate = wsTemplate;
         this.submissionInsightService = submissionInsightService;
         this.toPdfConverter = toPdfConverter;
+        this.heraclesAnalysisService = heraclesAnalysisService;
+        this.analysisFilesSavingService = analysisFilesSavingService;
     }
 
     @ApiOperation("Create analysis.")
@@ -334,8 +323,6 @@ public abstract class BaseAnalysisController<T extends Analysis,
             throws PermissionDeniedException, NotExistException {
 
         List<OptionDTO> analysisOptionDTOs = Arrays.stream(CommonAnalysisType.values())
-                .filter(type -> type != CommonAnalysisType.COHORT_HERACLES) // NOTE: Temporary disable Heracles analysis type due to dysfunctional Packrat
-                .filter(type -> type != CommonAnalysisType.COHORT_PATHWAY) // NOTE: Temporary disable Pathways until it completely implemented
                 .map(type -> new OptionDTO(type.name(), type.getTitle()))
                 .collect(Collectors.toList());
 
@@ -368,67 +355,12 @@ public abstract class BaseAnalysisController<T extends Analysis,
             final T analysis = analysisService.getById(analysisId);
             final DataReference dataReference = dataReferenceService.addOrUpdate(entityReference.getEntityGuid(), dataNode);
             final List<MultipartFile> entityFiles = getEntityFiles(entityReference, dataNode, analysisType);
-            return doAddCommonEntityToAnalysis(analysis, dataReference, user, analysisType, entityFiles);
+            String description = doAddCommonEntityToAnalysis(analysis, dataReference, user, analysisType, entityFiles);
+            return new JsonResult(NO_ERROR, description);
         } finally {
             analysisModificationLock.remove(analysisId);
             LOGGER.debug("Completed import into analysis {}", analysisId);
         }
-    }
-
-    protected JsonResult doAddCommonEntityToAnalysis(T analysis, DataReference dataReference, IUser user,
-                                                     CommonAnalysisType analysisType,
-                                                     List<MultipartFile> files) throws IOException {
-
-        JsonResult result = new JsonResult(NO_ERROR);
-        analysisService.saveFiles(files, user, analysis, analysisType, dataReference);
-        if (analysisType.equals(CommonAnalysisType.COHORT)) {
-            final ByteArrayOutputStream out = new ByteArrayOutputStream();
-            class StringContainer {
-                String value = CommonAnalysisType.COHORT.getTitle();
-            }
-            final StringContainer generatedFileName = new StringContainer();
-            try (final ZipOutputStream zos = new ZipOutputStream(out)) {
-                files.forEach(file -> {
-                    try {
-                        if (file.getName().endsWith(CommonFileUtils.OHDSI_SQL_EXT)) {
-                            String statement = org.apache.commons.io.IOUtils.toString(file.getInputStream(), "UTF-8");
-                            String renderedSql = SqlRender.renderSql(statement, null, null);
-                            DBMSType[] dbTypes = new DBMSType[]{DBMSType.POSTGRESQL, DBMSType.ORACLE, DBMSType.MS_SQL_SERVER,
-                                    DBMSType.REDSHIFT, DBMSType.PDW};
-                            String baseName = FilenameUtils.getBaseName(file.getOriginalFilename());
-                            String extension = FilenameUtils.getExtension(file.getOriginalFilename());
-                            for (final DBMSType dialect : dbTypes) {
-                                final String sql = SqlTranslate.translateSql(renderedSql, DBMSType.MS_SQL_SERVER.getOhdsiDB(),
-                                        dialect.getOhdsiDB());
-                                final String fileName = baseName + "."
-                                        + dialect.getLabel().replaceAll(" ", "-")
-                                        + "." + extension;
-                                ZipUtil.addZipEntry(zos, fileName, new ByteArrayInputStream(sql.getBytes("UTF-8")));
-                            }
-                            final String shortBaseName = baseName.replaceAll("\\.ohdsi", "");
-                            if (!generatedFileName.value.contains(shortBaseName)) {
-                                generatedFileName.value += "_" + shortBaseName;
-                            }
-                        } else {
-                            String fileName = file.getName();
-                            ZipUtil.addZipEntry(zos, fileName, file.getInputStream());
-                        }
-                    } catch (IOException e) {
-                        LOGGER.error("Failed to add file to archive", e);
-                        throw new RuntimeIOException(e.getMessage(), e);
-                    }
-                });
-            }
-            String fileName = generatedFileName.value + ".zip";
-            final MultipartFile sqlArchive = new MockMultipartFile(fileName, fileName, "application/zip",
-                    out.toByteArray());
-            try {
-                analysisService.saveFile(sqlArchive, user, analysis, fileName, false, dataReference);
-            } catch (AlreadyExistException e) {
-                LOGGER.error("Failed to save file", e);
-            }
-        }
-        return result;
     }
 
     @ApiOperation("update common entity in analysis")
@@ -450,13 +382,24 @@ public abstract class BaseAnalysisController<T extends Analysis,
         final List<MultipartFile> entityFiles = getEntityFiles(entityReference, dataReference.getDataNode(), analysisType);
 
         analysisService.findAnalysisFilesByDataReference(analysis, dataReference).forEach(
-                af -> {
-                    analysisService.deleteAnalysisFile(analysis, af);
-                    analysis.getFiles().remove(af);
+                existingAnalysisFile -> {
+                    analysisService.deleteAnalysisFile(analysis, existingAnalysisFile);
+                    analysis.getFiles().remove(existingAnalysisFile);
                 }
         );
-        doAddCommonEntityToAnalysis(analysis, dataReference, user, analysisType, entityFiles);
-        return new JsonResult(NO_ERROR);
+        final String description = doAddCommonEntityToAnalysis(analysis, dataReference, user, analysisType, entityFiles);
+        return new JsonResult(NO_ERROR, description);
+    }
+
+    private String doAddCommonEntityToAnalysis(T analysis, DataReference dataReference, IUser user,
+                                                   CommonAnalysisType analysisType,
+                                                   List<MultipartFile> files) throws IOException {
+
+        analysisFilesSavingService.saveFiles(files, user, analysis, dataReference);
+        if (analysisType.equals(CommonAnalysisType.COHORT)) {
+            analysisFilesSavingService.saveCohortAnalysisArchive(analysis, dataReference, user, files);
+        }
+        return analysisFilesSavingService.updateAnalysisFromMetaFiles(analysis, files);
     }
 
     @ApiOperation("Upload file to attach to analysis.")
@@ -476,7 +419,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
 
         List<AnalysisFileDTO> createdFiles = new ArrayList<>();
         JsonResult<List<AnalysisFileDTO>> result = new JsonResult<>(NO_ERROR);
-        analysisService.saveFiles(files, user, analysis)
+        analysisFilesSavingService.saveFiles(files, user, analysis)
                 .forEach(createdFile -> createdFiles.add(conversionService.convert(createdFile, AnalysisFileDTO.class)));
         result.setResult(createdFiles);
         return result;
@@ -566,7 +509,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
             putFileContentToResponse(
                     response,
                     analysisFile.getContentType(),
-                    StringUtils.getFilename(analysisFile.getRealName()),
+                    StringUtils.getFilename(analysisFile.getName()),
                     analysisService.getAnalysisFile(analysisFile));
         } catch (IOException ex) {
             LOGGER.info("Error writing file to output stream. Filename was '{}'", uuid, ex);
@@ -695,7 +638,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
         return new JsonResult<>(NO_ERROR, Boolean.TRUE);
     }
 
-    protected List<MultipartFile> getEntityFiles(DataReferenceDTO entityReference, DataNode dataNode, CommonAnalysisType entityType)
+    public List<MultipartFile> getEntityFiles(DataReferenceDTO entityReference, DataNode dataNode, CommonAnalysisType entityType)
             throws JMSException, IOException, URISyntaxException {
 
         Long waitForResponse = datanodeImportTimeout;
@@ -721,25 +664,34 @@ public abstract class BaseAnalysisController<T extends Analysis,
                     entityReference.getDataNodeId());
             throw new ServiceNotAvailableException(message);
         }
-        List<MultipartFile> files = new LinkedList<>();
         final List<ImportedFile> importedFiles = (List<ImportedFile>) responseMessage.getObject();
         boolean hasAnalysisRunner = hasAnalysisRunner(importedFiles);
         if (entityType.equals(CommonAnalysisType.ESTIMATION) && !hasAnalysisRunner) {
-            files.addAll(importService.processEstimation(importedFiles));
-        } else {
-            files = importedFiles.stream()
-                    .map(file -> conversionService.convert(file, MockMultipartFile.class))
-                    .collect(Collectors.toList());
+            return importService.processEstimation(importedFiles);
         }
+
+        List<MultipartFile> files = importedFiles.stream()
+                .map(file -> conversionService.convert(file, MockMultipartFile.class))
+                .collect(Collectors.toList());
+
         if (!hasAnalysisRunner) {
-            if (entityType.equals(CommonAnalysisType.PREDICTION)) {
-                attachPredictionFiles(files);
-            }
-						if (entityType.equals(CommonAnalysisType.COHORT_HERACLES)) {
-							attachCohortHeraclesFiles(files);
-						}
+            files.addAll(generateAnalysisFiles(entityType));
         }
         return files;
+    }
+
+    private List<MultipartFile> generateAnalysisFiles(CommonAnalysisType entityType) throws IOException {
+
+        switch (entityType) {
+            case PREDICTION:
+                final ArrayList<MultipartFile> predictionFiles = new ArrayList<>();
+                attachPredictionFiles(predictionFiles);
+                return predictionFiles;
+            case COHORT_HERACLES:
+                return heraclesAnalysisService.createAnalysesFiles(HeraclesAnalysisKind.FULL);
+            default:
+                return Collections.emptyList();
+        }
     }
 
     protected byte[] readResource(final String path) throws IOException {
@@ -754,13 +706,10 @@ public abstract class BaseAnalysisController<T extends Analysis,
 
     }
 
-    protected boolean hasAnalysisRunner(List<ImportedFile> files) {
-
-    	return files.stream().anyMatch(file -> file.getOriginalFilename().equalsIgnoreCase(HYDRATED_ANALYSIS_RUNNER));
-		}
-
     protected abstract void attachPredictionFiles(List<MultipartFile> files) throws IOException;
 
-    protected abstract void attachCohortHeraclesFiles(List<MultipartFile> files) throws IOException, URISyntaxException;
+    private boolean hasAnalysisRunner(List<ImportedFile> files) {
 
+        return files.stream().anyMatch(file -> file.getOriginalFilename().equalsIgnoreCase(HYDRATED_ANALYSIS_RUNNER));
+    }
 }

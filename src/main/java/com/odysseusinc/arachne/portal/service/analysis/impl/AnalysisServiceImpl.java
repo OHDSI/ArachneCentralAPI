@@ -49,6 +49,7 @@ import com.odysseusinc.arachne.portal.service.SolrService;
 import com.odysseusinc.arachne.portal.service.ToPdfConverter;
 import com.odysseusinc.arachne.portal.service.StudyFileService;
 import com.odysseusinc.arachne.portal.service.StudyService;
+import com.odysseusinc.arachne.portal.service.analysis.AnalysisFilesSavingService;
 import com.odysseusinc.arachne.portal.service.analysis.AnalysisService;
 import com.odysseusinc.arachne.portal.service.impl.AnalysisPreprocessorService;
 import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
@@ -79,6 +80,8 @@ import java.util.List;
 @Transactional(rollbackFor = Exception.class)
 public class AnalysisServiceImpl extends BaseAnalysisServiceImpl<Analysis, Study, IDataSource, StudySearch, StudyViewItem, SolrField> implements AnalysisService {
 
+    private final AnalysisFilesSavingService analysisFilesSavingService;
+
     @Autowired
     public AnalysisServiceImpl(GenericConversionService conversionService,
                                AnalysisRepository analysisRepository,
@@ -100,8 +103,8 @@ public class AnalysisServiceImpl extends BaseAnalysisServiceImpl<Analysis, Study
                                StudyFileService fileService,
                                ToPdfConverter docToPdfConverter,
                                ApplicationEventPublisher eventPublisher,
+                               AnalysisFilesSavingService analysisFilesSavingService,
                                SolrService solrService) {
-
 
         super(conversionService,
                 analysisRepository,
@@ -123,6 +126,8 @@ public class AnalysisServiceImpl extends BaseAnalysisServiceImpl<Analysis, Study
                 docToPdfConverter,
                 eventPublisher,
                 solrService);
+
+        this.analysisFilesSavingService = analysisFilesSavingService;
     }
 
     @Override
@@ -196,7 +201,7 @@ public class AnalysisServiceImpl extends BaseAnalysisServiceImpl<Analysis, Study
                                  String label, Boolean isExecutable, DataReference dataReference)
             throws IOException, AlreadyExistException {
 
-        return super.saveFile(multipartFile, user, analysis, label, isExecutable, dataReference);
+        return analysisFilesSavingService.saveFile(multipartFile, user, analysis, label, isExecutable, dataReference);
     }
 
     @Override
@@ -205,7 +210,7 @@ public class AnalysisServiceImpl extends BaseAnalysisServiceImpl<Analysis, Study
     public AnalysisFile saveFileByLink(String link, IUser user, Analysis analysis, String label,
                                        Boolean isExecutable) throws IOException, AlreadyExistException {
 
-        return super.saveFileByLink(link, user, analysis, label, isExecutable);
+        return analysisFilesSavingService.saveFileByLink(link, user, analysis, label, isExecutable);
     }
 
     @Override
@@ -213,7 +218,7 @@ public class AnalysisServiceImpl extends BaseAnalysisServiceImpl<Analysis, Study
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).UPLOAD_ANALYSIS_FILES)")
     public List<AnalysisFile> saveFiles(List<UploadFileDTO> files, IUser user, Analysis analysis) throws IOException {
 
-        return super.saveFiles(files, user, analysis);
+        return analysisFilesSavingService.saveFiles(files, user, analysis);
     }
 
     @Override

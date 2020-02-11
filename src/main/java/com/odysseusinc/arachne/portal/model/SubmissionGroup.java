@@ -23,7 +23,6 @@
 package com.odysseusinc.arachne.portal.model;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.EntityType;

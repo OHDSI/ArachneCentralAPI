@@ -23,33 +23,34 @@
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
+import com.odysseusinc.arachne.portal.service.AuthenticationService;
 import com.odysseusinc.arachne.portal.service.LoginAttemptService;
 import com.odysseusinc.arachne.portal.service.PasswordResetService;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
+import com.odysseusinc.arachne.portal.service.AuthenticationHelperService;
 import com.odysseusinc.arachne.portal.service.UserService;
 import org.ohdsi.authenticator.service.authentication.Authenticator;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class AuthenticationController extends BaseAuthenticationController {
 
-    public AuthenticationController(AuthenticationManager authenticationManager,
-                                    Authenticator authenticator,
+    public AuthenticationController(Authenticator authenticator,
                                     UserService userService,
-                                    UserDetailsService userDetailsService,
                                     PasswordResetService passwordResetService,
                                     ArachnePasswordValidator passwordValidator,
                                     ProfessionalTypeService professionalTypeService,
-                                    LoginAttemptService loginAttemptService) {
+                                    LoginAttemptService loginAttemptService,
+                                    AuthenticationService authenticationService,
+                                    AuthenticationHelperService authenticationHelperService) {
 
-        super(authenticationManager,
-                authenticator,
+        super(  authenticator,
                 userService,
                 passwordResetService,
                 passwordValidator,
                 professionalTypeService,
-                loginAttemptService);
+                loginAttemptService,
+                authenticationService,
+                authenticationHelperService);
     }
 }

@@ -22,8 +22,7 @@
 
 package com.odysseusinc.arachne.portal.service.impl;
 
-import static org.assertj.core.util.Preconditions.checkNotNull;
-
+import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
@@ -57,6 +56,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 public abstract class BaseDataNodeServiceImpl<DN extends DataNode, DS extends IDataSource> implements BaseDataNodeService<DN> {
 
@@ -97,7 +97,7 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode, DS extends ID
     // Does not require permissions because Datanode users can be added after register Datanode only
     public DN create(DN dataNode) {
 
-        checkNotNull(dataNode, "given datanode is null");
+        Assert.notNull(dataNode, "given datanode is null");
 
         DataNodeStatus dataNodeStatus = dataNodeStatusRepository.findByName("New");
         if (dataNodeStatus == null) {
@@ -271,6 +271,12 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode, DS extends ID
     public Optional<DN> findByToken(String token) {
 
         return dataNodeRepository.findByToken(token, EntityUtils.fromAttributePaths("dataSources"));
+    }
+
+    @Override
+    public CommonHealthStatus getHealthStatus(DataNode dataNode) {
+
+        return CommonHealthStatus.GREEN;
     }
 
     private void saveOrUpdateDataNodeUser(DataNode dataNode, DataNodeUser dataNodeUser) {

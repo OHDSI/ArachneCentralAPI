@@ -24,18 +24,17 @@ package com.odysseusinc.arachne.portal.util;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
-import org.apache.commons.io.IOUtils;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
+import org.apache.commons.io.IOUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 public class ZipUtil {
 
@@ -77,6 +76,12 @@ public class ZipUtil {
         zos.putNextEntry(entry);
         zos.write(bytes);
         zos.closeEntry();
+    }
+
+    public static void addZipEntries(ZipOutputStream zos, Collection<MultipartFile> files) throws IOException {
+        for (MultipartFile file : files) {
+            ZipUtil.addZipEntry(zos, file.getName(), file.getInputStream());
+        }
     }
 
 }

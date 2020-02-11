@@ -232,7 +232,7 @@ public class ExceptionHandlingController extends BaseController {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<JsonResult> exceptionHandler(AccessDeniedException ex) {
 
-        LOGGER.error(ex.getMessage());
+        LOGGER.error(ex.getMessage(), ex);
         JsonResult result = new JsonResult<>(PERMISSION_DENIED);
         result.setErrorMessage(ex.getMessage());
         return new ResponseEntity<>(result, HttpStatus.OK);
