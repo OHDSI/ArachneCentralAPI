@@ -29,6 +29,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.Ordered;
 
 @Configuration
 @ComponentScan("org.springframework.boot.autoconfigure.flyway")
@@ -40,6 +41,8 @@ public class FlywayConfig {
         ApplicationContextAwareSpringJdbcMigrationResolver contextAwareResolver = new ApplicationContextAwareSpringJdbcMigrationResolver(context);
         flyway.setResolvers(contextAwareResolver);
 
-        return new FlywayMigrationInitializer(flyway, null);
+        FlywayMigrationInitializer flywayMigrationInitializer = new FlywayMigrationInitializer(flyway, null);
+        flywayMigrationInitializer.setOrder(Ordered.LOWEST_PRECEDENCE);
+        return flywayMigrationInitializer;
     }
 }
