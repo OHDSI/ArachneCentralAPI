@@ -91,3 +91,7 @@ ArachneNodeAPI should be available at: https://localhost:8880
 Supply your mail sender configuration parameters otherwise emails will not work.
 
 You may override any configuration parameter using  “--name=value” spring boot notation.
+
+#### Upgrade to 1.16.x 
+ The upgrade to version 16 is possible only from version 15. If you current version less than 15, then go first to 15, and only then to 16.
+ 
