@@ -1,6 +1,12 @@
 #Arachne Community Edition build and run manual
 
-##Prerequisites
+
+##Upgrade
+##### Upgrade to 1.16.x 
+The upgrade to version 16 is feasible only from the 15th version. If you want to upgrade from a version lesser than 15, then go first to 15, and only then to 16
+
+##Instalation
+###Prerequisites
 For building and run the Arachne please install following applications:
 - [Apache Maven 3](https://maven.apache.org/download.cgi)
 - [JDK 8](https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
@@ -8,6 +14,7 @@ For building and run the Arachne please install following applications:
 - [Apache Solr 7](http://lucene.apache.org/solr/downloads.html)
 - [Postgres DBMS 9.6+](https://www.postgresql.org/download/windows/)
 
+ 
 ####Prepare databases: 
 Please create ohdsi user and 2 databases: arachne_portal and datanode. That can achieved by running following command in psql console:
 ```   
@@ -91,7 +98,3 @@ ArachneNodeAPI should be available at: https://localhost:8880
 Supply your mail sender configuration parameters otherwise emails will not work.
 
 You may override any configuration parameter using  “--name=value” spring boot notation.
-
-#### Upgrade to 1.16.x 
- The upgrade to version 16 is possible only from version 15. If you current version less than 15, then go first to 15, and only then to 16.
- 
