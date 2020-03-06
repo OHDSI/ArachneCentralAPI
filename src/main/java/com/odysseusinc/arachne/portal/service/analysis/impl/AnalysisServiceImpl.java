@@ -222,14 +222,6 @@ public class AnalysisServiceImpl extends BaseAnalysisServiceImpl<Analysis, Study
     }
 
     @Override
-    @PreAuthorize("hasPermission(#analysis, "
-            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).UPLOAD_ANALYSIS_FILES)")
-    public List<AnalysisFile> saveFiles(List<UploadFileDTO> files, IUser user, Analysis analysis) throws IOException {
-
-        return super.saveFiles(files, user, analysis);
-    }
-
-    @Override
     @PreAuthorize("hasPermission(#analysisFile.analysis, "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
     public Path getAnalysisFile(AnalysisFile analysisFile) throws FileNotFoundException {
