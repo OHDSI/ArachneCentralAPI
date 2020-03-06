@@ -22,15 +22,17 @@
 
 package com.odysseusinc.arachne.portal.util;
 
+import static com.odysseusinc.arachne.storage.service.ContentStorageService.PATH_SEPARATOR;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
+import com.google.gson.stream.JsonReader;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.commons.utils.cohortcharacterization.CohortCharacterizationDocType;
-import com.odysseusinc.arachne.execution_engine_common.util.CommonFileUtils;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.repository.SubmissionResultFileRepository;
 import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
@@ -43,19 +45,23 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.apache.commons.csv.CSVFormat;
@@ -63,6 +69,7 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -121,6 +128,10 @@ public class SubmissionHelper {
             }
             case COHORT_CHARACTERIZATION: {
                 strategy = new CohortCharacterizationExtendInfoStrategy();
+                break;
+            }
+            case COHORT_PATHWAY: {
+                strategy = new PathwaySubmissionExtendInfoStrategy();
                 break;
             }
             default: {
@@ -275,7 +286,7 @@ public class SubmissionHelper {
                 }
 
                 ArachneFileMeta arachneFile = contentStorageService.getFileByPath(resultsDir
-                        + JcrContentStorageServiceImpl.PATH_SEPARATOR
+                        + PATH_SEPARATOR
                         + INCIDENCE_SUMMARY_FILENAME);
                 final CSVParser parser = CSVParser.parse(contentStorageService.getContentByFilepath(arachneFile.getPath()), Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
                 final Map<String, Integer> headers = parser.getHeaderMap();
@@ -387,7 +398,7 @@ public class SubmissionHelper {
             try {
                 final String resultsDir = contentStorageHelper.getResultFilesDir(submission);
                 final ArachneFileMeta arachneFile = contentStorageService.getFileByPath(resultsDir
-                        + JcrContentStorageServiceImpl.PATH_SEPARATOR
+                        + PATH_SEPARATOR
                         + PLP_SUMMARY_FILENAME);
                 resultInfo = parseCsvDataframeToJson(arachneFile.getPath());
             } catch (IOException e) {
@@ -414,11 +425,117 @@ public class SubmissionHelper {
             querySpec.setName("%.csv");
             querySpec.setNameLike(true);
             long reportCount = contentStorageService.searchFiles(querySpec)
-                    .stream().filter(f -> !Objects.equals(f.getName(), "raw_data.csv"))
+                    .stream()
+                    .filter(f -> !Objects.equals(f.getName(), "raw_data.csv"))
                     .count();
             resultInfo.add("reports", new JsonPrimitive(reportCount));
             submission.setResultInfo(resultInfo);
         }
+    }
+
+    private class PathwaySubmissionExtendInfoStrategy extends SubmissionExtendInfoAnalyzeStrategy {
+
+        private static final int MAX_PATHWAY_STEPS = 10;
+
+        @Override
+        public void updateExtendInfo(Submission submission) {
+
+            JsonObject resultInfo = new JsonObject();
+            try {
+                final String rootDir = contentStorageHelper.getResultFilesDir(submission);
+                final String resultsDir = filePath(rootDir, "results");
+                final String designDir = filePath(rootDir, "design");
+
+                JsonElement design;
+                try(JsonReader jsonReader = new JsonReader(new InputStreamReader(contentStorageService.getContentByFilepath(designDir
+                        + PATH_SEPARATOR + "StudySpecification.json")))) {
+                    JsonParser parser = new JsonParser();
+                    design = parser.parse(jsonReader);
+                }
+                resultInfo.add("design", design);
+
+                // Pathway codes
+                String path = filePath(resultsDir, "pathway_codes.csv");
+                resultInfo.add("eventCodes", getPathwayCodes(path));
+
+                path = filePath(resultsDir, "cohort_stats.csv");
+                JsonArray cohortStats = getCohortStats(path);
+
+                // Cohort Paths
+                path = filePath(resultsDir, "pathway_results.csv");
+                Map<Integer, JsonArray> pathwayResults  = getPathwayResults(path);
+
+                // Combine stats with paths
+                cohortStats.forEach(cs -> {
+                    JsonObject cohortStat = cs.getAsJsonObject();
+                    Integer targetCohortId = cohortStat.get("targetCohortId").getAsInt();
+                    JsonArray cohortPath = pathwayResults.get(targetCohortId);
+                    cohortStat.add("pathways", cohortPath);
+                });
+
+                resultInfo.add("pathwayGroups", cohortStats);
+
+            } catch (Exception e) {
+                LOGGER.warn(CAN_NOT_BUILD_EXTEND_INFO_LOG, submission.getId());
+                LOGGER.warn("Error: ", e);
+            }
+
+            submission.setResultInfo(resultInfo);
+        }
+
+        private Map<Integer, JsonArray> getPathwayResults(String path) throws IOException {
+
+            return parseCsv(path, rec -> {
+               JsonObject result = new JsonObject();
+               result.add("targetCohortId", getJsonPrimitive(rec.get("TARGET_COHORT_ID")));
+               result.add("personCount", getJsonPrimitive(rec.get("COUNT_VALUE")));
+               List<String> cohortPath = new ArrayList<>();
+               for(int i = 1; i <= MAX_PATHWAY_STEPS; i++) {
+                   String column = "STEP_" + i;
+                   String value = rec.get(column);
+                   if (StringUtils.isBlank(value)) {
+                       break;
+                   }
+                   cohortPath.add(value);
+               }
+               result.addProperty("path", StringUtils.join(cohortPath, "-"));
+               return result;
+            }, Collectors.groupingBy(pr -> pr.getAsJsonObject().get("targetCohortId").getAsInt(),
+                                    ArachneCollectors.toJsonArray()));
+        }
+
+        private JsonArray getCohortStats(String path) throws IOException {
+
+            return parseCsv(path, rec -> {
+               JsonObject stat = new JsonObject();
+               stat.add("targetCohortId", getJsonPrimitive(rec.get("TARGET_COHORT_ID")));
+               stat.add("targetCohortCount", getJsonPrimitive(rec.get("TARGET_COHORT_COUNT")));
+               stat.add("totalPathwaysCount", getJsonPrimitive(rec.get("PATHWAYS_COUNT")));
+               return stat;
+            }, ArachneCollectors.toJsonArray());
+        }
+
+        private JsonArray getPathwayCodes(String path) throws IOException {
+
+            return parseCsv(path, rec -> {
+                JsonObject pathwayCode = new JsonObject();
+                pathwayCode.add("code", getJsonPrimitive(rec.get("CODE")));
+                pathwayCode.add("name", getJsonPrimitive(rec.get("NAME")));
+                pathwayCode.add("isCombo", getJsonPrimitive(rec.get("IS_COMBO")));
+                return pathwayCode;
+            });
+        }
+    }
+
+    private JsonArray parseCsv(String csvFilePath, Mapper mapper) throws IOException {
+
+        return parseCsv(csvFilePath, mapper, ArachneCollectors.toJsonArray());
+    }
+
+    private <R> R parseCsv(String csvFilePath, Mapper mapper, Collector<JsonElement, ?, R> collector) throws IOException {
+        ArachneFileMeta arachneFile = contentStorageService.getFileByPath(csvFilePath);
+        final CSVParser parser = CSVParser.parse(contentStorageService.getContentByFilepath(arachneFile.getPath()), Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
+        return StreamSupport.stream(parser.spliterator(), false).map(mapper::mapRecord).collect(collector);
     }
 
     private List<ArachneFileMeta> searchFiles(Submission submission, String fileNameLike) {
@@ -487,4 +604,11 @@ public class SubmissionHelper {
         }
     }
 
+    private String filePath(String ...path) {
+        return StringUtils.join(path, PATH_SEPARATOR);
+    }
+
+    interface Mapper {
+        JsonElement mapRecord(CSVRecord record);
+    }
 }

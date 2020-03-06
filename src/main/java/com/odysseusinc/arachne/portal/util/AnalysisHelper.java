@@ -29,6 +29,7 @@ import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.IUser;
+import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
 import com.odysseusinc.arachne.portal.model.SubmissionGroup;
@@ -139,11 +140,6 @@ public class AnalysisHelper implements AnalysisPaths {
                 submission.getId().toString());
     }
 
-    public Path getSubmissionResultFolder(Submission submission) {
-
-        return getSubmissionFolder(submission).resolve(RESULT_DIR);
-    }
-
     public Path getSubmissionGroupFolder(SubmissionGroup submissionGroup) {
 
         final Analysis analysis = submissionGroup.getAnalysis();
@@ -200,6 +196,30 @@ public class AnalysisHelper implements AnalysisPaths {
             }
         }
         return storeDirPath;
+    }
+
+    public Path getAnalysisPath(Analysis analysis) throws IOException {
+
+        Study study = analysis.getStudy();
+
+        checkDirAndMakeIfNotExist(Paths.get(getStoreFilesPath()));
+        checkDirAndMakeIfNotExist(Paths.get(getStoreFilesPath(), study.getId().toString()));
+
+        Path desiredAnalysisDirectory = Paths.get(getStoreFilesPath(),
+                study.getId().toString(), analysis.getId().toString());
+        checkDirAndMakeIfNotExist(desiredAnalysisDirectory);
+
+        return desiredAnalysisDirectory;
+    }
+
+    private void checkDirAndMakeIfNotExist(Path path) throws IOException {
+
+        File dir = path.toFile();
+        if (!dir.exists()) {
+            if (!dir.mkdirs()) {
+                throw new IOException("Can not create folder: " + dir.getAbsolutePath());
+            }
+        }
     }
 
 }

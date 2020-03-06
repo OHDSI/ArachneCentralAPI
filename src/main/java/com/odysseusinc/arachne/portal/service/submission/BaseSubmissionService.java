@@ -99,9 +99,9 @@ public interface BaseSubmissionService<T extends Submission, A extends Analysis>
 
     void notifyOwnersAboutSubmissionUpdateViaSocket(T submission);
 
-    void uploadResultsByDataOwner(Long submissionId, File compressedFile) throws IOException;
+    void uploadCompressedResultsByDataOwner(Long submissionId, File compressedFile) throws IOException;
 
-    ResultFile uploadResultsByDataOwner(Long submissionId, String fileName, File file) throws IOException;
+    ResultFile uploadResultFileByDataOwner(Long submissionId, File file) throws IOException;
 
     @PreAuthorize("hasPermission(#submissionId, 'Submission', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
@@ -152,8 +152,8 @@ public interface BaseSubmissionService<T extends Submission, A extends Analysis>
     ) throws IOException;
 
     ResultFile createResultFile(
-            Path filePath,
-            String name,
+            File localFile,
+            String fileName,
             Submission submission,
             Long createById
     ) throws IOException;
