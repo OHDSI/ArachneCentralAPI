@@ -1,0 +1,19 @@
+package com.odysseusinc.arachne.portal.service.analysis.heracles;
+
+import com.google.common.collect.Lists;
+
+import java.util.List;
+
+public class HeraclesConstants {
+
+    public static final int[] INCLUDE_DRUG_TYPE_UTILIZATION_DEFAULT = new int[]{38000175, 38000176};
+    public static final int[] INCLUDE_VISIT_TYPE_UTILIZATION_DEFAULT = new int[]{32025, 32028, 32022};
+    public static final String INCLUDE_COST_CONCEPTS_DEFAULT = "31978, 31973, 31980";
+    public static final String INCLUDE_CURRENCY_DEFAULT = "44818668";
+    public static final String CDM_VERSION = "5";// Atlas and the Arachne apps support only version 5 for now
+    public static final String COHORT_PERIOD_ONLY = Boolean.FALSE.toString();
+    public static final List<Integer> HERACLES_FULL_ANALYSES_SET = Lists.newArrayList(0, 1, 2, 3, 4, 5, 7, 8, 9, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 200, 201, 202, 203, 204, 206, 207, 208, 209, 210, 211, 220, 301, 302, 400, 401, 402, 403, 404, 405, 406, 409, 410, 411, 412, 413, 420, 500, 501, 502, 504, 505, 506, 509, 510, 511, 512, 513, 514, 515, 600, 601, 602, 603, 604, 605, 606, 609, 610, 612, 613, 620, 700, 701, 702, 703, 704, 705, 706, 709, 710, 711, 712, 713, 715, 716, 717, 720, 800, 801, 802, 803, 804, 805, 806, 807, 809, 810, 812, 813, 814, 815, 816, 817, 818, 820, 900, 902, 903, 904, 906, 907, 908, 909, 910, 920, 1000, 1002, 1003, 1004, 1006, 1007, 1008, 1009, 1010, 1020, 1100, 1101, 1200, 1201, 1300, 1301, 1302, 1303, 1304, 1305, 1306, 1307, 1309, 1310, 1312, 1313, 1314, 1315, 1316, 1317, 1318, 1320, 1415, 1500, 1501, 1502, 1503, 1504, 1505, 1506, 1507, 1508, 1509, 1510, 1511, 1600, 1601, 1602, 1603, 1604, 1605, 1606, 1607, 1608, 1609, 1610, 1700, 1701, 1800, 1801, 1802, 1803, 1804, 1805, 1806, 1807, 1808, 1809, 1810, 1811, 1812, 1813, 1814, 1815, 1816, 1820, 1821, 1830, 1831, 1840, 1841, 1850, 1851, 1860, 1861, 1870, 1871, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2031, 2032, 3000, 3001, 4000, 4001, 4002, 4003, 4004, 4005, 4006, 4007, 4008, 4009, 4010, 4011, 4012, 4013, 4014, 4015, 4016, 4017, 4018, 4019);
+    private HeraclesConstants() {
+    }
+
+}

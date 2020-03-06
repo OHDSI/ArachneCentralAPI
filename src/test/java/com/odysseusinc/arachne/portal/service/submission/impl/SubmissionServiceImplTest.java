@@ -1,6 +1,6 @@
 package com.odysseusinc.arachne.portal.service.submission.impl;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
@@ -24,7 +24,8 @@ import com.odysseusinc.arachne.storage.service.ContentStorageService;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -79,7 +80,7 @@ public class SubmissionServiceImplTest {
     private ContentStorageHelper contentStorageHelper;
 
     @Captor
-    private ArgumentCaptor<String> fileNamesCaptor;
+    private ArgumentCaptor<File> fileCaptor;
 
 
 
@@ -88,16 +89,18 @@ public class SubmissionServiceImplTest {
 
         doReturn(null)
                 .when(submissionService)
-                .uploadResultsByDataOwner(any(), any(), any(File.class));
+                .uploadResultFileByDataOwner(any(),  any(File.class));
 
         URL zipFileUrl = getClass().getClassLoader().getResource("submission/test.zip");
 
-        submissionService.uploadResultsByDataOwner(1L, new File(zipFileUrl.getPath()));
+        submissionService.uploadCompressedResultsByDataOwner(1L, new File(zipFileUrl.getPath()));
 
         verify(submissionService, times(2))
-                .uploadResultsByDataOwner(any(), fileNamesCaptor.capture(), any(File.class));
+                .uploadResultFileByDataOwner(any(), fileCaptor.capture());
 
-        assertEquals(Arrays.asList("test2.txt", "test3.txt"), fileNamesCaptor.getAllValues());
+        final List<String> capturedFileNames = fileCaptor.getAllValues().stream().map(file -> file.getName()).collect(Collectors.toList());
+
+        assertThat(capturedFileNames).containsExactly("test2.txt", "test3.txt");
 
     }
 

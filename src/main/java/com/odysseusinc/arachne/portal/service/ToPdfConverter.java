@@ -21,22 +21,35 @@
 package com.odysseusinc.arachne.portal.service;
 
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import com.odysseusinc.arachne.portal.exception.ArachneSystemRuntimeException;
 import org.jodconverter.DocumentConverter;
 import org.jodconverter.document.DefaultDocumentFormatRegistry;
+import org.jodconverter.office.LocalOfficeManager;
 import org.jodconverter.office.OfficeException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ToPdfConverter {
 
-    public static final String docType = "docx";
+    public static final String DOC_TYPE = "docx";
+    private static final Logger log = LoggerFactory.getLogger(ToPdfConverter.class);
 
     @Autowired(required = false)
     private DocumentConverter converter;
+
+    @Autowired(required = false)
+    private LocalOfficeManager officeManager;
 
     public byte[] convert(final byte[] docFile) {
 
@@ -44,17 +57,35 @@ public class ToPdfConverter {
             return docFile;
         }
 
+        recreateJodConverterWorkingFolderIfNoLongerExists();
+
         try (final ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             converter
                     .convert(new ByteArrayInputStream(docFile))
                     .as(
-                            DefaultDocumentFormatRegistry.getFormatByExtension(docType))
+                            DefaultDocumentFormatRegistry.getFormatByExtension(DOC_TYPE))
                     .to(outputStream)
                     .as(DefaultDocumentFormatRegistry.getFormatByExtension(CommonFileUtils.TYPE_PDF))
                     .execute();
             return outputStream.toByteArray();
         } catch (final OfficeException | IOException e) {
-            throw new RuntimeException(e);
+            throw new ArachneSystemRuntimeException("Document conversion failure",e);
+        }
+    }
+
+    private void recreateJodConverterWorkingFolderIfNoLongerExists() {
+
+        if (officeManager != null) {
+            final File tempFile = officeManager.makeTemporaryFile();
+            final Path currentTempDir = tempFile.toPath().getParent();
+            if (!currentTempDir.toFile().exists()) {
+                log.info("Recreating JodConverter temp folder: {}", currentTempDir);
+                try {
+                    Files.createDirectories(currentTempDir);
+                } catch (IOException ex) {
+                    throw new ArachneSystemRuntimeException("Cannot restore officeManager temp folder: " + currentTempDir, ex);
+                }
+            }
         }
     }
 }

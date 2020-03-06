@@ -28,6 +28,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
+import com.google.common.io.Files;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisExecutionStatusDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.portal.api.v1.controller.BaseController;
@@ -76,6 +77,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
@@ -207,23 +210,29 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
             @RequestParam("submissionId") Long id,
             @RequestParam(value = "archive", defaultValue = "false") boolean archive,
             @Valid UploadFileDTO uploadFileDTO
-    ) throws IOException, NotExistException {
+    ) throws IOException {
 
         LOGGER.info("uploading result files for submission with id='{}'", id);
         if (uploadFileDTO.getFile() == null) {
             return new JsonResult<>(JsonResult.ErrorCode.VALIDATION_ERROR, false);
         }
-        MultipartFile file = uploadFileDTO.getFile();
-        String uploadFileName = ObjectUtils.firstNonNull(uploadFileDTO.getLabel(), file.getOriginalFilename());
+        MultipartFile uploadedFile = uploadFileDTO.getFile();
+        String fileName = ObjectUtils.firstNonNull(uploadFileDTO.getLabel(), uploadedFile.getOriginalFilename());
 
-        File tempFile = File.createTempFile(uploadFileName, "");
-        tempFile.deleteOnExit();
-        file.transferTo(tempFile);
+        Path tempDirectory = Files.createTempDir().toPath();
 
-        if (archive) {
-            submissionService.uploadResultsByDataOwner(id, tempFile);
-        } else {
-            submissionService.uploadResultsByDataOwner(id, uploadFileName, tempFile);
+        try {
+            File localFile = tempDirectory.resolve(fileName).toFile();
+            localFile.createNewFile();
+            uploadedFile.transferTo(localFile);
+
+            if (archive) {
+                submissionService.uploadCompressedResultsByDataOwner(id, localFile);
+            } else {
+                submissionService.uploadResultFileByDataOwner(id, localFile);
+            }
+        } finally {
+            FileUtils.deleteDirectory(tempDirectory.toFile());
         }
         return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, true);
     }

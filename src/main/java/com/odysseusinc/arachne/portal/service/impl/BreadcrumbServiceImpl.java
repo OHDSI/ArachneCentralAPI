@@ -23,12 +23,13 @@
 package com.odysseusinc.arachne.portal.service.impl;
 
 import com.odysseusinc.arachne.portal.exception.NotExistException;
+import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.RawDataSource;
 import com.odysseusinc.arachne.portal.repository.AnalysisRepository;
 import com.odysseusinc.arachne.portal.repository.BaseRawDataSourceRepository;
+import com.odysseusinc.arachne.portal.repository.BaseRawUserRepository;
 import com.odysseusinc.arachne.portal.repository.PaperRepository;
-import com.odysseusinc.arachne.portal.repository.RawUserRepository;
 import com.odysseusinc.arachne.portal.repository.StudyRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionGroupRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionInsightRepository;
@@ -50,7 +51,7 @@ public class BreadcrumbServiceImpl implements BreadcrumbService {
     private final SubmissionRepository submissionRepository;
     private final SubmissionGroupRepository submissionGroupRepository;
     private final SubmissionInsightRepository submissionInsightRepository;
-    private final RawUserRepository userRepository;
+    private final BaseRawUserRepository<IUser> userRepository;
     private final BaseRawDataSourceRepository<RawDataSource> dataSourceRepository;
     private final PaperRepository<Paper> paperRepository;
 
@@ -60,7 +61,7 @@ public class BreadcrumbServiceImpl implements BreadcrumbService {
                                  final SubmissionRepository submissionService,
                                  final SubmissionInsightRepository submissionInsightRepository,
                                  final SubmissionGroupRepository submissionGroupRepository,
-                                 final RawUserRepository userRepository,
+                                 final BaseRawUserRepository userRepository,
                                  final BaseRawDataSourceRepository dataSourceRepository,
                                  final PaperRepository<Paper> paperRepository) {
 

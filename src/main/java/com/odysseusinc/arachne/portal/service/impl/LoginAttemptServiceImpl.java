@@ -25,6 +25,7 @@ package com.odysseusinc.arachne.portal.service.impl;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.odysseusinc.arachne.portal.service.LoginAttemptService;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -61,6 +62,9 @@ public class LoginAttemptServiceImpl implements LoginAttemptService {
     @Override
     public void loginFailed(String key) {
 
+        if (StringUtils.isEmpty(key)) {
+            return;
+        }
         final Pair<Integer, LocalDateTime> attemptsCounter = attemptsCache.getIfPresent(key);
         if (attemptsCounter == null) {
             attemptsCache.put(key, Pair.of(1, LocalDateTime.now()));
@@ -73,6 +77,9 @@ public class LoginAttemptServiceImpl implements LoginAttemptService {
     @Override
     public Long getRemainingAccountLockPeriod(String key) {
 
+        if (StringUtils.isEmpty(key)) {
+            return null;
+        }
         final Pair<Integer, LocalDateTime> attemptsCounter = this.attemptsCache.getIfPresent(key);
         if (attemptsCounter != null && attemptsCounter.getKey() >= maxAttempts) {
             return Duration.between(LocalDateTime.now(), attemptsCounter.getValue().plusMinutes(attemptsResetMinutes)).getSeconds();

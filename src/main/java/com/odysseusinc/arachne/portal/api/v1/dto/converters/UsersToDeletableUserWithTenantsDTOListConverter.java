@@ -24,33 +24,30 @@ import com.odysseusinc.arachne.commons.utils.ConverterUtils;
 import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.DeletableUserWithTenantsDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.DeletableUserWithTenantsListDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.TenantBaseDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.UserWithTenantsDTO;
 import com.odysseusinc.arachne.portal.model.IUser;
-import com.odysseusinc.arachne.portal.model.security.Tenant;
-import com.odysseusinc.arachne.portal.service.UserService;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.odysseusinc.arachne.portal.service.UsersOperationsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 @Component
 public class UsersToDeletableUserWithTenantsDTOListConverter extends BaseConversionServiceAwareConverter<List<IUser>, DeletableUserWithTenantsListDTO> {
-    
+
     @Autowired
     private ConverterUtils converterUtils;
     @Autowired
-    private UserService userService;
-    
+    private UsersOperationsService usersOperationsService;
+
     @Override
     public DeletableUserWithTenantsListDTO convert(final List<IUser> source) {
 
         final List<DeletableUserWithTenantsDTO> convertedList = converterUtils.convertList(source, DeletableUserWithTenantsDTO.class);
 
-        final Set<Long> userIds = userService.checkIfUsersAreDeletable(source.stream().map(IUser::getId).collect(Collectors.toSet()));
-        final Set<String> deletableUserIds = userService.checkIfUsersAreDeletable(userIds)
+        final Set<Long> userIds = usersOperationsService.checkIfUsersAreDeletable(source.stream().map(IUser::getId).collect(Collectors.toSet()));
+        final Set<String> deletableUserIds = usersOperationsService.checkIfUsersAreDeletable(userIds)
                 .stream()
                 .map(UserIdUtils::idToUuid)
                 .collect(Collectors.toSet());
@@ -60,7 +57,7 @@ public class UsersToDeletableUserWithTenantsDTOListConverter extends BaseConvers
                 userDto.setDeletable(false);
             }
         }
-        
-        return new DeletableUserWithTenantsListDTO(convertedList);        
+
+        return new DeletableUserWithTenantsListDTO(convertedList);
     }
 }

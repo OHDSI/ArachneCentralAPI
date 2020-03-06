@@ -23,18 +23,24 @@
 package com.odysseusinc.arachne.portal;
 
 import com.cosium.spring.data.jpa.entity.graph.repository.support.EntityGraphJpaRepositoryFactoryBean;
+import com.odysseusinc.arachne.system.settings.config.SpringPropertiesConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jms.annotation.EnableJms;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @Configuration
-@ComponentScan(basePackages = {"com.odysseusinc.arachne.*", "org.ohdsi.authenticator.*"})
+@ComponentScan(
+        basePackages = {"com.odysseusinc.arachne.*", "org.ohdsi.authenticator.*"},
+        excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.odysseusinc.arachne.system.settings.config.SpringPropertiesConfig")
+)
+
 @EnableAutoConfiguration
 @EnableScheduling
 @EnableJpaRepositories(

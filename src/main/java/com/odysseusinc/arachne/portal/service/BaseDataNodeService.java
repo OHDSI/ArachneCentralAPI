@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.service;
 
+import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.ValidationException;
@@ -61,4 +62,6 @@ public interface BaseDataNodeService<DN extends DataNode> {
     Optional<DN> findByToken(String token);
 
     DN getBySid(String uuid) throws NotExistException;
+
+    CommonHealthStatus getHealthStatus(DataNode dataNode);
 }
