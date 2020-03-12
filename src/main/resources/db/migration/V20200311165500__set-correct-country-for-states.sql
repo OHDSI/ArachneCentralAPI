@@ -16,7 +16,7 @@ from (select sp_austria.id
                         select *
                         from states_provinces sp_usa
                         where country_id = (SELECT max(id) FROM countries WHERE name = 'United States of America (the)')
-                        and sp_austria.name = sp_usa.name)
+                        and trim(upper(sp_austria.name)) = trim(upper(sp_usa.name)))
      ) austria_ids
 where state_province_id = austria_ids.id;
 
@@ -32,7 +32,7 @@ where 0=0
         select *
         from states_provinces sp_usa
         where country_id = (SELECT max(id) FROM countries WHERE name = 'United States of America (the)')
-          and sp_austria.name = sp_usa.name
+          and trim(upper(sp_austria.name)) = trim(upper(sp_usa.name))
     );
 
 --Step 2. find duplicate states(the states that should be under USA but also mistakenly exists in Austria)
