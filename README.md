@@ -1,12 +1,12 @@
-#Arachne Community Edition build and run manual
+# Arachne Community Edition build and run manual
 
 
-##Upgrade
+## Upgrade
 ##### Upgrade to 1.16.x 
 The upgrade to version 16 is feasible only from the 15th version. If you want to upgrade from a version lesser than 15, then go first to 15, and only then to 16
 
-##Instalation
-###Prerequisites
+## Instalation
+### Prerequisites
 For building and run the Arachne please install following applications:
 - [Apache Maven 3](https://maven.apache.org/download.cgi)
 - [JDK 8](https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
@@ -15,7 +15,7 @@ For building and run the Arachne please install following applications:
 - [Postgres DBMS 9.6+](https://www.postgresql.org/download/windows/)
 
  
-####Prepare databases: 
+#### Prepare databases: 
 Please create ohdsi user and 2 databases: arachne_portal and datanode. That can achieved by running following command in psql console:
 ```   
 create role ohdsi with LOGIN password 'ohdsi';
@@ -23,13 +23,13 @@ create database arachne_portal owner ohdsi;
 create database datanode owner ohdsi;
 ```
 
-##Getting sources
+## Getting sources
 Arachne network consists of two applications – Datanode and CentralApi. Sources are located in the github repositories. Please checkout: 
 [ArachneCentralAPI](https://github.com/OHDSI/ArachneCentralAPI)
 [ArachneNodeAPI](https://github.com/OHDSI/ArachneNodeAPI) 
 The latest released version can be found in the master branch.
 
-##Solr Configuration
+## Solr Configuration
 Download solr 7 binaries.
 Solr configuration is stored in ArachneCentralAPI/solr-config. Please run command to create and configure cores:  
 ```
@@ -58,7 +58,7 @@ Solr console should be available at: http://localhost:8983/solr
 
 
 
-####Build ArachneCentralAPI and ArachneNodeApi
+#### Build ArachneCentralAPI and ArachneNodeApi
 Arachne application property files contains few configuration profiles. For this manual we use DEV. Please review available options in the: 
 - ArachneCentralAPI/src/main/resources
 - ArachneNodeAPI/src/main/resources
@@ -71,7 +71,7 @@ mvn clean package -DskipTests -DskipDocker -P dev
 
 Two artifacts should be created: ArachneCentralAPI/target/portal-exec.jar and ArachneNodeAPI/target/datanode-exec.jar which are spring-boot fat jars and contains all the required dependencies.
 
-####Start ArachneCentralAPI
+#### Start ArachneCentralAPI
 Create folder and grant RW access: mkdir -p /var/arachne/files/jcr/workspaces. 
 Arachne applications expect jasypt encryption for passwords. Please generate values using e.g.:
 [jasypt online encoder](https://www.devglan.com/online-tools/jasypt-online-encryption-decryption)
@@ -85,7 +85,7 @@ spring.mail.password and spring.mail.username contains dummy values in this exam
 
 ArachneCentralAPI should be available at: https://localhost:8080
 
-####Start ArachneNodeAPI
+#### Start ArachneNodeAPI
 
 Arachne DataNodeAPI application at start registers in ArachneCentralAPI. In current scenario it should be running on https://localhost:8080
 
