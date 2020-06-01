@@ -36,7 +36,8 @@ public abstract class BaseUserDtoToUserConverter<CU extends CommonUserRegistrati
     public U convert(CU dto) {
 
         U user = newUser();
-        user.setEmail(dto.getEmail());
+        //user.setEmail(dto.getEmail());
+        user.setEmail(dto.getEmail().toLowerCase());
         user.setPassword(dto.getPassword());
         user.setMiddlename(dto.getMiddlename());
         user.setFirstname(dto.getFirstname());

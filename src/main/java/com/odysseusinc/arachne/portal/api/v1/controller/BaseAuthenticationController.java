@@ -120,6 +120,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
             throws AuthenticationException {
 
         JsonResult<CommonAuthenticationResponse> jsonResult;
+        authenticationRequest.normalizeLogin();
         String username = authenticationRequest.getUsername();
         try {
             checkIfUserBlocked(username);
@@ -218,12 +219,11 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
     @RequestMapping(value = "/api/v1/auth/remind-password", method = RequestMethod.POST)
     public void remindPassword(@RequestBody @Valid RemindPasswordDTO remindPasswordDTO) throws InterruptedException {
 
-        String email = remindPasswordDTO.getEmail();
-        IUser user = userService.getByUnverifiedEmailInAnyTenant(email);
+        IUser user = userService.getByUnverifiedEmailIgnoreCaseInAnyTenant(remindPasswordDTO.getEmail());
         // If user was not found,
         // do not throw exception to prevent "Unauthenticated Email Address Enumeration" security issue
         if (user != null) {
-            PasswordReset passwordReset = passwordResetService.generate(email);
+            PasswordReset passwordReset = passwordResetService.generate(user.getEmail());
             userService.sendRemindPasswordEmail(user, passwordReset.getToken(),
                     remindPasswordDTO.getRegistrantToken(), remindPasswordDTO.getCallbackUrl());
         } else {
