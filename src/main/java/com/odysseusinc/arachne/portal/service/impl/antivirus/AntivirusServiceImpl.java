@@ -32,8 +32,9 @@ import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJob
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobResponse;
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobResponseEventBase;
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobStudyFileResponseEvent;
-import java.io.IOException;
+
 import java.io.InputStream;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,13 +59,11 @@ public class AntivirusServiceImpl {
     private static final String PROCESSING_SCAN_RESULT = "File with id '{}', fileType '{}' is '{}'";
 
     private final ApplicationEventPublisher eventPublisher;
-
+    private final RetryTemplate retryTemplate;
     @Value("${antivirus.host}")
     private String antivirusHost;
     @Value("${antivirus.port}")
     private Integer antivirusPort;
-
-    private final RetryTemplate retryTemplate;
 
     @Autowired
     public AntivirusServiceImpl(ApplicationEventPublisher eventPublisher,

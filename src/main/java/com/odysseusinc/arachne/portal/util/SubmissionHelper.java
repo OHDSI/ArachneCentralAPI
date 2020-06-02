@@ -39,6 +39,7 @@ import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.storage.model.QuerySpec;
 import com.odysseusinc.arachne.storage.service.ContentStorageService;
 import com.odysseusinc.arachne.storage.service.JcrContentStorageServiceImpl;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -64,6 +65,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -98,6 +100,29 @@ public class SubmissionHelper {
         this.analysisHelper = analysisHelper;
         this.contentStorageService = contentStorageService;
         this.contentStorageHelper = contentStorageHelper;
+    }
+
+    private static JsonElement getJsonPrimitive(final String value) {
+
+        if (value == null) {
+            return JsonNull.INSTANCE;
+        }
+        try {
+            return new JsonPrimitive(cast(value));
+        } catch (IllegalArgumentException e) {
+            return new JsonPrimitive(value);
+        }
+    }
+
+    private static Number cast(final String value) throws IllegalArgumentException {
+
+        if (value != null && value.matches("^\\d+(\\.)\\d*$")) {
+            return Float.valueOf(value);
+        } else if (value != null && value.matches("^\\d+$")) {
+            return Long.valueOf(value);
+        } else {
+            throw new IllegalArgumentException();
+        }
     }
 
     @Transactional
@@ -139,6 +164,68 @@ public class SubmissionHelper {
             }
         }
         strategy.updateExtendInfo(submission);
+    }
+
+    private JsonArray parseCsv(String csvFilePath, Mapper mapper) throws IOException {
+
+        return parseCsv(csvFilePath, mapper, ArachneCollectors.toJsonArray());
+    }
+
+    private <R> R parseCsv(String csvFilePath, Mapper mapper, Collector<JsonElement, ?, R> collector) throws IOException {
+        ArachneFileMeta arachneFile = contentStorageService.getFileByPath(csvFilePath);
+        final CSVParser parser = CSVParser.parse(contentStorageService.getContentByFilepath(arachneFile.getPath()), Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
+        return StreamSupport.stream(parser.spliterator(), false).map(mapper::mapRecord).collect(collector);
+    }
+
+    private List<ArachneFileMeta> searchFiles(Submission submission, String fileNameLike) {
+
+        QuerySpec querySpec = new QuerySpec();
+
+        querySpec.setPath(contentStorageHelper.getResultFilesDir(submission));
+        querySpec.setName(fileNameLike);
+        querySpec.setNameLike(true);
+        querySpec.setSearchSubfolders(true);
+
+        return contentStorageService.searchFiles(querySpec);
+    }
+
+    private JsonObject parseCsvDataframeToJson(String filepath) throws IOException {
+
+        final JsonObject resultInfo = new JsonObject();
+
+        final CSVParser parser = CSVParser.parse(contentStorageService.getContentByFilepath(filepath), Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
+        final Map<String, Integer> headerMap = parser.getHeaderMap();
+        final List<CSVRecord> csvRecordList = parser.getRecords();
+
+        JsonArray jsonHeaders = new JsonArray();
+        headerMap.forEach((key, value) -> jsonHeaders.add(key));
+        resultInfo.add("headers", jsonHeaders);
+
+        JsonArray jsonRecords = new JsonArray();
+        csvRecordList.forEach(record -> {
+            final JsonObject jsonRecord = new JsonObject();
+            for (Map.Entry<String, Integer> entry : headerMap.entrySet()) {
+                final String key = entry.getKey();
+                final String value = record.get(entry.getValue());
+                if (NumberUtils.isCreatable(value)) {
+                    jsonRecord.addProperty(key, Float.parseFloat(value));
+                } else {
+                    jsonRecord.addProperty(key, value);
+                }
+            }
+            jsonRecords.add(jsonRecord);
+        });
+        resultInfo.add("records", jsonRecords);
+
+        return resultInfo;
+    }
+
+    private String filePath(String... path) {
+        return StringUtils.join(path, PATH_SEPARATOR);
+    }
+
+    interface Mapper {
+        JsonElement mapRecord(CSVRecord record);
     }
 
     private static abstract class SubmissionExtendInfoAnalyzeStrategy {
@@ -248,17 +335,17 @@ public class SubmissionHelper {
                     Path tmpDir = Files.createTempDirectory("incidencerate");
                     try {
                         File archiveFile = tmpDir.resolve("IncidenceRate.zip").toFile();
-                        try(OutputStream out = new FileOutputStream(archiveFile);
-                            InputStream fileIn = contentStorageService.getContentByFilepath(packageFiles.get(0).getPath())) {
+                        try (OutputStream out = new FileOutputStream(archiveFile);
+                             InputStream fileIn = contentStorageService.getContentByFilepath(packageFiles.get(0).getPath())) {
                             IOUtils.copy(fileIn, out);
                         }
-                        try(FileInputStream in = new FileInputStream(archiveFile);
-                            ZipInputStream zip = new ZipInputStream(in)) {
+                        try (FileInputStream in = new FileInputStream(archiveFile);
+                             ZipInputStream zip = new ZipInputStream(in)) {
                             ZipEntry entry = zip.getNextEntry();
-                            while(entry != null) {
+                            while (entry != null) {
                                 if (entry.getName().endsWith(STUDY_SPECIFICATION_JSON)) {
                                     File jsonFile = tmpDir.resolve(STUDY_SPECIFICATION_JSON).toFile();
-                                    try(FileOutputStream out = new FileOutputStream(jsonFile)) {
+                                    try (FileOutputStream out = new FileOutputStream(jsonFile)) {
                                         IOUtils.copy(zip, out);
                                     }
                                 }
@@ -447,7 +534,7 @@ public class SubmissionHelper {
                 final String designDir = filePath(rootDir, "design");
 
                 JsonElement design;
-                try(JsonReader jsonReader = new JsonReader(new InputStreamReader(contentStorageService.getContentByFilepath(designDir
+                try (JsonReader jsonReader = new JsonReader(new InputStreamReader(contentStorageService.getContentByFilepath(designDir
                         + PATH_SEPARATOR + "StudySpecification.json")))) {
                     JsonParser parser = new JsonParser();
                     design = parser.parse(jsonReader);
@@ -463,7 +550,7 @@ public class SubmissionHelper {
 
                 // Cohort Paths
                 path = filePath(resultsDir, "pathway_results.csv");
-                Map<Integer, JsonArray> pathwayResults  = getPathwayResults(path);
+                Map<Integer, JsonArray> pathwayResults = getPathwayResults(path);
 
                 // Combine stats with paths
                 cohortStats.forEach(cs -> {
@@ -486,32 +573,32 @@ public class SubmissionHelper {
         private Map<Integer, JsonArray> getPathwayResults(String path) throws IOException {
 
             return parseCsv(path, rec -> {
-               JsonObject result = new JsonObject();
-               result.add("targetCohortId", getJsonPrimitive(rec.get("TARGET_COHORT_ID")));
-               result.add("personCount", getJsonPrimitive(rec.get("COUNT_VALUE")));
-               List<String> cohortPath = new ArrayList<>();
-               for(int i = 1; i <= MAX_PATHWAY_STEPS; i++) {
-                   String column = "STEP_" + i;
-                   String value = rec.get(column);
-                   if (StringUtils.isBlank(value)) {
-                       break;
-                   }
-                   cohortPath.add(value);
-               }
-               result.addProperty("path", StringUtils.join(cohortPath, "-"));
-               return result;
+                JsonObject result = new JsonObject();
+                result.add("targetCohortId", getJsonPrimitive(rec.get("TARGET_COHORT_ID")));
+                result.add("personCount", getJsonPrimitive(rec.get("COUNT_VALUE")));
+                List<String> cohortPath = new ArrayList<>();
+                for (int i = 1; i <= MAX_PATHWAY_STEPS; i++) {
+                    String column = "STEP_" + i;
+                    String value = rec.get(column);
+                    if (StringUtils.isBlank(value)) {
+                        break;
+                    }
+                    cohortPath.add(value);
+                }
+                result.addProperty("path", StringUtils.join(cohortPath, "-"));
+                return result;
             }, Collectors.groupingBy(pr -> pr.getAsJsonObject().get("targetCohortId").getAsInt(),
-                                    ArachneCollectors.toJsonArray()));
+                    ArachneCollectors.toJsonArray()));
         }
 
         private JsonArray getCohortStats(String path) throws IOException {
 
             return parseCsv(path, rec -> {
-               JsonObject stat = new JsonObject();
-               stat.add("targetCohortId", getJsonPrimitive(rec.get("TARGET_COHORT_ID")));
-               stat.add("targetCohortCount", getJsonPrimitive(rec.get("TARGET_COHORT_COUNT")));
-               stat.add("totalPathwaysCount", getJsonPrimitive(rec.get("PATHWAYS_COUNT")));
-               return stat;
+                JsonObject stat = new JsonObject();
+                stat.add("targetCohortId", getJsonPrimitive(rec.get("TARGET_COHORT_ID")));
+                stat.add("targetCohortCount", getJsonPrimitive(rec.get("TARGET_COHORT_COUNT")));
+                stat.add("totalPathwaysCount", getJsonPrimitive(rec.get("PATHWAYS_COUNT")));
+                return stat;
             }, ArachneCollectors.toJsonArray());
         }
 
@@ -525,90 +612,5 @@ public class SubmissionHelper {
                 return pathwayCode;
             });
         }
-    }
-
-    private JsonArray parseCsv(String csvFilePath, Mapper mapper) throws IOException {
-
-        return parseCsv(csvFilePath, mapper, ArachneCollectors.toJsonArray());
-    }
-
-    private <R> R parseCsv(String csvFilePath, Mapper mapper, Collector<JsonElement, ?, R> collector) throws IOException {
-        ArachneFileMeta arachneFile = contentStorageService.getFileByPath(csvFilePath);
-        final CSVParser parser = CSVParser.parse(contentStorageService.getContentByFilepath(arachneFile.getPath()), Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
-        return StreamSupport.stream(parser.spliterator(), false).map(mapper::mapRecord).collect(collector);
-    }
-
-    private List<ArachneFileMeta> searchFiles(Submission submission, String fileNameLike) {
-
-        QuerySpec querySpec = new QuerySpec();
-
-        querySpec.setPath(contentStorageHelper.getResultFilesDir(submission));
-        querySpec.setName(fileNameLike);
-        querySpec.setNameLike(true);
-        querySpec.setSearchSubfolders(true);
-
-        return contentStorageService.searchFiles(querySpec);
-    }
-
-    private JsonObject parseCsvDataframeToJson(String filepath) throws IOException {
-
-        final JsonObject resultInfo = new JsonObject();
-
-        final CSVParser parser = CSVParser.parse(contentStorageService.getContentByFilepath(filepath), Charset.defaultCharset(), CSVFormat.DEFAULT.withHeader());
-        final Map<String, Integer> headerMap = parser.getHeaderMap();
-        final List<CSVRecord> csvRecordList = parser.getRecords();
-
-        JsonArray jsonHeaders = new JsonArray();
-        headerMap.forEach((key, value) -> jsonHeaders.add(key));
-        resultInfo.add("headers", jsonHeaders);
-
-        JsonArray jsonRecords = new JsonArray();
-        csvRecordList.forEach(record -> {
-            final JsonObject jsonRecord = new JsonObject();
-            for (Map.Entry<String, Integer> entry : headerMap.entrySet()) {
-                final String key = entry.getKey();
-                final String value = record.get(entry.getValue());
-                if (NumberUtils.isCreatable(value)) {
-                    jsonRecord.addProperty(key, Float.parseFloat(value));
-                } else {
-                    jsonRecord.addProperty(key, value);
-                }
-            }
-            jsonRecords.add(jsonRecord);
-        });
-        resultInfo.add("records", jsonRecords);
-
-        return resultInfo;
-    }
-
-    private static JsonElement getJsonPrimitive(final String value) {
-
-        if (value == null) {
-            return JsonNull.INSTANCE;
-        }
-        try {
-            return new JsonPrimitive(cast(value));
-        } catch (IllegalArgumentException e) {
-            return new JsonPrimitive(value);
-        }
-    }
-
-    private static Number cast(final String value) throws IllegalArgumentException {
-
-        if (value != null && value.matches("^\\d+(\\.)\\d*$")) {
-            return Float.valueOf(value);
-        } else if (value != null && value.matches("^\\d+$")) {
-            return Long.valueOf(value);
-        } else {
-            throw new IllegalArgumentException();
-        }
-    }
-
-    private String filePath(String ...path) {
-        return StringUtils.join(path, PATH_SEPARATOR);
-    }
-
-    interface Mapper {
-        JsonElement mapRecord(CSVRecord record);
     }
 }

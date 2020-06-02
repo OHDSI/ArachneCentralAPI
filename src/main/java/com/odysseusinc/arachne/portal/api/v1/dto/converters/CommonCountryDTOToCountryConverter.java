@@ -7,12 +7,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class CommonCountryDTOToCountryConverter extends BaseConversionServiceAwareConverter<CommonCountryDTO, Country> {
 
-	@Override
-	public Country convert(CommonCountryDTO dto) {
+    @Override
+    public Country convert(CommonCountryDTO dto) {
 
-		Country country = new Country();
-		country.setName(dto.getName());
-		country.setIsoCode(dto.getIsoCode());
-		return country;
-	}
+        Country country = new Country();
+        country.setName(dto.getName());
+        country.setIsoCode(dto.getIsoCode());
+        return country;
+    }
 }
