@@ -503,8 +503,6 @@ public class SubmissionHelper {
         @Override
         public void updateExtendInfo(Submission submission) {
 
-            JsonObject resultInfo = new JsonObject();
-
             final String resultsDir = contentStorageHelper.getResultFilesDir(submission)
                     + JcrContentStorageServiceImpl.PATH_SEPARATOR + "results";
             QuerySpec querySpec = new QuerySpec();
@@ -515,6 +513,7 @@ public class SubmissionHelper {
                     .stream()
                     .filter(f -> !Objects.equals(f.getName(), "raw_data.csv"))
                     .count();
+            JsonObject resultInfo = new JsonObject();
             resultInfo.add("reports", new JsonPrimitive(reportCount));
             submission.setResultInfo(resultInfo);
         }

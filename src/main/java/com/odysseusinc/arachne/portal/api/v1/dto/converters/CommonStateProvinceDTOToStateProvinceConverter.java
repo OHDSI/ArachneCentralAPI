@@ -7,12 +7,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class CommonStateProvinceDTOToStateProvinceConverter extends BaseConversionServiceAwareConverter<CommonStateProvinceDTO, StateProvince> {
 
-	@Override
-	public StateProvince convert(CommonStateProvinceDTO dto) {
+    @Override
+    public StateProvince convert(CommonStateProvinceDTO dto) {
 
-		StateProvince stateProvince = new StateProvince();
-		stateProvince.setName(dto.getName());
-		stateProvince.setIsoCode(dto.getIsoCode());
-		return stateProvince;
-	}
+        StateProvince stateProvince = new StateProvince();
+        stateProvince.setName(dto.getName());
+        stateProvince.setIsoCode(dto.getIsoCode());
+        return stateProvince;
+    }
 }
