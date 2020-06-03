@@ -1313,7 +1313,7 @@ public abstract class BaseUserServiceImpl<
 
     private class AvatarResolver implements AutoCloseable {
 
-        final private String contentType;
+        private final String contentType;
         final InputStream inputStream;
 
         private AvatarResolver(final U user) throws IOException {

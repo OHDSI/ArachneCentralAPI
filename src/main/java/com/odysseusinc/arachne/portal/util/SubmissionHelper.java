@@ -228,7 +228,7 @@ public class SubmissionHelper {
         JsonElement mapRecord(CSVRecord record);
     }
 
-    private static abstract class SubmissionExtendInfoAnalyzeStrategy {
+    private abstract static class SubmissionExtendInfoAnalyzeStrategy {
 
         public abstract void updateExtendInfo(final Submission submission);
     }
