@@ -255,8 +255,9 @@ public abstract class BaseSubmissionServiceImpl<
 
     }
 
-    protected void afterCreateSubmission(Submission submission) {
+    protected void afterCreateSubmission(T submission) {
 
+        notifyOwnersAboutNewSubmission(submission);
     }
 
     protected SubmissionStatus calculateSubmissionStatusAccordingToDatasourceOwnership(DS dataSource, IUser user) {
@@ -394,7 +395,7 @@ public abstract class BaseSubmissionServiceImpl<
             submissionFile.setCreated(analysisFile.getCreated());
             submissionFile.setUpdated(analysisFile.getUpdated());
             submissionFile.setLabel(analysisFile.getLabel());
-            submissionFile.setRealName(analysisFile.getRealName());
+            submissionFile.setRealName(analysisFile.getName());
             submissionFile.setEntryPoint(analysisFile.getEntryPoint());
             submissionFile.setUuid(uuid);
             submissionFile.setAuthor(analysisFile.getAuthor());
