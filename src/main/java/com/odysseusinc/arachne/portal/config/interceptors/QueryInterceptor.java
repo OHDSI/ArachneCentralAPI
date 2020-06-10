@@ -25,7 +25,7 @@ import org.hibernate.EmptyInterceptor;
 
 public class QueryInterceptor extends EmptyInterceptor {
 
-	private ThreadLocal<Long> counter = new ThreadLocal<>();
+    private final ThreadLocal<Long> counter = new ThreadLocal<>();
 
     @Override
     public String onPrepareStatement(String sql) {
@@ -44,7 +44,7 @@ public class QueryInterceptor extends EmptyInterceptor {
         counter.remove();
     }
 
-	public void startCounter() {
-		counter.set(0L);
-	}
+    public void startCounter() {
+        counter.set(0L);
+    }
 }

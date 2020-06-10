@@ -65,6 +65,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import org.apache.commons.io.FileUtils;
@@ -80,7 +81,6 @@ import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.util.Assert;
 
 @Ignore
 @RunWith(SpringRunner.class)
@@ -205,7 +205,7 @@ public class AnalysisHelperTest {
         Study study = new Study();
         study.setTitle("AnalysisHelperTest#test");
         StudyType studyType = studyTypeRepository.findAll().iterator().next();
-        Assert.notNull(studyType);
+        Objects.nonNull(studyType);
         study.setType(studyType);
 
         return studyService.create(owner, study);

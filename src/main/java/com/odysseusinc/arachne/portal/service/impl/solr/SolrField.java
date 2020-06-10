@@ -124,7 +124,7 @@ public class SolrField {
         return dataType.isAssignableFrom(List.class) || dataType.isAssignableFrom(Set.class);
     }
 
-    public String getMultiValuesTypeFieldName () {
+    public String getMultiValuesTypeFieldName() {
 
         return MULTI_METADATA_PREFIX + getName() + (this.isPostfixNeeded ? TXT_POSTFIX : StringUtils.EMPTY);
     }

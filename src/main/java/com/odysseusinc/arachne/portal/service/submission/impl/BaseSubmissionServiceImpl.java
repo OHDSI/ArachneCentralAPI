@@ -83,6 +83,7 @@ import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.storage.model.QuerySpec;
 import com.odysseusinc.arachne.storage.service.ContentStorageService;
 import com.odysseusinc.arachne.storage.util.FileSaveRequest;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -109,6 +110,7 @@ import java.util.stream.Stream;
 import java.util.zip.ZipOutputStream;
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
+
 import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.model.FileHeader;
 import org.apache.commons.io.FileUtils;
@@ -132,12 +134,11 @@ public abstract class BaseSubmissionServiceImpl<
         A extends Analysis,
         DS extends IDataSource>
         implements BaseSubmissionService<T, A> {
-    protected static final Logger LOGGER = LoggerFactory.getLogger(BaseSubmissionService.class);
-
     public static final String SUBMISSION_NOT_EXIST_EXCEPTION = "Submission with id='%s' does not exist";
     public static final String ILLEGAL_SUBMISSION_STATE_EXCEPTION = "Submission must be in EXECUTED or FAILED state before approve result";
     public static final String RESULT_FILE_NOT_EXISTS_EXCEPTION = "Result file with id='%s' for submission with "
             + "id='%s' does not exist";
+    protected static final Logger LOGGER = LoggerFactory.getLogger(BaseSubmissionService.class);
     private static final String FILE_NOT_UPLOADED_MANUALLY_EXCEPTION = "File %s was not uploaded manually";
 
     protected final BaseSubmissionRepository<T> submissionRepository;
