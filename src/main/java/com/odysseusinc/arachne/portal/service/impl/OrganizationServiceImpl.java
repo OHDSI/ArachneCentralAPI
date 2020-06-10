@@ -44,7 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class OrganizationServiceImpl implements OrganizationService {
 
-    private static final Logger logger = LoggerFactory.getLogger(OrganizationService.class);
+    private static final Logger logger = LoggerFactory.getLogger(OrganizationServiceImpl.class);
 
     private final OrganizationRepository organizationRepository;
 
@@ -98,7 +98,7 @@ public class OrganizationServiceImpl implements OrganizationService {
             return Objects.nonNull(organization.getId()) ? getById(organization.getId())
                     : getByName(organization.getName());
         } catch (NotExistException ignored) {
-            //}
+            //
         }
             return create(organization);
     }
