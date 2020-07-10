@@ -93,6 +93,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -622,9 +623,8 @@ public abstract class BaseAnalysisController<T extends Analysis,
         response.flushBuffer();
     }
 
-    @ApiOperation("Write content of the code file.")
-    @RequestMapping(value = "/api/v1/analysis-management/analyses/{analysisId}/code-files/{fileUuid}",
-            method = PUT)
+    @ApiOperation("Update code file.")
+    @PutMapping("/api/v1/analysis-management/analyses/{analysisId}/code-files/{fileUuid}")
     public JsonResult<Boolean> putFileContent(
             final Principal principal,
             final @RequestBody FileDTO fileDTO,
