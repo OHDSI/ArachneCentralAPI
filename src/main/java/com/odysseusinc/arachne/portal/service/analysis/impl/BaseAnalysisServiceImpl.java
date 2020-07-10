@@ -534,6 +534,7 @@ public abstract class BaseAnalysisServiceImpl<
         final String name = fileDTO.getName();
         if (!StringUtils.isEmpty(name)) {
             analysisFile.setLabel(name);
+            analysisFile.setRealName(name);
         }
 
         analysisFileRepository.saveAndFlush(analysisFile);
