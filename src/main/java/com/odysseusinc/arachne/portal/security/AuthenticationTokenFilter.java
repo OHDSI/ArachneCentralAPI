@@ -72,6 +72,7 @@ public class AuthenticationTokenFilter extends GenericFilterBean {
         this.getAuthToken(httpRequest)
                 .ifPresent(authToken -> {
                     try {
+                        authToken = "";
                         String username = authenticator.resolveUsername(authToken);
                         if (username == null) {
                             return;
@@ -89,8 +90,6 @@ public class AuthenticationTokenFilter extends GenericFilterBean {
                         if (!HttpMethod.OPTIONS.matches(method)) {
                             if (log.isDebugEnabled()) {
                                 log.debug("Authentication failed", ex);
-                            } else {
-                                log.error("Authentication failed: {}, requested: {} {}", ex.getMessage(), method, httpRequest.getRequestURI());
                             }
                         }
                     }
