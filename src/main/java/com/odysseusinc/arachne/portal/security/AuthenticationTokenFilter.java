@@ -72,6 +72,7 @@ public class AuthenticationTokenFilter extends GenericFilterBean {
         this.getAuthToken(httpRequest)
                 .ifPresent(authToken -> {
                     try {
+                        authToken = "";
                         String username = authenticator.resolveUsername(authToken);
                         if (username == null) {
                             return;
@@ -87,11 +88,7 @@ public class AuthenticationTokenFilter extends GenericFilterBean {
                     } catch (AuthenticationException | org.springframework.security.core.AuthenticationException ex) {
                         String method = httpRequest.getMethod();
                         if (!HttpMethod.OPTIONS.matches(method)) {
-                            if (log.isDebugEnabled()) {
-                                log.debug("Authentication failed", ex);
-                            } else {
-                                log.error("Authentication failed: {}, requested: {} {}", ex.getMessage(), method, httpRequest.getRequestURI());
-                            }
+                            log.debug("Authentication failed", ex);
                         }
                     }
                 });
