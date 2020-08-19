@@ -88,9 +88,7 @@ public class AuthenticationTokenFilter extends GenericFilterBean {
                     } catch (AuthenticationException | org.springframework.security.core.AuthenticationException ex) {
                         String method = httpRequest.getMethod();
                         if (!HttpMethod.OPTIONS.matches(method)) {
-                            if (log.isDebugEnabled()) {
-                                log.debug("Authentication failed", ex);
-                            }
+                            log.debug("Authentication failed", ex);
                         }
                     }
                 });
