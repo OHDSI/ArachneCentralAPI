@@ -72,7 +72,6 @@ public class AuthenticationTokenFilter extends GenericFilterBean {
         this.getAuthToken(httpRequest)
                 .ifPresent(authToken -> {
                     try {
-                        authToken = "";
                         String username = authenticator.resolveUsername(authToken);
                         if (username == null) {
                             return;
