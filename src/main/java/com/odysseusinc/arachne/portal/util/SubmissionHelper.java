@@ -22,8 +22,6 @@
 
 package com.odysseusinc.arachne.portal.util;
 
-import static com.odysseusinc.arachne.storage.service.ContentStorageService.PATH_SEPARATOR;
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
@@ -39,6 +37,18 @@ import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.storage.model.QuerySpec;
 import com.odysseusinc.arachne.storage.service.ContentStorageService;
 import com.odysseusinc.arachne.storage.service.JcrContentStorageServiceImpl;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -66,18 +76,7 @@ import java.util.stream.StreamSupport;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
+import static com.odysseusinc.arachne.storage.service.ContentStorageService.PATH_SEPARATOR;
 
 @Component
 public class SubmissionHelper {
@@ -330,7 +329,8 @@ public class SubmissionHelper {
             try {
                 final String resultsDir = contentStorageHelper.getResultFilesDir(submission);
                 final Map<String, String> cohortNames = new HashMap<>();
-                List<ArachneFileMeta> packageFiles = searchFiles(submission, "IncidenceRate%.zip");
+                final String analysisPackMask = String.format("%s-%%.zip", CommonAnalysisType.INCIDENCE.getCode());
+                List<ArachneFileMeta> packageFiles = searchFiles(submission, analysisPackMask);
                 if (!packageFiles.isEmpty()) {
                     Path tmpDir = Files.createTempDirectory("incidencerate");
                     try {
