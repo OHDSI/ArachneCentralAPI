@@ -22,12 +22,6 @@
 
 package com.odysseusinc.arachne.portal.api.v1.controller.submission;
 
-import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.NO_ERROR;
-import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
-import static org.springframework.web.bind.annotation.RequestMethod.PUT;
-
 import com.google.common.io.Files;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisExecutionStatusDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
@@ -65,6 +59,26 @@ import com.odysseusinc.arachne.portal.util.HttpUtils;
 import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.storage.service.ContentStorageService;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.util.StringUtils;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -75,23 +89,8 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.ObjectUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.util.StringUtils;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.multipart.MultipartFile;
+import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.NO_ERROR;
 
 public abstract class BaseSubmissionController<T extends Submission, A extends Analysis, DTO extends SubmissionDTO>
         extends BaseController {
@@ -101,8 +100,8 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     protected final BaseSubmissionService<T, A> submissionService;
     protected final SubmissionInsightService submissionInsightService;
     protected final ToPdfConverter toPdfConverter;
-    private ContentStorageService contentStorageService;
-    private ContentStorageHelper contentStorageHelper;
+    private final ContentStorageService contentStorageService;
+    private final ContentStorageHelper contentStorageHelper;
 
     public BaseSubmissionController(BaseAnalysisService<A> analysisService,
                                     BaseSubmissionService<T, A> submissionService,
@@ -120,7 +119,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     }
 
     @ApiOperation("Create and send submission.")
-    @RequestMapping(value = "/api/v1/analysis-management/{analysisId}/submissions", method = POST)
+    @PostMapping("/api/v1/analysis-management/{analysisId}/submissions")
     public JsonResult<List<DTO>> createSubmission(
             Principal principal,
             @RequestBody @Validated CreateSubmissionsDTO createSubmissionsDTO,
@@ -150,7 +149,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     }
 
     @ApiOperation("Get submission.")
-    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}", method = GET)
+    @GetMapping("/api/v1/analysis-management/submissions/{submissionId}")
     public BaseSubmissionAndAnalysisTypeDTO getSubmission(@PathVariable("submissionId") Long submissionId) throws NotExistException {
 
         T submission = submissionService.getSubmissionById(submissionId);
@@ -159,7 +158,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     }
 
     @ApiOperation("Update submission")
-    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}", method = PUT)
+    @PutMapping("/api/v1/analysis-management/submissions/{submissionId}")
     public DTO update(
             @PathVariable("submissionId") Long id, @RequestBody @Valid DTO submissionDTO) {
 
@@ -170,7 +169,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     }
 
     @ApiOperation("Approve submission for execute")
-    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/approve", method = POST)
+    @PostMapping("/api/v1/analysis-management/submissions/{submissionId}/approve")
     public JsonResult<DTO> approveSubmission(
             Principal principal,
             @PathVariable("submissionId") Long id,
@@ -185,7 +184,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     }
 
     @ApiOperation("Approve submission results for show to owner")
-    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/approveresult", method = POST)
+    @PostMapping("/api/v1/analysis-management/submissions/{submissionId}/approveresult")
     public JsonResult<DTO> approveSubmissionResult(
             Principal principal,
             @PathVariable("submissionId") Long submissionId,
@@ -202,8 +201,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     }
 
     @ApiOperation("Manual upload submission result files")
-    @RequestMapping(value = "/api/v1/analysis-management/submissions/result/manualupload",
-            method = POST)
+    @PostMapping("/api/v1/analysis-management/submissions/result/manualupload")
 
     public JsonResult<Boolean> uploadSubmissionResults(
             Principal principal,
@@ -238,8 +236,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     }
 
     @ApiOperation("Delete manually uploaded submission result file")
-    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/result/{fileUuid}",
-            method = DELETE)
+    @DeleteMapping("/api/v1/analysis-management/submissions/{submissionId}/result/{fileUuid}")
     public JsonResult<Boolean> deleteSubmissionResultsByUuid(
             @PathVariable("submissionId") Long id,
             @PathVariable("fileUuid") String fileUuid
@@ -270,7 +267,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     }
 
     @ApiOperation("Delete submission insight")
-    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/insight", method = DELETE)
+    @DeleteMapping("/api/v1/analysis-management/submissions/{submissionId}/insight")
     public JsonResult deleteSubmissionInsight(@PathVariable("submissionId") Long submissionId) throws NotExistException {
 
         submissionInsightService.deleteSubmissionInsight(submissionId);
@@ -278,14 +275,14 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     }
 
     @ApiOperation("Download all result files of the submission.")
-    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/results/all", method = GET)
+    @GetMapping("/api/v1/analysis-management/submissions/{submissionId}/results/all")
     public void downloadAllSubmissionResultFiles(
             Principal principal,
             @PathVariable("submissionId") Long submissionId,
             HttpServletResponse response) throws PermissionDeniedException, NotExistException, IOException {
 
         String archiveName = "submission_result_" + submissionId + "_"
-                + Long.toString(System.currentTimeMillis())
+                + System.currentTimeMillis()
                 + ".zip";
         String contentType = "application/zip, application/octet-stream";
         response.setContentType(contentType);
@@ -302,8 +299,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     }
 
     @ApiOperation("Download query file of the submission group by submission.")
-    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/files/{fileId}/download",
-            method = GET)
+    @GetMapping("/api/v1/analysis-management/submissions/{submissionId}/files/{fileId}/download")
     public void downloadSubmissionGroupFileBySubmission(
             @PathVariable("submissionId") Long submissionId,
             @PathVariable("fileId") Long fileId,
@@ -314,8 +310,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     }
 
     @ApiOperation("Download query file of the submission group.")
-    @RequestMapping(value = "/api/v1/analysis-management/submission-groups/{submissionGroupId}/files/{fileId}/download",
-            method = GET)
+    @GetMapping("/api/v1/analysis-management/submission-groups/{submissionGroupId}/files/{fileId}/download")
     public void downloadSubmissionGroupFile(
             @PathVariable("submissionGroupId") Long submissionGroupId,
             @PathVariable("fileId") Long fileId,
@@ -330,7 +325,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     }
 
     @ApiOperation("Download submission files")
-    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/files", method = GET)
+    @GetMapping("/api/v1/analysis-management/submissions/{submissionId}/files")
     public void getSubmissionFileChunk(
             @PathVariable("submissionId") Long id,
             @RequestParam("updatePassword") String updatePassword,
@@ -350,7 +345,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     }
 
     @ApiOperation("Get result files of the submission.")
-    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/results", method = GET)
+    @GetMapping("/api/v1/analysis-management/submissions/{submissionId}/results")
     public List<ResultFileDTO> getResultFiles(
             Principal principal,
             @PathVariable("submissionId") Long submissionId,
@@ -378,7 +373,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     }
 
     @ApiOperation("Get status history of the submission")
-    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/status-history", method = GET)
+    @GetMapping("/api/v1/analysis-management/submissions/{submissionId}/status-history")
     public JsonResult<List<SubmissionStatusHistoryElementDTO>> getStatusHistory(
             @PathVariable("submissionId") Long submissionId) throws NotExistException {
 
@@ -396,7 +391,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     }
 
     @ApiOperation("Get query file of the submission by submission.")
-    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/files/{fileId}", method = GET)
+    @GetMapping("/api/v1/analysis-management/submissions/{submissionId}/files/{fileId}")
     public JsonResult<SubmissionFileDTO> getSubmissionGroupFileInfoBySubmission(
             @PathVariable("submissionId") Long submissionId,
             @PathVariable("fileId") Long fileId)
@@ -407,8 +402,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     }
 
     @ApiOperation("Get query file of the submission group.")
-    @RequestMapping(value = "/api/v1/analysis-management/submission-groups/{submissionGroupId}/files/{fileId}",
-            method = GET)
+    @GetMapping("/api/v1/analysis-management/submission-groups/{submissionGroupId}/files/{fileId}")
     public JsonResult<SubmissionFileDTO> getSubmissionGroupFileInfo(
             @PathVariable("submissionGroupId") Long submissionGroupId,
             @PathVariable("fileId") Long fileId,
@@ -427,7 +421,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     }
 
     @ApiOperation("Update analysis execution status.")
-    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/status/{password}", method = POST)
+    @PostMapping("/api/v1/analysis-management/submissions/{submissionId}/status/{password}")
     public void setStatus(@PathVariable("submissionId") Long id,
                           @PathVariable("password") String password,
                           @RequestBody CommonAnalysisExecutionStatusDTO status) throws NotExistException {
@@ -455,8 +449,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     }
 
     @ApiOperation("Get query files of the submission group.")
-    @RequestMapping(value = "/api/v1/analysis-management/submission-groups/{submissionGroupId}/files",
-            method = GET)
+    @GetMapping("/api/v1/analysis-management/submission-groups/{submissionGroupId}/files")
     public List<SubmissionFileDTO> getSubmissionGroupFiles(
             @PathVariable("submissionGroupId") Long submissionGroupId)
             throws PermissionDeniedException, NotExistException, IOException {
@@ -476,7 +469,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     }
 
     @ApiOperation("Get result file of the submission.")
-    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/results/{fileUuid}", method = GET)
+    @GetMapping("/api/v1/analysis-management/submissions/{submissionId}/results/{fileUuid}")
     public JsonResult<ResultFileDTO> getResultFileInfo(
             Principal principal,
             @PathVariable("submissionId") Long submissionId,
@@ -501,8 +494,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     }
 
     @ApiOperation("Download result file of the submission.")
-    @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/results/{fileUuid}/download",
-            method = GET)
+    @GetMapping("/api/v1/analysis-management/submissions/{submissionId}/results/{fileUuid}/download")
     public void downloadResultFile(
             Principal principal,
             @PathVariable("submissionId") Long submissionId,
@@ -518,13 +510,13 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     }
 
     @ApiOperation("Download all files of the submission group.")
-    @RequestMapping(value = "/api/v1/analysis-management/submission-groups/{submissionGroupId}/files/all", method = GET)
+    @GetMapping("/api/v1/analysis-management/submission-groups/{submissionGroupId}/files/all")
     public void downloadAllSubmissionGroupFiles(
             @PathVariable("submissionGroupId") Long submissionGroupId,
             HttpServletResponse response) throws PermissionDeniedException, NotExistException, IOException {
 
         String archiveName = "submission_" + submissionGroupId + "_"
-                + Long.toString(System.currentTimeMillis())
+                + System.currentTimeMillis()
                 + ".zip";
         String contentType = "application/zip, application/octet-stream";
         response.setContentType(contentType);
