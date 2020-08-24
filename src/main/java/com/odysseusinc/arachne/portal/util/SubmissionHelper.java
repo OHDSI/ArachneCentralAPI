@@ -329,14 +329,13 @@ public class SubmissionHelper {
             try {
                 final String resultsDir = contentStorageHelper.getResultFilesDir(submission);
                 final Map<String, String> cohortNames = new HashMap<>();
-                final String analysisPackMask = String.format("%s-%%.zip", CommonAnalysisType.INCIDENCE.getCode());
-                List<ArachneFileMeta> packageFiles = searchFiles(submission, analysisPackMask);
-                if (!packageFiles.isEmpty()) {
+                ArachneFileMeta packageFile = findAnalysisPackage(submission);
+                if (packageFile != null) {
                     Path tmpDir = Files.createTempDirectory("incidencerate");
                     try {
                         File archiveFile = tmpDir.resolve("IncidenceRate.zip").toFile();
                         try (OutputStream out = new FileOutputStream(archiveFile);
-                             InputStream fileIn = contentStorageService.getContentByFilepath(packageFiles.get(0).getPath())) {
+                             InputStream fileIn = contentStorageService.getContentByFilepath(packageFile.getPath())) {
                             IOUtils.copy(fileIn, out);
                         }
                         try (FileInputStream in = new FileInputStream(archiveFile);
@@ -440,6 +439,16 @@ public class SubmissionHelper {
                 LOGGER.warn("Error: ", e);
             }
             submission.setResultInfo(result);
+        }
+
+        private ArachneFileMeta findAnalysisPackage(Submission submission) {
+
+            final String analysisPackMask = String.format("%s-%%.zip", CommonAnalysisType.INCIDENCE.getCode());
+            List<ArachneFileMeta> packageFiles = searchFiles(submission, analysisPackMask);
+            if (packageFiles.isEmpty()) {
+                packageFiles = searchFiles(submission, "IncidenceRate%.zip");
+            }
+            return packageFiles.isEmpty() ? null : packageFiles.get(0);
         }
 
         private Map<String, String> getCohortNames(JsonArray cohorts) {
