@@ -18,7 +18,6 @@
 
     <properties>
         <spring.boot.version>1.5.22.RELEASE</spring.boot.version>
-        <spring.security.acl.version>4.2.1.RELEASE</spring.security.acl.version>
         <start-class>com.odysseusinc.arachne.portal.PortalStarter</start-class>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
@@ -207,12 +206,10 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-acl</artifactId>
-            <version>${spring.security.acl.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
-            <version>${spring-security.version}</version>
         </dependency>
 
         <dependency>
