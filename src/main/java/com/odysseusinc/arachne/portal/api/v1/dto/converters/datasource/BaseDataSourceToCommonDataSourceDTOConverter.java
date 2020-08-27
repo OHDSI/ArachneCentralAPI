@@ -38,7 +38,6 @@ public abstract class BaseDataSourceToCommonDataSourceDTOConverter<DS extends ID
 
         DTO commonDataSourceDTO = createResultObject();
         commonDataSourceDTO.setId(dataSource.getId());
-        commonDataSourceDTO.setUuid(dataSource.getUuid());
         commonDataSourceDTO.setName(dataSource.getName());
         commonDataSourceDTO.setModelType(dataSource.getModelType());
         commonDataSourceDTO.setCdmVersion(dataSource.getCdmVersion());
