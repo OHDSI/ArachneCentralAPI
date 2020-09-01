@@ -83,7 +83,7 @@ public interface UserStudyRepository extends CrudRepository<UserStudy, Long>, Jp
             + "             OR submissions.author_id = :userId "
             + "             OR submission_files.author_id = :userId "
             + "             OR comments.author_id = :userId "
-            + "             OR user_id = :userId));"
-            , nativeQuery = true)
+            + "             OR user_id = :userId));",
+            nativeQuery = true)
     int hardRemoveIfNotTracked(@Param("studyId") Long studyId, @Param("userId") Long id);
 }

@@ -394,8 +394,8 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
 
         try {
             solrClient.deleteByQuery(collection, query);
-            solrClient.commit(collection);       
-        } catch( IOException | SolrServerException e) {
+            solrClient.commit(collection);
+        } catch (IOException | SolrServerException e) {
             throw new SolrException(e);
         }
     }

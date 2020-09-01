@@ -36,12 +36,12 @@ public class EntityUtils {
 
     public static <T> T unproxy(T object) {
 
-        return (T)Hibernate.unproxy(object);
+        return (T) Hibernate.unproxy(object);
     }
 
     public static <T> T unproxyAndConvert(Object object, Class<T> clazz) {
 
-        return (T)Hibernate.unproxy(object);
+        return (T) Hibernate.unproxy(object);
     }
 
     public static EntityGraph fromAttributePaths(final String... strings) {

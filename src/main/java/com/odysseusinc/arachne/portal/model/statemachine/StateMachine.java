@@ -57,6 +57,7 @@ public interface StateMachine<O extends HasState<S>, S extends IsState, T extend
     boolean canTransit(O object, S state);
 
     O moveToState(O object, S state) throws IllegalStateMoveException;
+
     O moveToState(O object, String stateName) throws IllegalStateMoveException;
 
     default List<T> getAvailableStates(final O object) {
