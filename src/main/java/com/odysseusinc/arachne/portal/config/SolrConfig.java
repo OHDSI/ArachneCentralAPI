@@ -30,7 +30,7 @@ import org.springframework.context.annotation.Configuration;
 public class SolrConfig {
 
     @Bean(destroyMethod = "close")
-    public SolrClient solrClient( @Value("${arachne.solrServerUrl}") String serverUrl) {
+    public SolrClient solrClient(@Value("${arachne.solrServerUrl}") String serverUrl) {
 
         return new HttpSolrClient.Builder(serverUrl).build();
     }

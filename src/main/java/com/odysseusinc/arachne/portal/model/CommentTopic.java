@@ -37,7 +37,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "comment_topics_w_count")
-public class CommentTopic implements Serializable{
+public class CommentTopic implements Serializable {
     @Id
     @SequenceGenerator(name = "comment_topics_pk_sequence", sequenceName = "comment_topics_id_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "comment_topics_pk_sequence")

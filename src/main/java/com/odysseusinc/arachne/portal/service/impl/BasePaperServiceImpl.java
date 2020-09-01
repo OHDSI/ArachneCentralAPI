@@ -62,10 +62,12 @@ import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJob
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobPaperPaperFileResponseEvent;
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobPaperProtocolFileResponseEvent;
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobResponse;
+
 import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import org.apache.commons.io.FilenameUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.StringUtils;
@@ -151,7 +153,7 @@ public abstract class BasePaperServiceImpl<
     }
 
     protected void afterPaperSave(P newPaper) {
-        
+
         solrService.indexBySolr(newPaper);
     }
 
@@ -463,10 +465,10 @@ public abstract class BasePaperServiceImpl<
 
         paperRepository.delete(papers);
     }
-    
+
     @Override
     public void indexAllBySolr() throws IOException, NotExistException, SolrServerException, NoSuchFieldException, IllegalAccessException {
-        
+
         solrService.deleteAll(SolrCollection.PAPERS);
         final Map<Long, Study> map = studyService.findWithPapersInAnyTenant()
                 .stream()
@@ -477,10 +479,10 @@ public abstract class BasePaperServiceImpl<
         }
         solrService.indexBySolr(papers);
     }
-    
+
     @Override
     public void indexBySolr(final P paper) {
-        
+
         solrService.indexBySolr(paper);
     }
 

@@ -56,7 +56,7 @@ public abstract class BaseAchillesService<DS extends IDataSource, S extends Stud
     protected final AchillesReportRepository achillesReportRepository;
     protected final AchillesImportService achillesHelperService;
 
-    public BaseAchillesService(CharacterizationRepository characterizationRepository, AchillesFileRepository achillesFileRepository, AchillesReportRepository achillesReportRepository,AchillesImportService achillesHelperService) {
+    public BaseAchillesService(CharacterizationRepository characterizationRepository, AchillesFileRepository achillesFileRepository, AchillesReportRepository achillesReportRepository, AchillesImportService achillesHelperService) {
 
         this.characterizationRepository = characterizationRepository;
         this.achillesFileRepository = achillesFileRepository;

@@ -69,7 +69,7 @@ public class ToPdfConverter {
                     .execute();
             return outputStream.toByteArray();
         } catch (final OfficeException | IOException e) {
-            throw new ArachneSystemRuntimeException("Document conversion failure",e);
+            throw new ArachneSystemRuntimeException("Document conversion failure", e);
         }
     }
 

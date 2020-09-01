@@ -6,7 +6,7 @@
 
     <artifactId>portal</artifactId>
     <groupId>com.odysseusinc.arachne</groupId>
-    <version>1.16.0-QA</version>
+    <version>1.16.2-QA</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -18,7 +18,6 @@
 
     <properties>
         <spring.boot.version>1.5.22.RELEASE</spring.boot.version>
-        <spring.security.acl.version>4.2.1.RELEASE</spring.security.acl.version>
         <start-class>com.odysseusinc.arachne.portal.PortalStarter</start-class>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
@@ -207,12 +206,10 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-acl</artifactId>
-            <version>${spring.security.acl.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
-            <version>${spring-security.version}</version>
         </dependency>
 
         <dependency>
@@ -517,24 +514,17 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>2.17</version>
-                <dependencies>
-                    <dependency>
-                        <groupId>com.puppycrawl.tools</groupId>
-                        <artifactId>checkstyle</artifactId>
-                        <version>7.3</version>
-                    </dependency>
-                </dependencies>
+                <version>3.1.1</version>
+                <configuration>
+                    <configLocation>${project.basedir}/google_checkstyle.xml</configLocation>
+                    <consoleOutput>true</consoleOutput>
+                    <failsOnError>true</failsOnError>
+                    <linkXRef>true</linkXRef>
+                </configuration>
                 <executions>
                     <execution>
                         <id>validate</id>
                         <phase>validate</phase>
-                        <configuration>
-                            <configLocation>google_checks.xml</configLocation>
-                            <encoding>UTF-8</encoding>
-                            <consoleOutput>true</consoleOutput>
-                            <failsOnError>true</failsOnError>
-                        </configuration>
                         <goals>
                             <goal>check</goal>
                         </goals>

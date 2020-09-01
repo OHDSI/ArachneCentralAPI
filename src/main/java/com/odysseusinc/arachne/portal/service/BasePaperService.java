@@ -86,7 +86,7 @@ public interface BasePaperService<
             String link,
             PaperFileType type,
             Long id
-    ) throws PermissionDeniedException,IOException,ValidationException;
+    ) throws PermissionDeniedException, IOException, ValidationException;
 
     List<T> findByStudyIds(List<Long> ids);
 
