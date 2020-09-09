@@ -5,6 +5,7 @@ import static com.odysseusinc.arachne.commons.utils.CommonFileUtils.OHDSI_JSON_E
 import static com.odysseusinc.arachne.commons.utils.CommonFileUtils.OHDSI_SQL_EXT;
 import static com.odysseusinc.arachne.portal.service.analysis.impl.AnalysisUtils.throwAccessDeniedExceptionIfLocked;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static org.apache.commons.lang3.StringUtils.truncate;
 
 import com.google.common.collect.ImmutableMap;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
@@ -75,6 +76,7 @@ public class AnalysisFilesSavingServiceImpl<A extends Analysis> implements Analy
 
     private static final Logger log = LoggerFactory.getLogger(AnalysisFilesSavingServiceImpl.class);
 
+    private static final int ANALYSIS_DESCRIPTION_MAX_LENGTH = 1500;
     private final AnalysisFileRepository analysisFileRepository;
     private final AnalysisHelper analysisHelper;
     private final AnalysisPreprocessorService preprocessorService;
@@ -290,7 +292,7 @@ public class AnalysisFilesSavingServiceImpl<A extends Analysis> implements Analy
                 .findFirst().orElse(null);
 
         if (descriptionFile != null) {
-            String description = IOUtils.toString(descriptionFile.getInputStream(), StandardCharsets.UTF_8);
+            String description = truncate(IOUtils.toString(descriptionFile.getInputStream(), StandardCharsets.UTF_8), ANALYSIS_DESCRIPTION_MAX_LENGTH);
             if (StringUtils.isBlank(analysis.getDescription())) {
                 analysis.setDescription(description);
                 return null;
