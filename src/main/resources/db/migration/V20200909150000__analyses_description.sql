@@ -1,2 +1,2 @@
 
-ALTER TABLE analyses ALTER COLUMN description TYPE VARCHAR(1500);
+ALTER TABLE analyses ALTER COLUMN description TYPE VARCHAR;
