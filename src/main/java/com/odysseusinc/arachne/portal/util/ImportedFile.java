@@ -71,7 +71,7 @@ public class ImportedFile extends AbstractResource implements Serializable {
     @Override
     public long contentLength() throws IOException {
 
-        return (long)this.data.length;
+        return this.data.length;
     }
 
     @Override

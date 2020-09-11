@@ -9,7 +9,7 @@ The upgrade to version 16 is feasible only from the 15th version. If you want to
 ### Prerequisites
 For building and run the Arachne please install following applications:
 - [Apache Maven 3](https://maven.apache.org/download.cgi)
-- [JDK 8](https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
+- [JDK up to 8u241](https://www.oracle.com/java/technologies/javase/javase8u211-later-archive-downloads.html)
 - [LibreOffice 6](https://www.libreoffice.org/download/download/)  - for running the ArachneCentralAPI only
 - [Apache Solr 7](http://lucene.apache.org/solr/downloads.html)
 - [Postgres DBMS 9.6+](https://www.postgresql.org/download/windows/)

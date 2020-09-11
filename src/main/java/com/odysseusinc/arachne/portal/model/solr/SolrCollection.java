@@ -26,11 +26,10 @@ import java.util.stream.Stream;
 
 public enum SolrCollection {
     DATA_SOURCES(ArachneConsts.Domains.DATA_SOURCES, "Data sources", EntityType.DATA_SOURCE),
-    USERS(       ArachneConsts.Domains.USERS,        "Users",        EntityType.USER),
-    ANALYSES(    ArachneConsts.Domains.ANALYISES,    "Analyses",     EntityType.ANALYSIS),
-    STUDIES(     ArachneConsts.Domains.STUDIES,      "Studies",      EntityType.STUDY),
-    PAPERS(      ArachneConsts.Domains.PAPERS,       "Papers",       EntityType.PAPER)
-    ;
+    USERS(ArachneConsts.Domains.USERS, "Users", EntityType.USER),
+    ANALYSES(ArachneConsts.Domains.ANALYISES, "Analyses", EntityType.ANALYSIS),
+    STUDIES(ArachneConsts.Domains.STUDIES, "Studies", EntityType.STUDY),
+    PAPERS(ArachneConsts.Domains.PAPERS, "Papers", EntityType.PAPER);
 
     private final String name;
     private final String title;

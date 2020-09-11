@@ -22,6 +22,10 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto;
 
+
+import java.util.Arrays;
+import java.util.List;
+
 public class WorkspaceDTO extends CommonStudyDTO {
 
     private ParticipantDTO leadParticipant;
@@ -34,5 +38,10 @@ public class WorkspaceDTO extends CommonStudyDTO {
     public void setLeadParticipant(ParticipantDTO leadParticipant) {
 
         this.leadParticipant = leadParticipant;
+    }
+
+    public List<ParticipantDTO> getParticipants() {
+
+        return Arrays.asList(this.leadParticipant);
     }
 }

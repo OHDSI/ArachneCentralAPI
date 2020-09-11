@@ -690,20 +690,20 @@ public abstract class BaseUserController<
         JsonResult<List<StateProvinceDTO>> result;
         Long countryId = null;
         if (NumberUtils.isCreatable(countryIdParam)) {
-        	countryId = NumberUtils.createLong(countryIdParam);
-				} else if (StringUtils.isNotBlank(countryIdParam)) {
-					Country country = Optional.ofNullable(userService.findCountryByCode(countryIdParam))
-									.orElseThrow(() -> new NotExistException(Country.class));
-					countryId = country.getId();
-				}
-				Long includeId = null;
+            countryId = NumberUtils.createLong(countryIdParam);
+        } else if (StringUtils.isNotBlank(countryIdParam)) {
+            Country country = Optional.ofNullable(userService.findCountryByCode(countryIdParam))
+                    .orElseThrow(() -> new NotExistException(Country.class));
+            countryId = country.getId();
+        }
+        Long includeId = null;
         if (NumberUtils.isCreatable(includeIdParam)) {
-        	includeId = NumberUtils.createLong(includeIdParam);
-				} else if (StringUtils.isNotBlank(includeIdParam)) {
-        	StateProvince stateProvince = Optional.ofNullable(userService.findStateProvinceByCode(includeIdParam))
-									.orElseThrow(() -> new NotExistException(StateProvince.class));
-        	includeId = stateProvince.getId();
-				}
+            includeId = NumberUtils.createLong(includeIdParam);
+        } else if (StringUtils.isNotBlank(includeIdParam)) {
+            StateProvince stateProvince = Optional.ofNullable(userService.findStateProvinceByCode(includeIdParam))
+                    .orElseThrow(() -> new NotExistException(StateProvince.class));
+            includeId = stateProvince.getId();
+        }
         List<StateProvince> countries = userService.suggestStateProvince(query, countryId, limit, includeId);
         List<StateProvinceDTO> countriesDTOs = new LinkedList<>();
         countries
