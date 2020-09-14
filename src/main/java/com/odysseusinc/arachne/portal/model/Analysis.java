@@ -78,7 +78,7 @@ public class Analysis implements HasArachnePermissions, Breadcrumb, SolrEntity  
     @SolrFieldAnno(query = true)
     private String title;
 
-    @Column(length = 1000)
+    @Column
     @SolrFieldAnno(query = true)
     private String description;
 
