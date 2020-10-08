@@ -33,9 +33,12 @@ import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
 import com.odysseusinc.arachne.portal.model.solr.SolrEntityCreatedEvent;
 import com.odysseusinc.arachne.portal.service.BaseGlobalSearchService;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
+import com.odysseusinc.arachne.portal.service.impl.breadcrumb.EntityType;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
 import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
 import java.io.IOException;
+import java.util.stream.Stream;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -105,7 +108,11 @@ public abstract class BaseGlobalSearchServiceImpl<SF extends SolrField> implemen
         if (ArrayUtils.isEmpty(searchDTO.getCollections())) {
             return SolrCollection.names();
         } else {
-            return searchDTO.getCollections();
+            return Stream.of(searchDTO.getCollections())
+                    .map(EntityType::valueOf)
+                    .map(SolrCollection::getByEntityType)
+                    .map(SolrCollection::getName)
+                    .toArray(String[]::new);
         }
     }
 

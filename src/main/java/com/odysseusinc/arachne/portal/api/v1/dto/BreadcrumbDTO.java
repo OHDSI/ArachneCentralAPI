@@ -27,12 +27,12 @@ import com.odysseusinc.arachne.portal.service.impl.breadcrumb.EntityType;
 public class BreadcrumbDTO {
 
     private EntityType entityType;
-    private Long id;
+    private String id;
     private String title;
 
     public BreadcrumbDTO(){}
 
-    public BreadcrumbDTO(EntityType entityType, Long id, String title) {
+    public BreadcrumbDTO(EntityType entityType, String id, String title) {
 
         this.entityType = entityType;
         this.id = id;
@@ -49,12 +49,12 @@ public class BreadcrumbDTO {
         this.entityType = entityType;
     }
 
-    public Long getId() {
+    public String getId() {
 
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
 
         this.id = id;
     }

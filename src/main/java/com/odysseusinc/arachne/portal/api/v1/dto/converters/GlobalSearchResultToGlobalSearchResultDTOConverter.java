@@ -22,11 +22,13 @@ package com.odysseusinc.arachne.portal.api.v1.dto.converters;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.BreadcrumbDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.GlobalSearchDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.GlobalSearchResultDTO;
 import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
+import com.odysseusinc.arachne.portal.service.impl.breadcrumb.EntityType;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
 import com.odysseusinc.arachne.portal.service.impl.solr.SolrField;
 import java.io.IOException;
@@ -36,7 +38,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.SolrDocument;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
@@ -77,7 +78,11 @@ public class GlobalSearchResultToGlobalSearchResultDTOConverter
 
             final String title = getValue(v, BaseSolrService.TITLE);
             dto.setId(getValue(v, BaseSolrService.ID));
-            dto.setLabel(getLabel(getValue(v, BaseSolrService.TYPE)));
+            String entityType = getValue(v, BaseSolrService.TYPE);
+            dto.setLabel(getLabel(entityType));
+            if(SolrCollection.USERS.name().equalsIgnoreCase(entityType)){
+                dto.setId(UserIdUtils.idToUuid(Long.valueOf(dto.getId())));
+            }
 
             List<BreadcrumbDTO> breadcrumbs = getBreadCrumbs(v);
             // last element of breadcrumbs should be with solr title
@@ -117,10 +122,19 @@ public class GlobalSearchResultToGlobalSearchResultDTOConverter
         final List<BreadcrumbDTO> result;
         try {
             result = objectMapper.readValue(getValue(document, BaseSolrService.BREADCRUMBS), new TypeReference<List<BreadcrumbDTO>>(){});
+            result.forEach(this::encodeUserIdInBreadcrumb);
         } catch (IOException e) {
             throw new IllegalArgumentException(e);
         }
         return result;
+    }
+
+    private void encodeUserIdInBreadcrumb(BreadcrumbDTO dto) {
+
+        if (EntityType.USER.equals(dto.getEntityType())) {
+            String encodedId = UserIdUtils.idToUuid(Long.valueOf(dto.getId()));
+            dto.setId(encodedId);
+        }
     }
 
     private String getValue(final SolrDocument document, final String field) {
