@@ -31,7 +31,7 @@ public interface ArachneConsts {
     interface Domains {
         String STUDIES = "studies";
         String DATA_SOURCES = "data-sources";
-        String ANALYISES = "analyses";
+        String ANALYSES = "analyses";
         String USERS = "users";
         String PAPERS = "papers";
     }

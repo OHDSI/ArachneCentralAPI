@@ -27,7 +27,7 @@ import java.util.stream.Stream;
 public enum SolrCollection {
     DATA_SOURCES(ArachneConsts.Domains.DATA_SOURCES, "Data sources", EntityType.DATA_SOURCE),
     USERS(ArachneConsts.Domains.USERS, "Users", EntityType.USER),
-    ANALYSES(ArachneConsts.Domains.ANALYISES, "Analyses", EntityType.ANALYSIS),
+    ANALYSES(ArachneConsts.Domains.ANALYSES, "Analyses", EntityType.ANALYSIS),
     STUDIES(ArachneConsts.Domains.STUDIES, "Studies", EntityType.STUDY),
     PAPERS(ArachneConsts.Domains.PAPERS, "Papers", EntityType.PAPER);
 
@@ -63,6 +63,16 @@ public enum SolrCollection {
                 .filter(v -> v.getName().equals(collectionName))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Solr collection " + collectionName + " doesn't exist"));
+    }
+
+    public static SolrCollection getByEntityType(final EntityType entityType) {
+
+        return Stream.of(SolrCollection.values())
+                .filter(v -> v.getBreadcrumbType().equals(entityType))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Solr collection for entityType " + entityType + " doesn't exist"));
+
+
     }
 
     public static String[] names() {

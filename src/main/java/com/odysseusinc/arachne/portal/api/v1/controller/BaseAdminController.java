@@ -289,7 +289,7 @@ public abstract class BaseAdminController<
             case ArachneConsts.Domains.STUDIES:
                 studyService.indexAllBySolr();
                 break;
-            case ArachneConsts.Domains.ANALYISES:
+            case ArachneConsts.Domains.ANALYSES:
                 analysisService.indexAllBySolr();
                 break;
             case ArachneConsts.Domains.PAPERS:
