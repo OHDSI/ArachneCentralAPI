@@ -250,7 +250,7 @@ public abstract class BaseUserServiceImpl<
     @Override
     public U getByUsername(final String userOrigin, final String username) {
 
-        return userRepository.findByEmailAndEnabledTrue(username);
+        return userRepository.findByEmail(username);
     }
 
     @Override
