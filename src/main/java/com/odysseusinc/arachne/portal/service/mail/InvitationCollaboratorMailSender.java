@@ -24,10 +24,11 @@ package com.odysseusinc.arachne.portal.service.mail;
 
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.UserStudy;
+import org.apache.commons.lang3.StringUtils;
 
 public class InvitationCollaboratorMailSender extends InvitationArachneMailMessage {
 
-    public InvitationCollaboratorMailSender(String portalUrl, IUser user, UserStudy userStudy) {
+    public InvitationCollaboratorMailSender(String portalUrl, IUser user, UserStudy userStudy, String message) {
 
         super(portalUrl, user, userStudy.getToken(), userStudy.getCreatedBy());
 
@@ -35,8 +36,8 @@ public class InvitationCollaboratorMailSender extends InvitationArachneMailMessa
                 + String.valueOf(userStudy.getStudy().getId()));
         parameters.put("userFirstName", userStudy.getUser().getFirstname());
         parameters.put("studyTitle", userStudy.getStudy().getTitle());
-
         parameters.put("userStudyId", userStudy.getId());
+        parameters.put("message", StringUtils.trim(message));
     }
 
     @Override

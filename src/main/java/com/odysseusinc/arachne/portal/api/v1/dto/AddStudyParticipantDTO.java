@@ -31,6 +31,7 @@ public class AddStudyParticipantDTO {
     private ParticipantRole role;
     @NotNull
     private String userId;
+    private String message;
 
 
     public String getUserId() {
@@ -51,5 +52,13 @@ public class AddStudyParticipantDTO {
     public void setRole(ParticipantRole role) {
 
         this.role = role;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 }

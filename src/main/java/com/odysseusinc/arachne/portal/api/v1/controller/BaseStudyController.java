@@ -53,7 +53,6 @@ import com.odysseusinc.arachne.portal.api.v1.dto.UpdateParticipantDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UploadFileDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.WorkspaceDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.converters.FileDtoContentHandler;
-import com.odysseusinc.arachne.portal.config.tenancy.TenantContext;
 import com.odysseusinc.arachne.portal.exception.AlreadyExistException;
 import com.odysseusinc.arachne.portal.exception.FieldException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
@@ -70,7 +69,6 @@ import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.StudyDataSourceLink;
 import com.odysseusinc.arachne.portal.model.StudyFile;
 import com.odysseusinc.arachne.portal.model.StudyKind;
-import com.odysseusinc.arachne.portal.model.StudyType;
 import com.odysseusinc.arachne.portal.model.SubmissionInsight;
 import com.odysseusinc.arachne.portal.model.SuggestSearchRegion;
 import com.odysseusinc.arachne.portal.model.User;
@@ -355,7 +353,8 @@ public abstract class BaseStudyController<
                 createdBy,
                 studyId,
                 participant.getId(),
-                addParticipantDTO.getRole()
+                addParticipantDTO.getRole(),
+                addParticipantDTO.getMessage()
         );
 
         wsTemplate.convertAndSendToUser(

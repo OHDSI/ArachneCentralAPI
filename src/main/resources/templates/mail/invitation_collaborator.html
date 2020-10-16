@@ -17,6 +17,7 @@ To accept this invitation, please follow this
 <a th:href="@{${invitationUrl}(id=${userStudyId},accepted='true',type='COLLABORATOR',token=${token})}">link</a>. Alternatively, please follow this
 <a th:href="@{${invitationUrl}(id=${userStudyId},accepted='false',type='COLLABORATOR',token=${token})}">link</a>
 if you wish to reject this invitation.</div>
+<p th:if="${message}"><span th:text="${createdByName}"></span> also wrote:<br/><span th:text="${message}"></span></p>
 <p th:utext="${signature}"></p>
 </body>
 </html>

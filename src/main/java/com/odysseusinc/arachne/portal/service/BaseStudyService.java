@@ -83,7 +83,7 @@ public interface BaseStudyService<
     List<IUser> findLeads(T study);
 
     UserStudy addParticipant(IUser createdBy, Long studyId, Long participantId,
-                             ParticipantRole role) throws NotExistException, AlreadyExistException;
+                             ParticipantRole role, String message) throws NotExistException, AlreadyExistException;
 
     UserStudy updateParticipantRole(Long studyId, Long userId, ParticipantRole role)
             throws NotExistException, AlreadyExistException, ValidationException;
