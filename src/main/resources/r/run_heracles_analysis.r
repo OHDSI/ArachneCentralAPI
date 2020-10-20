@@ -955,7 +955,7 @@ writeAllResults <- function(connection, cdmDatabaseSchema, resultsDatabaseSchema
         processReport(connection, outputDirName, sqlReplacements, "Visit", includeDrilldownReports)
     }
     if(includedReports$conditionEraTreemap){
-        print(paste('Printing condition era treemap report', Sys.time, sep=" : "))
+        print(paste('Printing condition era treemap report', Sys.time(), sep=" : "))
         processReport(connection, outputDirName, sqlReplacements, "ConditionEra", includeDrilldownReports)
     }
     sqlReplacements$minCovariatePersonCount <- 10;
