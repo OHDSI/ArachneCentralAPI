@@ -540,6 +540,7 @@ public abstract class BaseStudyServiceImpl<
         studyLink.setStatus(ParticipantStatus.PENDING);
         studyLink.setDeletedAt(null);
         studyLink.setComment(null);
+        studyLink.setInviteMessage(message);
         studyLink.setToken(UUID.randomUUID().toString().replace("-", ""));
 
         userStudyRepository.save(studyLink);

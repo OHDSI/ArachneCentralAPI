@@ -26,10 +26,8 @@ import com.odysseusinc.arachne.portal.api.v1.dto.ActionDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.InvitationDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.InvitationEntityDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ShortUserDTO;
-import com.odysseusinc.arachne.portal.model.Analysis;
-import com.odysseusinc.arachne.portal.model.Invitationable;
-import com.odysseusinc.arachne.portal.model.Paper;
-import com.odysseusinc.arachne.portal.model.Study;
+import com.odysseusinc.arachne.portal.model.*;
+
 import java.util.Arrays;
 import java.util.List;
 import org.springframework.stereotype.Component;
@@ -53,6 +51,10 @@ public class InvitationableToInvitationDTOConverter
         invitationDTO.setActionType(source.getActionType());
         invitationDTO.setDate(source.getCreated());
         invitationDTO.setUser(conversionService.convert(source.getAuthor(), ShortUserDTO.class));
+
+        if (source instanceof UserStudy) {
+            invitationDTO.setInviteMessage(((UserStudy) source).getInviteMessage());
+        }
 
         final Object entity = source.getEntity();
         String title = "";
