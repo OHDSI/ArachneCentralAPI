@@ -841,9 +841,9 @@ getTreemap <- function(connection, outputDirName, sqlReplacements, entityName, m
     return(res);
 }
 
-getDrillDownResults <- function(result, connection, outputDirName, sqlReplacements, entityName, mapping) {
-    nameOfReport <-  paste(tolower(entityName), "s", sep ="")
-    dirName <- paste(outputDirName, nameOfReport, sep="/")
+getDrillDownResults <- function(result, connection, outputDirName, sqlReplacements, entityName, packagingName, mapping) {
+
+    dirName <- paste(outputDirName, packagingName, sep="/")
     dir.create(dirName)
 
     for (key in names(result)) {
@@ -863,11 +863,11 @@ getDrillDownResults <- function(result, connection, outputDirName, sqlReplacemen
     unlink(dirName, recursive = TRUE, force = TRUE)
 }
 
-processReport <- function(connection, outputDirName, sqlReplacements, entityName, includeDrilldownReports){
+processReport <- function(connection, outputDirName, sqlReplacements, entityName, packagingName, includeDrilldownReports){
 
     res <- do.call("getTreemap", list(connection, outputDirName, sqlReplacements, entityName, FALSE))
     if(includeDrilldownReports){
-        getDrillDownResults(res, connection, outputDirName, sqlReplacements, entityName, FALSE)
+        getDrillDownResults(res, connection, outputDirName, sqlReplacements, entityName, packagingName, FALSE)
     }
 }
 
@@ -932,31 +932,31 @@ writeAllResults <- function(connection, cdmDatabaseSchema, resultsDatabaseSchema
     # treemap reports
     if(includedReports$conditionTreemap){
         print(paste('Printing condition treemap report', Sys.time(), sep=" : "))
-        processReport(connection, outputDirName, sqlReplacements, "Condition", includeDrilldownReports)
+        processReport(connection, outputDirName, sqlReplacements, "Condition", "conditions", includeDrilldownReports)
     }
     if(includedReports$drugEraTreemap){
         print(paste('Printing drug era treemap report', Sys.time(), sep=" : "))
-        processReport(connection, outputDirName, sqlReplacements, "DrugEra", includeDrilldownReports)
+        processReport(connection, outputDirName, sqlReplacements, "DrugEra", "drugeras", includeDrilldownReports)
     }
     if(includedReports$drugExposuresTreemap){
         print(paste('Printing drug exposures treemap report', Sys.time(), sep=" : "))
         res <- do.call("getTreemap", list(connection, outputDirName, sqlReplacements, "Drug", FALSE))
         writeToFile(paste(outputDirName, "drugtreemap.json", sep ="/"), toJSON(res, pretty = TRUE, auto_unbox = TRUE))
         if (includeDrilldownReports){
-            getDrillDownResults(res, connection, outputDirName, sqlReplacements, "DrugExposure", FALSE)
+            getDrillDownResults(res, connection, outputDirName, sqlReplacements, "DrugExposure", "drugexposures", FALSE)
         }
     }
     if(includedReports$procedureTreemap){
         print(paste('Printing procedure treemap report', Sys.time(), sep=" : "))
-        processReport(connection, outputDirName, sqlReplacements, "Procedure", includeDrilldownReports)
+        processReport(connection, outputDirName, sqlReplacements, "Procedure", "procedures", includeDrilldownReports)
     }
     if(includedReports$visitTreemap){
         print(paste('Printing visit treemap report', Sys.time(), sep=" : "))
-        processReport(connection, outputDirName, sqlReplacements, "Visit", includeDrilldownReports)
+        processReport(connection, outputDirName, sqlReplacements, "Visit", "visits", includeDrilldownReports)
     }
     if(includedReports$conditionEraTreemap){
         print(paste('Printing condition era treemap report', Sys.time(), sep=" : "))
-        processReport(connection, outputDirName, sqlReplacements, "ConditionEra", includeDrilldownReports)
+        processReport(connection, outputDirName, sqlReplacements, "ConditionEra", "conditionera", includeDrilldownReports)
     }
     sqlReplacements$minCovariatePersonCount <- 10;
     sqlReplacements$minIntervalPersonCount <- 10;
@@ -966,7 +966,7 @@ writeAllResults <- function(connection, cdmDatabaseSchema, resultsDatabaseSchema
         res <- getConditionsByIndexTreemap(connection, sqlReplacements, FALSE)
         writeToFile(paste(outputDirName, "conditionsbyindextreemap.json", sep ="/"), toJSON(res, pretty = TRUE, auto_unbox = TRUE))
         if (includeDrilldownReports){
-            getDrillDownResults(res, connection, outputDirName, sqlReplacements, "ConditionByIndex", FALSE)
+            getDrillDownResults(res, connection, outputDirName, sqlReplacements, "ConditionByIndex", "condbyindex", FALSE)
         }
     }
     if(includedReports$proceduresByIndex){
@@ -974,7 +974,7 @@ writeAllResults <- function(connection, cdmDatabaseSchema, resultsDatabaseSchema
         res <- getProceduresByIndexTreemap(connection, sqlReplacements, FALSE)
         writeToFile(paste(outputDirName, "proceduresbyindextreemap.json", sep ="/"), toJSON(res, pretty = TRUE, auto_unbox = TRUE))
         if (includeDrilldownReports){
-            getDrillDownResults(res, connection, outputDirName, sqlReplacements, "ProcedureByIndex", FALSE)
+            getDrillDownResults(res, connection, outputDirName, sqlReplacements, "ProcedureByIndex", "procbyindex", FALSE)
         }
     }
     if(includedReports$drugsByIndex){
@@ -982,7 +982,7 @@ writeAllResults <- function(connection, cdmDatabaseSchema, resultsDatabaseSchema
         res <- getDrugsByIndexTreemap(connection, sqlReplacements, FALSE)
         writeToFile(paste(outputDirName, "drugsbyindextreemap.json", sep ="/"), toJSON(res, pretty = TRUE, auto_unbox = TRUE))
         if (includeDrilldownReports){
-            getDrillDownResults(res, connection, outputDirName, sqlReplacements, "DrugByIndex", FALSE)
+            getDrillDownResults(res, connection, outputDirName, sqlReplacements, "DrugByIndex", "drugbyindex", FALSE)
         }
     }
 }
