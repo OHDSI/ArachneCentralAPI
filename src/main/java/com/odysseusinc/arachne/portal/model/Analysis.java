@@ -135,6 +135,7 @@ public class Analysis implements HasArachnePermissions, Breadcrumb, SolrEntity {
         return EntityType.ANALYSIS;
     }
 
+    @Override
     public String getCrumbTitle() {
 
         return this.getTitle();
@@ -294,7 +295,7 @@ public class Analysis implements HasArachnePermissions, Breadcrumb, SolrEntity {
             return true;
         }
 
-        if (obj == null || !(obj instanceof Analysis)) {
+        if (!(obj instanceof Analysis)) {
             return false;
         }
 
