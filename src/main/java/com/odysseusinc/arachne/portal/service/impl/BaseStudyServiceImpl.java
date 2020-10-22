@@ -511,7 +511,8 @@ public abstract class BaseStudyServiceImpl<
             IUser createdBy,
             Long studyId,
             Long participantId,
-            ParticipantRole role
+            ParticipantRole role,
+            String message
     ) throws NotExistException, AlreadyExistException {
 
         Study study = Optional.ofNullable(studyRepository.findOne(studyId))
@@ -539,11 +540,12 @@ public abstract class BaseStudyServiceImpl<
         studyLink.setStatus(ParticipantStatus.PENDING);
         studyLink.setDeletedAt(null);
         studyLink.setComment(null);
+        studyLink.setInviteMessage(message);
         studyLink.setToken(UUID.randomUUID().toString().replace("-", ""));
 
         userStudyRepository.save(studyLink);
         arachneMailSender.send(
-                new InvitationCollaboratorMailSender(WebSecurityConfig.getDefaultPortalURI(), participant, studyLink)
+                new InvitationCollaboratorMailSender(WebSecurityConfig.getDefaultPortalURI(), participant, studyLink, message)
         );
         return studyLink;
     }
