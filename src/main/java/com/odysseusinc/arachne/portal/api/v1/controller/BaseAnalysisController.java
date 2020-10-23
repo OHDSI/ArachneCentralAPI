@@ -26,6 +26,7 @@ import com.odysseusinc.arachne.commons.api.v1.dto.CommonEntityRequestDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.OptionDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.arachne.commons.service.messaging.ProducerConsumerTemplate;
+import com.odysseusinc.arachne.commons.utils.CommonFilenameUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisCreateDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisFileDTO;
@@ -611,9 +612,15 @@ public abstract class BaseAnalysisController<T extends Analysis,
             @PathVariable("analysisId") Long analysisId,
             HttpServletResponse response) throws PermissionDeniedException, NotExistException, IOException {
 
-        String archiveName = "analysis_" + analysisId + "_"
-                + Long.toString(System.currentTimeMillis())
-                + ".zip";
+        final Analysis analysis = analysisService.getById(analysisId);
+
+        final String archiveName;
+        if (analysis.getStudy() != null) {
+            archiveName = "analysis_" + CommonFilenameUtils.sanitizeFilename(analysis.getStudy().getTitle()) + ".zip";
+        } else {
+            archiveName = "analysis_" + analysisId + "_" + System.currentTimeMillis() + ".zip";
+        }
+
         String contentType = "application/zip, application/octet-stream";
         response.setContentType(contentType);
         response.setHeader("Content-type", contentType);

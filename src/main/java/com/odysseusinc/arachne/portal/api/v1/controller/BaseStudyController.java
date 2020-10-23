@@ -484,7 +484,7 @@ public abstract class BaseStudyController<
 
         final Study study = studyService.getById(studyId);
 
-        String archiveName = CommonFilenameUtils.sanitizeFilename(study.getTitle()) + ".zip";
+        String archiveName = "documents_" + CommonFilenameUtils.sanitizeFilename(study.getTitle()) + ".zip";
 
         String contentType = "application/zip, application/octet-stream";
         response.setContentType(contentType);
