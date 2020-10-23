@@ -33,6 +33,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
+import com.odysseusinc.arachne.commons.utils.CommonFilenameUtils;
 import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.AddStudyParticipantDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.BooleanDTO;
@@ -483,8 +484,7 @@ public abstract class BaseStudyController<
 
         final Study study = studyService.getById(studyId);
 
-        // replaceAll("\\W+", "_") to get filesystem-friendly name
-        String archiveName = study.getTitle().replaceAll("\\W+", "_") + ".zip";
+        String archiveName = CommonFilenameUtils.sanitizeFilename(study.getTitle()) + ".zip";
 
         String contentType = "application/zip, application/octet-stream";
         response.setContentType(contentType);
