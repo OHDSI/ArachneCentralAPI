@@ -33,6 +33,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
+import com.odysseusinc.arachne.commons.utils.CommonFilenameUtils;
 import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.AddStudyParticipantDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.BooleanDTO;
@@ -481,9 +482,10 @@ public abstract class BaseStudyController<
             @PathVariable("studyId") Long studyId,
             HttpServletResponse response) throws PermissionDeniedException, NotExistException, IOException {
 
-        String archiveName = "study_" + studyId + "_"
-                + Long.toString(System.currentTimeMillis())
-                + ".zip";
+        final Study study = studyService.getById(studyId);
+
+        String archiveName = "documents_" + CommonFilenameUtils.sanitizeFilename(study.getTitle()) + ".zip";
+
         String contentType = "application/zip, application/octet-stream";
         response.setContentType(contentType);
         response.setHeader("Content-type", contentType);
