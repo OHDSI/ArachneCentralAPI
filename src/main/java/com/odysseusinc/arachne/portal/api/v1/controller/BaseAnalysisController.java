@@ -616,9 +616,10 @@ public abstract class BaseAnalysisController<T extends Analysis,
 
         final String archiveName;
         if (analysis.getStudy() != null) {
-            archiveName = "analysis_" + CommonFilenameUtils.sanitizeFilename(analysis.getStudy().getTitle()) + ".zip";
+            archiveName = "analysis_" + CommonFilenameUtils.sanitizeFilename(analysis.getTitle()) + "_study_" +
+                    CommonFilenameUtils.sanitizeFilename(analysis.getStudy().getTitle()) + ".zip";
         } else {
-            archiveName = "analysis_" + analysisId + "_" + System.currentTimeMillis() + ".zip";
+            archiveName = "analysis_" + CommonFilenameUtils.sanitizeFilename(analysis.getTitle()) + ".zip";
         }
 
         String contentType = "application/zip, application/octet-stream";
