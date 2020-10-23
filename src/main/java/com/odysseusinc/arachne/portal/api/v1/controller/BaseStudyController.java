@@ -481,9 +481,11 @@ public abstract class BaseStudyController<
             @PathVariable("studyId") Long studyId,
             HttpServletResponse response) throws PermissionDeniedException, NotExistException, IOException {
 
-        String archiveName = "study_" + studyId + "_"
-                + Long.toString(System.currentTimeMillis())
-                + ".zip";
+        final Study study = studyService.getById(studyId);
+
+        // replaceAll("\\W+", "_") to get filesystem-friendly name
+        String archiveName = study.getTitle().replaceAll("\\W+", "_") + ".zip";
+
         String contentType = "application/zip, application/octet-stream";
         response.setContentType(contentType);
         response.setHeader("Content-type", contentType);
