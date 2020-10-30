@@ -973,24 +973,6 @@ public abstract class BaseUserServiceImpl<
         return studyDataSourceLinkRepository.findByOwnerIdAndStatus(user.getId(), DataSourceStatus.PENDING);
     }
 
-    @Override
-    public List<? extends Invitationable> getInvitationsForStudy(U user, final Long studyId) {
-
-        List<? extends Invitationable> collaboratorInvitations = userStudyRepository.findByUserIdAndStudyIdAndStatus(
-                user.getId(),
-                studyId,
-                ParticipantStatus.PENDING
-        );
-        List<? extends Invitationable> dataSourceInvitations = studyDataSourceLinkRepository.findByOwnerIdAndStudyIdAndStatus(
-                user.getId(),
-                studyId,
-                DataSourceStatus.PENDING
-        );
-
-        return Stream
-                .concat(collaboratorInvitations.stream(), dataSourceInvitations.stream())
-                .collect(Collectors.toList());
-    }
 
     @Override
     public UserStudy processInvitation(U user, Long id, Boolean accepted,
