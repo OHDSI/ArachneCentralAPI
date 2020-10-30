@@ -189,8 +189,6 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
 
     List<? extends Invitationable> getDataSourceInvitations(U user);
 
-    List<? extends Invitationable> getInvitationsForStudy(U user, final Long studyId);
-
     UserStudy processInvitation(U user, Long id, Boolean accepted, String comment);
 
     UserStudy getByIdAndStatusPendingAndToken(Long userStudyId, String token) throws NotExistException;
