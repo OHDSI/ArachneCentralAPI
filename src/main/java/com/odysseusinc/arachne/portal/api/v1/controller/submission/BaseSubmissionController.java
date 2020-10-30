@@ -61,6 +61,7 @@ import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.storage.service.ContentStorageService;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -358,8 +359,10 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
         IUser user = userService.getByUsername(principal.getName());
         if (StringUtils.isNoneBlank(entryName)) {
             ResultFileSearch resultFileSearch = new ResultFileSearch();
-            //resultFileSearch.setRealName(String.format("%s.zip", path));
-            resultFileSearch.setRealName(path);
+            String filePath = FilenameUtils.getPath(path);
+            String fileName = FilenameUtils.getName(path);
+            resultFileSearch.setRealName(fileName);
+            resultFileSearch.setPath(filePath);
             List<? extends ArachneFileMeta> resultFileList = submissionService.getResultFiles(user, submissionId, resultFileSearch);
             if (!resultFileList.isEmpty()) {
                 ArachneFileMeta zipMetaFile = resultFileList.get(0);
