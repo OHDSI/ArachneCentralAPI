@@ -22,7 +22,20 @@
 package com.odysseusinc.arachne.portal.util;
 
 import com.odysseusinc.arachne.portal.exception.ArachneSystemRuntimeException;
-import com.odysseusinc.arachne.portal.service.Indexable;
+import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
+import com.odysseusinc.arachne.portal.model.Analysis;
+import com.odysseusinc.arachne.portal.model.IDataSource;
+import com.odysseusinc.arachne.portal.model.IUser;
+import com.odysseusinc.arachne.portal.model.Paper;
+import com.odysseusinc.arachne.portal.model.Skill;
+import com.odysseusinc.arachne.portal.model.Study;
+import com.odysseusinc.arachne.portal.model.search.PaperSearch;
+import com.odysseusinc.arachne.portal.model.search.StudySearch;
+import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
+import com.odysseusinc.arachne.portal.service.BasePaperService;
+import com.odysseusinc.arachne.portal.service.BaseStudyService;
+import com.odysseusinc.arachne.portal.service.BaseUserService;
+import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,21 +44,35 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 
 @Component
-public class SearchIndicesRefresher {
+public class SearchIndicesRefresher<IDS extends IDataSource,
+        IUS extends IUser,
+        IStudy extends Study,
+        IStudySearch extends StudySearch,
+        IUserStudyListItem extends AbstractUserStudyListItem,
+        IAnalysis extends Analysis,
+        IPaper extends Paper,
+        IPaperSearch extends PaperSearch> {
 
     private static final Logger log = LoggerFactory.getLogger(SearchIndicesRefresher.class);
 
-    private final List<Indexable> searchableServices;
+    private final BaseAnalysisService<IAnalysis> analysisService;
+    private final BaseDataSourceService<IDS> dataSourceService;
+    private final BasePaperService<IPaper, IPaperSearch, IStudy, IDS, IStudySearch, IUserStudyListItem> paperService;
+    private final BaseStudyService<IStudy, IDS, IStudySearch, IUserStudyListItem> studyService;
+    private final BaseUserService<IUS, Skill> userService;
 
     @Autowired
-    public SearchIndicesRefresher(List<Indexable> searchableServices) {
+    public SearchIndicesRefresher(BaseDataSourceService<IDS> dataSourceService, BaseUserService<IUS, Skill> userService, BaseStudyService<IStudy, IDS, IStudySearch, IUserStudyListItem> studyService, BaseAnalysisService<IAnalysis> analysisService, BasePaperService<IPaper, IPaperSearch, IStudy, IDS, IStudySearch, IUserStudyListItem> paperService) {
 
-        this.searchableServices = searchableServices;
+        this.dataSourceService = dataSourceService;
+        this.userService = userService;
+        this.studyService = studyService;
+        this.analysisService = analysisService;
+        this.paperService = paperService;
     }
 
     @EventListener(classes = ContextRefreshedEvent.class)
@@ -65,9 +92,11 @@ public class SearchIndicesRefresher {
     private void rebuildAllIndices() {
 
         try {
-            for (Indexable service : searchableServices) {
-                service.indexAllBySolr();
-            }
+            dataSourceService.indexAllBySolr();
+            userService.indexAllBySolr();
+            studyService.indexAllBySolr();
+            analysisService.indexAllBySolr();
+            paperService.indexAllBySolr();
         } catch (Exception ex) {
             throw new ArachneSystemRuntimeException(ex);
         }
