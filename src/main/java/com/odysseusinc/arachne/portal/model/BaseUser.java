@@ -180,7 +180,7 @@ public class BaseUser implements IUser, Serializable {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     protected Set<DataNodeUser> dataNodeUsers = new HashSet<>();
 
-    @ManyToMany(targetEntity = Tenant.class, fetch = FetchType.LAZY)
+    @ManyToMany(targetEntity = Tenant.class, fetch = FetchType.EAGER)
     @JoinTable(name = "tenant_dependent_users_view",
             joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "tenant_id", referencedColumnName = "id"))

@@ -42,7 +42,8 @@ public interface BaseTenantRepository<T extends Tenant> extends EntityGraphJpaRe
 
     @Query(
             "SELECT t1 " +
-                    "FROM Tenant t1 INNER JOIN t1.users u1, Tenant t2 INNER JOIN t2.users u2 " +
+                    "FROM Tenant t1 INNER JOIN t1.users u1, Tenant t2" +
+                    " INNER JOIN t2.users u2 " +
                     "WHERE u1.id = :firstUserId AND u2.id = :secondUserId AND t1.id = t2.id"
     )
     List<T> findCommonForUsers(@Param("firstUserId") Long firstUserId, @Param("secondUserId") Long secondUserId);

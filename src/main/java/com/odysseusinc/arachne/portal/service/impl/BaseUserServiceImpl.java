@@ -672,7 +672,7 @@ public abstract class BaseUserServiceImpl<
     @Override
     public List<U> getAllEnabledFromAllTenants() {
 
-        final List<U> usersWithTenants = userRepository.findAllByEnabledIsTrue(EntityUtils.fromAttributePaths("tenants"));
+        List<U> usersWithTenants = userRepository.findAllEnabledFromAllTenants();
 
         final Map<Long, List<UserLink>> userIdToLinksMap = userLinkService.findAll().stream().collect(Collectors.groupingBy(v -> v.getUser().getId()));
         final Map<Long, List<UserPublication>> userIdToPublicationsMap = userPublicationService.findAll().stream().collect(Collectors.groupingBy(v -> v.getUser().getId()));

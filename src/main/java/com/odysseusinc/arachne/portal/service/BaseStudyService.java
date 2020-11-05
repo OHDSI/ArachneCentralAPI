@@ -57,7 +57,7 @@ public interface BaseStudyService<
         T extends Study,
         DS extends IDataSource,
         SS extends StudySearch,
-        SU extends AbstractUserStudyListItem> extends SelfReferencingBean {
+        SU extends AbstractUserStudyListItem> extends SelfReferencingBean, Indexable {
 
     T create(IUser owner, T study) throws NotUniqueException, NotExistException;
 
@@ -143,13 +143,6 @@ public interface BaseStudyService<
     List<StudyFile> getFilesByStudyId(Long id, EntityGraph author);
 
     void processAntivirusResponse(AntivirusJobStudyFileResponseEvent event);
-
-    void indexAllBySolr()
-            throws IOException,
-            NotExistException,
-            SolrServerException,
-            NoSuchFieldException,
-            IllegalAccessException;
 
     List<T> findWithPapersInAnyTenant();
 
