@@ -36,6 +36,7 @@ import static com.odysseusinc.arachne.portal.service.impl.submission.SubmissionA
 import static com.odysseusinc.arachne.portal.util.DataNodeUtils.isDataNodeOwner;
 
 import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
+import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.commons.utils.UUIDGenerator;
 import com.odysseusinc.arachne.portal.api.v1.dto.ApproveDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UpdateNotificationDTO;
@@ -83,7 +84,27 @@ import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.storage.model.QuerySpec;
 import com.odysseusinc.arachne.storage.service.ContentStorageService;
 import com.odysseusinc.arachne.storage.util.FileSaveRequest;
+import net.lingala.zip4j.ZipFile;
+import net.lingala.zip4j.model.FileHeader;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.DigestUtils;
+import org.springframework.web.multipart.MultipartFile;
 
+import javax.persistence.EntityManager;
+import javax.transaction.Transactional;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -108,26 +129,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipOutputStream;
-import javax.persistence.EntityManager;
-import javax.transaction.Transactional;
 
-import net.lingala.zip4j.ZipFile;
-import net.lingala.zip4j.model.FileHeader;
-import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.security.access.prepost.PostAuthorize;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.DigestUtils;
-import org.springframework.web.multipart.MultipartFile;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 public abstract class BaseSubmissionServiceImpl<
         T extends Submission,
@@ -539,25 +542,33 @@ public abstract class BaseSubmissionServiceImpl<
 
     @Override
     public void uploadCompressedResultsByDataOwner(Long submissionId, File compressedFile) throws IOException {
+
+        Submission submission = submissionRepository.findById(submissionId);
+        Objects.requireNonNull(submission);
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        IUser user = userService.getByUsername(userDetails.getUsername());
+
+        Path unzipDir = Files.createTempDirectory(String.format("submission_%d_results", submissionId));
         ZipFile zipFile = new ZipFile(compressedFile);
         final List<FileHeader> fileHeaders = zipFile.getFileHeaders().stream()
                 .filter(fileHeader -> !fileHeader.isDirectory())
                 .collect(Collectors.toList());
 
-        Path tempDirectory = com.google.common.io.Files.createTempDir().toPath();
         try {
-
             for (FileHeader fileHeader : fileHeaders) {
-                final File localFile = tempDirectory.resolve(fileHeader.getFileName()).toFile();
-                localFile.createNewFile();
+                String relativeFilePath = fileHeader.getFileName();
+                String relativePath = FilenameUtils.getPath(relativeFilePath);
+                if(isNotBlank(relativePath)){
+                    unzipDir.resolve(relativePath).toFile().mkdirs();
+                }
+                final File localFile = unzipDir.resolve(relativeFilePath).toFile();
                 FileUtils.copyInputStreamToFile(zipFile.getInputStream(fileHeader), localFile);
-                uploadResultFileByDataOwner(submissionId, localFile);
             }
+            storeExtractedFiles(submission, unzipDir, user.getId());
         } finally {
-            FileUtils.deleteDirectory(tempDirectory.toFile());
+            FileUtils.deleteDirectory(unzipDir.toFile());
         }
     }
-
 
     @Override
     public ResultFile uploadResultFileByDataOwner(Long submissionId, File localFile) throws IOException {
@@ -583,6 +594,21 @@ public abstract class BaseSubmissionServiceImpl<
         submissionResultFileRepository.save(resultFiles);
         saveSubmission(submission);
         return resultFile;
+    }
+
+    private void storeExtractedFiles(Submission submission, Path unzipDir, long uploadedBy) {
+
+        List<ResultFile> resultFiles = new ArrayList<>();
+        for(File extractedFile : CommonFileUtils.getFiles(unzipDir.toFile())){
+            String relativeFilepath = unzipDir.relativize(extractedFile.toPath()).toString().replace('\\', '/');
+            String destinationPath = contentStorageHelper.getResultFilesDir(submission, relativeFilepath);
+            ArachneFileMeta arachneFileMeta = contentStorageService.saveFile(extractedFile, destinationPath, uploadedBy);
+            ResultFile resultFile = new ResultFile();
+            resultFile.setSubmission(submission);
+            resultFile.setPath(arachneFileMeta.getPath());
+            resultFiles.add(resultFile);
+        }
+        submissionResultFileRepository.save(resultFiles);
     }
 
     @Override
