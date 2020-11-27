@@ -48,7 +48,7 @@ import java.util.concurrent.CompletableFuture;
 
 
 @Component
-public class SearchIndicesRefresher<IDS extends IDataSource,
+public class SearchIndexesRefresher<IDS extends IDataSource,
         IUS extends IUser,
         IStudy extends Study,
         IStudySearch extends StudySearch,
@@ -57,7 +57,7 @@ public class SearchIndicesRefresher<IDS extends IDataSource,
         IPaper extends Paper,
         IPaperSearch extends PaperSearch> {
 
-    private static final Logger log = LoggerFactory.getLogger(SearchIndicesRefresher.class);
+    private static final Logger log = LoggerFactory.getLogger(SearchIndexesRefresher.class);
 
     private final BaseAnalysisService<IAnalysis> analysisService;
     private final BaseDataSourceService<IDS> dataSourceService;
@@ -66,7 +66,7 @@ public class SearchIndicesRefresher<IDS extends IDataSource,
     private final BaseUserService<IUS, Skill> userService;
 
     @Autowired
-    public SearchIndicesRefresher(BaseDataSourceService<IDS> dataSourceService, BaseUserService<IUS, Skill> userService, BaseStudyService<IStudy, IDS, IStudySearch, IUserStudyListItem> studyService, BaseAnalysisService<IAnalysis> analysisService, BasePaperService<IPaper, IPaperSearch, IStudy, IDS, IStudySearch, IUserStudyListItem> paperService) {
+    public SearchIndexesRefresher(BaseDataSourceService<IDS> dataSourceService, BaseUserService<IUS, Skill> userService, BaseStudyService<IStudy, IDS, IStudySearch, IUserStudyListItem> studyService, BaseAnalysisService<IAnalysis> analysisService, BasePaperService<IPaper, IPaperSearch, IStudy, IDS, IStudySearch, IUserStudyListItem> paperService) {
 
         this.dataSourceService = dataSourceService;
         this.userService = userService;
@@ -80,7 +80,7 @@ public class SearchIndicesRefresher<IDS extends IDataSource,
     public void startIndicesRebuild() {
 
         log.info("Start indices rebuilding...");
-        CompletableFuture.runAsync(this::rebuildAllIndices)
+        CompletableFuture.runAsync(this::rebuildAllIndexes)
                 .thenRun(() -> log.info("Search indices rebuild complete"))
                 .exceptionally(err -> {
                     log.warn("Cannot rebuild search indices due to the error:", err);
@@ -89,7 +89,7 @@ public class SearchIndicesRefresher<IDS extends IDataSource,
 
     }
 
-    private void rebuildAllIndices() {
+    private void rebuildAllIndexes() {
 
         try {
             dataSourceService.indexAllBySolr();
