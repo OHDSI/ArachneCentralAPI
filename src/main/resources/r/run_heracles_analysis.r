@@ -619,12 +619,12 @@ getProcedureByIndexDrilldown <- function(connection, sqlReplacements, mapping) {
     queryMap <- list()
 
     queryMap$procedureByIndex <- list(
-      "sqlPath"="cohortresults-sql/cohortSpecific/byConcept/procedureOccursRelativeToIndex.sql"
+      "sqlPath"="cohortresults-sql/cohortSpecific/byConcept/allProcedureOccursRelativeToIndex.sql"
       #"targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
       #"mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
     )
 
-    return (queryJsonCohortAnalysesResults(queryMap, connection, sqlReplacements, mapping));
+    return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, mapping));
 }
 
 
@@ -632,23 +632,24 @@ getConditionByIndexDrilldown <- function(connection, sqlReplacements, mapping) {
     queryMap <- list()
 
     queryMap$conditionByIndex <- list(
-      "sqlPath"="cohortresults-sql/cohortSpecific/byConcept/firstConditionRelativeToIndex.sql"
+      "sqlPath"="cohortresults-sql/cohortSpecific/byConcept/allFirstConditionRelativeToIndex.sql"
       # "targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
       # "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
     )
 
-    return (queryJsonCohortAnalysesResults(queryMap, connection, sqlReplacements, mapping));
+    return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, mapping));
 }
 
 getDrugByIndexDrilldown <- function(connection, sqlReplacements, mapping) {
     queryMap <- list()
 
     queryMap$drugByIndex <- list(
-      "sqlPath"="cohortresults-sql/cohortSpecific/byConcept/drugOccursRelativeToIndex.sql"
+      "sqlPath"="cohortresults-sql/cohortSpecific/byConcept/allDrugOccursRelativeToIndex.sql"
       # "targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
       # "mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
     )
-    return (queryJsonCohortAnalysesResults(queryMap, connection, sqlReplacements, mapping));
+
+    return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, mapping));
 }
 
 writeToFile <- function(filename, content) {
@@ -863,6 +864,29 @@ getDrillDownResults <- function(result, connection, outputDirName, sqlReplacemen
     unlink(dirName, recursive = TRUE, force = TRUE)
 }
 
+getAllByIndexDrillDownResults <- function(result, connection, outputDirName, sqlReplacements, entityName, packagingName, mapping) {
+    dirName <- paste(outputDirName, packagingName, sep = "/")
+    dir.create(dirName)
+    for (key in names(result)) {
+        query <- result[[key]]
+        # getXXXDrilldown()
+        methodName <- paste("get", entityName, "Drilldown", sep = "")
+        results <- do.call(methodName, list(connection, sqlReplacements, mapping))
+        for (conceptId in query$CONCEPT_ID) {
+            conceptSlice <- list()
+            for (keyname in names(results))
+            {
+                conceptSlice[[keyname]] <- subset(results[[keyname]], CONCEPT_ID == conceptId)
+            }
+            json <- toJSON(conceptSlice, pretty = TRUE, auto_unbox = TRUE)
+            fileName <- paste0(dirName, "/", toString(conceptId), ".json")
+            writeToFile(fileName, json)
+        }
+    }
+    zip(paste(dirName, "zip", sep = "."), dirName, flags = "-9Xrjm")
+    unlink(dirName, recursive = TRUE, force = TRUE)
+}
+
 processReport <- function(connection, outputDirName, sqlReplacements, entityName, packagingName, includeDrilldownReports){
 
     res <- do.call("getTreemap", list(connection, outputDirName, sqlReplacements, entityName, FALSE))
@@ -872,11 +896,6 @@ processReport <- function(connection, outputDirName, sqlReplacements, entityName
 }
 
 writeAllResults <- function(connection, cdmDatabaseSchema, resultsDatabaseSchema, cohortId, outputDirName, includeDrilldownReports, includedReports) {
-
-    library(DatabaseConnector)
-    library(SqlRender)
-    library(jsonlite)
-    library(dplyr)
 
     sqlReplacements <- list(
       "ohdsi_database_schema" = resultsDatabaseSchema,
@@ -966,7 +985,7 @@ writeAllResults <- function(connection, cdmDatabaseSchema, resultsDatabaseSchema
         res <- getConditionsByIndexTreemap(connection, sqlReplacements, FALSE)
         writeToFile(paste(outputDirName, "conditionsbyindextreemap.json", sep ="/"), toJSON(res, pretty = TRUE, auto_unbox = TRUE))
         if (includeDrilldownReports){
-            getDrillDownResults(res, connection, outputDirName, sqlReplacements, "ConditionByIndex", "condbyindex", FALSE)
+            getAllByIndexDrillDownResults(res, connection, outputDirName, sqlReplacements, "ConditionByIndex", "condbyindex", FALSE)
         }
     }
     if(includedReports$proceduresByIndex){
@@ -974,7 +993,7 @@ writeAllResults <- function(connection, cdmDatabaseSchema, resultsDatabaseSchema
         res <- getProceduresByIndexTreemap(connection, sqlReplacements, FALSE)
         writeToFile(paste(outputDirName, "proceduresbyindextreemap.json", sep ="/"), toJSON(res, pretty = TRUE, auto_unbox = TRUE))
         if (includeDrilldownReports){
-            getDrillDownResults(res, connection, outputDirName, sqlReplacements, "ProcedureByIndex", "procbyindex", FALSE)
+            getAllByIndexDrillDownResults(res, connection, outputDirName, sqlReplacements, "ProcedureByIndex", "procbyindex", FALSE)
         }
     }
     if(includedReports$drugsByIndex){
@@ -982,7 +1001,7 @@ writeAllResults <- function(connection, cdmDatabaseSchema, resultsDatabaseSchema
         res <- getDrugsByIndexTreemap(connection, sqlReplacements, FALSE)
         writeToFile(paste(outputDirName, "drugsbyindextreemap.json", sep ="/"), toJSON(res, pretty = TRUE, auto_unbox = TRUE))
         if (includeDrilldownReports){
-            getDrillDownResults(res, connection, outputDirName, sqlReplacements, "DrugByIndex", "drugbyindex", FALSE)
+            getAllByIndexDrillDownResults(res, connection, outputDirName, sqlReplacements, "DrugByIndex", "drugbyindex", FALSE)
         }
     }
 }
