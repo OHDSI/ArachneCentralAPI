@@ -849,9 +849,7 @@ getDrillDownResults <- function(result, connection, outputDirName, sqlReplacemen
 
     for (key in names(result)) {
         query <- result[[key]]
-        print(paste("concepts total:", length(query$CONCEPT_ID), sep = " - "))
         for (conceptId in query$CONCEPT_ID) {
-            print(paste(entityName, "conceptId", conceptId, Sys.time(), sep = "-"))
             # getXXXDrilldown()
             methodName <- paste("get", entityName, "Drilldown", sep="")
 
