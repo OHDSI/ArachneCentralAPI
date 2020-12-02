@@ -19,7 +19,7 @@
  * Created: November 04, 2020
  */
 
-package com.odysseusinc.arachne.portal.util;
+package com.odysseusinc.arachne.portal.jobs;
 
 import com.odysseusinc.arachne.portal.exception.ArachneSystemRuntimeException;
 import com.odysseusinc.arachne.portal.model.AbstractUserStudyListItem;
