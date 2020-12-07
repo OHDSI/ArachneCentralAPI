@@ -440,59 +440,59 @@ getDrugExposureDrilldown <- function(connection, sqlReplacements, mapping) {
     queryMap <- list()
 
     queryMap$ageAtFirstExposure <- list(
-      "sqlPath"="cohortresults-sql/drug/byConcept/sqlAgeAtFirstExposure.sql"
+      "sqlPath"="cohortresults-sql/drug/byConcept/allSqlAgeAtFirstExposure.sql"
       #"targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
       #"mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
     )
 
     queryMap$daysSupplyDistribution <- list(
-      "sqlPath"="cohortresults-sql/drug/byConcept/sqlDaysSupplyDistribution.sql"
+      "sqlPath"="cohortresults-sql/drug/byConcept/allSqlDaysSupplyDistribution.sql"
       #"targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
       #"mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
     )
 
     queryMap$drugsByType <- list(
-      "sqlPath"="cohortresults-sql/drug/byConcept/sqlDrugsByType.sql"
+      "sqlPath"="cohortresults-sql/drug/byConcept/allSqlDrugsByType.sql"
       #"targetType"=fromJSON("./definitions/types/ConceptCount.json"),
       #"mappings"=fromJSON("./definitions/mappings/ResultSetToConceptCount.json")$mappings
     )
 
     queryMap$drugsByType <- list(
-      "sqlPath"="cohortresults-sql/drug/byConcept/sqlDrugsByType.sql"
+      "sqlPath"="cohortresults-sql/drug/byConcept/allSqlDrugsByType.sql"
       #"targetType"=fromJSON("./definitions/types/ConceptCount.json"),
       #"mappings"=fromJSON("./definitions/mappings/ResultSetToConceptCount.json")$mappings
     )
 
     queryMap$prevalenceByGenderAgeYear <- list(
-      "sqlPath"="cohortresults-sql/drug/byConcept/sqlPrevalenceByGenderAgeYear.sql"
+      "sqlPath"="cohortresults-sql/drug/byConcept/allSqlPrevalenceByGenderAgeYear.sql"
       #"targetType"=fromJSON("./definitions/types/ConceptDecile.json"),
       #"mappings"=fromJSON("./definitions/mappings/ResultSetToConceptDecile.json")$mappings
     )
     queryMap$prevalenceByMonth <- list(
-      "sqlPath"="cohortresults-sql/drug/byConcept/sqlPrevalenceByMonth.sql"
+      "sqlPath"="cohortresults-sql/drug/byConcept/allSqlPrevalenceByMonth.sql"
       #"targetType"=fromJSON("./definitions/types/PrevalanceConcept.json"),
       #"mappings"=fromJSON("./definitions/mappings/ResultSetToPrevalanceConcept.json")$mappings
     )
 
     queryMap$prevalenceByMonth <- list(
-      "sqlPath"="cohortresults-sql/drug/byConcept/sqlPrevalenceByMonth.sql"
+      "sqlPath"="cohortresults-sql/drug/byConcept/allSqlPrevalenceByMonth.sql"
       #"targetType"=fromJSON("./definitions/types/PrevalanceConcept.json"),
       #"mappings"=fromJSON("./definitions/mappings/ResultSetToPrevalanceConcept.json")$mappings
     )
 
     queryMap$quantityDistribution <- list(
-      "sqlPath"="cohortresults-sql/drug/byConcept/sqlQuantityDistribution.sql"
+      "sqlPath"="cohortresults-sql/drug/byConcept/allSqlQuantityDistribution.sql"
       #"targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
       #"mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
     )
 
     queryMap$refillsDistribution <- list(
-      "sqlPath"="cohortresults-sql/drug/byConcept/sqlRefillsDistribution.sql"
+      "sqlPath"="cohortresults-sql/drug/byConcept/allSqlRefillsDistribution.sql"
       #"targetType"=fromJSON("./definitions/types/ConceptQuartile.json"),
       #"mappings"=fromJSON("./definitions/mappings/ResultSetToConceptQuartile.json")$mappings
     )
 
-    return (queryJsonCohortAnalysesResults(queryMap, connection, sqlReplacements, mapping));
+    return (queryCohortAnalysesResults(queryMap, connection, sqlReplacements, mapping));
 }
 
 getProcedureDrilldown <- function(connection, sqlReplacements, mapping) {
@@ -962,7 +962,8 @@ writeAllResults <- function(connection, cdmDatabaseSchema, resultsDatabaseSchema
         res <- do.call("getTreemap", list(connection, outputDirName, sqlReplacements, "Drug", FALSE))
         writeToFile(paste(outputDirName, "drugtreemap.json", sep ="/"), toJSON(res, pretty = TRUE, auto_unbox = TRUE))
         if (includeDrilldownReports){
-            getDrillDownResults(res, connection, outputDirName, sqlReplacements, "DrugExposure", "drugexposures", FALSE)
+            print(paste('Printing all drug exposures drill down reports', Sys.time(), sep=" : "))
+            getAllByIndexDrillDownResults(res, connection, outputDirName, sqlReplacements, "DrugExposure", "drugexposures", FALSE)
         }
     }
     if(includedReports$procedureTreemap){
