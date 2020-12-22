@@ -38,6 +38,7 @@
         <commonsCsv.version>1.7</commonsCsv.version>
         <commons.fileupload.version>1.4</commons.fileupload.version>
         <commons.io.version>2.5</commons.io.version>
+        <bcprov-jdk15on.version>1.67</bcprov-jdk15on.version>
     </properties>
 
     <profiles>
@@ -139,6 +140,13 @@
             <artifactId>arachne-common-utils</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15on</artifactId>
+            <version>${bcprov-jdk15on.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>com.odysseusinc.arachne</groupId>
             <artifactId>arachne-no-handler-found-exception-util</artifactId>
