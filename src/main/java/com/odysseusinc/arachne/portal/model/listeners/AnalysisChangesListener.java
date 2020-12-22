@@ -1,5 +1,6 @@
 package com.odysseusinc.arachne.portal.model.listeners;
 
+import com.odysseusinc.arachne.portal.config.tenancy.TenantContext;
 import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.AnalysisFile;
 
@@ -15,10 +16,12 @@ public class AnalysisChangesListener {
     @PreRemove
     public void update(Object entity) {
 
-        if (entity instanceof Analysis) {
-            ((Analysis) entity).getStudy().setUpdated(new Date());
-        } else if (entity instanceof AnalysisFile) {
-            ((AnalysisFile) entity).getAnalysis().getStudy().setUpdated(new Date());
+        if (TenantContext.getCurrentTenant() != null) {
+            if (entity instanceof Analysis) {
+                ((Analysis) entity).getStudy().setUpdated(new Date());
+            } else if (entity instanceof AnalysisFile) {
+                ((AnalysisFile) entity).getAnalysis().getStudy().setUpdated(new Date());
+            }
         }
     }
 }
