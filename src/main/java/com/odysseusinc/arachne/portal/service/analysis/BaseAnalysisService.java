@@ -41,6 +41,7 @@ import com.odysseusinc.arachne.portal.model.Invitationable;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
 import com.odysseusinc.arachne.portal.service.AnalysisPaths;
 import com.odysseusinc.arachne.portal.service.CRUDLService;
+import com.odysseusinc.arachne.portal.service.Indexable;
 import com.odysseusinc.arachne.portal.service.impl.antivirus.events.AntivirusJobAnalysisFileResponseEvent;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.web.multipart.MultipartFile;
@@ -51,7 +52,7 @@ import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.List;
 
-public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>, AnalysisPaths {
+public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>, AnalysisPaths, Indexable {
 
     T create(T object) throws NotUniqueException, PermissionDeniedException, NotExistException;
 
@@ -121,13 +122,6 @@ public interface BaseAnalysisService<T extends Analysis> extends CRUDLService<T>
     List<T> findByType(CommonAnalysisType type);
 
     void processAntivirusResponse(AntivirusJobAnalysisFileResponseEvent event);
-
-    void indexAllBySolr()
-            throws IOException,
-            NotExistException,
-            SolrServerException,
-            NoSuchFieldException,
-            IllegalAccessException;
 
     void indexBySolr(T analysis)
             throws IllegalAccessException, IOException, SolrServerException, NotExistException, NoSuchFieldException;

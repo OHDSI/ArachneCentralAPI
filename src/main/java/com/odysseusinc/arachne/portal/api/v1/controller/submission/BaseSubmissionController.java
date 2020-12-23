@@ -56,17 +56,20 @@ import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightServic
 import com.odysseusinc.arachne.portal.util.AnalysisHelper;
 import com.odysseusinc.arachne.portal.util.ContentStorageHelper;
 import com.odysseusinc.arachne.portal.util.HttpUtils;
+import com.odysseusinc.arachne.portal.util.ZipUtil;
 import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.storage.service.ContentStorageService;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -82,15 +85,15 @@ import javax.validation.Valid;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.zip.ZipInputStream;
 
 import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.NO_ERROR;
+import static org.springframework.util.StringUtils.getFilename;
 
 public abstract class BaseSubmissionController<T extends Submission, A extends Analysis, DTO extends SubmissionDTO>
         extends BaseController {
@@ -320,7 +323,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
         HttpUtils.putFileContentToResponse(
                 response,
                 analysisFile.getContentType(),
-                StringUtils.getFilename(analysisFile.getRealName()),
+                getFilename(analysisFile.getRealName()),
                 analysisService.getSubmissionFile(analysisFile));
     }
 
@@ -342,6 +345,45 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
         } catch (IOException ex) {
             LOGGER.info("Error writing file to output stream. Filename was '{}'", fileName, ex);
         }
+    }
+
+    @ApiOperation("Get single entry from zip file of the submission.")
+    @GetMapping("/api/v1/analysis-management/submissions/{submissionId}/results/zip-entry")
+    public JsonResult<ResultFileDTO> getResultZipEntry(
+            Principal principal,
+            @PathVariable("submissionId") Long submissionId,
+            @RequestParam(value = "path") String path,
+            @RequestParam(value = "entry-name") String entryName
+    ) throws PermissionDeniedException {
+
+        IUser user = userService.getByUsername(principal.getName());
+        if (StringUtils.isNoneBlank(entryName)) {
+            ResultFileSearch resultFileSearch = new ResultFileSearch();
+            String filePath = FilenameUtils.getPath(path);
+            String fileName = FilenameUtils.getName(path);
+            resultFileSearch.setRealName(fileName);
+            resultFileSearch.setPath(filePath);
+            List<? extends ArachneFileMeta> resultFileList = submissionService.getResultFiles(user, submissionId, resultFileSearch);
+            if (!resultFileList.isEmpty()) {
+                ArachneFileMeta zipMetaFile = resultFileList.get(0);
+                try (ZipInputStream zin = new ZipInputStream(contentStorageService.getContentByFilepath(zipMetaFile.getPath()))) {
+                    byte[] content = ZipUtil.extractZipEntry(zin, entryName);
+                    if (ArrayUtils.isEmpty(content)) {
+                        LOGGER.info("Cannot find zip entry in the submissionId: {}, path: {}, entry", submissionId, path, entryName);
+                    }
+                    ResultFileDTO resultFileDTO = new ResultFileDTO(conversionService.convert(zipMetaFile, FileDTO.class));
+                    String jsonBody = IOUtils.toString(content, StandardCharsets.UTF_8.name());
+                    resultFileDTO.setContent(jsonBody);
+                    resultFileDTO.setName(entryName);
+                    resultFileDTO.setSubmissionId(submissionId);
+                    resultFileDTO.setRelativePath(path);
+                    return new JsonResult<>(NO_ERROR, resultFileDTO);
+                } catch (IOException e) {
+                    LOGGER.error("Cannot read zipFile: {}", zipMetaFile.getPath());
+                }
+            }
+        }
+        return new JsonResult<>(NO_ERROR);
     }
 
     @ApiOperation("Get result files of the submission.")

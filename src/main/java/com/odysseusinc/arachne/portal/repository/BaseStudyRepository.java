@@ -99,4 +99,8 @@ public interface BaseStudyRepository<T extends Study> extends EntityGraphJpaRepo
 
     @Query("SELECT s.kind FROM Study s JOIN s.analyses a JOIN a.submissionGroups sg WHERE sg.id = :id")
     Optional<StudyKind> findStudyKindBySubmissionGroupId(@Param("id") Long id);
+
+
+    @Query(nativeQuery = true, value = "SELECT id, title, start_date, end_date, description, created, updated, status_id, type_id, privacy, tenant_id, kind FROM studies_data st")
+    List<T> findAllInAllTenant();
 }

@@ -1,5 +1,6 @@
 /*
- * Copyright 2018 Odysseus Data Services, inc.
+ *
+ * Copyright 2020 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,25 +15,17 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Anton Gackovka
- * Created: March 13, 2018
+ * Authors: Alexandr Cumarav, Vitaly Koulakov, Yaroslav Molodkov
+ * Created: November 04, 2020
  */
 
-package com.odysseusinc.arachne.portal.api.v1.dto;
+package com.odysseusinc.arachne.portal.service;
 
-public interface ArachneConsts {
+import org.apache.solr.client.solrj.SolrServerException;
 
-    interface Modules {
-        String STUDY_NOTEBOOK = "Study Notebook";
-        String EXPERT_FINDER = "Expert Finder";
-        String DATA_CATALOG = "Data Catalog";
-    }
+import java.io.IOException;
 
-    interface Domains {
-        String STUDIES = "studies";
-        String DATA_SOURCES = "data-sources";
-        String ANALYSES = "analyses";
-        String USERS = "users";
-        String PAPERS = "papers";
-    }
+public interface Indexable {
+
+    void indexAllBySolr() throws IOException, IllegalAccessException, SolrServerException, NoSuchFieldException;
 }

@@ -34,6 +34,7 @@ public class InvitationDTO {
     private Object entity;
     private Date date;
     private String comment;
+    private String inviteMessage;
 
     public Long getId() {
 
@@ -113,5 +114,13 @@ public class InvitationDTO {
     public void setComment(String comment) {
 
         this.comment = comment;
+    }
+
+    public String getInviteMessage() {
+        return inviteMessage;
+    }
+
+    public void setInviteMessage(String inviteMessage) {
+        this.inviteMessage = inviteMessage;
     }
 }

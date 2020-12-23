@@ -38,7 +38,7 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
-public interface BaseDataSourceService<DS extends IDataSource> {
+public interface BaseDataSourceService<DS extends IDataSource> extends Indexable {
 
     FieldList getSolrFields();
 
@@ -82,8 +82,6 @@ public interface BaseDataSourceService<DS extends IDataSource> {
 
     Page<DS> suggestDataSource(String query, Long studyId, Long userId,
                                        PageRequest pageRequest);
-
-    void indexAllBySolr() throws IllegalAccessException, NoSuchFieldException, SolrServerException, IOException;
 
     void indexBySolr(List<DS> dataSources);
 

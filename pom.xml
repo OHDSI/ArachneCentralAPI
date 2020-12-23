@@ -6,7 +6,7 @@
 
     <artifactId>portal</artifactId>
     <groupId>com.odysseusinc.arachne</groupId>
-    <version>1.16.2-QA</version>
+    <version>1.17.0-QA</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -286,11 +286,6 @@
         <dependency>
             <groupId>org.thymeleaf</groupId>
             <artifactId>thymeleaf-spring4</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.cronutils</groupId>
-            <artifactId>cron-utils</artifactId>
-            <version>5.0.5</version>
         </dependency>
 
         <dependency>

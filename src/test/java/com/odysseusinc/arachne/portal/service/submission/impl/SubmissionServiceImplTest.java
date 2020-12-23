@@ -1,107 +1,103 @@
 package com.odysseusinc.arachne.portal.service.submission.impl;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
-import com.odysseusinc.arachne.portal.repository.ResultFileRepository;
-import com.odysseusinc.arachne.portal.repository.SubmissionFileRepository;
-import com.odysseusinc.arachne.portal.repository.SubmissionGroupRepository;
-import com.odysseusinc.arachne.portal.repository.SubmissionInsightRepository;
+import com.odysseusinc.arachne.portal.model.IUser;
+import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.repository.SubmissionResultFileRepository;
-import com.odysseusinc.arachne.portal.repository.SubmissionStatusHistoryRepository;
-import com.odysseusinc.arachne.portal.repository.submission.BaseSubmissionRepository;
-import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
+import com.odysseusinc.arachne.portal.repository.submission.SubmissionRepository;
 import com.odysseusinc.arachne.portal.service.UserService;
-import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
-import com.odysseusinc.arachne.portal.util.AnalysisHelper;
 import com.odysseusinc.arachne.portal.util.ContentStorageHelper;
-import com.odysseusinc.arachne.portal.util.LegacyAnalysisHelper;
-import com.odysseusinc.arachne.portal.util.SubmissionHelper;
+import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.storage.service.ContentStorageService;
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.util.List;
-import java.util.stream.Collectors;
-import javax.persistence.EntityManager;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SubmissionServiceImplTest {
 
-    @InjectMocks
-    @Spy
-    private SubmissionServiceImpl submissionService;
-
     @Mock
-    private BaseSubmissionRepository<?> submissionRepository;
+    private Submission submission;
     @Mock
-    private BaseDataSourceService<?> dataSourceService;
+    private SecurityContext securityContext;
     @Mock
-    private ArachneMailSender mailSender;
+    private Authentication authentication;
     @Mock
-    private AnalysisHelper analysisHelper;
+    private UserDetails userDetails;
     @Mock
-    private SimpMessagingTemplate wsTemplate;
+    private IUser user;
     @Mock
-    private LegacyAnalysisHelper legacyAnalysisHelper;
-    @Mock
-    private SubmissionResultFileRepository submissionResultFileRepository;
-    @Mock
-    private SubmissionGroupRepository submissionGroupRepository;
-    @Mock
-    private SubmissionInsightRepository submissionInsightRepository;
-    @Mock
-    private SubmissionFileRepository submissionFileRepository;
-    @Mock
-    private ResultFileRepository resultFileRepository;
-    @Mock
-    private SubmissionStatusHistoryRepository submissionStatusHistoryRepository;
-    @Mock
-    private EntityManager entityManager;
-    @Mock
-    private SubmissionHelper submissionHelper;
+    private ArachneFileMeta arachneFileMeta;
     @Mock
     private ContentStorageService contentStorageService;
     @Mock
     private UserService userService;
     @Mock
+    private SubmissionRepository submissionRepository;
+    @Mock
     private ContentStorageHelper contentStorageHelper;
-
+    @Mock
+    private SubmissionResultFileRepository submissionResultFileRepository;
+    @InjectMocks
+    private SubmissionServiceImpl submissionService;
     @Captor
     private ArgumentCaptor<File> fileCaptor;
 
+    @Before
+    public void setUp(){
 
+        when(submissionRepository.findById(any())).thenReturn(submission);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(userDetails);
+        when(userService.getByUsername(anyString())).thenReturn(user);
+        when(contentStorageService.saveFile(any(),any(),any())).thenReturn(arachneFileMeta);
+
+        SecurityContextHolder.setContext(securityContext);
+    }
 
     @Test
-    public void uploadResultsByDataOwner_zipFile() throws IOException {
-
-        doReturn(null)
-                .when(submissionService)
-                .uploadResultFileByDataOwner(any(),  any(File.class));
+    public void shouldUploadFlatZipArchive() throws IOException {
 
         URL zipFileUrl = getClass().getClassLoader().getResource("submission/test.zip");
 
         submissionService.uploadCompressedResultsByDataOwner(1L, new File(zipFileUrl.getPath()));
 
-        verify(submissionService, times(2))
-                .uploadResultFileByDataOwner(any(), fileCaptor.capture());
-
-        final List<String> capturedFileNames = fileCaptor.getAllValues().stream().map(file -> file.getName()).collect(Collectors.toList());
-
+        verify(contentStorageService, times(2)).saveFile(fileCaptor.capture(),anyString(),anyLong());
+        verify(submissionResultFileRepository).save(anyList());
+        final List<String> capturedFileNames = fileCaptor.getAllValues().stream().map(File::getName).collect(Collectors.toList());
         assertThat(capturedFileNames).containsExactly("test2.txt", "test3.txt");
-
     }
 
+    @Test
+    public void shouldUploadZipArchivePreservingSubFolder() throws IOException {
+
+        URL zipFileUrl = getClass().getClassLoader().getResource("submission/test_with_folders.zip");
+
+        submissionService.uploadCompressedResultsByDataOwner(1L, new File(zipFileUrl.getPath()));
+
+        verify(contentStorageHelper).getResultFilesDir(submission, "output/test2.txt");
+        verify(contentStorageHelper).getResultFilesDir(submission, "output/test3.txt");
+
+        verify(contentStorageService, times(2)).saveFile(fileCaptor.capture(),anyString(),anyLong());
+        final List<String> capturedFileNames = fileCaptor.getAllValues().stream().map(File::getName).collect(Collectors.toList());
+        assertThat(capturedFileNames).containsExactly("test2.txt", "test3.txt");
+    }
 }

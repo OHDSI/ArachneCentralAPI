@@ -250,7 +250,7 @@ public abstract class BaseUserServiceImpl<
     @Override
     public U getByUsername(final String userOrigin, final String username) {
 
-        return userRepository.findByEmailAndEnabledTrue(username);
+        return userRepository.findByEmail(username);
     }
 
     @Override
@@ -672,7 +672,7 @@ public abstract class BaseUserServiceImpl<
     @Override
     public List<U> getAllEnabledFromAllTenants() {
 
-        final List<U> usersWithTenants = userRepository.findAllByEnabledIsTrue(EntityUtils.fromAttributePaths("tenants"));
+        List<U> usersWithTenants = userRepository.findAllEnabledFromAllTenants();
 
         final Map<Long, List<UserLink>> userIdToLinksMap = userLinkService.findAll().stream().collect(Collectors.groupingBy(v -> v.getUser().getId()));
         final Map<Long, List<UserPublication>> userIdToPublicationsMap = userPublicationService.findAll().stream().collect(Collectors.groupingBy(v -> v.getUser().getId()));
@@ -973,24 +973,6 @@ public abstract class BaseUserServiceImpl<
         return studyDataSourceLinkRepository.findByOwnerIdAndStatus(user.getId(), DataSourceStatus.PENDING);
     }
 
-    @Override
-    public List<? extends Invitationable> getInvitationsForStudy(U user, final Long studyId) {
-
-        List<? extends Invitationable> collaboratorInvitations = userStudyRepository.findByUserIdAndStudyIdAndStatus(
-                user.getId(),
-                studyId,
-                ParticipantStatus.PENDING
-        );
-        List<? extends Invitationable> dataSourceInvitations = studyDataSourceLinkRepository.findByOwnerIdAndStudyIdAndStatus(
-                user.getId(),
-                studyId,
-                DataSourceStatus.PENDING
-        );
-
-        return Stream
-                .concat(collaboratorInvitations.stream(), dataSourceInvitations.stream())
-                .collect(Collectors.toList());
-    }
 
     @Override
     public UserStudy processInvitation(U user, Long id, Boolean accepted,
