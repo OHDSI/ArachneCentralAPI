@@ -57,7 +57,7 @@ public interface BaseStudyService<
         T extends Study,
         DS extends IDataSource,
         SS extends StudySearch,
-        SU extends AbstractUserStudyListItem> extends SelfReferencingBean {
+        SU extends AbstractUserStudyListItem> extends SelfReferencingBean, Indexable {
 
     T create(IUser owner, T study) throws NotUniqueException, NotExistException;
 
@@ -83,7 +83,7 @@ public interface BaseStudyService<
     List<IUser> findLeads(T study);
 
     UserStudy addParticipant(IUser createdBy, Long studyId, Long participantId,
-                             ParticipantRole role) throws NotExistException, AlreadyExistException;
+                             ParticipantRole role, String message) throws NotExistException, AlreadyExistException;
 
     UserStudy updateParticipantRole(Long studyId, Long userId, ParticipantRole role)
             throws NotExistException, AlreadyExistException, ValidationException;
@@ -143,13 +143,6 @@ public interface BaseStudyService<
     List<StudyFile> getFilesByStudyId(Long id, EntityGraph author);
 
     void processAntivirusResponse(AntivirusJobStudyFileResponseEvent event);
-
-    void indexAllBySolr()
-            throws IOException,
-            NotExistException,
-            SolrServerException,
-            NoSuchFieldException,
-            IllegalAccessException;
 
     List<T> findWithPapersInAnyTenant();
 

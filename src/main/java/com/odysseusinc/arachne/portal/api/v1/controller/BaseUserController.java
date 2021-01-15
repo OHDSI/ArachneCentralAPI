@@ -22,13 +22,6 @@
 
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
-import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.NO_ERROR;
-import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.VALIDATION_ERROR;
-import static com.odysseusinc.arachne.portal.api.v1.controller.util.ControllerUtils.emulateEmailSent;
-import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
-
 import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.MetadataException;
 import com.odysseusinc.arachne.commons.api.v1.dto.ArachnePasswordInfoDTO;
@@ -89,6 +82,29 @@ import com.odysseusinc.arachne.portal.service.BaseUserService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.ohdsi.authenticator.service.authentication.Authenticator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.convert.support.GenericConversionService;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.Principal;
@@ -106,26 +122,10 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.ohdsi.authenticator.service.authentication.Authenticator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.convert.support.GenericConversionService;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.multipart.MultipartFile;
+
+import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.NO_ERROR;
+import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.VALIDATION_ERROR;
+import static com.odysseusinc.arachne.portal.api.v1.controller.util.ControllerUtils.emulateEmailSent;
 
 public abstract class BaseUserController<
         U extends IUser,
@@ -182,14 +182,14 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Password restrictions")
-    @RequestMapping(value = "/api/v1/auth/password-policies", method = GET)
+    @GetMapping(value = "/api/v1/auth/password-policies")
     public ArachnePasswordInfoDTO getPasswordPolicies() {
 
         return conversionService.convert(passwordValidator.getPasswordInfo(), ArachnePasswordInfoDTO.class);
     }
 
     @ApiOperation("Register new user via form.")
-    @RequestMapping(value = "/api/v1/auth/registration", method = POST)
+    @PostMapping(value = "/api/v1/auth/registration")
     public void register(@RequestBody @Valid CommonUserRegistrationDTO dto)
             throws NotExistException, PermissionDeniedException, PasswordValidationException, InterruptedException {
 
@@ -208,7 +208,7 @@ public abstract class BaseUserController<
     protected abstract U convertRegistrationDTO(CommonUserRegistrationDTO dto);
 
     @ApiOperation("Resend registration email for not enabled user")
-    @RequestMapping(value = "/api/v1/auth/resend-activation-email", method = POST)
+    @PostMapping(value = "/api/v1/auth/resend-activation-email")
     public JsonResult<Map<String, Object>> resendActivationEmail(@RequestBody @Valid RemindPasswordDTO request, BindingResult binding)
             throws UserNotFoundException {
 
@@ -225,7 +225,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Get status of registered user")
-    @RequestMapping(value = "/api/v1/auth/status/{userUuid}", method = GET)
+    @GetMapping(value = "/api/v1/auth/status/{userUuid}")
     public JsonResult<CommonArachneUserStatusDTO> findUserStatus(@PathVariable("userUuid") String uuid)
             throws UserNotFoundException {
 
@@ -242,7 +242,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Register user via activation code.")
-    @RequestMapping(value = "/api/v1/user-management/activation/{activationCode}", method = GET)
+    @GetMapping(value = "/api/v1/user-management/activation/{activationCode}")
     public void activate(
             Principal principal,
             HttpServletRequest request,
@@ -273,7 +273,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Upload user avatar")
-    @RequestMapping(value = "/api/v1/user-management/users/avatar", method = POST)
+    @PostMapping(value = "/api/v1/user-management/users/avatar")
     public JsonResult<Boolean> saveUserAvatar(
             Principal principal,
             @RequestParam(name = "file") MultipartFile[] file)
@@ -293,7 +293,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Download user avatar")
-    @RequestMapping(value = "/api/v1/user-management/users/avatar", method = GET)
+    @GetMapping(value = "/api/v1/user-management/users/avatar")
     public void getUserAvatar(
             Principal principal,
             HttpServletResponse response) throws IOException {
@@ -304,7 +304,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Download user avatar")
-    @RequestMapping(value = "/api/v1/user-management/users/{id}/avatar", method = GET)
+    @GetMapping(value = "/api/v1/user-management/users/{id}/avatar")
     public void getUserAvatar(
             @PathVariable("id") String id,
             HttpServletResponse response) throws IOException {
@@ -314,7 +314,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Save user profile")
-    @RequestMapping(value = "/api/v1/user-management/users/profile", method = POST)
+    @PostMapping(value = "/api/v1/user-management/users/profile")
     public JsonResult<UserProfileDTO> saveProfile(
             Principal principal,
             @RequestBody @Valid UserProfileGeneralDTO dto,
@@ -343,7 +343,7 @@ public abstract class BaseUserController<
     protected abstract U convertUserProfileGeneralDTO(UserProfileGeneralDTO dto);
 
     @ApiOperation("Change user password")
-    @RequestMapping(value = "/api/v1/user-management/users/changepassword", method = POST)
+    @PostMapping(value = "/api/v1/user-management/users/changepassword")
     public JsonResult changePassword(@RequestBody @Valid ChangePasswordDTO changePasswordDTO,
                                      Principal principal
     ) throws ValidationException, PasswordValidationException {
@@ -361,7 +361,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Add skill to user profile.")
-    @RequestMapping(value = "/api/v1/user-management/users/skills/{skillId}", method = POST)
+    @PostMapping(value = "/api/v1/user-management/users/skills/{skillId}")
     public JsonResult<UserProfileDTO> addSkill(
             Principal principal,
             @PathVariable("skillId") Long skillId
@@ -377,7 +377,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Remove skill from user profile.")
-    @RequestMapping(value = "/api/v1/user-management/users/skills/{skillId}", method = RequestMethod.DELETE)
+    @DeleteMapping(value = "/api/v1/user-management/users/skills/{skillId}")
     public JsonResult<UserProfileDTO> removeSkill(
             Principal principal,
             @PathVariable("skillId") Long skillId
@@ -393,7 +393,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Add link to user profile.")
-    @RequestMapping(value = "/api/v1/user-management/users/links", method = POST)
+    @PostMapping(value = "/api/v1/user-management/users/links")
     public JsonResult<UserProfileDTO> addLink(
             Principal principal,
             @Valid @RequestBody UserLinkDTO userLinkDTO,
@@ -418,7 +418,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Remove link from user profile.")
-    @RequestMapping(value = "/api/v1/user-management/users/links/{linkId}", method = RequestMethod.DELETE)
+    @DeleteMapping(value = "/api/v1/user-management/users/links/{linkId}")
     public JsonResult<UserProfileDTO> removeLink(
             Principal principal,
             @PathVariable("linkId") Long linkId
@@ -434,7 +434,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Add user's publication.")
-    @RequestMapping(value = "/api/v1/user-management/users/publications", method = POST)
+    @PostMapping(value = "/api/v1/user-management/users/publications")
     public JsonResult<UserProfileDTO> addPublication(
             Principal principal,
             @Valid @RequestBody UserPublicationDTO userPublicationDTO,
@@ -460,7 +460,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Remove user's publication.")
-    @RequestMapping(value = "/api/v1/user-management/users/publications/{publicationId}", method = RequestMethod.DELETE)
+    @DeleteMapping(value = "/api/v1/user-management/users/publications/{publicationId}")
     public JsonResult<UserProfileDTO> removePublication(
             Principal principal,
             @PathVariable("publicationId") Long publicationId
@@ -476,23 +476,14 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Get user's invitations.")
-    @RequestMapping(value = "/api/v1/user-management/users/invitations", method = GET)
-    public JsonResult<List<InvitationDTO>> invitations(
-            Principal principal,
-            @RequestParam(value = "studyId", required = false) Long studyId
-    ) throws NotExistException {
+    @GetMapping("/api/v1/user-management/users/invitations")
+    public JsonResult<List<InvitationDTO>> invitations(Principal principal) throws NotExistException {
 
         U user = userService.getByUsername(principal.getName());
 
-        Stream<? extends Invitationable> invitationables;
-        if (studyId != null) {
-            invitationables = userService.getInvitationsForStudy(user, studyId).stream();
-        } else {
-            invitationables = getInvitations(user).stream().flatMap(Collection::stream);
-        }
-
+        Stream<? extends Invitationable> invitationables = getInvitations(user).stream().flatMap(Collection::stream);
         Stream<InvitationDTO> invitationStream = invitationables
-                .map(o -> conversionService.convert(o, InvitationDTO.class))
+                .map(inv -> conversionService.convert(inv, InvitationDTO.class))
                 .sorted(Comparator.comparing(InvitationDTO::getDate).reversed());
 
         return new JsonResult<>(NO_ERROR, invitationStream.collect(Collectors.toList()));
@@ -509,7 +500,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Accept invitations via mail.")
-    @RequestMapping(value = "/api/v1/user-management/users/invitations/mail", method = GET)
+    @GetMapping(value = "/api/v1/user-management/users/invitations/mail")
     public JsonResult<UserProfileDTO> invitationAcceptViaMail(
             @RequestParam("id") Long id,
             @RequestParam("accepted") Boolean accepted,
@@ -600,7 +591,7 @@ public abstract class BaseUserController<
     protected abstract U createNewUser();
 
     @ApiOperation("Accept invitations.")
-    @RequestMapping(value = "/api/v1/user-management/users/invitations", method = POST)
+    @PostMapping("/api/v1/user-management/users/invitations")
     public JsonResult<UserProfileDTO> invitationAcceptViaInvitation(
             Principal principal,
             @Valid @RequestBody InvitationActionDTO invitationActionDTO
@@ -660,7 +651,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Suggests country.")
-    @RequestMapping(value = "/api/v1/user-management/countries/search", method = GET)
+    @GetMapping(value = "/api/v1/user-management/countries/search")
     public JsonResult<List<CountryDTO>> suggestCountries(
             @RequestParam("query") String query,
             @RequestParam("limit") Integer limit,
@@ -679,7 +670,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Suggests state or province.")
-    @RequestMapping(value = "/api/v1/user-management/state-province/search", method = GET)
+    @GetMapping(value = "/api/v1/user-management/state-province/search")
     public JsonResult<List<StateProvinceDTO>> suggestStateProvince(
             @RequestParam("countryId") String countryIdParam,
             @RequestParam("query") String query,
@@ -714,7 +705,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("List DataNode users")
-    @RequestMapping(value = "/api/v1/user-management/datanodes/{dataNodeId}/users", method = GET)
+    @GetMapping(value = "/api/v1/user-management/datanodes/{dataNodeId}/users")
     public List<CommonUserDTO> listDataNodeUsers(@PathVariable("dataNodeId") Long dataNodeId) {
 
         final DN dataNode = baseDataNodeService.getById(dataNodeId);
@@ -725,7 +716,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Link U to DataNode")
-    @RequestMapping(value = "/api/v1/user-management/datanodes/{datanodeSid}/users", method = POST)
+    @PostMapping(value = "/api/v1/user-management/datanodes/{datanodeSid}/users")
     public JsonResult linkUserToDataNode(@PathVariable("datanodeSid") Long datanodeId,
                                          @RequestBody CommonLinkUserToDataNodeDTO linkUserToDataNode
     ) throws NotExistException, AlreadyExistException {
@@ -742,7 +733,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Unlink User to DataNode")
-    @RequestMapping(value = "/api/v1/user-management/datanodes/{datanodeId}/users", method = RequestMethod.DELETE)
+    @DeleteMapping(value = "/api/v1/user-management/datanodes/{datanodeId}/users")
     public JsonResult unlinkUserToDataNode(@PathVariable("datanodeId") Long datanodeId,
                                            @RequestBody CommonLinkUserToDataNodeDTO linkUserToDataNode
     ) throws NotExistException {
@@ -757,7 +748,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Relink all Users to DataNode")
-    @RequestMapping(value = "/api/v1/user-management/datanodes/{datanodeId}/users", method = RequestMethod.PUT)
+    @PutMapping(value = "/api/v1/user-management/datanodes/{datanodeId}/users")
     public JsonResult<List<CommonUserDTO>> relinkAllUsersToDataNode(@PathVariable("datanodeId") final Long dataNodeId,
                                                                     @RequestBody final List<CommonLinkUserToDataNodeDTO> linkUserToDataNodes
     ) throws NotExistException {
@@ -778,7 +769,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Create new user")
-    @RequestMapping(value = "/api/v1/admin/users", method = POST)
+    @PostMapping(value = "/api/v1/admin/users")
     public CommonUserDTO create(@RequestBody @Valid CommonUserRegistrationDTO dto) throws PasswordValidationException {
 
         U user = convertRegistrationDTO(dto);
@@ -788,7 +779,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Remove user")
-    @RequestMapping(value = "/api/v1/admin/users/{uuid}", method = DELETE)
+    @DeleteMapping(value = "/api/v1/admin/users/{uuid}")
     public Map<String, Boolean> delete(@PathVariable("uuid") String uuid)
             throws ValidationException, IOException, SolrServerException {
 
@@ -797,7 +788,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Toggle user email confirmation")
-    @RequestMapping(value = "/api/v1/admin/users/{uuid}/confirm-email/{confirmed}", method = POST)
+    @PostMapping(value = "/api/v1/admin/users/{uuid}/confirm-email/{confirmed}")
     public CommonUserDTO confirmEmail(@PathVariable("uuid") String userUuid,
                                       @PathVariable("confirmed") Boolean confirm)
             throws IOException, NoSuchFieldException, SolrServerException, IllegalAccessException {
@@ -812,7 +803,7 @@ public abstract class BaseUserController<
     }
 
     @ApiOperation("Set user's preferences")
-    @RequestMapping(value = "/api/v1/user-management/users/settings", method = RequestMethod.PUT)
+    @PutMapping(value = "/api/v1/user-management/users/settings")
     public void updateUser(
             Principal principal,
             @RequestBody UserSettingsDTO dto

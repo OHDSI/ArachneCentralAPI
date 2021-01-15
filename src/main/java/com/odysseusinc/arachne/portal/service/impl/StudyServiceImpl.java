@@ -198,9 +198,9 @@ public class StudyServiceImpl extends BaseStudyServiceImpl<
     @Override
     @PreAuthorize("hasPermission(#studyId, 'Study', "
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).INVITE_CONTRIBUTOR)")
-    public UserStudy addParticipant(IUser createdBy, Long studyId, Long participantId, ParticipantRole role) throws NotExistException, AlreadyExistException {
+    public UserStudy addParticipant(IUser createdBy, Long studyId, Long participantId, ParticipantRole role, String message) throws NotExistException, AlreadyExistException {
 
-        return super.addParticipant(createdBy, studyId, participantId, role);
+        return super.addParticipant(createdBy, studyId, participantId, role, message);
     }
 
     @Override

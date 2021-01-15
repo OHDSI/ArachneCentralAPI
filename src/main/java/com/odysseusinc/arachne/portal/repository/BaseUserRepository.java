@@ -40,6 +40,8 @@ public interface BaseUserRepository<U extends IUser> extends EntityGraphJpaRepos
 
     List<U> findByIdIn(List<Long> idList);
 
+    U findByEmail(String email);
+
     U findByEmailAndEnabledTrue(String email);
 
     U findByEmailAndEmailConfirmedFalse(String email);
@@ -81,8 +83,6 @@ public interface BaseUserRepository<U extends IUser> extends EntityGraphJpaRepos
                            @Param("limit") Integer limit);
 
     U findById(Long id);
-
-    List<U> findAllByEnabledIsTrue(EntityGraph graph);
 
     @Query(nativeQuery = true, value = "SELECT * FROM users_data u WHERE enabled = TRUE")
     List<U> findAllEnabledFromAllTenants();

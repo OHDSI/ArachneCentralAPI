@@ -35,6 +35,6 @@ public class BreadcrumbToBreadcrumbDTOConverter extends BaseConversionServiceAwa
     @Override
     public BreadcrumbDTO convert(Breadcrumb source) {
 
-        return new BreadcrumbDTO(source.getCrumbType(), source.getCrumbId(), source.getCrumbTitle());
+        return new BreadcrumbDTO(source.getCrumbType(), source.getCrumbId().toString(), source.getCrumbTitle());
     }
 }

@@ -18,7 +18,7 @@
  * Created: February 28, 2018
  */
 
-package com.odysseusinc.arachne.portal.scheduler;
+package com.odysseusinc.arachne.portal.jobs;
 
 import com.odysseusinc.arachne.commons.utils.TempHolder;
 import org.springframework.stereotype.Component;

@@ -24,7 +24,6 @@ package com.odysseusinc.arachne.portal.service;
 
 import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.MetadataException;
-import com.odysseusinc.arachne.portal.api.v1.dto.BatchOperationType;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.NotUniqueException;
 import com.odysseusinc.arachne.portal.exception.PasswordValidationException;
@@ -57,7 +56,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.multipart.MultipartFile;
 
-public interface BaseUserService<U extends IUser, S extends Skill> {
+public interface BaseUserService<U extends IUser, S extends Skill> extends Indexable {
 
     U getByUsername(final String username);
 
@@ -189,8 +188,6 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
 
     List<? extends Invitationable> getDataSourceInvitations(U user);
 
-    List<? extends Invitationable> getInvitationsForStudy(U user, final Long studyId);
-
     UserStudy processInvitation(U user, Long id, Boolean accepted, String comment);
 
     UserStudy getByIdAndStatusPendingAndToken(Long userStudyId, String token) throws NotExistException;
@@ -199,13 +196,6 @@ public interface BaseUserService<U extends IUser, S extends Skill> {
 
     void indexBySolr(U user)
             throws IllegalAccessException, IOException, SolrServerException, NotExistException, NoSuchFieldException;
-
-    void indexAllBySolr()
-            throws IOException,
-            NotExistException,
-            SolrServerException,
-            NoSuchFieldException,
-            IllegalAccessException;
 
     SearchResult<U> search(SolrQuery solrQuery) throws IOException, SolrServerException, NoSuchFieldException;
 

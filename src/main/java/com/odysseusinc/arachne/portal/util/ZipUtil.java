@@ -24,6 +24,7 @@ package com.odysseusinc.arachne.portal.util;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,7 +34,9 @@ import java.util.Collection;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
+
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 public class ZipUtil {
@@ -72,7 +75,7 @@ public class ZipUtil {
 
         byte[] bytes = IOUtils.toByteArray(data);
         ZipEntry entry = new ZipEntry(realName);
-        entry.setSize((long) bytes.length);
+        entry.setSize(bytes.length);
         zos.putNextEntry(entry);
         zos.write(bytes);
         zos.closeEntry();
@@ -84,4 +87,19 @@ public class ZipUtil {
         }
     }
 
+    public static byte[] extractZipEntry(ZipInputStream zipInputStream, String fileName) throws IOException {
+
+        ZipEntry zipEntry;
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        while ((zipEntry = zipInputStream.getNextEntry()) != null) {
+            if (StringUtils.equalsIgnoreCase(fileName, zipEntry.getName())) {
+                byte[] buffer = new byte[8192];
+                int len;
+                while ((len = zipInputStream.read(buffer)) != -1) {
+                    bos.write(buffer, 0, len);
+                }
+            }
+        }
+        return bos.toByteArray();
+    }
 }

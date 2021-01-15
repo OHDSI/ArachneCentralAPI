@@ -84,6 +84,9 @@ public class UserStudy implements Invitationable {
     @Column
     private String comment;
 
+    @Column
+    private String inviteMessage;
+
     @PrePersist
     public void prePersist() {
 
@@ -214,5 +217,13 @@ public class UserStudy implements Invitationable {
     public void setComment(String comment) {
 
         this.comment = comment;
+    }
+
+    public String getInviteMessage() {
+        return inviteMessage;
+    }
+
+    public void setInviteMessage(String inviteMessage) {
+        this.inviteMessage = inviteMessage;
     }
 }

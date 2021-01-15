@@ -24,6 +24,7 @@ package com.odysseusinc.arachne.portal.model;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.portal.api.v1.dto.converters.AnalysisSolrExtractors;
+import com.odysseusinc.arachne.portal.model.listeners.AnalysisChangesListener;
 import com.odysseusinc.arachne.portal.model.solr.SolrCollection;
 import com.odysseusinc.arachne.portal.model.solr.SolrEntity;
 import com.odysseusinc.arachne.portal.model.solr.SolrFieldAnno;
@@ -32,12 +33,11 @@ import com.odysseusinc.arachne.portal.security.HasArachnePermissions;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.Breadcrumb;
 import com.odysseusinc.arachne.portal.service.impl.breadcrumb.EntityType;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import org.hibernate.annotations.DiscriminatorFormula;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
@@ -50,13 +50,17 @@ import javax.persistence.OrderBy;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-import org.hibernate.annotations.DiscriminatorFormula;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
+@EntityListeners(AnalysisChangesListener.class)
 @Entity
 @Table(name = "analyses")
 @DiscriminatorFormula("'ANALYSIS_ENTITY'")
 @SolrFieldAnno(name = BaseSolrService.TITLE, postfix = false, extractor = AnalysisSolrExtractors.TitleExtractor.class)
-public class Analysis implements HasArachnePermissions, Breadcrumb, SolrEntity  {
+public class Analysis implements HasArachnePermissions, Breadcrumb, SolrEntity {
 
     public Analysis() {
 
@@ -131,6 +135,7 @@ public class Analysis implements HasArachnePermissions, Breadcrumb, SolrEntity  
         return EntityType.ANALYSIS;
     }
 
+    @Override
     public String getCrumbTitle() {
 
         return this.getTitle();
@@ -290,7 +295,7 @@ public class Analysis implements HasArachnePermissions, Breadcrumb, SolrEntity  
             return true;
         }
 
-        if (obj == null || !(obj instanceof Analysis)) {
+        if (!(obj instanceof Analysis)) {
             return false;
         }
 

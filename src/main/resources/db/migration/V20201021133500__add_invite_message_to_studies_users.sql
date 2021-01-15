@@ -1,0 +1,1 @@
+ALTER TABLE studies_users ADD COLUMN IF NOT EXISTS invite_message VARCHAR;
