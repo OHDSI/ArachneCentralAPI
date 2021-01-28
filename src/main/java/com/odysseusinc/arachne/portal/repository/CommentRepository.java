@@ -26,10 +26,10 @@ import com.odysseusinc.arachne.portal.model.Comment;
 import com.odysseusinc.arachne.portal.model.CommentTopic;
 import java.util.List;
 import java.util.Set;
-import javax.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface CommentRepository extends PagingAndSortingRepository<Comment, Long> {
 
