@@ -35,7 +35,7 @@
         <gson.version>2.7</gson.version>
         <hibernate.version>5.2.12.Final</hibernate.version>
         <hikaricp.version>2.6.3</hikaricp.version>
-        <jackson.version>2.10.5</jackson.version>
+        <jackson.version>2.10.5.20201202</jackson.version>
         <jodConverter.version>4.2.0</jodConverter.version>
         <postgresql.version>42.2.15</postgresql.version>
         <springRetryVersion>1.2.4.RELEASE</springRetryVersion>
