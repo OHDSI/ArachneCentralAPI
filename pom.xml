@@ -22,6 +22,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
         <jjwt.version>0.10.8</jjwt.version>
+        <activemq.version>5.15.14</activemq.version>
         <assertj.version>3.13.2</assertj.version>
         <build.id>${BUILD_TIMESTAMP}</build.id>
         <build.number>${BUILD_NUMBER}</build.number>
