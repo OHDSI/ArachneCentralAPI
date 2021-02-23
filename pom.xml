@@ -40,6 +40,7 @@
         <jodConverter.version>4.2.0</jodConverter.version>
         <postgresql.version>42.2.15</postgresql.version>
         <springRetryVersion>1.2.4.RELEASE</springRetryVersion>
+        <bcprov-jdk15on.version>1.68</bcprov-jdk15on.version>
     </properties>
 
     <profiles>
@@ -141,6 +142,13 @@
             <artifactId>arachne-common-utils</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15on</artifactId>
+            <version>${bcprov-jdk15on.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>com.odysseusinc.arachne</groupId>
             <artifactId>arachne-no-handler-found-exception-util</artifactId>
