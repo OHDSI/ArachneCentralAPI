@@ -38,7 +38,7 @@
         <commonsCsv.version>1.7</commonsCsv.version>
         <commons.fileupload.version>1.4</commons.fileupload.version>
         <commons.io.version>2.5</commons.io.version>
-        <bcprov-jdk15on.version>1.67</bcprov-jdk15on.version>
+        <bcprov-jdk15on.version>1.68</bcprov-jdk15on.version>
     </properties>
 
     <profiles>
