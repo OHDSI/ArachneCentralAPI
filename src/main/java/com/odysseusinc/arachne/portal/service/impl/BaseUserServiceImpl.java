@@ -121,7 +121,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletResponse;
-import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 
 import org.apache.commons.io.FilenameUtils;
@@ -149,6 +148,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -325,7 +325,7 @@ public abstract class BaseUserServiceImpl<
 
     @Override
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void remove(Long id) throws ValidationException, UserNotFoundException, NotExistException, IOException, SolrServerException {
 
         if (id == null) {
@@ -601,7 +601,7 @@ public abstract class BaseUserServiceImpl<
 
     @Override
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void saveUsers(List<U> users, Set<Tenant> tenants, boolean emailConfirmationRequired) {
 
         users.forEach(user -> {

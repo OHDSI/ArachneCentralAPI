@@ -47,7 +47,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import javax.persistence.EntityManager;
 import javax.persistence.FlushModeType;
-import javax.transaction.Transactional;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,6 +54,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AchillesImportServiceImpl implements AchillesImportService {
@@ -62,7 +62,7 @@ public class AchillesImportServiceImpl implements AchillesImportService {
     private static final String IMPORT_ACHILLES_RESULT_LOG =
             "{} import Achilles result for Data Source with id='{}', name='{}', Data Node with id='{}' name='{}'";
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AchillesImportService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AchillesImportServiceImpl.class);
 
     @Value("${spring.jpa.properties.hibernate.jdbc.batch_size}")
     private int batchSize = 1000;
