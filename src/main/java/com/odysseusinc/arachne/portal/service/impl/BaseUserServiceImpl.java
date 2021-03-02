@@ -284,7 +284,7 @@ public abstract class BaseUserServiceImpl<
     @Override
     public U getByUnverifiedEmailInAnyTenant(final String email) {
 
-        return rawUserRepository.findByEmail(email, EntityUtils.fromAttributePaths("roles", "professionalType"));
+        return rawUserRepository.findByEmailIgnoreCase(email, EntityUtils.fromAttributePaths("roles", "professionalType"));
     }
 
     @Override
