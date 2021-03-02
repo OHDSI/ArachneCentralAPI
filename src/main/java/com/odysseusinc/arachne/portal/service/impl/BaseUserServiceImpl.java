@@ -124,6 +124,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -149,7 +150,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 
@@ -263,9 +263,9 @@ public abstract class BaseUserServiceImpl<
     public U getByUsernameInAnyTenant(final String username, boolean includeDeleted) {
 
         if (includeDeleted) {
-            return rawUserRepository.findByOriginAndUsername(this.authenticationHelperService.getCurrentMethodType(), username);
+            return rawUserRepository.findByOriginAndUsernameIgnoreCase(this.authenticationHelperService.getCurrentMethodType(), username);
         } else {
-            return rawUserRepository.findByOriginAndUsernameAndEnabledTrue(this.authenticationHelperService.getCurrentMethodType(), username);
+            return rawUserRepository.findByOriginAndUsernameIgnoreCaseAndEnabledTrue(this.authenticationHelperService.getCurrentMethodType(), username);
         }
     }
 
@@ -297,7 +297,7 @@ public abstract class BaseUserServiceImpl<
     @Override
     public U getByEmailInAnyTenant(final String email) {
 
-        return rawUserRepository.findByOriginAndUsername(this.authenticationHelperService.getCurrentMethodType(), email);
+        return rawUserRepository.findByOriginAndUsernameIgnoreCase(this.authenticationHelperService.getCurrentMethodType(), email);
     }
 
     @Override
@@ -588,9 +588,8 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    @PreAuthorize("@rawUserRepository.findOne(#user.id)?.getUsername() == authentication.principal.username || hasRole('ROLE_ADMIN')")
+    @PreAuthorize("T(String).CASE_INSENSITIVE_ORDER.compare(@rawUserRepository.findOne(#user.id)?.getUsername(), authentication.principal.username)==0 || hasRole('ROLE_ADMIN')")
     public U updateInAnyTenant(U user) throws NotExistException {
-
         U forUpdate = getByIdInAnyTenant(user.getId());
         forUpdate = baseUpdate(forUpdate, user);
         U savedUser = rawUserRepository.saveAndFlush(forUpdate);
