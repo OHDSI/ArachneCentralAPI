@@ -164,12 +164,14 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
 
     protected void checkIfUserHasTenant(String username) throws AuthenticationException {
 
-        IUser user = userService.getByUsernameInAnyTenant(username);
-        if (user == null) {
-            throw new BadCredentialsException(ErrorMessages.BAD_CREDENTIALS.getMessage());
-        }
-        if (user.getTenants() == null || user.getTenants().isEmpty()) {
-            throw new NoDefaultTenantException("Request admin to add you into a tenant.");
+        if(authenticationHelperService.isNative()) {
+            IUser user = userService.getByUsernameInAnyTenant(username);
+            if (user == null) {
+                throw new BadCredentialsException(ErrorMessages.BAD_CREDENTIALS.getMessage());
+            }
+            if (user.getTenants() == null || user.getTenants().isEmpty()) {
+                throw new NoDefaultTenantException("Request admin to add you into a tenant.");
+            }
         }
     }
 
