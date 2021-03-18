@@ -164,7 +164,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
 
     protected void checkIfUserHasTenant(String username) throws AuthenticationException {
 
-        if(authenticationHelperService.isNative()) {
+        if (authenticationHelperService.isNative()) {
             IUser user = userService.getByUsernameInAnyTenant(username);
             if (user == null) {
                 throw new BadCredentialsException(ErrorMessages.BAD_CREDENTIALS.getMessage());
