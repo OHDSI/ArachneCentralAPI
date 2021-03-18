@@ -89,12 +89,12 @@ public abstract class BaseExpertFinderController<U extends IUser, SK extends Ski
             Principal principal,
             @PathVariable("userId") String userId) {
 
-        IUser logginedUser = userService.getByUsername(principal.getName());
+        IUser loggedInUser = userService.getByUsername(principal.getName());
         JsonResult<UserProfileDTO> result;
         IUser user = userService.getByUuidAndInitializeCollections(userId);
 
         UserProfileDTO userProfileDTO = conversionService.convert(user, UserProfileDTO.class);
-        userProfileDTO.setIsEditable(logginedUser.getUuid().equals(userId));
+        userProfileDTO.setIsEditable(loggedInUser.getUuid().equals(userId));
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
         result.setResult(userProfileDTO);
         return result;
