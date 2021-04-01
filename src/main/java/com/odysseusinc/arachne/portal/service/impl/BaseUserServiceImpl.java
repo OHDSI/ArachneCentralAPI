@@ -22,17 +22,6 @@
 
 package com.odysseusinc.arachne.portal.service.impl;
 
-import static com.odysseusinc.arachne.portal.model.ParticipantStatus.APPROVED;
-import static com.odysseusinc.arachne.portal.model.ParticipantStatus.DECLINED;
-import static com.odysseusinc.arachne.portal.repository.UserSpecifications.emailConfirmed;
-import static com.odysseusinc.arachne.portal.repository.UserSpecifications.userStatus;
-import static com.odysseusinc.arachne.portal.repository.UserSpecifications.usersIn;
-import static com.odysseusinc.arachne.portal.repository.UserSpecifications.withNameOrEmailLike;
-import static com.odysseusinc.arachne.portal.service.RoleService.ROLE_ADMIN;
-import static java.lang.Boolean.TRUE;
-import static org.apache.commons.collections.CollectionUtils.isEmpty;
-import static org.springframework.data.jpa.domain.Specifications.where;
-
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Metadata;
@@ -81,6 +70,7 @@ import com.odysseusinc.arachne.portal.repository.UserStudyRepository;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordData;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidationResult;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
+import com.odysseusinc.arachne.portal.service.AuthenticationHelperService;
 import com.odysseusinc.arachne.portal.service.BaseSkillService;
 import com.odysseusinc.arachne.portal.service.BaseSolrService;
 import com.odysseusinc.arachne.portal.service.BaseUserLinkService;
@@ -88,7 +78,6 @@ import com.odysseusinc.arachne.portal.service.BaseUserPublicationService;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
 import com.odysseusinc.arachne.portal.service.TenantService;
-import com.odysseusinc.arachne.portal.service.AuthenticationHelperService;
 import com.odysseusinc.arachne.portal.service.UserRegistrantService;
 import com.odysseusinc.arachne.portal.service.impl.solr.FieldList;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
@@ -99,32 +88,8 @@ import com.odysseusinc.arachne.portal.service.mail.RegistrationMailMessage;
 import com.odysseusinc.arachne.portal.service.mail.RemindPasswordMailMessage;
 import com.odysseusinc.arachne.portal.util.EntityUtils;
 import edu.vt.middleware.password.Password;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Paths;
-import java.security.Principal;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import javax.imageio.ImageIO;
-import javax.servlet.http.HttpServletResponse;
-import javax.transaction.Transactional;
-import javax.validation.constraints.NotNull;
-
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -149,8 +114,40 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.util.StringUtils;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import javax.imageio.ImageIO;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.constraints.NotNull;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Paths;
+import java.security.Principal;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static com.odysseusinc.arachne.portal.model.ParticipantStatus.APPROVED;
+import static com.odysseusinc.arachne.portal.model.ParticipantStatus.DECLINED;
+import static com.odysseusinc.arachne.portal.repository.UserSpecifications.*;
+import static com.odysseusinc.arachne.portal.service.RoleService.ROLE_ADMIN;
+import static java.lang.Boolean.TRUE;
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
+import static org.springframework.data.jpa.domain.Specifications.where;
 
 
 public abstract class BaseUserServiceImpl<
@@ -250,7 +247,7 @@ public abstract class BaseUserServiceImpl<
     @Override
     public U getByUsername(final String userOrigin, final String username) {
 
-        return userRepository.findByEmail(username);
+        return rawUserRepository.findByOriginAndUsernameIgnoreCase(userOrigin, username);
     }
 
     @Override
@@ -263,9 +260,9 @@ public abstract class BaseUserServiceImpl<
     public U getByUsernameInAnyTenant(final String username, boolean includeDeleted) {
 
         if (includeDeleted) {
-            return rawUserRepository.findByOriginAndUsername(this.authenticationHelperService.getCurrentMethodType(), username);
+            return rawUserRepository.findByOriginAndUsernameIgnoreCase(this.authenticationHelperService.getCurrentMethodType(), username);
         } else {
-            return rawUserRepository.findByOriginAndUsernameAndEnabledTrue(this.authenticationHelperService.getCurrentMethodType(), username);
+            return rawUserRepository.findByOriginAndUsernameIgnoreCaseAndEnabledTrue(this.authenticationHelperService.getCurrentMethodType(), username);
         }
     }
 
@@ -284,7 +281,7 @@ public abstract class BaseUserServiceImpl<
     @Override
     public U getByUnverifiedEmailInAnyTenant(final String email) {
 
-        return rawUserRepository.findByEmail(email, EntityUtils.fromAttributePaths("roles", "professionalType"));
+        return rawUserRepository.findByEmailIgnoreCase(email, EntityUtils.fromAttributePaths("roles", "professionalType"));
     }
 
     @Override
@@ -297,7 +294,7 @@ public abstract class BaseUserServiceImpl<
     @Override
     public U getByEmailInAnyTenant(final String email) {
 
-        return rawUserRepository.findByOriginAndUsername(this.authenticationHelperService.getCurrentMethodType(), email);
+        return rawUserRepository.findByOriginAndUsernameIgnoreCase(this.authenticationHelperService.getCurrentMethodType(), email);
     }
 
     @Override
@@ -325,7 +322,7 @@ public abstract class BaseUserServiceImpl<
 
     @Override
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void remove(Long id) throws ValidationException, UserNotFoundException, NotExistException, IOException, SolrServerException {
 
         if (id == null) {
@@ -588,9 +585,8 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    @PreAuthorize("@rawUserRepository.findOne(#user.id)?.getUsername() == authentication.principal.username || hasRole('ROLE_ADMIN')")
+    @PreAuthorize("T(String).CASE_INSENSITIVE_ORDER.compare(@rawUserRepository.findOne(#user.id)?.getUsername(), authentication.principal.username)==0 || hasRole('ROLE_ADMIN')")
     public U updateInAnyTenant(U user) throws NotExistException {
-
         U forUpdate = getByIdInAnyTenant(user.getId());
         forUpdate = baseUpdate(forUpdate, user);
         U savedUser = rawUserRepository.saveAndFlush(forUpdate);
@@ -601,7 +597,7 @@ public abstract class BaseUserServiceImpl<
 
     @Override
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void saveUsers(List<U> users, Set<Tenant> tenants, boolean emailConfirmationRequired) {
 
         users.forEach(user -> {

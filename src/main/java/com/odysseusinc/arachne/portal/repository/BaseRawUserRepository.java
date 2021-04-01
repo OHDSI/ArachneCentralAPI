@@ -44,11 +44,9 @@ public interface BaseRawUserRepository<U extends IUser> extends EntityGraphJpaRe
 
     U findByIdAndEnabledTrue(Long id);
 
-    U findByOriginAndUsername(String userOrigin, String username);
+    U findByOriginAndUsernameIgnoreCase(String userOrigin, String username);
 
     U findByRegistrationCode(String activateCode);
-
-    U findByEmail(String email, EntityGraph entityGraph);
 
     U findByEmailIgnoreCase(String email, EntityGraph entityGraph);
 
@@ -56,7 +54,7 @@ public interface BaseRawUserRepository<U extends IUser> extends EntityGraphJpaRe
 
     U findByEmailAndEnabledTrue(String email);
 
-    U findByOriginAndUsernameAndEnabledTrue(String userOrigin, String username);
+    U findByOriginAndUsernameIgnoreCaseAndEnabledTrue(String userOrigin, String username);
 
     @Query(nativeQuery = true, value = "SELECT * FROM users_data "
             + " WHERE "
