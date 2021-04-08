@@ -166,7 +166,7 @@ authenticator:
         jdbcUrl: ${spring.datasource.url}
         username: ${spring.datasource.username}
         password: ${spring.datasource.password}
-        query: SELECT password, firstname, middlename, lastname FROM users_data WHERE email = :username
+        query: SELECT password, firstname, middlename, lastname FROM users_data WHERE lower(email) = lower(:username)
         passwordEncoder: org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
         fieldsToExtract:
           firstName: firstname

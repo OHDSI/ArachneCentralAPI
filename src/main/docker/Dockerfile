@@ -1,5 +1,5 @@
-FROM hub.arachnenetwork.com/portal_env:1.0.13
-MAINTAINER alexandr.ryabokon@odysseusinc.com
+FROM hub.odysseusinc.com/portal_env:1.1.0
+MAINTAINER alexandr.cumarav@odysseusinc.com
 USER root
 VOLUME /tmp
 ADD portal-exec.jar /portal.jar
