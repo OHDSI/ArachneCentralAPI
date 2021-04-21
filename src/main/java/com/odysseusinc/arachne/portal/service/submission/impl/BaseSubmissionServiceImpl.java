@@ -205,7 +205,7 @@ public abstract class BaseSubmissionServiceImpl<
     @Override
     public T approveSubmissionResult(Long submissionId, ApproveDTO approveDTO, IUser user) {
 
-        T submission = submissionRepository.findOne(submissionId);
+        T submission = submissionRepository.getOne(submissionId);
         SubmissionStatus status = runApproveSubmissionProcess(submission,
                 beforeApproveSubmissionResult(submission, approveDTO), approveDTO);
         List<SubmissionStatusHistoryElement> statusHistory = submission.getStatusHistory();
@@ -319,7 +319,7 @@ public abstract class BaseSubmissionServiceImpl<
     @Override
     public T getSubmissionByIdUnsecured(Long id) throws NotExistException {
 
-        T submission = submissionRepository.findOne(id);
+        T submission = submissionRepository.getOne(id);
         throwNotExistExceptionIfNull(submission, id);
         return submission;
     }
@@ -336,7 +336,7 @@ public abstract class BaseSubmissionServiceImpl<
     @Override
     public T getSubmissionById(Long id, EntityGraph entityGraph) throws NotExistException {
 
-        T submission = submissionRepository.findById(id, entityGraph);
+        T submission = submissionRepository.findById(id, entityGraph).orElse(null);
         throwNotExistExceptionIfNull(submission, id);
         return submission;
     }
@@ -418,7 +418,7 @@ public abstract class BaseSubmissionServiceImpl<
             }
             files.add(submissionFile);
         }
-        submissionFileRepository.save(files);
+        submissionFileRepository.saveAll(files);
         submissionGroup.setChecksum(calculateMD5Hash(submissionGroupFolder, files));
         submissionGroupRepository.save(submissionGroup);
         return submissionGroup;
@@ -432,7 +432,7 @@ public abstract class BaseSubmissionServiceImpl<
 
         final SubmissionGroupSpecification submissionGroupSpecification = new SubmissionGroupSpecification(submissoinGroupSearch);
         final Integer page = submissoinGroupSearch.getPage();
-        final PageRequest pageRequest = new PageRequest(page == null ? 0 : page - 1, submissoinGroupSearch.getPageSize(), new Sort(Sort.Direction.DESC, "created"));
+        final PageRequest pageRequest = PageRequest.of(page == null ? 0 : page - 1, submissoinGroupSearch.getPageSize(), Sort.by(Sort.Direction.DESC, "created"));
         final Page<SubmissionGroup> submissionGroups = submissionGroupRepository.findAll(submissionGroupSpecification, pageRequest);
         final List<SubmissionGroup> content = submissionGroups.getContent();
         final Map<Long, SubmissionGroup> submissionGroupMap = content.stream().collect(Collectors.toMap(SubmissionGroup::getId, sg -> {
@@ -543,7 +543,7 @@ public abstract class BaseSubmissionServiceImpl<
     @Override
     public void uploadCompressedResultsByDataOwner(Long submissionId, File compressedFile) throws IOException {
 
-        Submission submission = submissionRepository.findById(submissionId);
+        Submission submission = submissionRepository.getOne(submissionId);
         Objects.requireNonNull(submission);
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         IUser user = userService.getByUsername(userDetails.getUsername());
@@ -591,7 +591,7 @@ public abstract class BaseSubmissionServiceImpl<
         List<ResultFile> resultFiles = submission.getResultFiles();
         resultFiles.add(resultFile);
         submission.setUpdated(updated);
-        submissionResultFileRepository.save(resultFiles);
+        submissionResultFileRepository.saveAll(resultFiles);
         saveSubmission(submission);
         return resultFile;
     }
@@ -608,13 +608,13 @@ public abstract class BaseSubmissionServiceImpl<
             resultFile.setPath(arachneFileMeta.getPath());
             resultFiles.add(resultFile);
         }
-        submissionResultFileRepository.save(resultFiles);
+        submissionResultFileRepository.saveAll(resultFiles);
     }
 
     @Override
     public void getSubmissionAllFiles(Long submissionGroupId, String archiveName, OutputStream os) throws IOException {
 
-        SubmissionGroup submissionGroup = submissionGroupRepository.findOne(submissionGroupId);
+        SubmissionGroup submissionGroup = submissionGroupRepository.getOne(submissionGroupId);
         Path storeFilesPath = analysisHelper.getSubmissionGroupFolder(submissionGroup);
         try (ZipOutputStream zos = new ZipOutputStream(os)) {
             for (SubmissionFile submissionFile : submissionGroup.getFiles()) {
@@ -663,19 +663,19 @@ public abstract class BaseSubmissionServiceImpl<
     @Override
     public SubmissionGroup getSubmissionGroupById(Long id) throws NotExistException {
 
-        return submissionGroupRepository.findOne(id);
+        return submissionGroupRepository.getOne(id);
     }
 
     @Override
     public void deleteSubmissionStatusHistory(List<SubmissionStatusHistoryElement> statusHistory) {
 
-        submissionStatusHistoryRepository.delete(statusHistory);
+        submissionStatusHistoryRepository.deleteAll(statusHistory);
     }
 
     @Override
     public SubmissionStatusHistoryElement getSubmissionStatusHistoryElementById(Long id) {
 
-        return submissionStatusHistoryRepository.findOne(id);
+        return submissionStatusHistoryRepository.findById(id).orElse(null);
     }
 
     @Override
@@ -701,13 +701,13 @@ public abstract class BaseSubmissionServiceImpl<
     @Override
     public void deleteSubmissions(List<T> submissions) {
 
-        submissionRepository.delete(submissions);
+        submissionRepository.deleteAll(submissions);
     }
 
     @Override
     public void deleteSubmissionGroups(List<SubmissionGroup> groups) {
 
-        submissionGroupRepository.delete(groups);
+        submissionGroupRepository.deleteAll(groups);
     }
 
     @Override
@@ -769,7 +769,7 @@ public abstract class BaseSubmissionServiceImpl<
     @Override
     public List<ArachneFileMeta> getResultFiles(IUser user, Long submissionId, ResultFileSearch resultFileSearch) throws PermissionDeniedException {
 
-        Submission submission = submissionRepository.findById(submissionId, EntityUtils.fromAttributePaths("dataSource", "dataSource.dataNode"));
+        Submission submission = submissionRepository.findById(submissionId, EntityUtils.fromAttributePaths("dataSource", "dataSource.dataNode")).get();
         checkSubmissionPermission(user, submission);
 
         String resultFilesPath = contentStorageHelper.getResultFilesDir(submission, resultFileSearch.getPath());
@@ -806,7 +806,7 @@ public abstract class BaseSubmissionServiceImpl<
 
     public ResultFile getResultFileById(Long fileId) {
 
-        return resultFileRepository.findById(fileId);
+        return resultFileRepository.findById(fileId).orElseThrow(IllegalArgumentException::new);
     }
 
     @Override
@@ -818,7 +818,7 @@ public abstract class BaseSubmissionServiceImpl<
             OutputStream os) throws
             IOException, PermissionDeniedException {
 
-        Submission submission = submissionRepository.findOne(submissionId);
+        Submission submission = submissionRepository.getOne(submissionId);
         checkSubmissionPermission(user, submission);
 
         Path resultFilesPath = Paths.get(contentStorageHelper.getResultFilesDir(submission));

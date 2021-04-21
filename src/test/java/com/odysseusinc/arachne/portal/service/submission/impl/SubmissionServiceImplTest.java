@@ -15,7 +15,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,8 +28,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.anyList;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SubmissionServiceImplTest {
@@ -60,15 +63,19 @@ public class SubmissionServiceImplTest {
     private SubmissionServiceImpl submissionService;
     @Captor
     private ArgumentCaptor<File> fileCaptor;
+    @Captor
+    private ArgumentCaptor<String> stringCaptor;
+    @Captor
+    private ArgumentCaptor<Long> longCaptor;
 
     @Before
-    public void setUp(){
+    public void setUp() {
 
-        when(submissionRepository.findById(any())).thenReturn(submission);
+        when(submissionRepository.getOne(any())).thenReturn(submission);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(userDetails);
-        when(userService.getByUsername(anyString())).thenReturn(user);
-        when(contentStorageService.saveFile(any(),any(),any())).thenReturn(arachneFileMeta);
+        when(userService.getByUsername(any())).thenReturn(user);
+        when(contentStorageService.saveFile(any(), any(), any())).thenReturn(arachneFileMeta);
 
         SecurityContextHolder.setContext(securityContext);
     }
@@ -80,8 +87,8 @@ public class SubmissionServiceImplTest {
 
         submissionService.uploadCompressedResultsByDataOwner(1L, new File(zipFileUrl.getPath()));
 
-        verify(contentStorageService, times(2)).saveFile(fileCaptor.capture(),anyString(),anyLong());
-        verify(submissionResultFileRepository).save(anyList());
+        verify(contentStorageService, times(2)).saveFile(fileCaptor.capture(), stringCaptor.capture(), longCaptor.capture());
+        verify(submissionResultFileRepository).saveAll(anyList());
         final List<String> capturedFileNames = fileCaptor.getAllValues().stream().map(File::getName).collect(Collectors.toList());
         assertThat(capturedFileNames).containsExactly("test2.txt", "test3.txt");
     }
@@ -96,7 +103,7 @@ public class SubmissionServiceImplTest {
         verify(contentStorageHelper).getResultFilesDir(submission, "output/test2.txt");
         verify(contentStorageHelper).getResultFilesDir(submission, "output/test3.txt");
 
-        verify(contentStorageService, times(2)).saveFile(fileCaptor.capture(),anyString(),anyLong());
+        verify(contentStorageService, times(2)).saveFile(fileCaptor.capture(), stringCaptor.capture(), longCaptor.capture());
         final List<String> capturedFileNames = fileCaptor.getAllValues().stream().map(File::getName).collect(Collectors.toList());
         assertThat(capturedFileNames).containsExactly("test2.txt", "test3.txt");
     }

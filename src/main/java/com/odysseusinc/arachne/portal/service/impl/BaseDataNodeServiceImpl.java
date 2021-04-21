@@ -178,7 +178,7 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode, DS extends ID
     public DN getById(Long id) throws NotExistException {
 
         if (Objects.nonNull(id)) {
-            final DN dataNode = dataNodeRepository.findOne(id);
+            final DN dataNode = dataNodeRepository.getOne(id);
             if (dataNode == null) {
                 final String message = String.format(IS_NOT_FOUND_EXCEPTION, id);
                 throw new NotExistException(message, DataNode.class);
@@ -192,7 +192,7 @@ public abstract class BaseDataNodeServiceImpl<DN extends DataNode, DS extends ID
     public DN getByIdUnsecured(Long id) throws NotExistException {
 
         if (Objects.nonNull(id)) {
-            final DN dataNode = dataNodeRepository.findOne(id);
+            final DN dataNode = dataNodeRepository.getOne(id);
             if (dataNode == null) {
                 final String message = String.format(IS_NOT_FOUND_EXCEPTION, id);
                 throw new NotExistException(message, DataNode.class);

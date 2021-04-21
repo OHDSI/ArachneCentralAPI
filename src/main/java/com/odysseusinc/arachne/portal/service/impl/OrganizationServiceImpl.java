@@ -126,7 +126,7 @@ public class OrganizationServiceImpl implements OrganizationService {
     public void delete(Long id) {
 
         final Organization exist = getById(id);
-        organizationRepository.delete(id);
+        organizationRepository.deleteById(id);
         logger.info("{} deleted", exist);
     }
 

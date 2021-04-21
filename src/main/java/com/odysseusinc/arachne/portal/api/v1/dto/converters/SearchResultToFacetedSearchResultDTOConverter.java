@@ -113,7 +113,7 @@ public abstract class SearchResultToFacetedSearchResultDTOConverter {
         if (source.getSolrQuery().getStart() > 0) {
             pageNum += (source.getSolrQuery().getStart() / source.getSolrQuery().getRows());
         }
-        return new PageRequest(pageNum, itemsOnPage);
+        return PageRequest.of(pageNum, itemsOnPage);
     }
 
     protected long getTotal(SearchResult source) {

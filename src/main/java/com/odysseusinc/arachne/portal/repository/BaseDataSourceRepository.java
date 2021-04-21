@@ -46,8 +46,6 @@ public interface BaseDataSourceRepository<T extends IDataSource> extends EntityG
             " AND ds.deleted IS NULL\n" +
             " AND dn.is_virtual = FALSE\n";
 
-    T findOne(Long id);
-
     List<T> findByIdInAndDeletedIsNullAndPublishedTrue(List<Long> ids);
 
     Optional<T> findByName(String name);

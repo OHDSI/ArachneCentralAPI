@@ -459,7 +459,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
         }
         final SubmissionInsight insight = submissionInsightService.getSubmissionInsight(submissionId);
         final SubmissionInsightDTO insightDTO = conversionService.convert(insight, SubmissionInsightDTO.class);
-        final Set<CommentTopic> recentTopics = submissionInsightService.getInsightComments(insight, size, new Sort(order, "id"));
+        final Set<CommentTopic> recentTopics = submissionInsightService.getInsightComments(insight, size, Sort.by(order, "id"));
         final List<Commentable> recentCommentables = getRecentCommentables(conversionService, recentTopics, insightDTO);
         insightDTO.setRecentCommentEntities(recentCommentables);
         final JsonResult<SubmissionInsightDTO> result = new JsonResult<>(NO_ERROR);

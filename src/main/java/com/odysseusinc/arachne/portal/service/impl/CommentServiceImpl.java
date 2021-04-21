@@ -80,7 +80,7 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public Set<CommentTopic> list(Set<CommentTopic> topics, Integer size, Sort sort) {
 
-        Pageable pageable = new PageRequest(0, size, sort);
+        Pageable pageable = PageRequest.of(0, size, sort);
         final Page<Comment> page = commentRepository.getAllByTopicIn(topics, pageable);
         final List<Comment> comments = page.getContent();
         comments.forEach(comment -> connectToTopic(topics, comment));
@@ -110,7 +110,7 @@ public class CommentServiceImpl implements CommentService {
         final CommentTopic topic = commentTopicRepository.getOne(topicId);
         comment.setTopic(topic);
         if (parentId != null) {
-            final Comment parent = commentRepository.findOne(parentId);
+            final Comment parent = commentRepository.findById(parentId).orElse(null);
             comment.setParent(parent);
         }
         return commentRepository.save(comment);
@@ -130,7 +130,7 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public void deleteComments(List<Comment> comments) {
 
-        commentRepository.delete(comments);
+        commentRepository.deleteAll(comments);
     }
 
     @Override

@@ -6,39 +6,34 @@
 
     <artifactId>portal</artifactId>
     <groupId>com.odysseusinc.arachne</groupId>
-    <version>1.17.1-SNAPSHOT</version>
+    <version>1.18.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>1.5.22.RELEASE</version>
+        <version>2.1.18.RELEASE</version>
         <relativePath/>
     </parent>
 
     <properties>
-        <spring.boot.version>1.5.22.RELEASE</spring.boot.version>
+        <spring.boot.version>2.1.18.RELEASE</spring.boot.version>
         <start-class>com.odysseusinc.arachne.portal.PortalStarter</start-class>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
         <jjwt.version>0.10.8</jjwt.version>
         <activemq.version>5.15.14</activemq.version>
-        <assertj.version>3.13.2</assertj.version>
+        <assertj.version>3.19.0</assertj.version>
         <build.id>${BUILD_TIMESTAMP}</build.id>
         <build.number>${BUILD_NUMBER}</build.number>
         <clamav.version>2.0.1</clamav.version>
         <commons.fileupload.version>1.4</commons.fileupload.version>
-        <commons.io.version>2.8.0</commons.io.version>
-        <commons.lang3.version>3.11</commons.lang3.version>
         <commonsCsv.version>1.7</commonsCsv.version>
         <dockerImagePrefix>hub.odysseusinc.com</dockerImagePrefix>
         <ehcache.version>1.3.0</ehcache.version>
         <gson.version>2.7</gson.version>
-        <hibernate.version>5.2.12.Final</hibernate.version>
-        <hikaricp.version>2.6.3</hikaricp.version>
-        <jackson.version>2.10.5.20201202</jackson.version>
-        <jodConverter.version>4.2.0</jodConverter.version>
-        <postgresql.version>42.2.15</postgresql.version>
+        <jodConverter.version>4.3.0</jodConverter.version>
+        <postgresql.version>42.2.19</postgresql.version>
         <springRetryVersion>1.2.4.RELEASE</springRetryVersion>
         <bcprov-jdk15on.version>1.68</bcprov-jdk15on.version>
     </properties>
@@ -98,24 +93,9 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>org.thymeleaf</groupId>
-                <artifactId>thymeleaf</artifactId>
-                <version>3.0.6.RELEASE</version>
-            </dependency>
-            <dependency>
-                <groupId>org.thymeleaf</groupId>
-                <artifactId>thymeleaf-spring4</artifactId>
-                <version>3.0.6.RELEASE</version>
-            </dependency>
-            <dependency>
                 <artifactId>solr-solrj</artifactId>
                 <groupId>org.apache.solr</groupId>
                 <version>7.7.3</version>
-            </dependency>
-            <dependency>
-                <groupId>org.flywaydb</groupId>
-                <artifactId>flyway-core</artifactId>
-                <version>4.2.0</version>
             </dependency>
             <dependency>
                 <groupId>org.ohdsi</groupId>
@@ -125,7 +105,6 @@
             <dependency>
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
-                <version>${commons.io.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -159,12 +138,6 @@
             <artifactId>arachne-sys-settings</artifactId>
             <groupId>com.odysseusinc.arachne</groupId>
             <version>${project.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.flywaydb</groupId>
-                    <artifactId>flyway-core</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.odysseusinc.arachne</groupId>
@@ -175,32 +148,26 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-            <version>${spring.boot.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
-            <version>${spring.boot.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-logging</artifactId>
-            <version>${spring.boot.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
-            <version>${spring.boot.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
-            <version>${spring.boot.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <version>${spring.boot.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.assertj</groupId>
@@ -211,7 +178,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-websocket</artifactId>
-            <version>${spring.boot.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
@@ -221,11 +187,14 @@
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>${postgresql.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
@@ -235,7 +204,6 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>${commons.lang3.version}</version>
         </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
@@ -290,12 +258,8 @@
             <groupId>org.apache.solr</groupId>
         </dependency>
         <dependency>
-            <groupId>org.thymeleaf</groupId>
-            <artifactId>thymeleaf</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.thymeleaf</groupId>
-            <artifactId>thymeleaf-spring4</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
 
         <dependency>
@@ -315,17 +279,12 @@
         <dependency>
             <groupId>commons-beanutils</groupId>
             <artifactId>commons-beanutils</artifactId>
+            <version>1.9.4</version>
         </dependency>
-        <dependency>
-            <groupId>com.zaxxer</groupId>
-            <artifactId>HikariCP</artifactId>
-            <version>${hikaricp.version}</version>
-        </dependency>
-
-        <dependency>
+               <dependency>
             <groupId>org.dbunit</groupId>
             <artifactId>dbunit</artifactId>
-            <version>2.5.3</version>
+            <version>2.7.0</version>
             <type>jar</type>
             <scope>test</scope>
         </dependency>
@@ -365,7 +324,7 @@
         <dependency>
             <groupId>com.cosium.spring.data</groupId>
             <artifactId>spring-data-jpa-entity-graph</artifactId>
-            <version>1.11.03</version>
+            <version>2.1.0</version>
         </dependency>
         <dependency>
             <groupId>org.jodconverter</groupId>
@@ -473,6 +432,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <executions>
                     <execution>
+                        <id>repackage</id>
                         <goals>
                             <goal>repackage</goal>
                         </goals>
@@ -485,7 +445,7 @@
             <plugin>
                 <groupId>com.spotify</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
-                <version>1.0.0</version>
+                <version>1.2.2</version>
                 <configuration>
                     <imageName>${dockerImagePrefix}/${project.artifactId}</imageName>
                     <imageTags>
@@ -566,8 +526,8 @@
 
     <repositories>
         <repository>
-            <id>odysseus.community.snapshots</id>
-            <name>Odysseus community snapshots</name>
+            <id>community-libs-snapshot-local</id>
+            <name>community-libs-snapshot-local</name>
             <releases>
                 <enabled>false</enabled>
                 <updatePolicy>always</updatePolicy>
@@ -576,11 +536,11 @@
                 <enabled>true</enabled>
                 <updatePolicy>always</updatePolicy>
             </snapshots>
-            <url>http://repo.odysseusinc.com/artifactory/community-libs-snapshot-local</url>
+            <url>https://nexus.odysseusinc.com/repository/community-libs-snapshot-local</url>
         </repository>
         <repository>
-            <id>odysseus.community.releases</id>
-            <name>Odysseus community releases</name>
+            <id>community-libs-release-local</id>
+            <name>community-libs-release-local</name>
             <releases>
                 <enabled>true</enabled>
                 <updatePolicy>always</updatePolicy>
@@ -589,7 +549,7 @@
                 <enabled>false</enabled>
                 <updatePolicy>always</updatePolicy>
             </snapshots>
-            <url>http://repo.odysseusinc.com/artifactory/community-libs-release-local</url>
+            <url>https://nexus.odysseusinc.com/repository/community-libs-release-local</url>
         </repository>
         <repository>
             <id>ohdsi</id>
@@ -616,14 +576,14 @@
 
     <distributionManagement>
         <snapshotRepository>
-            <id>artifactory</id>
-            <name>Odysseus community snapshots</name>
-            <url>http://repo.odysseusinc.com/artifactory/community-libs-snapshot-local</url>
+            <id>community-libs-snapshot-local</id>
+            <name>community-libs-snapshot-local</name>
+            <url>https://nexus.odysseusinc.com/repository/community-libs-snapshot-local</url>
         </snapshotRepository>
         <repository>
-            <id>artifactory</id>
-            <name>Odysseus community releases</name>
-            <url>http://repo.odysseusinc.com/artifactory/community-libs-release-local</url>
+            <id>community-libs-release-local</id>
+            <name>community-libs-release-local</name>
+            <url>https://nexus.odysseusinc.com/repository/community-libs-release-local</url>
         </repository>
     </distributionManagement>
 
