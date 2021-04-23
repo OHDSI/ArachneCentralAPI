@@ -11,7 +11,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.internal.util.collections.Sets;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -20,7 +20,7 @@ import java.util.Set;
 
 import static com.odysseusinc.arachne.portal.model.PortalConstants.TENANTS_USERS_TABLE_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -42,7 +42,7 @@ public class UsersOperationsServiceTest {
     private UsersOperationsServiceImpl usersOperationsService;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
 
         userA = new RawUser();
         userA.setId(1L);
@@ -55,8 +55,6 @@ public class UsersOperationsServiceTest {
     public void shouldDeleteUsersRecord() {
 
         final List<IUser> users = Arrays.asList(userA, userB);
-        when(baseRawUserRepository.findByIdIn(any())).thenReturn(users);
-        when(baseRawUserRepository.checkIfUsersAreDeletable("1,2", TENANTS_USERS_TABLE_NAME)).thenReturn("1,2");
 
         usersOperationsService.deleteAllUsers(users);
 

@@ -156,7 +156,7 @@ public class AnalysisHelperTest {
 
         List<Analysis> exists = analysisRepository.findByTitleAndStudyId("AnalysisHelperTest#test", study.getId());
         if (!exists.isEmpty()) {
-            analysisRepository.delete(exists);
+            analysisRepository.deleteAll(exists);
         }
         Analysis analysis = new Analysis();
         analysis.setTitle("AnalysisHelperTest#test");
@@ -200,7 +200,7 @@ public class AnalysisHelperTest {
         if (!exists.isEmpty()) {
             analysisFileRepository.deleteAll();
             submissionFileRepository.deleteAll();
-            studyRepository.delete(exists);
+            studyRepository.deleteAll(exists);
         }
         Study study = new Study();
         study.setTitle("AnalysisHelperTest#test");

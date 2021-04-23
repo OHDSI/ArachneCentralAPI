@@ -128,7 +128,7 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends I
             boolean requiredFieldsAreSet = ObjectUtils.allNotNull(study.getId(), study.getTenant(), study.getPrivacy());
 
             if (!requiredFieldsAreSet) {
-                study = studyRepository.findOne(study.getId());
+                study = studyRepository.getOne(study.getId());
             }
 
             if (Objects.equals(study.getTenant().getId(), user.getActiveTenantId())) {
@@ -153,7 +153,7 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends I
             if (analysis.getStudy() != null) {
                 result = getRolesByStudy(user, analysis.getStudy());
             } else {
-                Analysis byId = analysisRepository.findOne(analysis.getId());
+                Analysis byId = analysisRepository.getOne(analysis.getId());
                 result = byId != null ? getRolesByStudy(user, byId.getStudy()) : result;
             }
             if (Objects.nonNull(analysis.getAuthor()) && Objects.equals(analysis.getAuthor().getId(), user.getId())) {

@@ -46,8 +46,8 @@ public class BaseDataSourceServiceTest extends SingleContextTest {
     @Test
     public void testSuggestionDataSourceDifferentCase() {
         //Arrange
-        Sort sort = new Sort(Sort.Direction.ASC, "name");
-        PageRequest pageRequest = new PageRequest(0, 10, sort);
+        Sort sort = Sort.by(Sort.Direction.ASC, "name");
+        PageRequest pageRequest = PageRequest.of(0, 10, sort);
         //Action
         Page pageWithMatchedDS = baseDataSourceService.suggestDataSource(checkingString, 0L, 2L, pageRequest);
         //Assert

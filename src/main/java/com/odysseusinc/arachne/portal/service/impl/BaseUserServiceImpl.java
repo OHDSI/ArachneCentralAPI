@@ -107,7 +107,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specifications;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -147,7 +147,7 @@ import static com.odysseusinc.arachne.portal.repository.UserSpecifications.*;
 import static com.odysseusinc.arachne.portal.service.RoleService.ROLE_ADMIN;
 import static java.lang.Boolean.TRUE;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
-import static org.springframework.data.jpa.domain.Specifications.where;
+import static org.springframework.data.jpa.domain.Specification.where;
 
 
 public abstract class BaseUserServiceImpl<
@@ -328,12 +328,10 @@ public abstract class BaseUserServiceImpl<
         if (id == null) {
             throw new ValidationException("remove user: id must be not null");
         }
-        U user = rawUserRepository.findOne(id);
-        if (user == null) {
-            throw new UserNotFoundException("removeUser", "remove user: user not found");
-        }
+        U user = rawUserRepository.findById(id).orElseThrow(()-> new UserNotFoundException("removeUser", "remove user: user not found"));
+
         solrService.delete(user);
-        rawUserRepository.delete(user.getId());
+        rawUserRepository.deleteById(user.getId());
     }
 
     @Override
@@ -480,20 +478,20 @@ public abstract class BaseUserServiceImpl<
     @Override
     public U getByIdInAnyTenantAndInitializeCollections(Long id) {
 
-        return initUserCollections(rawUserRepository.findOne(id));
+        return initUserCollections(rawUserRepository.getOne(id));
     }
 
     @Override
     public U getByUuidInAnyTenantAndInitializeCollections(String uuid) {
 
         final Long id = UserIdUtils.uuidToId(uuid);
-        return initUserCollections(rawUserRepository.findOne(id));
+        return initUserCollections(rawUserRepository.findById(id).orElse(null));
     }
 
     @Override
     public U getById(Long id) {
 
-        return userRepository.findOne(id);
+        return userRepository.getOne(id);
     }
 
     private void afterUpdate(U savedUser) {
@@ -548,12 +546,12 @@ public abstract class BaseUserServiceImpl<
             forUpdate.setZipCode(user.getZipCode());
         }
         if (user.getCountry() != null) {
-            Country country = user.getCountry().getId() != null ? countryRepository.findOne(user.getCountry().getId()) : null;
+            Country country = user.getCountry().getId() != null ? countryRepository.findById(user.getCountry().getId()).orElse(null) : null;
             forUpdate.setCountry(country);
         }
         if (user.getStateProvince() != null) {
             Long stateProvinceId = user.getStateProvince().getId();
-            StateProvince stateProvince = stateProvinceId != null ? stateProvinceRepository.findOne(stateProvinceId) : null;
+            StateProvince stateProvince = stateProvinceId != null ? stateProvinceRepository.findById(stateProvinceId).orElse(null) : null;
             forUpdate.setStateProvince(stateProvince);
         }
         if (user.getAffiliation() != null) {
@@ -576,7 +574,7 @@ public abstract class BaseUserServiceImpl<
     public U update(final U user)
             throws IllegalAccessException, SolrServerException, IOException, NotExistException, NoSuchFieldException {
 
-        U forUpdate = rawUserRepository.findOne(user.getId());
+        U forUpdate = rawUserRepository.findById(user.getId()).orElse(null);
         forUpdate = baseUpdate(forUpdate, user);
         U savedUser = rawUserRepository.saveAndFlush(forUpdate);
         savedUser = initUserCollections(savedUser);
@@ -585,7 +583,7 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    @PreAuthorize("T(String).CASE_INSENSITIVE_ORDER.compare(@rawUserRepository.findOne(#user.id)?.getUsername(), authentication.principal.username)==0 || hasRole('ROLE_ADMIN')")
+    @PreAuthorize("T(String).CASE_INSENSITIVE_ORDER.compare(@rawUserRepository.getOne(#user.id)?.getUsername(), authentication.principal.username)==0 || hasRole('ROLE_ADMIN')")
     public U updateInAnyTenant(U user) throws NotExistException {
         U forUpdate = getByIdInAnyTenant(user.getId());
         forUpdate = baseUpdate(forUpdate, user);
@@ -619,7 +617,7 @@ public abstract class BaseUserServiceImpl<
     public U getByUuid(String uuid) {
 
         if (uuid != null && !uuid.isEmpty()) {
-            return userRepository.findById(UserIdUtils.uuidToId(uuid));
+            return userRepository.getOne(UserIdUtils.uuidToId(uuid));
         } else {
             throw new IllegalArgumentException("Given uuid is blank");
         }
@@ -685,9 +683,9 @@ public abstract class BaseUserServiceImpl<
     @Override
     public Page<U> getPage(final Pageable pageable, final UserSearch userSearch) {
 
-        final Pageable pageableWithUpdatedOrder = new PageRequest(pageable.getPageNumber() - 1, pageable.getPageSize(), pageable.getSort());
+        final Pageable pageableWithUpdatedOrder = PageRequest.of(pageable.getPageNumber() - 1, pageable.getPageSize(), pageable.getSort());
 
-        final Specifications<U> spec = buildSpecification(userSearch);
+        final Specification<U> spec = buildSpecification(userSearch);
 
         final Page<U> page = rawUserRepository.findAll(spec, pageableWithUpdatedOrder);
 
@@ -697,7 +695,7 @@ public abstract class BaseUserServiceImpl<
     @Override
     public List<U> getList(final UserSearch userSearch) {
 
-        final Specifications<U> spec = buildSpecification(userSearch);
+        final Specification<U> spec = buildSpecification(userSearch);
         return rawUserRepository.findAll(spec);
     }
 
@@ -707,9 +705,9 @@ public abstract class BaseUserServiceImpl<
         return rawUserRepository.findByEmailIgnoreCaseIn(emails);
     }
 
-    private Specifications<U> buildSpecification(final UserSearch userSearch) {
+    private Specification<U> buildSpecification(final UserSearch userSearch) {
 
-        Specifications<U> spec = where(UserSpecifications.hasEmail());
+        Specification<U> spec = where(UserSpecifications.hasEmail());
         if (userSearch.getEmailConfirmed() != null) {
             spec = spec.and(emailConfirmed(userSearch.getEmailConfirmed()));
         }
@@ -773,7 +771,7 @@ public abstract class BaseUserServiceImpl<
             NoSuchFieldException, SolrServerException, IOException {
 
         final Long id = user.getId();
-        final U existingUser = rawUserRepository.findOne(id);
+        final U existingUser = rawUserRepository.findById(id).orElse(null);
         if (existingUser == null) {
             final String message = String.format("User with id='%s' does not exist", id);
             throw new NotExistException(message, User.class);
@@ -791,7 +789,7 @@ public abstract class BaseUserServiceImpl<
     public void updatePassword(U user, String oldPassword, String newPassword)
             throws ValidationException, PasswordValidationException {
 
-        U exists = userRepository.findOne(user.getId());
+        U exists = userRepository.getOne(user.getId());
 
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
             throw new ValidationException(PASSWORD_NOT_MATCH_EXC);
@@ -805,7 +803,7 @@ public abstract class BaseUserServiceImpl<
     public U addSkillToUser(Long userId, Long skillId)
             throws NotExistException, IllegalAccessException, SolrServerException, IOException, NoSuchFieldException {
 
-        U forUpdate = userRepository.findOne(userId);
+        U forUpdate = userRepository.getOne(userId);
         S skill = skillService.getById(skillId);
         forUpdate.getSkills().add(skill);
         U savedUser = initUserCollections(rawUserRepository.save(forUpdate));
@@ -818,7 +816,7 @@ public abstract class BaseUserServiceImpl<
     public U removeSkillFromUser(Long userId, Long skillId)
             throws NotExistException, IllegalAccessException, SolrServerException, IOException, NoSuchFieldException {
 
-        U forUpdate = userRepository.findOne(userId);
+        U forUpdate = userRepository.getOne(userId);
         Skill skill = skillService.getById(skillId);
         forUpdate.getSkills().remove(skill);
         U savedUser = initUserCollections(rawUserRepository.save(forUpdate));
@@ -831,7 +829,7 @@ public abstract class BaseUserServiceImpl<
     public U addLinkToUser(Long userId, UserLink link)
             throws NotExistException, NotUniqueException, PermissionDeniedException {
 
-        U forUpdate = userRepository.findOne(userId);
+        U forUpdate = userRepository.getOne(userId);
         link.setUser(forUpdate);
         userLinkService.create(link);
         return initUserCollections(forUpdate);
@@ -851,7 +849,7 @@ public abstract class BaseUserServiceImpl<
     public U removeLinkFromUser(Long userId, Long linkId) throws NotExistException {
 
         userLinkService.delete(linkId);
-        U user = userRepository.findOne(userId);
+        U user = userRepository.getOne(userId);
         user.getLinks().size();
         return initUserCollections(user);
     }
@@ -860,7 +858,7 @@ public abstract class BaseUserServiceImpl<
     public U addPublicationToUser(Long userId, UserPublication publication)
             throws NotExistException, NotUniqueException, PermissionDeniedException {
 
-        U forUpdate = userRepository.findOne(userId);
+        U forUpdate = userRepository.getOne(userId);
         publication.setUser(forUpdate);
         UserPublication userPublication = userPublicationService.create(publication);
         forUpdate.getPublications().add(userPublication);
@@ -871,7 +869,7 @@ public abstract class BaseUserServiceImpl<
     public U removePublicationFromUser(Long userId, Long publicationId) throws NotExistException {
 
         userPublicationService.delete(publicationId);
-        U user = userRepository.findOne(userId);
+        U user = userRepository.getOne(userId);
         user.getPublications().size();
         return (U) initUserCollections(user);
     }
@@ -1136,9 +1134,9 @@ public abstract class BaseUserServiceImpl<
         Sort.Direction direction = sortAsc != null && sortAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
         final Sort sort;
         if (sortBy == null || sortBy.isEmpty() || sortBy.equals("name")) {
-            sort = new Sort(direction, "firstname", "lastname", "middlename");
+            sort = Sort.by(direction, "firstname", "lastname", "middlename");
         } else {
-            sort = new Sort(direction, sortBy);
+            sort = Sort.by(direction, sortBy);
         }
         List<U> admins = rawUserRepository.findByRoles_name(ROLE_ADMIN, sort);
         return admins;
@@ -1147,7 +1145,7 @@ public abstract class BaseUserServiceImpl<
     @Override
     public void addUserToAdmins(Long id) {
 
-        U user = rawUserRepository.findOne(id);
+        U user = rawUserRepository.getOne(id);
         List<Role> roles = roleRepository.findByName(ROLE_ADMIN);
         if (roles != null && !roles.isEmpty()) {
             user.getRoles().add(roles.get(0));
@@ -1160,7 +1158,7 @@ public abstract class BaseUserServiceImpl<
     @Override
     public void removeUserFromAdmins(Long id) {
 
-        U user = rawUserRepository.findOne(id);
+        U user = rawUserRepository.getOne(id);
         List<Role> roles = roleRepository.findByName(ROLE_ADMIN);
         if (roles != null && !roles.isEmpty()) {
             user.getRoles().remove(roles.get(0));
@@ -1185,7 +1183,7 @@ public abstract class BaseUserServiceImpl<
     @Override
     public U findOne(Long participantId) {
 
-        return userRepository.findOne(participantId);
+        return userRepository.getOne(participantId);
     }
 
     @Override
@@ -1256,7 +1254,7 @@ public abstract class BaseUserServiceImpl<
     @Override
     public U getRawUser(final Long userId) {
 
-        return rawUserRepository.findOne(userId);
+        return rawUserRepository.getOne(userId);
     }
 
     @Override

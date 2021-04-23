@@ -109,17 +109,17 @@ public abstract class BaseSubmissionInsightServiceImpl implements SubmissionInsi
                 .stream()
                 .map(sf -> new SubmissionInsightSubmissionFile(savedInsight, sf, new CommentTopic()))
                 .collect(Collectors.toList());
-        submissionInsightSubmissionFileRepository.save(submissionInsightSubmissionFiles);
+        submissionInsightSubmissionFileRepository.saveAll(submissionInsightSubmissionFiles);
         final List<ResultFile> resultFiles = submission.getResultFiles();
         resultFiles.forEach(resultFile -> resultFile.setCommentTopic(new CommentTopic()));
-        submissionResultFileRepository.save(resultFiles);
+        submissionResultFileRepository.saveAll(resultFiles);
         return savedInsight;
     }
 
     @Override
     public void deleteSubmissionInsightSubmissionFileLinks(List<SubmissionInsightSubmissionFile> links) {
 
-        submissionInsightSubmissionFileRepository.delete(links);
+        submissionInsightSubmissionFileRepository.deleteAll(links);
     }
 
     @Override
@@ -169,14 +169,14 @@ public abstract class BaseSubmissionInsightServiceImpl implements SubmissionInsi
         throwNotExistExceptionIfNull(submission.getSubmissionInsight(), submissionId);
         final List<ResultFile> resultFiles = submission.getResultFiles();
         resultFiles.forEach(resultFile -> resultFile.setCommentTopic(null));
-        submissionResultFileRepository.save(resultFiles);
+        submissionResultFileRepository.saveAll(resultFiles);
         submissionInsightRepository.deleteBySubmissionId(submissionId);
     }
 
     @Override
     public void tryDeleteSubmissionInsight(Long submissionInsightId) {
 
-        submissionInsightRepository.delete(submissionInsightId);
+        submissionInsightRepository.deleteById(submissionInsightId);
     }
 
     private void throwNotExistExceptionIfNull(Submission submission, Long submissionId) throws NotExistException {

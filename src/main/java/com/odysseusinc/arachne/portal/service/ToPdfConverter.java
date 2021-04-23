@@ -30,10 +30,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import com.odysseusinc.arachne.portal.exception.ArachneSystemRuntimeException;
-import org.jodconverter.DocumentConverter;
-import org.jodconverter.document.DefaultDocumentFormatRegistry;
-import org.jodconverter.office.LocalOfficeManager;
-import org.jodconverter.office.OfficeException;
+import org.jodconverter.core.DocumentConverter;
+import org.jodconverter.core.document.DefaultDocumentFormatRegistry;
+import org.jodconverter.core.office.OfficeException;
+import org.jodconverter.local.office.LocalOfficeManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

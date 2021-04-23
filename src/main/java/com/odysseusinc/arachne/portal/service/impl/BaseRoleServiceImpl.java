@@ -52,7 +52,7 @@ public abstract class BaseRoleServiceImpl<R extends Role> extends CRUDLServiceIm
     @Override
     public R update(R role) throws NotUniqueException, NotExistException {
 
-        if (!roleRepository.exists(role.getId())) {
+        if (!roleRepository.existsById(role.getId())) {
             throw new NotExistException("update: role with id=" + role.getId() + " not exist", getType());
         }
         List<R> roles = roleRepository.findByName(role.getName());
