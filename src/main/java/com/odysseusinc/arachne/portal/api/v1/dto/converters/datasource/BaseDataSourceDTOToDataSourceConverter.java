@@ -42,6 +42,7 @@ public abstract class BaseDataSourceDTOToDataSourceConverter<DTO extends CommonB
         dataSource.setCdmVersion(source.getCdmVersion());
         dataSource.setPublished(source.getPublished());
         dataSource.setDbmsType(source.getDbmsType());
+        dataSource.setAccessType(source.getAccessType());
 
         proceedAdditionalFields(dataSource, source);
 
