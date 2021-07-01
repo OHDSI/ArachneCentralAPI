@@ -88,6 +88,7 @@ import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.model.FileHeader;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -119,11 +120,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -551,38 +554,53 @@ public abstract class BaseSubmissionServiceImpl<
         Path unzipDir = Files.createTempDirectory(String.format("submission_%d_results", submissionId));
 
         try {
-            unzipRecursively(new ZipFile(compressedFile), unzipDir);
+            unzipWithNested(new ZipFile(compressedFile), unzipDir);
             storeExtractedFiles(submission, unzipDir, user.getId());
         } finally {
             FileUtils.deleteDirectory(unzipDir.toFile());
         }
     }
 
-    private void unzipRecursively(final ZipFile zipFile, final Path unzipDir) throws IOException {
-        final List<FileHeader> fileHeaders = zipFile.getFileHeaders().stream()
-                .filter(fileHeader -> !fileHeader.isDirectory())
-                .collect(Collectors.toList());
-        for (final FileHeader fileHeader : fileHeaders) {
+    private void unzipWithNested(final ZipFile zipFile, final Path unzipDir) throws IOException {
+        final Queue<Triple<Path, ZipFile, FileHeader>> queue = zipFile.getFileHeaders().stream()
+                .filter(fh -> !fh.isDirectory())
+                .map(fh -> Triple.of(unzipDir, zipFile, fh))
+                .collect(Collectors.toCollection(LinkedList::new));
+
+        final Set<File> filesToDelete = new HashSet<>();
+
+        while (!queue.isEmpty()) {
+            final Triple<Path, ZipFile, FileHeader> element = queue.poll();
+
+            final Path unzipPath = element.getLeft();
+            final ZipFile zip = element.getMiddle();
+            final FileHeader fileHeader = element.getRight();
+
             final String relativeFilePath = fileHeader.getFileName();
             final String relativePath = FilenameUtils.getPath(relativeFilePath);
             if (isNotBlank(relativePath)) {
-                unzipDir.resolve(relativePath).toFile().mkdirs();
+                unzipPath.resolve(relativePath).toFile().mkdirs();
             }
-            final File localFile = unzipDir.resolve(relativeFilePath).toFile();
-            FileUtils.copyInputStreamToFile(zipFile.getInputStream(fileHeader), localFile);
+            final File localFile = unzipPath.resolve(relativeFilePath).toFile();
+            FileUtils.copyInputStreamToFile(zip.getInputStream(fileHeader), localFile);
 
             if (relativeFilePath.endsWith(".zip")) {
                 final ZipFile innerZipFile = new ZipFile(localFile);
                 if (innerZipFile.isValidZipFile()) {
-                    try {
-                        final String relativePathWithoutExtension = FilenameUtils.removeExtension(relativeFilePath);
-                        final Path zipFileNamedDir = unzipDir.resolve(relativePathWithoutExtension);
-                        unzipRecursively(innerZipFile, zipFileNamedDir);
-                    } finally {
-                        FileUtils.deleteQuietly(localFile);
-                    }
+                    final String relativePathWithoutExtension = FilenameUtils.removeExtension(relativeFilePath);
+                    final Path zipFileNamedDir = unzipPath.resolve(relativePathWithoutExtension);
+                    queue.addAll(innerZipFile.getFileHeaders().stream()
+                            .filter(fh -> !fh.isDirectory())
+                            .map(fh -> Triple.of(zipFileNamedDir, innerZipFile, fh))
+                            .collect(Collectors.toCollection(LinkedList::new)));
+                    filesToDelete.add(localFile);
                 }
             }
+        }
+
+        // delete unzipped zip files
+        for (final File file: filesToDelete) {
+            FileUtils.deleteQuietly(file);
         }
     }
 
