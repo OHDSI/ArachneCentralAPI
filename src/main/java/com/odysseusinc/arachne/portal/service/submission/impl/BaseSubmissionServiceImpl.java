@@ -143,7 +143,6 @@ public abstract class BaseSubmissionServiceImpl<
             + "id='%s' does not exist";
     protected static final Logger LOGGER = LoggerFactory.getLogger(BaseSubmissionService.class);
     private static final String FILE_NOT_UPLOADED_MANUALLY_EXCEPTION = "File %s was not uploaded manually";
-    private static final int MAX_NESTING_FOR_UNZIP_INNER_ZIP_FILES = 2;
 
     protected final BaseSubmissionRepository<T> submissionRepository;
     protected final BaseDataSourceService<DS> dataSourceService;
@@ -552,33 +551,33 @@ public abstract class BaseSubmissionServiceImpl<
         Path unzipDir = Files.createTempDirectory(String.format("submission_%d_results", submissionId));
 
         try {
-            unzipRecursively(new ZipFile(compressedFile), unzipDir, MAX_NESTING_FOR_UNZIP_INNER_ZIP_FILES);
+            unzipRecursively(new ZipFile(compressedFile), unzipDir);
             storeExtractedFiles(submission, unzipDir, user.getId());
         } finally {
             FileUtils.deleteDirectory(unzipDir.toFile());
         }
     }
 
-    private void unzipRecursively(final ZipFile zipFile, final Path unzipDir, final int nesting) throws IOException {
+    private void unzipRecursively(final ZipFile zipFile, final Path unzipDir) throws IOException {
         final List<FileHeader> fileHeaders = zipFile.getFileHeaders().stream()
                 .filter(fileHeader -> !fileHeader.isDirectory())
                 .collect(Collectors.toList());
-        for (FileHeader fileHeader : fileHeaders) {
+        for (final FileHeader fileHeader : fileHeaders) {
             final String relativeFilePath = fileHeader.getFileName();
             final String relativePath = FilenameUtils.getPath(relativeFilePath);
-            if(isNotBlank(relativePath)){
+            if (isNotBlank(relativePath)) {
                 unzipDir.resolve(relativePath).toFile().mkdirs();
             }
             final File localFile = unzipDir.resolve(relativeFilePath).toFile();
             FileUtils.copyInputStreamToFile(zipFile.getInputStream(fileHeader), localFile);
 
-            if (relativeFilePath.endsWith(".zip") && nesting > 0) {
+            if (relativeFilePath.endsWith(".zip")) {
                 final ZipFile innerZipFile = new ZipFile(localFile);
                 if (innerZipFile.isValidZipFile()) {
                     try {
                         final String relativePathWithoutExtension = FilenameUtils.removeExtension(relativeFilePath);
                         final Path zipFileNamedDir = unzipDir.resolve(relativePathWithoutExtension);
-                        unzipRecursively(innerZipFile, zipFileNamedDir, nesting - 1);
+                        unzipRecursively(innerZipFile, zipFileNamedDir);
                     } finally {
                         FileUtils.deleteQuietly(localFile);
                     }
