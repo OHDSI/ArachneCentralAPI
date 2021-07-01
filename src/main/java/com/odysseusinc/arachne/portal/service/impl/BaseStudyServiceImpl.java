@@ -192,7 +192,7 @@ public abstract class BaseStudyServiceImpl<
     private final Map<String, String[]> studySortPaths = new HashMap<>();
     protected final ApplicationEventPublisher eventPublisher;
     private final BaseSolrService<SF> solrService;
-    
+
     public BaseStudyService<T, DS, SS, SU> proxy;
 
     public BaseStudyServiceImpl(final UserStudyExtendedRepository userStudyExtendedRepository,
@@ -259,6 +259,7 @@ public abstract class BaseStudyServiceImpl<
         this.studySortPaths.put("leadList", new String[]{"firstLead.firstname", "firstLead.middlename", "firstLead.lastname"});
         this.studySortPaths.put("role", new String[]{"role"});
         this.studySortPaths.put("created", new String[]{"study.created"});
+        this.studySortPaths.put("updated", new String[]{"study.updated"});
         this.studySortPaths.put("type", new String[]{"study.type.name"});
         this.studySortPaths.put("status", new String[]{"study.status"});
 
@@ -450,12 +451,12 @@ public abstract class BaseStudyServiceImpl<
         userStudyItem.getStudy().setDataSources(dataSourceLinks);
         return userStudyItem;
     }
-    
+
     @Override
     public StudyKind getEntityStudyKind(final EntityType type, final Long id) {
-        
+
         final Optional<StudyKind> kind;
-        
+
         switch (type) {
             case ANALYSIS:
                 kind = studyRepository.findStudyKindByAnalysisId(id);
@@ -478,7 +479,7 @@ public abstract class BaseStudyServiceImpl<
             default:
                 throw new IllegalArgumentException("Can't get study kind of entity with type = " + type);
         }
-        
+
         return kind.orElseThrow(() -> new IllegalArgumentException(String.format("Study doesn't exist for %s entity with id %d", type, id)));
     }
 
@@ -1057,7 +1058,7 @@ public abstract class BaseStudyServiceImpl<
     public T findWorkspaceForUser(IUser user, Long userId) throws NotExistException {
 
         final T workspace = studyRepository.findWorkspaceForUser(userId);
-        
+
         if (workspace == null) {
             throw new NotExistException(getType());
         }
@@ -1079,13 +1080,13 @@ public abstract class BaseStudyServiceImpl<
     }
 
     protected BaseStudyService<T, DS, SS, SU> getProxy() {
-        
+
         return this.proxy;
     }
-    
+
     @Override
     public void setProxy(final Object proxy) {
-        
+
         this.proxy = (BaseStudyService<T, DS, SS, SU>)proxy;
     }
 }
