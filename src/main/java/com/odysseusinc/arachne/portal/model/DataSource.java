@@ -35,8 +35,8 @@ import java.io.Serializable;
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorFormula("'DATA_SOURCE_ENTITY'")
-@Table(name = "data_sources_data")
-@SQLDelete(sql = "UPDATE data_sources_data "
+@Table(name = "data_sources")
+@SQLDelete(sql = "UPDATE data_sources "
         + "SET deleted = current_timestamp, health_status = 'NOT_CONNECTED', health_status_description = 'Deleted'"
         + " WHERE id = ?")
 public class DataSource extends BaseDataSource implements IDataSource, Serializable, HasArachnePermissions {
