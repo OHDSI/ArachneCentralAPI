@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.model;
 
+import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataSourceAccessType;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonModelType;
 import com.odysseusinc.arachne.commons.types.CommonCDMVersionDTO;
@@ -92,7 +93,7 @@ public abstract class BaseDataSource implements IDataSource, Serializable, HasAr
     @Enumerated(value = EnumType.STRING)
     protected CommonHealthStatus healthStatus = CommonHealthStatus.NOT_COLLECTED;
     @Column
-    
+
     protected String healthStatusDescription;
     @Column
     protected Date deleted;
@@ -114,6 +115,11 @@ public abstract class BaseDataSource implements IDataSource, Serializable, HasAr
     @Enumerated(EnumType.STRING)
     @Column(name = "dbms_type")
     private DBMSType dbmsType;
+
+    @SolrFieldAnno(filter = true)
+    @Column(name = "access_type")
+    @Enumerated(value = EnumType.STRING)
+    protected CommonDataSourceAccessType accessType;
 
     @Override
     public SolrCollection getCollection() {
@@ -300,5 +306,15 @@ public abstract class BaseDataSource implements IDataSource, Serializable, HasAr
     public void setDbmsType(DBMSType dbmsType) {
 
         this.dbmsType = dbmsType;
+    }
+
+    public CommonDataSourceAccessType getAccessType() {
+
+        return accessType;
+    }
+
+    public void setAccessType(CommonDataSourceAccessType accessType) {
+
+        this.accessType = accessType;
     }
 }

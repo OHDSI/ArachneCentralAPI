@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.service.impl;
 
+import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataSourceAccessType;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonModelType;
 import com.odysseusinc.arachne.portal.api.v1.dto.PageDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchDataCatalogDTO;
@@ -278,6 +279,10 @@ public abstract class BaseDataSourceServiceImpl<
 
         if (dataSource.getCdmVersion() != null) {
             exist.setCdmVersion(CommonModelType.CDM.equals(dataSource.getModelType()) ? dataSource.getCdmVersion() : null);
+        }
+
+        if (dataSource.getAccessType() != null) {
+            exist.setAccessType(dataSource.getAccessType());
         }
 
         if (dataSource.getPublished() != null) {

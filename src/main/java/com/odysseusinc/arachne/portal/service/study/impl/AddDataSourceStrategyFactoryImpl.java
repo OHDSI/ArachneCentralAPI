@@ -22,29 +22,41 @@
 
 package com.odysseusinc.arachne.portal.service.study.impl;
 
-import com.odysseusinc.arachne.portal.model.BaseDataSource;
-import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.service.study.AddDataSourceStrategy;
-import com.odysseusinc.arachne.portal.service.study.AddDataSourceStrategyFactory;
-import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 @Service
-public class AddDataSourceStrategyFactoryImpl implements AddDataSourceStrategyFactory<DataSource> {
+@Primary
+public class AddDataSourceStrategyFactoryImpl extends BaseAddDataSourceStrategyFactory<IDataSource> {
 
-    private final AddPublicDataSourceStrategy addPublicDataSourceStrategy;
+    private final AddPublicDataSourceStrategy<IDataSource> publicDataSourceStrategy;
+    private final AddRestrictedDataSourceStrategy rectrictedDataSourceStrategy;
 
     @Autowired
-    public AddDataSourceStrategyFactoryImpl(AddPublicDataSourceStrategy addPublicDataSourceStrategy) {
+    public AddDataSourceStrategyFactoryImpl(AddPublicDataSourceStrategy<IDataSource> addPublicDataSourceStrategy,
+                                            AddRestrictedDataSourceStrategy rectrictedDataSourceStrategy) {
 
-        this.addPublicDataSourceStrategy = addPublicDataSourceStrategy;
+        this.rectrictedDataSourceStrategy = rectrictedDataSourceStrategy;
+        publicDataSourceStrategy = addPublicDataSourceStrategy;
     }
 
     @Override
-    public AddDataSourceStrategy<DataSource> getStrategy(DataSource dataSource) {
+    public AddDataSourceStrategy<IDataSource> getStrategy(IDataSource dataSource) {
 
-        Objects.requireNonNull(dataSource);
-        return addPublicDataSourceStrategy;
+        AddDataSourceStrategy<IDataSource> strategy;
+        switch (dataSource.getAccessType()) {
+            case PUBLIC:
+                strategy = publicDataSourceStrategy;
+                break;
+            case RESTRICTED:
+                strategy = rectrictedDataSourceStrategy;
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown access type");
+        }
+        return strategy;
     }
 }
