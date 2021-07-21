@@ -23,12 +23,15 @@
 package com.odysseusinc.arachne.portal.api.v1.dto;
 
 import com.odysseusinc.arachne.portal.model.StudyKind;
+import com.odysseusinc.arachne.portal.validation.Regex;
 import java.util.LinkedList;
 import java.util.List;
 
 public class CommonStudyDTO {
     public Long id;
 
+    // Don't allow leading or trailing whitespace
+    @Regex("^\\S+(\\s+\\S+)*$")
     private String title;
 
     private List<DataSourceDTO> dataSources = new LinkedList<>();
