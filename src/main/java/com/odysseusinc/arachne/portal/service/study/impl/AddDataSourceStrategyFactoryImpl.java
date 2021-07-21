@@ -28,6 +28,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
+
 @Service
 @Primary
 public class AddDataSourceStrategyFactoryImpl extends BaseAddDataSourceStrategyFactory<IDataSource> {
@@ -45,17 +47,18 @@ public class AddDataSourceStrategyFactoryImpl extends BaseAddDataSourceStrategyF
 
     @Override
     public AddDataSourceStrategy<IDataSource> getStrategy(IDataSource dataSource) {
-
+        // In case of virtual datasources we do not have access type
+        if (Objects.isNull(dataSource.getAccessType())) {
+            return publicDataSourceStrategy;
+        }
         AddDataSourceStrategy<IDataSource> strategy;
         switch (dataSource.getAccessType()) {
-            case PUBLIC:
-                strategy = publicDataSourceStrategy;
-                break;
             case RESTRICTED:
                 strategy = rectrictedDataSourceStrategy;
                 break;
+            case PUBLIC:    
             default:
-                throw new IllegalArgumentException("Unknown access type");
+                strategy = publicDataSourceStrategy;
         }
         return strategy;
     }
