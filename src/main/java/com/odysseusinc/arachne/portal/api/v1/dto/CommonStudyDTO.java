@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto;
 
+import com.odysseusinc.arachne.portal.api.v1.dto.converters.study.StudyTitle;
 import com.odysseusinc.arachne.portal.model.StudyKind;
 import java.util.LinkedList;
 import java.util.List;
@@ -29,6 +30,7 @@ import java.util.List;
 public class CommonStudyDTO {
     public Long id;
 
+    @StudyTitle
     private String title;
 
     private List<DataSourceDTO> dataSources = new LinkedList<>();
