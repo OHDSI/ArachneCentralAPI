@@ -43,10 +43,8 @@ public abstract class CRUDLServiceImpl<T> implements CRUDLService<T> {
         if (id == null) {
             throw new NotExistException("id is null", getType());
         }
-        T entity = getRepository().findOne(id);
-        if (entity == null) {
-            throw new NotExistException(getType());
-        }
+        T entity = getRepository().findById(id).orElseThrow(() -> new NotExistException(getType()));
+
         return entity;
     }
 
@@ -56,7 +54,7 @@ public abstract class CRUDLServiceImpl<T> implements CRUDLService<T> {
         if (id == null) {
             throw new NotExistException("id is null", getType());
         }
-        getRepository().delete(id);
+        getRepository().deleteById(id);
     }
 
     @Override

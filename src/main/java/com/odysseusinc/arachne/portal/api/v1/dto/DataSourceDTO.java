@@ -24,7 +24,9 @@ package com.odysseusinc.arachne.portal.api.v1.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonBaseDataSourceDTO;
+import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataSourceAccessType;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
+
 import java.util.Date;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -36,6 +38,7 @@ public class DataSourceDTO extends CommonBaseDataSourceDTO implements IDataSourc
     private String healthStatusTitle;
     private Date deleted;
     private PermissionsDTO permissions;
+    private CommonDataSourceAccessType accessType;
     private boolean canBeRecreated = Boolean.TRUE;
 
     public String getStatus() {
@@ -106,5 +109,15 @@ public class DataSourceDTO extends CommonBaseDataSourceDTO implements IDataSourc
     public void setCanBeRecreated(final boolean canBeRecreated) {
 
         this.canBeRecreated = canBeRecreated;
+    }
+
+    @Override
+    public CommonDataSourceAccessType getAccessType() {
+        return accessType;
+    }
+
+    @Override
+    public void setAccessType(CommonDataSourceAccessType accessType) {
+        this.accessType = accessType;
     }
 }

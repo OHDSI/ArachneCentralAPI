@@ -61,7 +61,7 @@ public abstract class BaseSkillServiceImpl<S extends Skill> extends CRUDLService
     @Override
     public S update(S skill) throws NotUniqueException, NotExistException {
 
-        if (!skillRepository.exists(skill.getId())) {
+        if (!skillRepository.existsById(skill.getId())) {
             throw new NotExistException("update: skill with id=" + skill.getId() + " not exist", getType());
         }
         List<S> skills = skillRepository.findByName(skill.getName());

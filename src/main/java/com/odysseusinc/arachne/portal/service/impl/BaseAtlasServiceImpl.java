@@ -46,18 +46,18 @@ public class BaseAtlasServiceImpl<T extends IAtlas> implements BaseAtlasService<
     @PostAuthorize("(returnObject != null && returnObject.dataNode == authentication.principal) || hasRole('ROLE_ADMIN')")
     public T findByIdInAnyTenant(Long id) {
 
-        return baseRawAtlasRepository.findOne(id);
+        return baseRawAtlasRepository.getOne(id);
     }
 
     @Override
-    @PreAuthorize("@dataNodeRepository.findOne(#dataNodeId) == authentication.principal || hasRole('ROLE_ADMIN')")
+    @PreAuthorize("@dataNodeRepository.getOne(#dataNodeId) == authentication.principal || hasRole('ROLE_ADMIN')")
     public T findByNameAndNodeInAnyTenant(String name, Long dataNodeId) {
 
         return baseRawAtlasRepository.findByNameAndDataNodeId(name, dataNodeId);
     }
 
     @Override
-    @PreAuthorize("@rawAtlasRepository.findOne(#id)?.dataNode == authentication.principal")
+    @PreAuthorize("@rawAtlasRepository.getOne(#id)?.dataNode == authentication.principal")
     public T update(Long id, T atlas) {
 
         T existing = findByIdInAnyTenant(id);
@@ -81,10 +81,10 @@ public class BaseAtlasServiceImpl<T extends IAtlas> implements BaseAtlasService<
     }
 
     @Override
-    @PreAuthorize("@rawAtlasRepository.findOne(#id)?.dataNode == authentication.principal")
+    @PreAuthorize("@rawAtlasRepository.getOne(#id)?.dataNode == authentication.principal")
     public void delete(Long id) {
 
-        baseRawAtlasRepository.delete(id);
+        baseRawAtlasRepository.deleteById(id);
     }
 
 }

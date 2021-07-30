@@ -17,25 +17,24 @@ logging:
     org.springframework.web.servlet.PageNotFound: ERROR
 spring:
   jpa:
-    database: POSTGRESQL
+    show-sql: true
+    database-platform: org.hibernate.dialect.PostgreSQL95Dialect
     properties:
-      hibernate:
-        jdbc:
-          batch_size: 20
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        ddl-auto: none
-        connection:
-          CharSet: utf8
-          characterEncoding: utf8
-          useUnicode: true
-    show-sql: false
+      hibernate.jdbc.batch_size: 20
+      hibernate.jdbc.lob.non_contextual_creation: true
+      hibernate.hbm2ddl.auto: none
   datasource:
     url: jdbc:postgresql://localhost:5434/arachne_portal
     username: ohdsi
     password: ENC(0Lpfvg9UPAyaaZpSIqwaDg==)
     driver-class-name: org.postgresql.Driver
-    max-active: 400
     connection-test-query: select 1
+    pool-name: Central-Pool
+  flyway:
+    out-of-order: true
+    table: "schema_version"
+    ignore-missing-migrations: true
+    enabled: true
   cache:
     jcache:
       config: classpath:ehcache.xml
@@ -57,7 +56,7 @@ spring:
     throw-exception-if-no-handler-found: true
   thymeleaf:
     enabled: false
-  http:
+  servlet:
     multipart:
       max-file-size: 1024MB
       max-request-size: 1024MB
@@ -67,20 +66,18 @@ spring:
     broker-url: vm://localhost?broker.persistent=true
     packages:
       trust-all: true
+  main:
+    allow-bean-definition-overriding: true
+management:
+  endpoint:
+    restart:
+      enabled: true
+  health:
+    ldap:
+      enabled: false
 build:
   number: @build.number@
   id: @build.id@
-flyway:
-  datasource:
-    driverClassName: org.postgresql.Driver
-    url: ${spring.datasource.url}
-    username: ${spring.datasource.username}
-    password: ${spring.datasource.password}
-  baseline-on-migrate: true
-  placeholderReplacement: false
-  out-of-order: true
-  validateOnMigrate: false
-  #locations: db/migration,classpath:com.odysseusinc.arachne.portal.db.migration
 arachne:
   token:
     secret: 129DF19C8A91AFD8375A2826A33539K01ACQ778QOJFAA9MGWLWH73PLXVFVHBR7860MTIE2O8EEVF9KCO77P6A7NUNX4XHAGCRFSBWG879XPDOIN6C2LFCKJI002OIABS4D6Q9VMJJIX8UCE48EF
@@ -136,7 +133,8 @@ datanode:
     importTimeout: 60000
 jasypt:
   encryptor:
-    password:
+    algorithm: PBEWITHMD5ANDDES
+    iv-generator-classname: org.jasypt.iv.NoIvGenerator
 achilles:
   executor:
     corePoolSize: 4

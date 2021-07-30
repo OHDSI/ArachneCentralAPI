@@ -22,20 +22,15 @@
 
 package com.odysseusinc.arachne.portal.api.v1.dto;
 
+import com.odysseusinc.arachne.portal.api.v1.dto.converters.study.StudyTitle;
 import javax.validation.constraints.NotNull;
-import org.hibernate.validator.constraints.Length;
-import org.hibernate.validator.constraints.NotBlank;
 
 /**
  * Created by AKrutov on 07.11.2016.
  */
 public class CreateStudyDTO {
 
-    @NotBlank
-    @Length.List({
-            @Length(min = 5, message = "The field must be at least 5 characters"),
-            @Length(max = 1000, message = "The field must be less than 255 characters")
-    })
+    @StudyTitle
     private String title;
 
     @NotNull(message = "Study type should be defined")

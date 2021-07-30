@@ -284,16 +284,17 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
             @PathVariable("submissionId") Long submissionId,
             HttpServletResponse response) throws PermissionDeniedException, NotExistException, IOException {
 
-        String archiveName = "submission_result_" + submissionId + "_"
-                + System.currentTimeMillis()
-                + ".zip";
+        final Submission submission = submissionService.getSubmissionById(submissionId);
+        final String analysisTypeCode = submission.getSubmissionGroup().getAnalysis().getType().getCode();
+        final String archiveName = String.format("%s_submission_result_%s_%s.zip", analysisTypeCode, submissionId,
+                System.currentTimeMillis());
+
         String contentType = "application/zip, application/octet-stream";
         response.setContentType(contentType);
         response.setHeader("Content-type", contentType);
         response.setHeader("Content-Disposition",
                 "attachment; filename=" + archiveName);
 
-        Submission submission = submissionService.getSubmissionById(submissionId);
         IUser user = userService.getByUsername(principal.getName());
         submissionService
                 .getSubmissionResultAllFiles(user, submission.getSubmissionGroup().getAnalysis().getId(),

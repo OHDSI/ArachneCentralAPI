@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.model;
 
+import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataSourceAccessType;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonHealthStatus;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonModelType;
 import com.odysseusinc.arachne.commons.types.CommonCDMVersionDTO;
@@ -94,4 +95,8 @@ public interface IDataSource extends Breadcrumb, SolrEntity {
     DBMSType getDbmsType();
 
     void setDbmsType(DBMSType dbmsType);
+
+    CommonDataSourceAccessType getAccessType();
+
+    void setAccessType(CommonDataSourceAccessType accessType);
 }

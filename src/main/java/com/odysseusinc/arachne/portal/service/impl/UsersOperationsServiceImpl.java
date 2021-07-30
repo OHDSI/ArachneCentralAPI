@@ -81,6 +81,6 @@ public class UsersOperationsServiceImpl implements UsersOperationsService {
         for (final IUser entity : entities) {
             setter.accept(entity, !getter.apply(entity));
         }
-        baseRawUserRepository.save(entities);
+        baseRawUserRepository.saveAll(entities);
     }
 }
