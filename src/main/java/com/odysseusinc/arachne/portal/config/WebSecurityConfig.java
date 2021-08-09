@@ -68,7 +68,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 @Configuration
@@ -309,11 +309,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .anyRequest().permitAll();
 
         // Custom JWT based authentication
-        http.addFilterBefore(loginRequestFilter(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(loginRequestFilter(), OAuth2AuthorizationRequestRedirectFilter.class);
         http.addFilterBefore(authenticationTokenFilterBean(), LoginRequestFilter.class);
         // DataNode authentication
         http.addFilterBefore(authenticationSystemTokenFilter(), AuthenticationTokenFilter.class);
         http.addFilterBefore(hostfilter, AuthenticationSystemTokenFilter.class);
+
     }
 
     protected void extendHttpSecurity(ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry  registry) {

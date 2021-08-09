@@ -22,9 +22,4 @@ import org.springframework.test.context.support.DependencyInjectionTestExecution
         WithSecurityContextTestExecutionListener.class})
 @DbUnitConfiguration(databaseConnection = {"primaryDataSource"})
 public class SingleContextTest {
-
-    public SingleContextTest() {
-
-        TenantContext.setCurrentTenant(1L);
-    }
 }

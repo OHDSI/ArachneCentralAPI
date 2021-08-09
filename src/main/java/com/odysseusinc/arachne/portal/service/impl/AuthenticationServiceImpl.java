@@ -27,10 +27,13 @@ import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.factory.ArachneUserFactory;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
 import com.odysseusinc.arachne.portal.service.AuthenticationService;
+import com.odysseusinc.arachne.portal.service.UserService;
 import java.util.Collections;
+import java.util.Optional;
 import org.ohdsi.authenticator.model.UserInfo;
 import org.ohdsi.authenticator.service.authentication.Authenticator;
 import org.pac4j.core.credentials.UsernamePasswordCredentials;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -49,6 +52,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Value("${security.method}")
     protected String authMethodName;
+    @Autowired
+    private UserService userService;
 
     public AuthenticationServiceImpl(Authenticator authenticator, UserDetailsService userDetailsService, UserImportService userImportService) {
 
@@ -99,4 +104,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         authentication.setDetails(arachneUser);
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<ArachneUser> findUser(String origin, String username) {
+        return Optional.ofNullable(userService.getByUsername(origin, username)).map(ArachneUserFactory::create);
+    }
+
 }

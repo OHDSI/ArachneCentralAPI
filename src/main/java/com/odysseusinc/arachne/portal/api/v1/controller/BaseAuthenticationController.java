@@ -41,15 +41,16 @@ import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.PasswordReset;
+import com.odysseusinc.arachne.portal.security.JWTAuthenticationToken;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordData;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidationResult;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
+import com.odysseusinc.arachne.portal.service.AuthenticationHelperService;
 import com.odysseusinc.arachne.portal.service.AuthenticationService;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
 import com.odysseusinc.arachne.portal.service.LoginAttemptService;
 import com.odysseusinc.arachne.portal.service.PasswordResetService;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
-import com.odysseusinc.arachne.portal.service.AuthenticationHelperService;
 import edu.vt.middleware.password.Password;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
@@ -66,6 +67,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -177,15 +179,12 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
 
     @ApiOperation("Logout.")
     @RequestMapping(value = "/api/v1/auth/logout", method = RequestMethod.POST)
-    public JsonResult logout(HttpServletRequest request) {
+    public JsonResult logout(@AuthenticationPrincipal JWTAuthenticationToken authentication) {
 
         JsonResult result;
         try {
-            String token = request.getHeader(tokenHeader);
-            if (token != null) {
-                authenticator.invalidateToken(token);
-            }
-            result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
+            authenticator.invalidateToken(authentication.getToken());
+            result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, true);
             result.setResult(true);
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
@@ -275,14 +274,9 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
     @ApiOperation("Get information about current user.")
     @RequestMapping(value = "/api/v1/auth/me", method = RequestMethod.GET)
     public JsonResult<UserInfoDTO> info(Principal principal) {
-
-        final JsonResult<UserInfoDTO> result;
-        IUser user = userService.getByUsernameInAnyTenant(principal.getName());
+        IUser user = userService.getUser(principal);
         final UserInfoDTO userInfo = conversionService.convert(user, UserInfoDTO.class);
-        result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
-        result.setResult(userInfo);
-
-        return result;
+        return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, userInfo);
     }
 
 }

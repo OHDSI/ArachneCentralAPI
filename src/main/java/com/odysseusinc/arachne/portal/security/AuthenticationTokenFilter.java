@@ -22,10 +22,10 @@
 
 package com.odysseusinc.arachne.portal.security;
 
-import com.odysseusinc.arachne.portal.config.tenancy.TenantContext;
-import com.odysseusinc.arachne.portal.model.security.ArachneUser;
+import com.odysseusinc.arachne.portal.service.AuthenticationService;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
 import javax.servlet.FilterChain;
@@ -35,19 +35,21 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
-import org.ohdsi.authenticator.exception.AuthenticationException;
-import org.ohdsi.authenticator.service.authentication.Authenticator;
+import org.ohdsi.authenticator.service.AuthService;
+import org.ohdsi.authenticator.service.authentication.AuthServiceProvider;
+import org.ohdsi.authenticator.service.authentication.TokenProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.web.filter.GenericFilterBean;
 
 public class AuthenticationTokenFilter extends GenericFilterBean {
@@ -59,49 +61,59 @@ public class AuthenticationTokenFilter extends GenericFilterBean {
     private String tokenHeader;
 
     @Autowired
-    private UserDetailsService userDetailsService;
+    private TokenProvider tokenProvider;
     @Autowired
-    private Authenticator authenticator;
-
+    private AuthenticationService authenticationService;
+    @Autowired
+    private AuthServiceProvider authServiceProvider;
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException,
-            ServletException, AuthenticationException {
+            ServletException {
 
         HttpServletRequest httpRequest = (HttpServletRequest) request;
-        this.getAuthToken(httpRequest)
-                .ifPresent(authToken -> {
-                    try {
-                        String username = authenticator.resolveUsername(authToken);
-                        if (username == null) {
-                            return;
-                        }
-                        String requestedUsername = httpRequest.getHeader(USER_REQUEST_HEADER);
+        try {
 
-                        if (requestedUsername != null && !Objects.equals(username, requestedUsername)) {
-                            throw new BadCredentialsException("forced logout");
-                        }
-                        if (SecurityContextHolder.getContext().getAuthentication() == null) {
-                            this.putUserInSecurityContext(httpRequest, username);
-                        }
-                    } catch (AuthenticationException | org.springframework.security.core.AuthenticationException ex) {
-                        String method = httpRequest.getMethod();
-                        if (!HttpMethod.OPTIONS.matches(method)) {
-                            log.debug("Authentication failed", ex);
-                        }
+            SecurityContext context = SecurityContextHolder.getContext();
+            Authentication authentication = context.getAuthentication();
+            if (authentication == null) {
+                getAuthToken(httpRequest).ifPresent(authToken -> {
+                    String username = tokenProvider.resolveValue(authToken, "sub", String.class);
+
+                    if (username == null) {
+                        return;
                     }
+                    String requestedUsername = httpRequest.getHeader(USER_REQUEST_HEADER);
+
+                    if (requestedUsername != null && !Objects.equals(username, requestedUsername)) {
+                        throw new BadCredentialsException("forced logout");
+                    }
+                    // TODO Extract constant for "method"?
+                    String method = tokenProvider.resolveValue(authToken, "method", String.class);
+                    String origin = authServiceProvider.getByMethod(method).map(AuthService::getMethodType).orElse(method);
+                    authenticationService.findUser(origin, username).ifPresent(user ->
+                            context.setAuthentication(new JWTAuthenticationToken(authToken, user, new WebAuthenticationDetails(httpRequest)))
+                    );
                 });
+
+            } else if (authentication instanceof DataNodeAuthenticationToken) {
+                // Do nothing to ensure datanode auth is passed untouched
+            } else {
+                String username = authentication.getName();
+                authenticationService.findUser("JDBC", username).ifPresent(user -> {
+                    // For users authenticated differently, we ensure that list of authorities set during authentication is retained
+                    // This ensures tests using such SecurityMockMvcRequestPostProcessors.UserRequestPostProcessor.roles remail operational
+                    user.setAuthorities(authentication.getAuthorities());
+                    context.setAuthentication(new JWTAuthenticationToken(username, user, new WebAuthenticationDetails(httpRequest)));
+                });
+            }
+        } catch (org.ohdsi.authenticator.exception.AuthenticationException | AuthenticationException ex) {
+            String method = httpRequest.getMethod();
+            if (!HttpMethod.OPTIONS.matches(method)) {
+                log.debug("Authentication failed", ex);
+            }
+        }
         chain.doFilter(request, response);
-    }
-
-    private void putUserInSecurityContext(HttpServletRequest httpRequest, String username) {
-
-        UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
-        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(httpRequest));
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        TenantContext.setCurrentTenant(((ArachneUser) userDetails).getActiveTenantId());
     }
 
     private Optional<String> getAuthToken(HttpServletRequest httpRequest) {
