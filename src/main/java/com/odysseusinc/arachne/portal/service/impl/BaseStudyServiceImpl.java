@@ -192,7 +192,7 @@ public abstract class BaseStudyServiceImpl<
     private final Map<String, String[]> studySortPaths = new HashMap<>();
     protected final ApplicationEventPublisher eventPublisher;
     private final BaseSolrService<SF> solrService;
-    
+
     public BaseStudyService<T, DS, SS, SU> proxy;
 
     public BaseStudyServiceImpl(final UserStudyExtendedRepository userStudyExtendedRepository,
@@ -259,6 +259,7 @@ public abstract class BaseStudyServiceImpl<
         this.studySortPaths.put("leadList", new String[]{"firstLead.firstname", "firstLead.middlename", "firstLead.lastname"});
         this.studySortPaths.put("role", new String[]{"role"});
         this.studySortPaths.put("created", new String[]{"study.created"});
+        this.studySortPaths.put("updated", new String[]{"study.updated"});
         this.studySortPaths.put("type", new String[]{"study.type.name"});
         this.studySortPaths.put("status", new String[]{"study.status"});
 
@@ -330,10 +331,10 @@ public abstract class BaseStudyServiceImpl<
         if (studyId == null) {
             throw new NotExistException("id is null", getType());
         }
-        if (!studyRepository.exists(studyId)) {
+        if (!studyRepository.existsById(studyId)) {
             throw new NotExistException(getType());
         }
-        studyRepository.delete(studyId);
+        studyRepository.deleteById(studyId);
     }
 
     @Override
@@ -368,7 +369,7 @@ public abstract class BaseStudyServiceImpl<
         if (!byTitle.isEmpty()) {
             throw new NotUniqueException("title", "not unique");
         }
-        T forUpdate = studyRepository.findOne(study.getId());
+        T forUpdate = studyRepository.getOne(study.getId());
         if (forUpdate == null) {
             throw new NotExistException(getType());
         }
@@ -401,7 +402,7 @@ public abstract class BaseStudyServiceImpl<
     @Override
     public void setFavourite(Long userId, Long studyId, Boolean isFavourite) throws NotExistException {
 
-        Study study = studyRepository.findOne(studyId);
+        Study study = studyRepository.getOne(studyId);
         if (study == null) {
             throw new NotExistException("study not exist", Study.class);
         }
@@ -421,7 +422,7 @@ public abstract class BaseStudyServiceImpl<
 
         Page<SU> resultPage = baseUserStudyLinkRepository.findAll(
                 studyFilteredListSpecification,
-                new PageRequest(studySearch.getPage() - 1, studySearch.getPagesize(), sort));
+                PageRequest.of(studySearch.getPage() - 1, studySearch.getPagesize(), sort));
 
         return resultPage.map(s -> (AbstractUserStudyListItem) s);
     }
@@ -450,12 +451,12 @@ public abstract class BaseStudyServiceImpl<
         userStudyItem.getStudy().setDataSources(dataSourceLinks);
         return userStudyItem;
     }
-    
+
     @Override
     public StudyKind getEntityStudyKind(final EntityType type, final Long id) {
-        
+
         final Optional<StudyKind> kind;
-        
+
         switch (type) {
             case ANALYSIS:
                 kind = studyRepository.findStudyKindByAnalysisId(id);
@@ -478,7 +479,7 @@ public abstract class BaseStudyServiceImpl<
             default:
                 throw new IllegalArgumentException("Can't get study kind of entity with type = " + type);
         }
-        
+
         return kind.orElseThrow(() -> new IllegalArgumentException(String.format("Study doesn't exist for %s entity with id %d", type, id)));
     }
 
@@ -500,7 +501,7 @@ public abstract class BaseStudyServiceImpl<
         Arrays.asList(studySortPaths.getOrDefault(sortBy, new String[]{defaultSort})).forEach((param) ->
                 orders.add(new Sort.Order(sortDirection, param).ignoreCase()));
 
-        return new Sort(orders);
+        return Sort.by(orders);
     }
 
 
@@ -515,7 +516,7 @@ public abstract class BaseStudyServiceImpl<
             String message
     ) throws NotExistException, AlreadyExistException {
 
-        Study study = Optional.ofNullable(studyRepository.findOne(studyId))
+        Study study = Optional.ofNullable(studyRepository.getOne(studyId))
                 .orElseThrow(() -> new NotExistException(EX_STUDY_NOT_EXISTS, Study.class));
 
         IUser participant = Optional.ofNullable(userService.findOne(participantId))
@@ -557,7 +558,7 @@ public abstract class BaseStudyServiceImpl<
                                            ParticipantRole role)
             throws NotExistException, AlreadyExistException, ValidationException {
 
-        Study study = Optional.ofNullable(studyRepository.findOne(studyId))
+        Study study = Optional.ofNullable(studyRepository.getOne(studyId))
                 .orElseThrow(() -> new NotExistException(EX_STUDY_NOT_EXISTS, Study.class));
         IUser participant = Optional.ofNullable(userService.findOne(participantId))
                 .orElseThrow(() -> new NotExistException(EX_USER_NOT_EXISTS, User.class));
@@ -606,7 +607,7 @@ public abstract class BaseStudyServiceImpl<
     public String saveFile(MultipartFile multipartFile, Long studyId, String label, IUser user)
             throws IOException {
 
-        Study study = studyRepository.findOne(studyId);
+        Study study = studyRepository.getOne(studyId);
         String fileNameLowerCase = UUID.randomUUID().toString();
         try {
 
@@ -646,7 +647,7 @@ public abstract class BaseStudyServiceImpl<
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).UPLOAD_FILES)")
     public String saveFile(String link, Long studyId, String label, IUser user) throws IOException {
 
-        Study study = studyRepository.findOne(studyId);
+        Study study = studyRepository.getOne(studyId);
         String fileNameLowerCase = UUID.randomUUID().toString();
         try {
 
@@ -732,7 +733,7 @@ public abstract class BaseStudyServiceImpl<
     public StudyDataSourceLink addDataSource(IUser createdBy, Long studyId, Long dataSourceId)
             throws NotExistException, AlreadyExistException {
 
-        T study = studyRepository.findOne(studyId);
+        T study = studyRepository.getOne(studyId);
         if (study == null) {
             throw new NotExistException("study not exist", Study.class);
         }
@@ -773,7 +774,7 @@ public abstract class BaseStudyServiceImpl<
             throws NotExistException, AlreadyExistException, NoSuchFieldException, IOException, ValidationException,
             FieldException, IllegalAccessException, SolrServerException {
 
-        Study study = studyRepository.findOne(studyId);
+        Study study = studyRepository.getOne(studyId);
 
         List<IUser> dataNodeOwners = validateVirtualDataSourceOwners(study, dataOwnerIds);
 
@@ -837,7 +838,7 @@ public abstract class BaseStudyServiceImpl<
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).DELETE_DATASOURCE)")
     public DS updateVirtualDataSource(IUser user, Long studyId, Long dataSourceId, String name, List<String> dataOwnerIds) throws IllegalAccessException, IOException, NoSuchFieldException, SolrServerException, ValidationException {
 
-        Study study = studyRepository.findOne(studyId);
+        Study study = studyRepository.getOne(studyId);
 
         List<IUser> dataOwners = validateVirtualDataSourceOwners(study, dataOwnerIds);
 
@@ -873,7 +874,7 @@ public abstract class BaseStudyServiceImpl<
         if (studyDataSourceLink == null) {
             throw new NotExistException("studyDataSourceLink does not exist.", StudyDataSourceLink.class);
         }
-        studyDataSourceLinkRepository.delete(studyDataSourceLink.getId());
+        studyDataSourceLinkRepository.deleteById(studyDataSourceLink.getId());
     }
 
     @Override
@@ -926,15 +927,11 @@ public abstract class BaseStudyServiceImpl<
             List<StudyFile> files = study.getFiles();
 
             fileService.delete(files);
-            studyFileRepository.delete(files);
-
-            studyDataSourceLinkRepository.delete(study.getDataSources());
-
+            studyFileRepository.deleteAll(files);
+            studyDataSourceLinkRepository.deleteAll(study.getDataSources());
             studyHelper.tryDeleteStudyFolder(study);
         }
-
-        studyRepository.delete(studies);
-
+        studyRepository.deleteAll(studies);
         return Boolean.TRUE;
     }
 
@@ -984,7 +981,7 @@ public abstract class BaseStudyServiceImpl<
             + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
     public void getAllStudyFilesExceptLinks(Long studyId, String archiveName, OutputStream os) throws IOException {
 
-        T study = studyRepository.findOne(studyId);
+        T study = studyRepository.getOne(studyId);
         Path storeFilesPath = fileService.getPath(study);
 
         List<StudyFile> files = study.getFiles()
@@ -1017,7 +1014,7 @@ public abstract class BaseStudyServiceImpl<
     public void processAntivirusResponse(AntivirusJobStudyFileResponseEvent event) {
 
         final AntivirusJobResponse antivirusJobResponse = event.getAntivirusJobResponse();
-        final StudyFile studyFile = studyFileRepository.findOne(antivirusJobResponse.getFileId());
+        final StudyFile studyFile = studyFileRepository.getOne(antivirusJobResponse.getFileId());
         if (studyFile != null) {
             studyFile.setAntivirusStatus(antivirusJobResponse.getStatus());
             studyFile.setAntivirusDescription(antivirusJobResponse.getDescription());
@@ -1061,7 +1058,7 @@ public abstract class BaseStudyServiceImpl<
     public T findWorkspaceForUser(IUser user, Long userId) throws NotExistException {
 
         final T workspace = studyRepository.findWorkspaceForUser(userId);
-        
+
         if (workspace == null) {
             throw new NotExistException(getType());
         }
@@ -1083,13 +1080,13 @@ public abstract class BaseStudyServiceImpl<
     }
 
     protected BaseStudyService<T, DS, SS, SU> getProxy() {
-        
+
         return this.proxy;
     }
-    
+
     @Override
     public void setProxy(final Object proxy) {
-        
+
         this.proxy = (BaseStudyService<T, DS, SS, SU>)proxy;
     }
 }

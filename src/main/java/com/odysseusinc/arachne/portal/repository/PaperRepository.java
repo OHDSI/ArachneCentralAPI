@@ -30,8 +30,6 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 public interface PaperRepository<T extends Paper> extends JpaRepository<T, Long>, JpaSpecificationExecutor<T> {
 
-    int deleteById(Long id);
-
     Optional<T> findByStudyId(Long studyId);
 
     List<T> findByStudyIdIn(List<Long> studyIds);

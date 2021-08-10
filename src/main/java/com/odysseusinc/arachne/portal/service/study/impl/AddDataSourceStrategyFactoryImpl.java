@@ -22,29 +22,44 @@
 
 package com.odysseusinc.arachne.portal.service.study.impl;
 
-import com.odysseusinc.arachne.portal.model.BaseDataSource;
-import com.odysseusinc.arachne.portal.model.DataSource;
+import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.service.study.AddDataSourceStrategy;
-import com.odysseusinc.arachne.portal.service.study.AddDataSourceStrategyFactory;
-import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
-@Service
-public class AddDataSourceStrategyFactoryImpl implements AddDataSourceStrategyFactory<DataSource> {
+import java.util.Objects;
 
-    private final AddPublicDataSourceStrategy addPublicDataSourceStrategy;
+@Service
+@Primary
+public class AddDataSourceStrategyFactoryImpl extends BaseAddDataSourceStrategyFactory<IDataSource> {
+
+    private final AddPublicDataSourceStrategy<IDataSource> publicDataSourceStrategy;
+    private final AddRestrictedDataSourceStrategy rectrictedDataSourceStrategy;
 
     @Autowired
-    public AddDataSourceStrategyFactoryImpl(AddPublicDataSourceStrategy addPublicDataSourceStrategy) {
+    public AddDataSourceStrategyFactoryImpl(AddPublicDataSourceStrategy<IDataSource> addPublicDataSourceStrategy,
+                                            AddRestrictedDataSourceStrategy rectrictedDataSourceStrategy) {
 
-        this.addPublicDataSourceStrategy = addPublicDataSourceStrategy;
+        this.rectrictedDataSourceStrategy = rectrictedDataSourceStrategy;
+        publicDataSourceStrategy = addPublicDataSourceStrategy;
     }
 
     @Override
-    public AddDataSourceStrategy<DataSource> getStrategy(DataSource dataSource) {
-
-        Objects.requireNonNull(dataSource);
-        return addPublicDataSourceStrategy;
+    public AddDataSourceStrategy<IDataSource> getStrategy(IDataSource dataSource) {
+        // In case of virtual datasources we do not have access type
+        if (Objects.isNull(dataSource.getAccessType())) {
+            return publicDataSourceStrategy;
+        }
+        AddDataSourceStrategy<IDataSource> strategy;
+        switch (dataSource.getAccessType()) {
+            case RESTRICTED:
+                strategy = rectrictedDataSourceStrategy;
+                break;
+            case PUBLIC:    
+            default:
+                strategy = publicDataSourceStrategy;
+        }
+        return strategy;
     }
 }

@@ -669,13 +669,13 @@ public abstract class BaseStudyController<
 
         List<SubmissionInsightDTO> submissionInsightDTOS = new ArrayList<>();
 
-        Pageable pageRequest = new PageRequest(0, size, new Sort(order, "created"));
+        Pageable pageRequest = PageRequest.of(0, size, Sort.by(order, "created"));
         final Page<SubmissionInsight> page = submissionInsightService.getInsightsByStudyId(studyId, pageRequest);
         final List<SubmissionInsight> insights = page.getContent();
         for (int i = 0; i < insights.size(); i++) {
             final SubmissionInsight insight = insights.get(i);
             final Set<CommentTopic> recentTopics = submissionInsightService.getInsightComments(insight,
-                    commentsPerInsight, new Sort(Sort.Direction.DESC, "id"));
+                    commentsPerInsight, Sort.by(Sort.Direction.DESC, "id"));
             final SubmissionInsightDTO insightDTO = conversionService.convert(insight, SubmissionInsightDTO.class);
             final List<Commentable> recentCommentables = getRecentCommentables(conversionService, recentTopics,
                     insightDTO);

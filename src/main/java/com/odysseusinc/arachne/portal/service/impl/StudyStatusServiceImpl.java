@@ -61,7 +61,7 @@ public class StudyStatusServiceImpl extends CRUDLServiceImpl<StudyStatus> implem
     @Override
     public StudyStatus update(StudyStatus studyStatus) throws NotUniqueException, NotExistException {
 
-        if (!studyStatusRepository.exists(studyStatus.getId())) {
+        if (!studyStatusRepository.existsById(studyStatus.getId())) {
             throw new NotExistException("update: studyStatus with id=" + studyStatus.getId() + " not exist", StudyStatus.class);
         }
         StudyStatus existStudyStatus = studyStatusRepository.findByName(studyStatus.getName());

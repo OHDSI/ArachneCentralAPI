@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.service.impl;
 
+import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataSourceAccessType;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonModelType;
 import com.odysseusinc.arachne.portal.api.v1.dto.PageDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchDataCatalogDTO;
@@ -280,6 +281,10 @@ public abstract class BaseDataSourceServiceImpl<
             exist.setCdmVersion(CommonModelType.CDM.equals(dataSource.getModelType()) ? dataSource.getCdmVersion() : null);
         }
 
+        if (dataSource.getAccessType() != null) {
+            exist.setAccessType(dataSource.getAccessType());
+        }
+
         if (dataSource.getPublished() != null) {
             exist.setPublished(dataSource.getPublished());
             if (dataSource.getPublished()) {
@@ -346,7 +351,7 @@ public abstract class BaseDataSourceServiceImpl<
         if (id == null) {
             throw new NotExistException("id is null", getType());
         }
-        DS dataSource = rawDataSourceRepository.findOne(id);
+        DS dataSource = rawDataSourceRepository.findById(id).orElse(null);
         if (dataSource == null) {
             throw new NotExistException(getType());
         }
@@ -409,7 +414,7 @@ public abstract class BaseDataSourceServiceImpl<
                 cb.isFalse(root.get("dataNode").get("virtual"))));
 
         TypedQuery<DS> typedQuery = this.entityManager.createQuery(cq);
-        List<DS> list = typedQuery.setFirstResult(pageRequest.getOffset())
+        List<DS> list = typedQuery.setFirstResult((int)pageRequest.getOffset())
                 .setMaxResults(pageRequest.getPageSize())
                 .getResultList();
         return new PageImpl<>(list, pageRequest, list.size());
@@ -423,7 +428,7 @@ public abstract class BaseDataSourceServiceImpl<
 
         log.info("Deleting datasource with id={}", id);
         makeLinksWithTenantsDeleted(id);
-        rawDataSourceRepository.delete(id);
+        rawDataSourceRepository.deleteById(id);
     }
 
     @PreAuthorize("hasPermission(#id, 'RawDataSource', "
@@ -491,9 +496,9 @@ public abstract class BaseDataSourceServiceImpl<
     @Override
     public PageRequest getPageRequest(PageDTO pageDTO, String sortBy, String order) throws PermissionDeniedException {
 
-        List<String> dsSortBy = DataSourceSortMapper.map(Arrays.asList(StringUtils.split(sortBy, ",")));
-        Sort sort = new Sort(Sort.Direction.fromString(order), dsSortBy);
-        return new PageRequest(pageDTO.getPage() - 1, pageDTO.getPageSize(), sort);
+        String[] dsSortBy = DataSourceSortMapper.map(Arrays.asList(StringUtils.split(sortBy, ","))).stream().toArray(String[]::new);
+        Sort sort = Sort.by(Sort.Direction.fromString(order), dsSortBy);
+        return PageRequest.of(pageDTO.getPage() - 1, pageDTO.getPageSize(), sort);
     }
 
     @Override

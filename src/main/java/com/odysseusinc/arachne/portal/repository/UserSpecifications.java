@@ -29,7 +29,6 @@ import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.jpa.domain.Specifications;
 
 public class UserSpecifications {
 
@@ -75,7 +74,7 @@ public class UserSpecifications {
 
     public static <U extends IUser> Specification<U> withNameLike(String namePattern) {
 
-        Specifications<U> spec = Specifications.where(withFieldLike("firstname", namePattern));
+        Specification<U> spec = Specification.where(withFieldLike("firstname", namePattern));
         return spec.or(withFieldLike("middlename", namePattern))
                 .or(withFieldLike("lastname", namePattern));
     }
@@ -87,7 +86,7 @@ public class UserSpecifications {
 
     public static <U extends IUser> Specification<U> withNameOrEmailLike(String pattern) {
 
-        Specifications<U> spec = Specifications.where(withNameLike(pattern));
+        Specification<U> spec = Specification.where(withNameLike(pattern));
         return spec.or(withEmailLike(pattern));
     }
 

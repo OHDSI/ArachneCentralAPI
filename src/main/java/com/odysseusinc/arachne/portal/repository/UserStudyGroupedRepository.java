@@ -22,12 +22,9 @@
 
 package com.odysseusinc.arachne.portal.repository;
 
-import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.UserStudyGrouped;
+
 import java.util.List;
-import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.repository.CrudRepository;
 
 public interface UserStudyGroupedRepository
         extends BaseUserStudyLinkRepository<UserStudyGrouped> {

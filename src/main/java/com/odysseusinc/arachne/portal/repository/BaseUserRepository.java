@@ -78,8 +78,6 @@ public interface BaseUserRepository<U extends IUser> extends EntityGraphJpaRepos
                            @Param("paperId") Long paperId,
                            @Param("limit") Integer limit);
 
-    U findById(Long id);
-
     @Query(nativeQuery = true, value = "SELECT * FROM users_data u WHERE enabled = TRUE")
     List<U> findAllEnabledFromAllTenants();
 

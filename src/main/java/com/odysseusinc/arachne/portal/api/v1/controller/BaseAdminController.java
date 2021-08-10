@@ -179,7 +179,7 @@ public abstract class BaseAdminController<
 
         final Page<U> users = userService.getPage(pageable, userSearch);
         final DeletableUserWithTenantsListDTO userDtoList = conversionService.convert(users.getContent(), DeletableUserWithTenantsListDTO.class);
-        return new CustomPageImpl<>(userDtoList, new PageRequest(pageable.getPageNumber() - 1, pageable.getPageSize()), users.getTotalElements());
+        return new CustomPageImpl<>(userDtoList, PageRequest.of(pageable.getPageNumber() - 1, pageable.getPageSize()), users.getTotalElements());
     }
 
     @ApiOperation("Register new users")

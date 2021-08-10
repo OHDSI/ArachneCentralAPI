@@ -65,7 +65,7 @@ public abstract class DomainObjectLoader {
 
     protected CrudRepository getRepository() {
 
-        return (CrudRepository) repositories.getRepositoryFor(domainClazz);
+        return (CrudRepository) repositories.getRepositoryFor(domainClazz).orElseThrow(() -> new IllegalArgumentException("Unknown class: " + domainClazz.getCanonicalName()));
     }
 
     protected Serializable getTargetId(Object domainObject) {
