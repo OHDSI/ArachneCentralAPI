@@ -55,6 +55,10 @@ import edu.vt.middleware.password.Password;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
 import java.security.Principal;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -64,6 +68,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
@@ -88,6 +93,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
     protected LoginAttemptService loginAttemptService;
     private AuthenticationService authenticationService;
     protected AuthenticationHelperService authenticationHelperService;
+    protected final OAuth2ClientProperties oAuth2ClientProperties;
 
     public BaseAuthenticationController(Authenticator authenticator,
                                         BaseUserService userService,
@@ -95,8 +101,9 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
                                         @Qualifier("passwordValidator") ArachnePasswordValidator passwordValidator,
                                         ProfessionalTypeService professionalTypeService,
                                         LoginAttemptService loginAttemptService,
-                                        AuthenticationService authenticationService, AuthenticationHelperService authenticationHelperService) {
-
+                                        AuthenticationService authenticationService, AuthenticationHelperService authenticationHelperService,
+                                        OAuth2ClientProperties oAuth2ClientProperties
+    ) {
         this.authenticator = authenticator;
         this.userService = userService;
         this.passwordResetService = passwordResetService;
@@ -105,6 +112,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
         this.loginAttemptService = loginAttemptService;
         this.authenticationService = authenticationService;
         this.authenticationHelperService = authenticationHelperService;
+        this.oAuth2ClientProperties = oAuth2ClientProperties;
     }
 
     @ApiOperation("Get auth method")
@@ -114,6 +122,18 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
         final JsonResult<CommonAuthMethodDTO> result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
         result.setResult(new CommonAuthMethodDTO(authenticationHelperService.getCurrentMethodType()));
         return result;
+    }
+
+    @ApiOperation("Get all auth methods")
+    @RequestMapping(value = "/api/v1/auth/methods", method = RequestMethod.GET)
+    public JsonResult<Map<String, String>> authMethods() {
+        Map<String, String> providers = Optional.ofNullable(oAuth2ClientProperties).map(oauth ->
+            oauth.getRegistration().keySet().stream().collect(
+                    Collectors.toMap(method -> method, method -> "/oauth2/authorization/" + method)
+            )
+        ).orElseGet(HashMap::new);
+        providers.put(authenticationHelperService.getCurrentMethodType(), null);
+        return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, providers);
     }
 
     @ApiOperation("Login with specified credentials.")

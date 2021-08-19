@@ -30,6 +30,8 @@ import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
 import com.odysseusinc.arachne.portal.service.AuthenticationHelperService;
 import com.odysseusinc.arachne.portal.service.UserService;
 import org.ohdsi.authenticator.service.authentication.Authenticator;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -42,8 +44,9 @@ public class AuthenticationController extends BaseAuthenticationController {
                                     ProfessionalTypeService professionalTypeService,
                                     LoginAttemptService loginAttemptService,
                                     AuthenticationService authenticationService,
-                                    AuthenticationHelperService authenticationHelperService) {
-
+                                    AuthenticationHelperService authenticationHelperService,
+                                    @Autowired(required = false) OAuth2ClientProperties oAuth2ClientProperties
+    ) {
         super(  authenticator,
                 userService,
                 passwordResetService,
@@ -51,6 +54,8 @@ public class AuthenticationController extends BaseAuthenticationController {
                 professionalTypeService,
                 loginAttemptService,
                 authenticationService,
-                authenticationHelperService);
+                authenticationHelperService,
+                oAuth2ClientProperties
+        );
     }
 }
