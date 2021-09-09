@@ -38,10 +38,12 @@ import java.net.URI;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -54,6 +56,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -68,7 +71,9 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 @Configuration
@@ -130,6 +135,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     protected UserDetailsService userDetailsService;
+
+    @Autowired
+    private AuthenticationSuccessHandler authenticationSuccessHandler;
+
+    @Autowired(required = false)
+    private OAuth2ClientProperties oAuth2ClientProperties;
 
     @Autowired
     public void configureAuthentication(
@@ -257,6 +268,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+        if (oAuth2ClientProperties != null) {
+            http.oauth2Login(oauth -> oauth
+                    .successHandler(authenticationSuccessHandler)
+                    .userInfoEndpoint(endpoint ->
+                            endpoint.oidcUserService(oidcUserService())
+                    )
+            );
+        }
 
         ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry reg = http
                 .csrf()
@@ -309,15 +328,24 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .anyRequest().permitAll();
 
         // Custom JWT based authentication
-        http.addFilterBefore(loginRequestFilter(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(loginRequestFilter(), OAuth2AuthorizationRequestRedirectFilter.class);
         http.addFilterBefore(authenticationTokenFilterBean(), LoginRequestFilter.class);
         // DataNode authentication
         http.addFilterBefore(authenticationSystemTokenFilter(), AuthenticationTokenFilter.class);
         http.addFilterBefore(hostfilter, AuthenticationSystemTokenFilter.class);
+
     }
 
     protected void extendHttpSecurity(ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry  registry) {
 
     }
 
+    private OidcUserService oidcUserService() {
+        Set<String> scopes = Stream.of(
+                "openid", "profile", "email", "address"
+        ).collect(Collectors.toSet());
+        OidcUserService userService = new OidcUserService();
+        userService.setAccessibleScopes(scopes);
+        return userService;
+    }
 }

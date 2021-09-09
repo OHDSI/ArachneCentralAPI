@@ -4,6 +4,8 @@ import com.github.springtestdbunit.annotation.DatabaseOperation;
 import com.github.springtestdbunit.annotation.DatabaseSetup;
 import com.github.springtestdbunit.annotation.DatabaseTearDown;
 import com.odysseusinc.arachne.portal.SingleContextTest;
+import com.odysseusinc.arachne.portal.model.security.ArachneUser;
+import com.odysseusinc.arachne.portal.security.JWTAuthenticationToken;
 import edu.emory.mathcs.backport.java.util.Arrays;
 import java.util.Collection;
 import org.junit.Assert;
@@ -18,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.junit4.rules.SpringClassRule;
 import org.springframework.test.context.junit4.rules.SpringMethodRule;
 
@@ -33,6 +36,12 @@ public class BaseDataSourceServiceTest extends SingleContextTest {
     public final SpringMethodRule springMethodRule = new SpringMethodRule();
     @Autowired
     BaseDataSourceService baseDataSourceService;
+
+    public BaseDataSourceServiceTest() {
+        ArachneUser user = new ArachneUser();
+        user.setActiveTenantId(1L);
+        SecurityContextHolder.getContext().setAuthentication(new JWTAuthenticationToken("", user, null));
+    }
 
     @Parameters
     public static Collection<Object[]> data() {

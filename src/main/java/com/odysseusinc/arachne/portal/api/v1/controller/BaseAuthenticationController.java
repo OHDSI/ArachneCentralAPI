@@ -41,19 +41,24 @@ import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.PasswordReset;
+import com.odysseusinc.arachne.portal.security.JWTAuthenticationToken;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordData;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidationResult;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
+import com.odysseusinc.arachne.portal.service.AuthenticationHelperService;
 import com.odysseusinc.arachne.portal.service.AuthenticationService;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
 import com.odysseusinc.arachne.portal.service.LoginAttemptService;
 import com.odysseusinc.arachne.portal.service.PasswordResetService;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
-import com.odysseusinc.arachne.portal.service.AuthenticationHelperService;
 import edu.vt.middleware.password.Password;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
 import java.security.Principal;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -63,9 +68,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -86,6 +93,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
     protected LoginAttemptService loginAttemptService;
     private AuthenticationService authenticationService;
     protected AuthenticationHelperService authenticationHelperService;
+    protected final OAuth2ClientProperties oAuth2ClientProperties;
 
     public BaseAuthenticationController(Authenticator authenticator,
                                         BaseUserService userService,
@@ -93,8 +101,9 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
                                         @Qualifier("passwordValidator") ArachnePasswordValidator passwordValidator,
                                         ProfessionalTypeService professionalTypeService,
                                         LoginAttemptService loginAttemptService,
-                                        AuthenticationService authenticationService, AuthenticationHelperService authenticationHelperService) {
-
+                                        AuthenticationService authenticationService, AuthenticationHelperService authenticationHelperService,
+                                        OAuth2ClientProperties oAuth2ClientProperties
+    ) {
         this.authenticator = authenticator;
         this.userService = userService;
         this.passwordResetService = passwordResetService;
@@ -103,6 +112,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
         this.loginAttemptService = loginAttemptService;
         this.authenticationService = authenticationService;
         this.authenticationHelperService = authenticationHelperService;
+        this.oAuth2ClientProperties = oAuth2ClientProperties;
     }
 
     @ApiOperation("Get auth method")
@@ -112,6 +122,18 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
         final JsonResult<CommonAuthMethodDTO> result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
         result.setResult(new CommonAuthMethodDTO(authenticationHelperService.getCurrentMethodType()));
         return result;
+    }
+
+    @ApiOperation("Get all auth methods")
+    @RequestMapping(value = "/api/v1/auth/methods", method = RequestMethod.GET)
+    public JsonResult<Map<String, String>> authMethods() {
+        Map<String, String> providers = Optional.ofNullable(oAuth2ClientProperties).map(oauth ->
+            oauth.getRegistration().keySet().stream().collect(
+                    Collectors.toMap(method -> method, method -> "/oauth2/authorization/" + method)
+            )
+        ).orElseGet(HashMap::new);
+        providers.put(authenticationHelperService.getCurrentMethodType(), null);
+        return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, providers);
     }
 
     @ApiOperation("Login with specified credentials.")
@@ -177,15 +199,12 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
 
     @ApiOperation("Logout.")
     @RequestMapping(value = "/api/v1/auth/logout", method = RequestMethod.POST)
-    public JsonResult logout(HttpServletRequest request) {
+    public JsonResult logout(@AuthenticationPrincipal JWTAuthenticationToken authentication) {
 
         JsonResult result;
         try {
-            String token = request.getHeader(tokenHeader);
-            if (token != null) {
-                authenticator.invalidateToken(token);
-            }
-            result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
+            authenticator.invalidateToken(authentication.getToken());
+            result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, true);
             result.setResult(true);
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
@@ -275,14 +294,9 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
     @ApiOperation("Get information about current user.")
     @RequestMapping(value = "/api/v1/auth/me", method = RequestMethod.GET)
     public JsonResult<UserInfoDTO> info(Principal principal) {
-
-        final JsonResult<UserInfoDTO> result;
-        IUser user = userService.getByUsernameInAnyTenant(principal.getName());
+        IUser user = userService.getUser(principal);
         final UserInfoDTO userInfo = conversionService.convert(user, UserInfoDTO.class);
-        result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
-        result.setResult(userInfo);
-
-        return result;
+        return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, userInfo);
     }
 
 }

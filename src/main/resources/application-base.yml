@@ -1,6 +1,6 @@
 # suppress inspection "SpringBootApplicationProperties" for whole file
 server:
-  port: 8080
+  port: 8443
   ssl:
     enabled: true
     key-store: classpath:keystore.jks

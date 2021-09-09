@@ -105,6 +105,17 @@ public interface BaseUserService<U extends IUser, S extends Skill> extends Index
 
     U create(@NotNull U user) throws PasswordValidationException;
 
+
+    /**
+     * Creates user logged in from external authentication provider.
+     * Compared to A number of checks is not performed in this method
+     * @param user
+     * @param origin
+     * @return
+     * @throws PasswordValidationException
+     */
+    U createExternal(U user, String origin) throws PasswordValidationException;
+
     void sendRemindPasswordEmail(U user, String token, String registrantToken, String callbackUrl);
 
     void resendActivationEmail(U user);
@@ -203,9 +214,9 @@ public interface BaseUserService<U extends IUser, S extends Skill> extends Index
 
     List<StateProvince> suggestStateProvince(String query, Long countryId, Integer limit, Long includeId);
 
-    U getUser(Principal principal) throws PermissionDeniedException;
+    IUser getUser(Principal principal) throws PermissionDeniedException;
 
-    U getCurrentUser() throws PermissionDeniedException;
+    IUser getCurrentUser() throws PermissionDeniedException;
 
     List<U> getAllAdmins(String sortBy, Boolean sortAsc);
 

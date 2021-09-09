@@ -47,6 +47,7 @@ import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Invitationable;
 import com.odysseusinc.arachne.portal.model.ParticipantStatus;
 import com.odysseusinc.arachne.portal.model.ProfessionalType;
+import com.odysseusinc.arachne.portal.model.RawUser;
 import com.odysseusinc.arachne.portal.model.Role;
 import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.model.StateProvince;
@@ -67,6 +68,7 @@ import com.odysseusinc.arachne.portal.repository.StateProvinceRepository;
 import com.odysseusinc.arachne.portal.repository.StudyDataSourceLinkRepository;
 import com.odysseusinc.arachne.portal.repository.UserSpecifications;
 import com.odysseusinc.arachne.portal.repository.UserStudyRepository;
+import com.odysseusinc.arachne.portal.security.JWTAuthenticationToken;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordData;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidationResult;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
@@ -88,6 +90,10 @@ import com.odysseusinc.arachne.portal.service.mail.RegistrationMailMessage;
 import com.odysseusinc.arachne.portal.service.mail.RemindPasswordMailMessage;
 import com.odysseusinc.arachne.portal.util.EntityUtils;
 import edu.vt.middleware.password.Password;
+import java.security.SecureRandom;
+import java.util.Base64;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -115,6 +121,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
@@ -159,6 +166,8 @@ public abstract class BaseUserServiceImpl<
     private static final String AVATAR_FILE_NAME = "avatar.jpg";
     private static final String PASSWORD_NOT_MATCH_EXC = "Old password is incorrect";
 
+    private final SecureRandom random = new SecureRandom();
+
     private final MessageSource messageSource;
     protected final ProfessionalTypeService professionalTypeService;
     private final JavaMailSender javaMailSender;
@@ -189,6 +198,9 @@ public abstract class BaseUserServiceImpl<
 
     @Value("${portal.notifyAdminAboutNewUser}")
     protected boolean notifyAdminAboutNewUser;
+
+    @PersistenceContext
+    EntityManager em;
 
     private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -352,6 +364,35 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
+    public U createExternal(@NotNull U user, String origin) throws PasswordValidationException {
+
+        // External users are enabled by default
+        user.setEnabled(true);
+        // TODO setCountry and setStateProvince from setFields?
+        Assert.notNull(origin, "For external users, origin is mandatory");
+        user.setOrigin(origin);
+        setInitialTimestamps(user, new Date());
+        // TODO Need to make meaningful choice here
+        user.setProfessionalType(professionalTypeService.list().iterator().next());
+        // Set invalid password, as external users should not log in using it by default
+        user.setPassword(randomString(32));
+        user.setRoles(Collections.emptyList());
+        ensureTenantSet(user);
+
+        return rawUserRepository.saveAndFlush(user);
+    }
+
+    private void ensureTenantSet(@NotNull U user) {
+        if (isEmpty(user.getTenants())) {
+            user.setTenants(tenantService.getDefault());
+        }
+        if (!isEmpty(user.getTenants())) {
+            user.setActiveTenant(user.getTenants().iterator().next());
+        }
+    }
+
+
+    @Override
     public U createWithEmailVerification(final @NotNull U user, String registrantToken, String callbackUrl)
             throws NotUniqueException, NotExistException, PasswordValidationException {
 
@@ -397,10 +438,7 @@ public abstract class BaseUserServiceImpl<
             user.setOrigin(authenticationHelperService.getCurrentMethodType());
         }
 
-        Date date = new Date();
-        user.setCreated(date);
-        user.setUpdated(date);
-        user.setLastPasswordReset(date);
+        setInitialTimestamps(user, new Date());
 
         user.setProfessionalType(professionalTypeService.getById(user.getProfessionalType().getId()));
         String password = user.getPassword();
@@ -411,12 +449,7 @@ public abstract class BaseUserServiceImpl<
         validatePassword(username, firstName, lastName, middleName, password);
         user.setPassword(passwordEncoder.encode(password));
 
-        if (isEmpty(user.getTenants())) {
-            user.setTenants(tenantService.getDefault());
-        }
-        if (!isEmpty(user.getTenants())) {
-            user.setActiveTenant(user.getTenants().iterator().next());
-        }
+        ensureTenantSet(user);
     }
 
     @Override
@@ -1109,20 +1142,20 @@ public abstract class BaseUserServiceImpl<
     }
 
     @Override
-    public U getUser(Principal principal) throws PermissionDeniedException {
-
-        if (principal == null) {
-            throw new PermissionDeniedException();
-        }
-        final U user = getByUsernameInAnyTenant(principal.getName());
-        if (user == null) {
-            throw new PermissionDeniedException();
-        }
-        return user;
+    @Transactional(rollbackFor = Exception.class)
+    public IUser getUser(Principal principal) throws PermissionDeniedException {
+        return JWTAuthenticationToken.ifInstance(principal).<IUser>map(token -> {
+            Long id = token.getPrincipal().getId();
+            return em.find(RawUser.class, id);
+        }).orElseGet(() ->
+                Optional.ofNullable(principal).map(p ->
+                        getByUsernameInAnyTenant(p.getName())
+                ).orElseThrow(PermissionDeniedException::new)
+        );
     }
 
     @Override
-    public U getCurrentUser() throws PermissionDeniedException {
+    public IUser getCurrentUser() throws PermissionDeniedException {
 
         Authentication principal = SecurityContextHolder.getContext().getAuthentication();
         return getUser(principal);
@@ -1285,6 +1318,20 @@ public abstract class BaseUserServiceImpl<
     public StateProvince findStateProvinceByCode(String isoCode) {
 
         return stateProvinceRepository.findByIsoCode(isoCode);
+    }
+
+    private void setInitialTimestamps(U user, Date date) {
+        user.setCreated(date);
+        user.setUpdated(date);
+        user.setLastPasswordReset(date);
+    }
+
+    // TODO Rag-tag solution, check compliance to security requirements
+    private String randomString(int size) {
+        Base64.Encoder ENCODER = Base64.getUrlEncoder().withoutPadding();
+        byte[] bytes = new byte[size];
+        random.nextBytes(bytes);
+        return ENCODER.encodeToString(bytes);
     }
 
     private class AvatarResolver implements AutoCloseable {

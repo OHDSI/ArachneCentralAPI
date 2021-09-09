@@ -45,8 +45,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-
-        IUser user = userService.getByUsernameInAnyTenant(username);
+        // TODO Disuss this change. All the family of "getByUsername*" methods isn't really making any sense to me.
+        IUser user = userService.getByUsername(username);
         if (user == null) {
             throw new UsernameNotFoundException(String.format("No user found with username '%s'.", username));
         }
