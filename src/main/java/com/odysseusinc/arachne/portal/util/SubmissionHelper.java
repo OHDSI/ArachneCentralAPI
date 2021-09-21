@@ -329,45 +329,16 @@ public class SubmissionHelper {
             try {
                 final String resultsDir = contentStorageHelper.getResultFilesDir(submission);
                 final Map<String, String> cohortNames = new HashMap<>();
-                ArachneFileMeta packageFile = findAnalysisPackage(submission);
-                if (packageFile != null) {
-                    Path tmpDir = Files.createTempDirectory("incidencerate");
-                    try {
-                        File archiveFile = tmpDir.resolve("IncidenceRate.zip").toFile();
-                        try (OutputStream out = new FileOutputStream(archiveFile);
-                             InputStream fileIn = contentStorageService.getContentByFilepath(packageFile.getPath())) {
-                            IOUtils.copy(fileIn, out);
-                        }
-                        try (FileInputStream in = new FileInputStream(archiveFile);
-                             ZipInputStream zip = new ZipInputStream(in)) {
-                            ZipEntry entry = zip.getNextEntry();
-                            while (entry != null) {
-                                if (entry.getName().endsWith(STUDY_SPECIFICATION_JSON)) {
-                                    File jsonFile = tmpDir.resolve(STUDY_SPECIFICATION_JSON).toFile();
-                                    try (FileOutputStream out = new FileOutputStream(jsonFile)) {
-                                        IOUtils.copy(zip, out);
-                                    }
-                                }
-                                zip.closeEntry();
-                                entry = zip.getNextEntry();
-                            }
-                        }
-
-                        Path specFile = tmpDir.resolve(STUDY_SPECIFICATION_JSON);
-                        if (Files.exists(specFile) && Files.isRegularFile(specFile)) {
-                            JsonParser parser = new JsonParser();
-                            try (Reader json = new FileReader(specFile.toFile())) {
-                                JsonObject spec = parser.parse(json).getAsJsonObject();
-                                JsonArray targets = spec.get("targetCohorts").getAsJsonArray();
-                                cohortNames.putAll(getCohortNames(targets));
-                                JsonArray outcomes = spec.get("outcomeCohorts").getAsJsonArray();
-                                cohortNames.putAll(getCohortNames(outcomes));
-                            }
-                        }
-                    } catch (Exception e) {
-                        LOGGER.warn("Failed to parse cohort names, {}", e.getMessage());
-                    } finally {
-                        FileUtils.deleteQuietly(tmpDir.toFile());
+                ArachneFileMeta studySpec = findAnalysisSpec(submission);
+                if (Objects.nonNull(studySpec)) {
+                    JsonParser parser = new JsonParser();
+                    try (InputStream fileIn = contentStorageService.getContentByFilepath(studySpec.getPath());
+                         Reader json = new InputStreamReader(fileIn)) {
+                        JsonObject spec = parser.parse(json).getAsJsonObject();
+                        JsonArray targets = spec.get("targetCohorts").getAsJsonArray();
+                        cohortNames.putAll(getCohortNames(targets));
+                        JsonArray outcomes = spec.get("outcomeCohorts").getAsJsonArray();
+                        cohortNames.putAll(getCohortNames(outcomes));
                     }
                 }
 
@@ -441,14 +412,9 @@ public class SubmissionHelper {
             submission.setResultInfo(result);
         }
 
-        private ArachneFileMeta findAnalysisPackage(Submission submission) {
-
-            final String analysisPackMask = String.format("%s-%%.zip", CommonAnalysisType.INCIDENCE.getCode());
-            List<ArachneFileMeta> packageFiles = searchFiles(submission, analysisPackMask);
-            if (packageFiles.isEmpty()) {
-                packageFiles = searchFiles(submission, "IncidenceRate%.zip");
-            }
-            return packageFiles.isEmpty() ? null : packageFiles.get(0);
+        private ArachneFileMeta findAnalysisSpec(Submission submission) {
+            List<ArachneFileMeta> files = searchFiles(submission, STUDY_SPECIFICATION_JSON);
+            return files.isEmpty() ? null : files.get(0);
         }
 
         private Map<String, String> getCohortNames(JsonArray cohorts) {
