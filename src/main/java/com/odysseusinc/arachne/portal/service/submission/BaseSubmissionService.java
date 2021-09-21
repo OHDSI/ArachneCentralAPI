@@ -159,4 +159,6 @@ public interface BaseSubmissionService<T extends Submission, A extends Analysis>
     ) throws IOException;
 
     List<SubmissionAction> getSubmissionActions(Submission submission);
+
+    void updateSubmissionExtendedInfo(Long submissionId);
 }
