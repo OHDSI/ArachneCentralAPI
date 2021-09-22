@@ -159,6 +159,36 @@ tmp:
     cron: 0 0 6 * * ?
 authenticator:
   methods:
+    ad:
+      service: org.ohdsi.authenticator.service.directory.ad.AdAuthService
+      config:
+        baseDn: dc=example,dc=com
+        userDn: uid=admin,ou=system
+        password: secret
+        url: ldap://localhost:10389
+        searchFilter: uid={0}
+        countLimit: 0
+        ignorePartialResultException: true
+        fieldsToExtract:
+          firstName: displayName
+          lastName: sn
+          email: mail
+          organization: o
+    ldap:
+      service: org.ohdsi.authenticator.service.directory.ldap.LdapAuthService
+      config:
+        baseDn: dc=example,dc=com
+        userDn: uid=admin,ou=system
+        password: secret
+        url: ldap://localhost:10389
+        searchFilter: uid={0}
+        countLimit: 0
+        ignorePartialResultException: true
+        fieldsToExtract:
+          firstName: displayName
+          lastName: sn
+          email: mail
+          organization: o
     db:
       service: org.ohdsi.authenticator.service.jdbc.JdbcAuthService
       config:

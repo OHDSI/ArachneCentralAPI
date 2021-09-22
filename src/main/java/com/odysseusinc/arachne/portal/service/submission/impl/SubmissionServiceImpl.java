@@ -190,7 +190,7 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
 
     @Override
     @PreAuthorize("hasPermission(#submissionId, 'Submission', "
-            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_SUBMISSION_RESULTS)")
     public List<ArachneFileMeta> getResultFiles(IUser user, Long submissionId, ResultFileSearch resultFileSearch) throws PermissionDeniedException {
 
         return super.getResultFiles(user, submissionId, resultFileSearch);
@@ -198,7 +198,7 @@ public class SubmissionServiceImpl extends BaseSubmissionServiceImpl<Submission,
 
     @Override
     @PreAuthorize("hasPermission(#analysisId,  'Analysis', "
-            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_SUBMISSION_RESULTS)")
     public ArachneFileMeta getResultFileAndCheckPermission(IUser user, Submission submission, Long analysisId, String fileUuid)
             throws PermissionDeniedException {
 

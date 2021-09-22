@@ -329,7 +329,7 @@ public abstract class BaseSubmissionServiceImpl<
 
     @Override
     @PreAuthorize("hasPermission(#id,  'Submission', "
-            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_SUBMISSION_RESULTS)")
     @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
     public T getSubmissionById(Long id) throws NotExistException {
 
