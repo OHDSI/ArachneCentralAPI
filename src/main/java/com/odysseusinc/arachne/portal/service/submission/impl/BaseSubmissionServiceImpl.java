@@ -924,6 +924,12 @@ public abstract class BaseSubmissionServiceImpl<
         return Arrays.asList(execApproveAction, manualResultUploadAction, publishAction, hideAction);
     }
 
+    @Override
+    public void updateSubmissionExtendedInfo(Long submissionId) {
+        T submission = submissionRepository.getOne(submissionId);
+        submissionHelper.updateSubmissionExtendedInfo(submission);
+    }
+
     protected SubmissionAction getPublishAction(Submission submission) {
 
         SubmissionAction publishAction = new SubmissionAction(PUBLISH.name());

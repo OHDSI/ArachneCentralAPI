@@ -232,6 +232,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
             } else {
                 submissionService.uploadResultFileByDataOwner(id, localFile);
             }
+            submissionService.updateSubmissionExtendedInfo(id);
         } finally {
             FileUtils.deleteDirectory(tempDirectory.toFile());
         }
