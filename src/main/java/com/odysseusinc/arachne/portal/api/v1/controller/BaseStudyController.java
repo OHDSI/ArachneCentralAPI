@@ -33,6 +33,8 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
+import com.odysseusinc.arachne.commons.conditions.modules.Module;
+import com.odysseusinc.arachne.commons.conditions.modules.ModuleEnabled;
 import com.odysseusinc.arachne.commons.utils.CommonFilenameUtils;
 import com.odysseusinc.arachne.commons.utils.UserIdUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.AddStudyParticipantDTO;
@@ -652,6 +654,7 @@ public abstract class BaseStudyController<
 
     @ApiOperation("Get recent Insights of Study")
     @RequestMapping(value = "/api/v1/study-management/studies/{studyId}/insights", method = GET)
+    @ModuleEnabled(Module.INSIGHT)
     public List<SubmissionInsightDTO> getStudyInsights(
             @PathVariable("studyId") Long studyId,
             @RequestParam(value = "size", required = false) Integer size,

@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.service.impl;
 
+import com.odysseusinc.arachne.commons.config.ArachneConfiguration;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Paper;
@@ -54,6 +55,7 @@ public class BreadcrumbServiceImpl implements BreadcrumbService {
     private final BaseRawUserRepository<IUser> userRepository;
     private final BaseRawDataSourceRepository<RawDataSource> dataSourceRepository;
     private final PaperRepository<Paper> paperRepository;
+    private final ArachneConfiguration arachneConfiguration;
 
     @Autowired
     public BreadcrumbServiceImpl(final StudyRepository studyService,
@@ -63,7 +65,8 @@ public class BreadcrumbServiceImpl implements BreadcrumbService {
                                  final SubmissionGroupRepository submissionGroupRepository,
                                  final BaseRawUserRepository userRepository,
                                  final BaseRawDataSourceRepository dataSourceRepository,
-                                 final PaperRepository<Paper> paperRepository) {
+                                 final PaperRepository<Paper> paperRepository,
+                                 final ArachneConfiguration arachneConfiguration) {
 
         this.studyRepository = studyService;
         this.analysisRepository = analysisRepository;
@@ -73,6 +76,7 @@ public class BreadcrumbServiceImpl implements BreadcrumbService {
         this.userRepository = userRepository;
         this.dataSourceRepository = dataSourceRepository;
         this.paperRepository = paperRepository;
+        this.arachneConfiguration = arachneConfiguration;
     }
 
     // Entry point which ensures that we verify permissions
@@ -88,12 +92,18 @@ public class BreadcrumbServiceImpl implements BreadcrumbService {
             case SUBMISSION:
                 return submissionRepository.getOne(id);
             case INSIGHT:
+                if (!arachneConfiguration.isInsightDisabled()) {
+                    return null;
+                }
                 return submissionInsightRepository.findOneBySubmissionId(id);
             case USER:
                 return userRepository.getOne(id);
             case DATA_SOURCE:
                 return dataSourceRepository.getOne(id);
             case PAPER:
+                if (!arachneConfiguration.isInsightDisabled()) {
+                    return null;
+                }
                 return paperRepository.getOne(id);
         }
         return null;
