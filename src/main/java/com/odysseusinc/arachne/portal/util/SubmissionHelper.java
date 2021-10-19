@@ -40,8 +40,6 @@ import com.odysseusinc.arachne.storage.service.JcrContentStorageServiceImpl;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
@@ -50,31 +48,23 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.Reader;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import static com.odysseusinc.arachne.storage.service.ContentStorageService.PATH_SEPARATOR;
 
@@ -329,47 +319,21 @@ public class SubmissionHelper {
             try {
                 final String resultsDir = contentStorageHelper.getResultFilesDir(submission);
                 final Map<String, String> cohortNames = new HashMap<>();
-                ArachneFileMeta packageFile = findAnalysisPackage(submission);
-                if (packageFile != null) {
-                    Path tmpDir = Files.createTempDirectory("incidencerate");
-                    try {
-                        File archiveFile = tmpDir.resolve("IncidenceRate.zip").toFile();
-                        try (OutputStream out = new FileOutputStream(archiveFile);
-                             InputStream fileIn = contentStorageService.getContentByFilepath(packageFile.getPath())) {
-                            IOUtils.copy(fileIn, out);
-                        }
-                        try (FileInputStream in = new FileInputStream(archiveFile);
-                             ZipInputStream zip = new ZipInputStream(in)) {
-                            ZipEntry entry = zip.getNextEntry();
-                            while (entry != null) {
-                                if (entry.getName().endsWith(STUDY_SPECIFICATION_JSON)) {
-                                    File jsonFile = tmpDir.resolve(STUDY_SPECIFICATION_JSON).toFile();
-                                    try (FileOutputStream out = new FileOutputStream(jsonFile)) {
-                                        IOUtils.copy(zip, out);
-                                    }
-                                }
-                                zip.closeEntry();
-                                entry = zip.getNextEntry();
-                            }
-                        }
-
-                        Path specFile = tmpDir.resolve(STUDY_SPECIFICATION_JSON);
-                        if (Files.exists(specFile) && Files.isRegularFile(specFile)) {
+                Optional<ArachneFileMeta> studySpec = findAnalysisSpec(submission);
+                studySpec
+                        .ifPresent(study -> {
                             JsonParser parser = new JsonParser();
-                            try (Reader json = new FileReader(specFile.toFile())) {
+                            try (InputStream fileIn = contentStorageService.getContentByFilepath(study.getPath());
+                                 Reader json = new InputStreamReader(fileIn)) {
                                 JsonObject spec = parser.parse(json).getAsJsonObject();
                                 JsonArray targets = spec.get("targetCohorts").getAsJsonArray();
                                 cohortNames.putAll(getCohortNames(targets));
                                 JsonArray outcomes = spec.get("outcomeCohorts").getAsJsonArray();
                                 cohortNames.putAll(getCohortNames(outcomes));
+                            } catch (IOException e) {
+                                LOGGER.debug(CAN_NOT_PARSE_LOG, INCIDENCE_SUMMARY_FILENAME);
                             }
-                        }
-                    } catch (Exception e) {
-                        LOGGER.warn("Failed to parse cohort names, {}", e.getMessage());
-                    } finally {
-                        FileUtils.deleteQuietly(tmpDir.toFile());
-                    }
-                }
+                        });
 
                 ArachneFileMeta arachneFile = contentStorageService.getFileByPath(resultsDir
                         + PATH_SEPARATOR
@@ -441,14 +405,9 @@ public class SubmissionHelper {
             submission.setResultInfo(result);
         }
 
-        private ArachneFileMeta findAnalysisPackage(Submission submission) {
-
-            final String analysisPackMask = String.format("%s-%%.zip", CommonAnalysisType.INCIDENCE.getCode());
-            List<ArachneFileMeta> packageFiles = searchFiles(submission, analysisPackMask);
-            if (packageFiles.isEmpty()) {
-                packageFiles = searchFiles(submission, "IncidenceRate%.zip");
-            }
-            return packageFiles.isEmpty() ? null : packageFiles.get(0);
+        private Optional<ArachneFileMeta> findAnalysisSpec(Submission submission) {
+            List<ArachneFileMeta> files = searchFiles(submission, STUDY_SPECIFICATION_JSON);
+            return files.stream().findFirst();
         }
 
         private Map<String, String> getCohortNames(JsonArray cohorts) {
