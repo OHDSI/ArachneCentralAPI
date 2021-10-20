@@ -27,7 +27,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
-import com.odysseusinc.arachne.commons.conditions.modules.Module;
 import com.odysseusinc.arachne.commons.conditions.modules.ModuleEnabled;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.BooleanDTO;
@@ -53,6 +52,7 @@ import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.search.PaperSearch;
 import com.odysseusinc.arachne.portal.model.search.StudySearch;
+import com.odysseusinc.arachne.portal.modules.ModuleHelper;
 import com.odysseusinc.arachne.portal.service.BasePaperService;
 import com.odysseusinc.arachne.portal.service.ToPdfConverter;
 import com.odysseusinc.arachne.portal.service.StudyFileService;
@@ -84,7 +84,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 @Validated
-@ModuleEnabled(Module.INSIGHT)
+@ModuleEnabled(ModuleHelper.INSIGHT)
 public abstract class BasePaperController
         <P extends Paper,
         PS extends PaperSearch,

@@ -27,6 +27,7 @@ import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.model.RawDataSource;
+import com.odysseusinc.arachne.portal.modules.ModuleHelper;
 import com.odysseusinc.arachne.portal.repository.AnalysisRepository;
 import com.odysseusinc.arachne.portal.repository.BaseRawDataSourceRepository;
 import com.odysseusinc.arachne.portal.repository.BaseRawUserRepository;
@@ -92,7 +93,7 @@ public class BreadcrumbServiceImpl implements BreadcrumbService {
             case SUBMISSION:
                 return submissionRepository.getOne(id);
             case INSIGHT:
-                if (!arachneConfiguration.isInsightDisabled()) {
+                if (arachneConfiguration.isModuleDisabled(ModuleHelper.INSIGHT)) {
                     return null;
                 }
                 return submissionInsightRepository.findOneBySubmissionId(id);
@@ -101,7 +102,7 @@ public class BreadcrumbServiceImpl implements BreadcrumbService {
             case DATA_SOURCE:
                 return dataSourceRepository.getOne(id);
             case PAPER:
-                if (!arachneConfiguration.isInsightDisabled()) {
+                if (arachneConfiguration.isModuleDisabled(ModuleHelper.INSIGHT)) {
                     return null;
                 }
                 return paperRepository.getOne(id);

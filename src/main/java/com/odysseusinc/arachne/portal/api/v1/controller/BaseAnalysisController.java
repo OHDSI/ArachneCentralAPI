@@ -25,7 +25,6 @@ import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonEntityRequestDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.OptionDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
-import com.odysseusinc.arachne.commons.conditions.modules.Module;
 import com.odysseusinc.arachne.commons.conditions.modules.ModuleEnabled;
 import com.odysseusinc.arachne.commons.service.messaging.ProducerConsumerTemplate;
 import com.odysseusinc.arachne.commons.utils.CommonFilenameUtils;
@@ -65,6 +64,7 @@ import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionInsight;
 import com.odysseusinc.arachne.portal.model.search.SubmissionGroupSearch;
+import com.odysseusinc.arachne.portal.modules.ModuleHelper;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.DataReferenceService;
 import com.odysseusinc.arachne.portal.service.ImportService;
@@ -447,7 +447,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
 
     @ApiOperation("Get submission insight")
     @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/insight", method = GET)
-    @ModuleEnabled(Module.INSIGHT)
+    @ModuleEnabled(ModuleHelper.INSIGHT)
     public JsonResult<SubmissionInsightDTO> getSubmissionInsight(
             @PathVariable("submissionId") Long submissionId,
             @RequestParam(value = "size", required = false) Integer size,
@@ -472,7 +472,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
 
     @ApiOperation("Create submission insight")
     @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/insight", method = POST)
-    @ModuleEnabled(Module.INSIGHT)
+    @ModuleEnabled(ModuleHelper.INSIGHT)
     public JsonResult<SubmissionInsightDTO> addSubmissionInsight(
             @PathVariable("submissionId") Long submissionId,
             @RequestBody @Valid SubmissionInsightDTO insightDTO
@@ -489,7 +489,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
 
     @ApiOperation("Update submission insight")
     @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/insight", method = PUT)
-    @ModuleEnabled(Module.INSIGHT)
+    @ModuleEnabled(ModuleHelper.INSIGHT)
     public JsonResult<SubmissionInsightDTO> updateSubmissionInsight(
             @PathVariable("submissionId") Long submissionId,
             @RequestBody SubmissionInsightUpdateDTO insightDTO
