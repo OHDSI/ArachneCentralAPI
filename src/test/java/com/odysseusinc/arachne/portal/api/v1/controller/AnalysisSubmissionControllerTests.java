@@ -254,7 +254,6 @@ public class AnalysisSubmissionControllerTests extends BaseControllerTest {
     }
 
     @Test
-//    @Ignore("Fails after migration to TestContainers. Previously passed only on second pass due to DB pollution from other tests.")
     @WithUserDetails(STUDY_LEAD)
     @DatabaseSetups({
             @DatabaseSetup("/data/analysis/submission/submission-executed.xml")

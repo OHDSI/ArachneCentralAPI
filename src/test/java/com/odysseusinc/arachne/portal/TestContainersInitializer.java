@@ -21,7 +21,6 @@ public class TestContainersInitializer implements ApplicationContextInitializer<
 
     private static final DockerImageName POSTGRES_IMAGE = DockerImageName.parse(IMAGE).withTag("9.6.12");
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(POSTGRES_IMAGE);
-    //    static SolrContainer solr = new SolrContainer(DockerImageName.parse("solr").asCompatibleSubstituteFor("solr").withTag("1.0.1").withRepository("hub.arachnenetwork.com"));
     static SolrContainer solr;
 
     static {
@@ -61,13 +60,10 @@ public class TestContainersInitializer implements ApplicationContextInitializer<
     }
 
     private static void startContainers() {
-//        hub.arachnenetwork.com/solr:1.0.1
         Startables.deepStart(Stream.of(
                 postgres,
                 solr
         )).join();
-        // we can add further containers
-        // here like rabbitmq or other databases
     }
 
     @Override

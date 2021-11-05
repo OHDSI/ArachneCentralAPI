@@ -27,7 +27,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.rules.SpringClassRule;
 import org.springframework.test.context.junit4.rules.SpringMethodRule;
 
-@Ignore("Started to fail on build server after lucene migration to testcontainers")
+@Ignore("Started to fail on build server after Solr migration to Testcontainers")
 @RunWith(Parameterized.class)
 @DatabaseSetup("/data/users.xml")
 @DatabaseSetup("/data/published-datanode-with-datasources.xml")
