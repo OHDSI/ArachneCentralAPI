@@ -23,10 +23,13 @@
 package com.odysseusinc.arachne.portal.security;
 
 import com.odysseusinc.arachne.portal.model.DataNode;
+import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
+import com.odysseusinc.arachne.portal.service.TenantService;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
@@ -45,10 +48,12 @@ public class AuthenticationSystemTokenFilter extends GenericFilterBean {
     private String tokenHeader;
 
     private final BaseDataNodeService<DataNode> baseDataNodeService;
+    private final TenantService tenantService;
 
-    public AuthenticationSystemTokenFilter(BaseDataNodeService baseDataNodeService) {
+    public AuthenticationSystemTokenFilter(BaseDataNodeService baseDataNodeService, TenantService tenantService) {
 
         this.baseDataNodeService = baseDataNodeService;
+        this.tenantService = tenantService;
     }
 
     @Override
@@ -64,8 +69,9 @@ public class AuthenticationSystemTokenFilter extends GenericFilterBean {
                 GrantedAuthority dataNodeAuthority = new SimpleGrantedAuthority("ROLE_" + Roles.ROLE_DATA_NODE);
                 Collection<GrantedAuthority> authorityCollection = new ArrayList<>();
                 authorityCollection.add(dataNodeAuthority);
+                Long tenant = tenantService.getDefault().stream().min(Comparator.comparing(Tenant::getId)).map(Tenant::getId).orElse(null);
                 DataNodeAuthenticationToken authentication = new DataNodeAuthenticationToken(token,
-                        dataNode, authorityCollection);
+                        dataNode, authorityCollection, tenant);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         }
