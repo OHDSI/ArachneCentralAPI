@@ -1,6 +1,6 @@
 package com.odysseusinc.arachne.portal.config.tenancy;
 
-import com.odysseusinc.arachne.portal.model.security.ArachneUser;
+import com.odysseusinc.arachne.portal.model.security.HasTenant;
 import java.util.Optional;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -10,8 +10,14 @@ public class TenantContext {
         return Optional.ofNullable(
                 SecurityContextHolder.getContext().getAuthentication()
         ).map(authentication -> {
-            Object principal = authentication.getPrincipal();
-            return  (principal instanceof ArachneUser) ? ((ArachneUser) principal).getActiveTenantId() : null;
+            // TODO Checking for tenants in 2 places isn't nice, but with DataNodeAuthenticationToken principal is
+            //  an entity, so amending transient fields not initialized from DB there would be an abstraction failure
+            if (authentication instanceof HasTenant) {
+                return ((HasTenant) authentication).getActiveTenantId();
+            } else {
+                Object principal = authentication.getPrincipal();
+                return (principal instanceof HasTenant) ? ((HasTenant) principal).getActiveTenantId() : null;
+            }
         }).orElse(null);
     }
 
