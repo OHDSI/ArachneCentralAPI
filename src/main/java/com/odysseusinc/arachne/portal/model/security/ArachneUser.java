@@ -28,7 +28,7 @@ import java.util.Date;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-public class ArachneUser implements UserDetails, HasTenant {
+public class ArachneUser implements UserDetails {
 
     private Long id;
     private Long activeTenantId;
@@ -74,7 +74,6 @@ public class ArachneUser implements UserDetails, HasTenant {
         this.id = id;
     }
 
-    @Override
     public Long getActiveTenantId() {
 
         return activeTenantId;
