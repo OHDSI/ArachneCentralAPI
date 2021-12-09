@@ -49,7 +49,6 @@ import com.odysseusinc.arachne.portal.model.DataSourceStatus;
 import com.odysseusinc.arachne.portal.model.FavouriteStudy;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
-import com.odysseusinc.arachne.portal.model.Identifiable;
 import com.odysseusinc.arachne.portal.model.ParticipantRole;
 import com.odysseusinc.arachne.portal.model.ParticipantStatus;
 import com.odysseusinc.arachne.portal.model.Study;
@@ -1040,6 +1039,11 @@ public abstract class BaseStudyServiceImpl<
     public List<T> findWithAnalysesInAnyTenant() {
 
         return studyRepository.findWithAnalysesInAnyTenant();
+    }
+
+    @Override
+    public String findTitleInAnyTenant(Long studyId) {
+        return studyRepository.findTitleInAnyTenant(studyId);
     }
 
     @Override

@@ -79,6 +79,9 @@ public interface BaseStudyRepository<T extends Study> extends EntityGraphJpaRepo
     @Query(nativeQuery = true, value = "SELECT s.* FROM studies_data s WHERE EXISTS(SELECT 1 FROM analyses a WHERE a.study_id = s.id)")
     List<T> findWithAnalysesInAnyTenant();
 
+    @Query(nativeQuery = true, value = "SELECT s.title FROM studies_data s where id = :studyId")
+    String findTitleInAnyTenant(@Param("studyId") Long id);
+
     @Query(nativeQuery = true, value = "SELECT * FROM studies_data WHERE id IN :studyIds")
     List<T> findByIdsInAnyTenant(@Param("studyIds") Collection<Long> ids);
 
@@ -87,7 +90,7 @@ public interface BaseStudyRepository<T extends Study> extends EntityGraphJpaRepo
 
     @Query("SELECT s.kind FROM Study s JOIN s.analyses a WHERE a.id = :id")
     Optional<StudyKind> findStudyKindByAnalysisId(@Param("id") Long id);
-    
+
     @Query("SELECT s.kind FROM Study s JOIN s.files f WHERE f.id = :id")
     Optional<StudyKind> findStudyKindByStudyFileId(@Param("id") Long id);
 
