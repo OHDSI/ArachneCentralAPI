@@ -51,8 +51,8 @@ run_cohort_characterization <- function(
                                CDM_schema=cdmDatabaseSchema,
                                results_schema=resultsDatabaseSchema,
                                cohort_table=cohortTable,
-                               source_name=connectionDetails$connectionString,
-                               runHERACLESHeel = FALSE,
+                               source_name=connectionDetails$connectionString(),
+                               runHERACLESHeel = TRUE,
                                CDM_version='5',
                                cohort_definition_id=cohortId)
     heraclesAnalyses <- translate(heraclesAnalyses, targetDialect = connectionDetails$dbms)
