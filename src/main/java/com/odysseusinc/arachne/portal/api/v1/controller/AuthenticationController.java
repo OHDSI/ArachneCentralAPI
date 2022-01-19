@@ -22,6 +22,7 @@
 
 package com.odysseusinc.arachne.portal.api.v1.controller;
 
+import com.odysseusinc.arachne.portal.config.PortalAuthMethodConfig;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
 import com.odysseusinc.arachne.portal.service.AuthenticationService;
 import com.odysseusinc.arachne.portal.service.LoginAttemptService;
@@ -45,7 +46,7 @@ public class AuthenticationController extends BaseAuthenticationController {
                                     LoginAttemptService loginAttemptService,
                                     AuthenticationService authenticationService,
                                     AuthenticationHelperService authenticationHelperService,
-                                    @Autowired(required = false) OAuth2ClientProperties oAuth2ClientProperties
+                                    @Autowired(required = false) PortalAuthMethodConfig oAuth2ClientProperties
     ) {
         super(  authenticator,
                 userService,
