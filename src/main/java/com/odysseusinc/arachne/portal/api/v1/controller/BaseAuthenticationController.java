@@ -24,6 +24,7 @@ package com.odysseusinc.arachne.portal.api.v1.controller;
 
 import static com.odysseusinc.arachne.portal.api.v1.controller.util.ControllerUtils.emulateEmailSent;
 
+import com.google.common.collect.ImmutableMap;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAuthMethodDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAuthenticationRequest;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAuthenticationResponse;
@@ -32,6 +33,7 @@ import com.odysseusinc.arachne.commons.utils.ErrorMessages;
 import com.odysseusinc.arachne.portal.api.v1.dto.RemindPasswordDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ResetPasswordDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserInfoDTO;
+import com.odysseusinc.arachne.portal.config.PortalAuthMethodConfig;
 import com.odysseusinc.arachne.portal.exception.NoDefaultTenantException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PasswordValidationException;
@@ -68,7 +70,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
@@ -93,7 +94,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
     protected LoginAttemptService loginAttemptService;
     private AuthenticationService authenticationService;
     protected AuthenticationHelperService authenticationHelperService;
-    protected final OAuth2ClientProperties oAuth2ClientProperties;
+    protected final PortalAuthMethodConfig oAuth2ClientProperties;
 
     public BaseAuthenticationController(Authenticator authenticator,
                                         BaseUserService userService,
@@ -102,7 +103,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
                                         ProfessionalTypeService professionalTypeService,
                                         LoginAttemptService loginAttemptService,
                                         AuthenticationService authenticationService, AuthenticationHelperService authenticationHelperService,
-                                        OAuth2ClientProperties oAuth2ClientProperties
+                                        PortalAuthMethodConfig oAuth2ClientProperties
     ) {
         this.authenticator = authenticator;
         this.userService = userService;
@@ -126,10 +127,14 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
 
     @ApiOperation("Get all auth methods")
     @RequestMapping(value = "/api/v1/auth/methods", method = RequestMethod.GET)
-    public JsonResult<Map<String, String>> authMethods() {
-        Map<String, String> providers = Optional.ofNullable(oAuth2ClientProperties).map(oauth ->
-            oauth.getRegistration().keySet().stream().collect(
-                    Collectors.toMap(method -> method, method -> "/oauth2/authorization/" + method)
+    public JsonResult<Map<String, Map<String, String>>> authMethods() {
+        Map<String, Map<String, String>> providers = Optional.ofNullable(oAuth2ClientProperties).map(oauth ->
+            oauth.getProvider().entrySet().stream().collect(
+                    Collectors.toMap(Map.Entry::getKey, entry  -> (Map<String, String>) ImmutableMap.of(
+                            "url", "/oauth2/authorization/" + entry.getKey(),
+                            "text", entry.getValue().getText(),
+                            "image", entry.getValue().getImage()
+                    ))
             )
         ).orElseGet(HashMap::new);
         providers.put(authenticationHelperService.getCurrentMethodType(), null);
