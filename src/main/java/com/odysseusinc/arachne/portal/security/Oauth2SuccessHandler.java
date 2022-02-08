@@ -1,31 +1,35 @@
 package com.odysseusinc.arachne.portal.security;
 
+import com.odysseusinc.arachne.portal.model.ExternalLogin;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.User;
 import com.odysseusinc.arachne.portal.model.factory.ArachneUserFactory;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
+import com.odysseusinc.arachne.portal.service.ExternalLoginService;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
 import com.odysseusinc.arachne.portal.service.UserService;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.jetbrains.annotations.NotNull;
 import org.ohdsi.authenticator.service.authentication.TokenProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
 import org.springframework.security.oauth2.core.user.OAuth2User;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class Oauth2SuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
@@ -33,22 +37,30 @@ public class Oauth2SuccessHandler extends SavedRequestAwareAuthenticationSuccess
 
 
     private final String header;
+    private final boolean enabledByDefault;
     private final UserService userService;
     private final TokenProvider tokenProvider;
+    private final ExternalLoginService externalLoginService;
     private final ProfessionalTypeService professionalTypeService;
 
     public Oauth2SuccessHandler(
             @Value("${arachne.token.header}") String header,
+            @Value("${user.enabled.default}") boolean enabledByDefault,
             UserService userService,
             TokenProvider tokenProvider,
-            ProfessionalTypeService professionalTypeService) {
+            ExternalLoginService externalLoginService,
+            ProfessionalTypeService professionalTypeService
+    ) {
         this.header = header;
+        this.enabledByDefault = enabledByDefault;
         this.userService = userService;
         this.tokenProvider = tokenProvider;
+        this.externalLoginService = externalLoginService;
         this.professionalTypeService = professionalTypeService;
     }
 
     @Override
+    @Transactional
     public void onAuthenticationSuccess(
             HttpServletRequest request, HttpServletResponse response, Authentication authentication
     ) throws IOException, ServletException {
@@ -64,16 +76,18 @@ public class Oauth2SuccessHandler extends SavedRequestAwareAuthenticationSuccess
             ///additionalInfo.put("token", "Do we need this???");
 
             Map<String, Object> attributes = principal.getAttributes();
-            String username = (String) attributes.get(StandardClaimNames.SUB);
+            String sub = (String) attributes.get(StandardClaimNames.SUB);
+            String email = (String) attributes.getOrDefault(StandardClaimNames.EMAIL, "");
+            String issuer = Optional.ofNullable((String) attributes.get(IdTokenClaimNames.ISS)).orElseGet(() ->
+                    // Fall back to use domain from sub, as some providers don't send issuer
+                    Stream.of(sub.split("@")).reduce((a, b) -> b).orElseThrow(() -> new RuntimeException("Missing sub"))
+            );
 
-            String token = Optional.ofNullable(
-                    userService.getByUsername(method, username)
-            ).map(user -> {
-                return tokenProvider.createToken(user.getUsername(), additionalInfo, null);
-            }).orElseGet(() -> {
-                ArachneUser details = createUser(attributes, username, method);
-                return tokenProvider.createToken(details.getUsername(), additionalInfo, null);
-            });
+            ExternalLogin login = externalLoginService.login(
+                    issuer, sub, email, createOrFindUser(method, attributes, sub, email)
+            );
+            ArachneUser user = ArachneUserFactory.create(login.getUser());
+            String token = tokenProvider.createToken(user.getUsername(), additionalInfo, null);
             // TODO Put more stuff in token???
             Cookie cookie = new Cookie(header, token);
             cookie.setSecure(true);
@@ -84,16 +98,22 @@ public class Oauth2SuccessHandler extends SavedRequestAwareAuthenticationSuccess
         super.onAuthenticationSuccess(request, response, authentication);
     }
 
+    private Supplier<IUser> createOrFindUser(String method, Map<String, Object> attributes, String sub, String email) {
+        return () -> Optional.ofNullable(
+                userService.getByUsername(method, sub)
+        ).orElseGet(() ->
+                createUser(attributes, sub, method, email)
+        );
+    }
+
     // TODO For some reason we are not able to get OidcUser here and use its nice getters, and only get DefaultOAuth2User ...
 
-    @NotNull
-    private ArachneUser createUser(Map<String, Object> attributes, String username, String origin) {
+    private IUser createUser(Map<String, Object> attributes, String username, String origin, String email) {
         log.info("User [{}] not found in DB, creating...", username);
         User user = new User();
         user.setUsername(username);
-        user.setEmail(username);
-        user.setEnabled(true);
-        String email = (String) attributes.getOrDefault(StandardClaimNames.EMAIL, "");
+        user.setEmail(email);
+        user.setEnabled(enabledByDefault);
         user.setContactEmail(email);
         // Elixir currently gives nothing under StandardClaimNames.EMAIL_VERIFIED
         user.setEmailConfirmed(true);
@@ -107,8 +127,7 @@ public class Oauth2SuccessHandler extends SavedRequestAwareAuthenticationSuccess
 
         IUser created = userService.createExternal(user, origin);
         log.info("User [{}] successfully created with id [{}]", email, created.getId());
-        // Try to load again??? why do we have it as a different service???
-        return ArachneUserFactory.create(created);
+        return created;
     }
 
 
