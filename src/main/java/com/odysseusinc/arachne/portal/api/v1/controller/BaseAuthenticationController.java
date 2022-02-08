@@ -43,6 +43,7 @@ import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.PasswordReset;
+import com.odysseusinc.arachne.portal.security.AuthenticationTokenFilter;
 import com.odysseusinc.arachne.portal.security.JWTAuthenticationToken;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordData;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidationResult;
@@ -64,6 +65,7 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.ohdsi.authenticator.exception.MethodNotSupportedAuthenticationException;
 import org.ohdsi.authenticator.model.UserInfo;
 import org.ohdsi.authenticator.service.authentication.Authenticator;
 import org.slf4j.Logger;
@@ -223,21 +225,21 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
     @ApiOperation("Refresh session token.")
     @RequestMapping(value = "/api/v1/auth/refresh", method = RequestMethod.POST)
     public JsonResult<String> refresh(HttpServletRequest request) {
-
-        JsonResult<String> result;
+        String header = request.getHeader(this.tokenHeader);
         try {
-            String token = request.getHeader(this.tokenHeader);
-            UserInfo userInfo = authenticator.refreshToken(token);
-            result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
-            if (userInfo == null || userInfo.getToken() == null) {
-                throw new AuthenticationServiceException("Cannot refresh token user info is either null or does not contain token");
-            }
-            result.setResult(userInfo.getToken());
+            String token = Optional.ofNullable(header).map(
+                    authenticator::refreshToken
+            ).map(UserInfo::getToken).orElseGet(() ->
+                    // Authenticator does not refresh oauth tokens, spring filters are doing that for us instead
+                    AuthenticationTokenFilter.getAuthTokenFromCookies(request, tokenHeader).orElse(null)
+            );
+            return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, token);
+        } catch (MethodNotSupportedAuthenticationException ex) {
+            return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, header);
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
-            result = new JsonResult<>(JsonResult.ErrorCode.UNAUTHORIZED);
+            return new JsonResult<>(JsonResult.ErrorCode.UNAUTHORIZED);
         }
-        return result;
     }
 
     @ApiOperation("Request password reset e-mail.")

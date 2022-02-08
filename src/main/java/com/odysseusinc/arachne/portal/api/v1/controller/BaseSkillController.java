@@ -32,12 +32,14 @@ import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.service.BaseSkillService;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
+import com.odysseusinc.arachne.portal.util.UserUtils;
 import io.swagger.annotations.ApiOperation;
 import java.security.Principal;
 import java.util.LinkedList;
 import java.util.List;
 import javax.validation.Valid;
 import org.springframework.core.convert.support.GenericConversionService;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -130,9 +132,9 @@ public abstract class BaseSkillController<S extends Skill, U extends IUser> {
 
     @ApiOperation("List of skills.")
     @RequestMapping(value = "/api/v1/user-management/skills", method = RequestMethod.GET)
-    public JsonResult<List<SkillDTO>> list(Principal principal) {
+    public JsonResult<List<SkillDTO>> list(Authentication principal) {
 
-        Long userId = userService.getByUsername(principal.getName()).getId();
+        Long userId = UserUtils.getCurrentUser(principal).getId();
         JsonResult<List<SkillDTO>> result;
         List<S> skills = skillService.getAllExpectOfUserSkills(userId);
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);

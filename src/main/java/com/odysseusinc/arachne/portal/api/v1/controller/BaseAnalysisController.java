@@ -77,6 +77,7 @@ import com.odysseusinc.arachne.portal.service.messaging.MessagingUtils;
 import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
 import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightService;
 import com.odysseusinc.arachne.portal.util.ImportedFile;
+import com.odysseusinc.arachne.portal.util.UserUtils;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -91,6 +92,7 @@ import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.destination.DestinationResolver;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.core.Authentication;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -302,12 +304,12 @@ public abstract class BaseAnalysisController<T extends Analysis,
     @ApiOperation("List analyses.")
     @RequestMapping(value = "/api/v1/analysis-management/analyses", method = GET)
     public JsonResult<List<D>> list(
-            Principal principal,
+            Authentication principal,
             @RequestParam("study-id") Long studyId)
             throws PermissionDeniedException, NotExistException {
 
         JsonResult<List<D>> result;
-        IUser user = userService.getByUsername(principal.getName());
+        IUser user = userService.getById(UserUtils.getCurrentUser(principal).getId());
         if (user == null) {
             result = new JsonResult<>(PERMISSION_DENIED);
             return result;
