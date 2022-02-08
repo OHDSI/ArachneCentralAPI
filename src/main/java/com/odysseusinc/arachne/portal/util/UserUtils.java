@@ -33,14 +33,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 public class UserUtils {
     public static ArachneUser getCurrentUser() {
+        return getCurrentUser(SecurityContextHolder.getContext().getAuthentication());
+    }
 
-        ArachneUser user = null;
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication.isAuthenticated()
-                && authentication.getPrincipal() instanceof ArachneUser) {
-            user = (ArachneUser) authentication.getPrincipal();
+    public static ArachneUser getCurrentUser(Authentication authentication) {
+        if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof ArachneUser) {
+            return  (ArachneUser) authentication.getPrincipal();
         }
-        return user;
+        return null;
     }
 
     public static boolean isUserApproved(List<User> approvedUsers, ArachneUser user) {

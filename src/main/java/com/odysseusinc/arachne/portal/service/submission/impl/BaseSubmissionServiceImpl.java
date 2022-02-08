@@ -79,6 +79,7 @@ import com.odysseusinc.arachne.portal.util.DataNodeUtils;
 import com.odysseusinc.arachne.portal.util.EntityUtils;
 import com.odysseusinc.arachne.portal.util.LegacyAnalysisHelper;
 import com.odysseusinc.arachne.portal.util.SubmissionHelper;
+import com.odysseusinc.arachne.portal.util.UserUtils;
 import com.odysseusinc.arachne.portal.util.ZipUtil;
 import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.storage.model.QuerySpec;
@@ -98,6 +99,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
@@ -548,8 +550,8 @@ public abstract class BaseSubmissionServiceImpl<
 
         Submission submission = submissionRepository.getOne(submissionId);
         Objects.requireNonNull(submission);
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        IUser user = userService.getByUsername(userDetails.getUsername());
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        IUser user = userService.getById(UserUtils.getCurrentUser(authentication).getId());
 
         Path unzipDir = Files.createTempDirectory(String.format("submission_%d_results", submissionId));
 
@@ -607,8 +609,8 @@ public abstract class BaseSubmissionServiceImpl<
     @Override
     public ResultFile uploadResultFileByDataOwner(Long submissionId, File localFile) throws IOException {
 
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        IUser user = userService.getByUsername(userDetails.getUsername());
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        IUser user = userService.getById(UserUtils.getCurrentUser(authentication).getId());
 
         T submission = submissionRepository.findByIdAndStatusIn(submissionId,
                 Collections.singletonList(IN_PROGRESS.name()));

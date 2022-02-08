@@ -56,6 +56,7 @@ import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightServic
 import com.odysseusinc.arachne.portal.util.AnalysisHelper;
 import com.odysseusinc.arachne.portal.util.ContentStorageHelper;
 import com.odysseusinc.arachne.portal.util.HttpUtils;
+import com.odysseusinc.arachne.portal.util.UserUtils;
 import com.odysseusinc.arachne.portal.util.ZipUtil;
 import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.storage.service.ContentStorageService;
@@ -70,6 +71,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -124,7 +126,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     @ApiOperation("Create and send submission.")
     @PostMapping("/api/v1/analysis-management/{analysisId}/submissions")
     public JsonResult<List<DTO>> createSubmission(
-            Principal principal,
+            Authentication principal,
             @RequestBody @Validated CreateSubmissionsDTO createSubmissionsDTO,
             @PathVariable("analysisId") Long analysisId)
             throws PermissionDeniedException, NotExistException, IOException, NoExecutableFileException, ValidationException {
@@ -133,7 +135,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
         if (principal == null) {
             throw new PermissionDeniedException();
         }
-        IUser user = userService.getByUsername(principal.getName());
+        IUser user = getCurrentUser(principal);
         if (user == null) {
             throw new PermissionDeniedException();
         }
@@ -189,15 +191,14 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     @ApiOperation("Approve submission results for show to owner")
     @PostMapping("/api/v1/analysis-management/submissions/{submissionId}/approveresult")
     public JsonResult<DTO> approveSubmissionResult(
-            Principal principal,
+            Authentication principal,
             @PathVariable("submissionId") Long submissionId,
             @RequestBody @Valid ApproveDTO approveDTO) throws PermissionDeniedException, NotExistException {
 
         //ToDo remove after front will be changed
         approveDTO.setIsSuccess(true);
-
-        Submission updatedSubmission = submissionService.approveSubmissionResult(submissionId, approveDTO, userService
-                .getByUsername(principal.getName()));
+        IUser user = getCurrentUser(principal);
+        Submission updatedSubmission = submissionService.approveSubmissionResult(submissionId, approveDTO, user);
 
         DTO submissionDTO = conversionService.convert(updatedSubmission, getSubmissionDTOClass());
         return new JsonResult<>(NO_ERROR, submissionDTO);
@@ -281,7 +282,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     @ApiOperation("Download all result files of the submission.")
     @GetMapping("/api/v1/analysis-management/submissions/{submissionId}/results/all")
     public void downloadAllSubmissionResultFiles(
-            Principal principal,
+            Authentication principal,
             @PathVariable("submissionId") Long submissionId,
             HttpServletResponse response) throws PermissionDeniedException, NotExistException, IOException {
 
@@ -296,7 +297,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
         response.setHeader("Content-Disposition",
                 "attachment; filename=" + archiveName);
 
-        IUser user = userService.getByUsername(principal.getName());
+        IUser user = getCurrentUser(principal);
         submissionService
                 .getSubmissionResultAllFiles(user, submission.getSubmissionGroup().getAnalysis().getId(),
                         submissionId, archiveName, response.getOutputStream());
@@ -352,13 +353,13 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     @ApiOperation("Get single entry from zip file of the submission.")
     @GetMapping("/api/v1/analysis-management/submissions/{submissionId}/results/zip-entry")
     public JsonResult<ResultFileDTO> getResultZipEntry(
-            Principal principal,
+            Authentication principal,
             @PathVariable("submissionId") Long submissionId,
             @RequestParam(value = "path") String path,
             @RequestParam(value = "entry-name") String entryName
     ) throws PermissionDeniedException {
 
-        IUser user = userService.getByUsername(principal.getName());
+        IUser user = getCurrentUser(principal);
         if (StringUtils.isNoneBlank(entryName)) {
             ResultFileSearch resultFileSearch = new ResultFileSearch();
             String filePath = FilenameUtils.getPath(path);
@@ -391,13 +392,13 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     @ApiOperation("Get result files of the submission.")
     @GetMapping("/api/v1/analysis-management/submissions/{submissionId}/results")
     public List<ResultFileDTO> getResultFiles(
-            Principal principal,
+            Authentication principal,
             @PathVariable("submissionId") Long submissionId,
             @RequestParam(value = "path", required = false, defaultValue = "") String path,
             @RequestParam(value = "real-name", required = false) String realName
     ) throws PermissionDeniedException, IOException {
 
-        IUser user = userService.getByUsername(principal.getName());
+        IUser user = getCurrentUser(principal);
 
         ResultFileSearch resultFileSearch = new ResultFileSearch();
         resultFileSearch.setPath(path);
@@ -504,18 +505,18 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
                 .collect(Collectors.toList());
     }
 
-    private ArachneFileMeta getResultFile(Principal principal, Long submissionId, String fileUuid)
+    private ArachneFileMeta getResultFile(Authentication principal, Long submissionId, String fileUuid)
             throws NotExistException, PermissionDeniedException {
 
         Submission submission = submissionService.getSubmissionById(submissionId);
-        IUser user = userService.getByUsername(principal.getName());
+        IUser user = getCurrentUser(principal);
         return submissionService.getResultFileAndCheckPermission(user, submission, submission.getSubmissionGroup().getAnalysis().getId(), fileUuid);
     }
 
     @ApiOperation("Get result file of the submission.")
     @GetMapping("/api/v1/analysis-management/submissions/{submissionId}/results/{fileUuid}")
     public JsonResult<ResultFileDTO> getResultFileInfo(
-            Principal principal,
+            Authentication principal,
             @PathVariable("submissionId") Long submissionId,
             @RequestParam(defaultValue = "true") Boolean withContent,
             @PathVariable("fileUuid") String fileUuid) throws PermissionDeniedException, NotExistException, IOException {
@@ -540,7 +541,7 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     @ApiOperation("Download result file of the submission.")
     @GetMapping("/api/v1/analysis-management/submissions/{submissionId}/results/{fileUuid}/download")
     public void downloadResultFile(
-            Principal principal,
+            Authentication principal,
             @PathVariable("submissionId") Long submissionId,
             @PathVariable("fileUuid") String fileUuid,
             HttpServletResponse response) throws PermissionDeniedException, NotExistException, IOException {
@@ -574,4 +575,8 @@ public abstract class BaseSubmissionController<T extends Submission, A extends A
     protected abstract Class<DTO> getSubmissionDTOClass();
 
     protected abstract Class<T> getSubmissionClass();
+
+    private IUser getCurrentUser(Authentication authentication) {
+        return userService.getById(UserUtils.getCurrentUser(authentication).getId());
+    }
 }

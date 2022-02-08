@@ -25,7 +25,6 @@ package com.odysseusinc.arachne.portal.security;
 import com.odysseusinc.arachne.portal.service.AuthenticationService;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
 import javax.servlet.FilterChain;
@@ -46,7 +45,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
@@ -117,23 +115,20 @@ public class AuthenticationTokenFilter extends GenericFilterBean {
     }
 
     private Optional<String> getAuthToken(HttpServletRequest httpRequest) {
+        return Optional.ofNullable(httpRequest).flatMap(request -> {
+                Optional<String> fromHeader = Optional.ofNullable(request.getHeader(tokenHeader));
+                return fromHeader.isPresent() ? fromHeader : getAuthTokenFromCookies(httpRequest, tokenHeader);
+        });
+    }
 
-        if (httpRequest == null) {
-            return Optional.empty();
-        }
-
-        String authToken = httpRequest.getHeader(tokenHeader);
-        if (authToken != null) {
-            return Optional.of(authToken);
-        }
-        if (httpRequest.getCookies() != null) {
-            return Arrays.stream(httpRequest.getCookies())
-                    .filter(cookie -> StringUtils.isNotEmpty(cookie.getName()))
-                    .filter(cookie -> cookie.getName().equalsIgnoreCase(tokenHeader))
-                    .map(Cookie::getValue)
-                    .findAny();
-        }
-        return Optional.empty();
+    public static Optional<String> getAuthTokenFromCookies(HttpServletRequest httpRequest, String tokenHeader) {
+        return Optional.of(httpRequest.getCookies()).flatMap(cookies ->
+                Arrays.stream(cookies)
+                .filter(cookie -> StringUtils.isNotEmpty(cookie.getName()))
+                .filter(cookie -> cookie.getName().equalsIgnoreCase(tokenHeader))
+                .map(Cookie::getValue)
+                .findAny()
+        );
     }
 
 }
