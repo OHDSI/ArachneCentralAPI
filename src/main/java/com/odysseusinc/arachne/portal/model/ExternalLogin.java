@@ -51,7 +51,7 @@ public class ExternalLogin {
     @Column(name = "created")
     private Instant created;
 
-    @ManyToOne(targetEntity = User.class, cascade = CascadeType.PERSIST)
+    @ManyToOne(targetEntity = RawUser.class, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "user_id")
     private IUser user;
 
