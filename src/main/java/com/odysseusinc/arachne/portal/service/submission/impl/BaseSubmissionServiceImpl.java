@@ -34,6 +34,7 @@ import static com.odysseusinc.arachne.portal.model.SubmissionStatus.PENDING;
 import static com.odysseusinc.arachne.portal.service.impl.submission.SubmissionActionType.EXECUTE;
 import static com.odysseusinc.arachne.portal.service.impl.submission.SubmissionActionType.PUBLISH;
 import static com.odysseusinc.arachne.portal.util.DataNodeUtils.isDataNodeOwner;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
@@ -59,6 +60,7 @@ import com.odysseusinc.arachne.portal.model.search.ResultFileSearch;
 import com.odysseusinc.arachne.portal.model.search.SubmissionGroupSearch;
 import com.odysseusinc.arachne.portal.model.search.SubmissionGroupSpecification;
 import com.odysseusinc.arachne.portal.model.search.SubmissionSpecification;
+import com.odysseusinc.arachne.portal.model.security.ArachneUser;
 import com.odysseusinc.arachne.portal.repository.ResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionGroupRepository;
@@ -85,29 +87,6 @@ import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.storage.model.QuerySpec;
 import com.odysseusinc.arachne.storage.service.ContentStorageService;
 import com.odysseusinc.arachne.storage.util.FileSaveRequest;
-import net.lingala.zip4j.ZipFile;
-import net.lingala.zip4j.model.FileHeader;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.tuple.Triple;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.security.access.prepost.PostAuthorize;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.DigestUtils;
-import org.springframework.web.multipart.MultipartFile;
-
-import javax.persistence.EntityManager;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -134,8 +113,27 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipOutputStream;
-
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import javax.persistence.EntityManager;
+import net.lingala.zip4j.ZipFile;
+import net.lingala.zip4j.model.FileHeader;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.tuple.Triple;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.DigestUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 public abstract class BaseSubmissionServiceImpl<
         T extends Submission,
@@ -551,8 +549,7 @@ public abstract class BaseSubmissionServiceImpl<
         Submission submission = submissionRepository.getOne(submissionId);
         Objects.requireNonNull(submission);
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        IUser user = userService.getById(UserUtils.getCurrentUser(authentication).getId());
-
+        ArachneUser user = UserUtils.getCurrentUser(authentication);
         Path unzipDir = Files.createTempDirectory(String.format("submission_%d_results", submissionId));
 
         try {
