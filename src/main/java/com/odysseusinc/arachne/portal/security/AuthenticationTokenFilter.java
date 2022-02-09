@@ -130,7 +130,7 @@ public class AuthenticationTokenFilter extends GenericFilterBean {
     }
 
     public static Optional<String> getAuthTokenFromCookies(HttpServletRequest httpRequest, String tokenHeader) {
-        return Optional.of(httpRequest.getCookies()).flatMap(cookies ->
+        return Optional.ofNullable(httpRequest.getCookies()).flatMap(cookies ->
                 Arrays.stream(cookies)
                 .filter(cookie -> StringUtils.isNotEmpty(cookie.getName()))
                 .filter(cookie -> cookie.getName().equalsIgnoreCase(tokenHeader))
