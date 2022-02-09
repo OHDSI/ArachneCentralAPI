@@ -33,6 +33,7 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.ohdsi.authenticator.service.AuthService;
 import org.ohdsi.authenticator.service.authentication.AuthServiceProvider;
@@ -76,22 +77,29 @@ public class AuthenticationTokenFilter extends GenericFilterBean {
             Authentication authentication = context.getAuthentication();
             if (authentication == null) {
                 getAuthToken(httpRequest).ifPresent(authToken -> {
-                    String username = tokenProvider.resolveValue(authToken, "sub", String.class);
+                    try {
+                        String username = tokenProvider.resolveValue(authToken, "sub", String.class);
 
-                    if (username == null) {
-                        return;
-                    }
-                    String requestedUsername = httpRequest.getHeader(USER_REQUEST_HEADER);
+                        if (username == null) {
+                            return;
+                        }
+                        String requestedUsername = httpRequest.getHeader(USER_REQUEST_HEADER);
 
-                    if (requestedUsername != null && !Objects.equals(username, requestedUsername)) {
-                        throw new BadCredentialsException("forced logout");
+                        if (requestedUsername != null && !Objects.equals(username, requestedUsername)) {
+                            throw new BadCredentialsException("forced logout");
+                        }
+                        // TODO Extract constant for "method"?
+                        String method = tokenProvider.resolveValue(authToken, "method", String.class);
+                        String origin = authServiceProvider.getByMethod(method).map(AuthService::getMethodType).orElse(method);
+                        authenticationService.findUser(origin, username).ifPresent(user ->
+                                context.setAuthentication(new JWTAuthenticationToken(authToken, user, new WebAuthenticationDetails(httpRequest)))
+                        );
+                    } catch (org.ohdsi.authenticator.exception.AuthenticationException e) {
+                        log.info("Token [{}...] not authorized, erasing auth cookie", authToken.substring(0, 20));
+                        ((HttpServletResponse) response).addCookie(
+                                eraseCookie(tokenHeader)
+                        );
                     }
-                    // TODO Extract constant for "method"?
-                    String method = tokenProvider.resolveValue(authToken, "method", String.class);
-                    String origin = authServiceProvider.getByMethod(method).map(AuthService::getMethodType).orElse(method);
-                    authenticationService.findUser(origin, username).ifPresent(user ->
-                            context.setAuthentication(new JWTAuthenticationToken(authToken, user, new WebAuthenticationDetails(httpRequest)))
-                    );
                 });
 
             } else if (authentication instanceof DataNodeAuthenticationToken) {
@@ -129,6 +137,15 @@ public class AuthenticationTokenFilter extends GenericFilterBean {
                 .map(Cookie::getValue)
                 .findAny()
         );
+    }
+
+    private static Cookie eraseCookie(String name) {
+        Cookie cookie = new Cookie(name, "");
+        cookie.setSecure(true);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        return cookie;
     }
 
 }
