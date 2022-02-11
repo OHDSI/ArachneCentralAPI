@@ -112,7 +112,7 @@ public class Oauth2SuccessHandler extends SavedRequestAwareAuthenticationSuccess
         log.info("User [{}] not found in DB, creating...", username);
         User user = new User();
         user.setUsername(username);
-        user.setEmail(email);
+        user.setEmail(username);
         user.setEnabled(enabledByDefault);
         user.setContactEmail(email);
         // Elixir currently gives nothing under StandardClaimNames.EMAIL_VERIFIED
