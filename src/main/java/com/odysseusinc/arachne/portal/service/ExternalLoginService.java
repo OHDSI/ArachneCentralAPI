@@ -2,7 +2,7 @@ package com.odysseusinc.arachne.portal.service;
 
 import com.odysseusinc.arachne.portal.model.ExternalLogin;
 import com.odysseusinc.arachne.portal.model.IUser;
-import com.odysseusinc.arachne.portal.repository.UserRepository;
+import com.odysseusinc.arachne.portal.repository.RawUserRepository;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -33,7 +33,7 @@ public class ExternalLoginService {
     private EntityManager em;
 
     @Autowired
-    private UserRepository userRepo;
+    private RawUserRepository userRepo;
 
     @Transactional
     public <U extends IUser> ExternalLogin login(String provider, String sub, String email, Supplier<U> createUser) {
@@ -47,32 +47,27 @@ public class ExternalLoginService {
                 )
         ).getResultStream().findFirst();
 
-        return existingLogin.orElseGet(() -> {
+        ExternalLogin externalLogin = existingLogin.orElseGet(() -> {
             ExternalLogin login = new ExternalLogin();
             login.setCreated(Instant.now());
             login.setProvider(provider);
             login.setSub(sub);
             login.setEmail(email);
-            login.setUser(linkOrCreateUser(sub, email, createUser));
             em.persist(login);
             return login;
         });
+
+        if (externalLogin.getUser() == null) {
+            externalLogin.setUser(linkOrCreateUser(sub, email, createUser));
+        }
+        return externalLogin;
     }
 
     private <U extends IUser> IUser linkOrCreateUser(String sub, String email, Supplier<U> importUser) {
-        if (autolink) {
-            if (email == null) {
-                log.info("Autolink on [{}] skipped, missing email", sub);
-            } else {
-                log.info("Autolink [{}] via [{}]", sub, email);
-                IUser user = userRepo.findByEmailAndEnabledTrue(email);
-                log.info("Autolink [{}] result: [{}]", sub, user);
-                return user;
-            }
-        }
-        U user = importUser.get();
-        log.info("For remote login [{}], created account [{}]", sub, user.getId());
-        return user;
+        return Optional.ofNullable(email).filter(__ -> autolink).<IUser>map(address -> {
+            log.info("Autolink [{}] via [{}]", sub, address);
+            return userRepo.findByEmailAndEnabledTrue(address);
+        }).orElseGet(importUser);
     }
 
 
