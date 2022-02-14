@@ -2,9 +2,10 @@ package com.odysseusinc.arachne.portal.service;
 
 import com.odysseusinc.arachne.portal.model.ExternalLogin;
 import com.odysseusinc.arachne.portal.model.IUser;
-import com.odysseusinc.arachne.portal.repository.RawUserRepository;
+import com.odysseusinc.arachne.portal.model.RawUser;
 import java.time.Instant;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -13,7 +14,6 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,9 +31,6 @@ public class ExternalLoginService {
 
     @PersistenceContext
     private EntityManager em;
-
-    @Autowired
-    private RawUserRepository userRepo;
 
     @Transactional
     public <U extends IUser> ExternalLogin login(String provider, String sub, String email, Supplier<U> createUser) {
@@ -64,9 +61,17 @@ public class ExternalLoginService {
     }
 
     private <U extends IUser> IUser linkOrCreateUser(String sub, String email, Supplier<U> importUser) {
-        return Optional.ofNullable(email).filter(__ -> autolink).<IUser>map(address -> {
+        return Optional.ofNullable(email).filter(__ -> autolink).<IUser>flatMap(address -> {
             log.info("Autolink [{}] via [{}]", sub, address);
-            return userRepo.findByEmailAndEnabledTrue(address);
+            CriteriaBuilder cb = em.getCriteriaBuilder();
+            CriteriaQuery<RawUser> q = cb.createQuery(RawUser.class);
+            Root<RawUser> root = q.from(RawUser.class);
+            return em.createQuery(
+                    q.where(
+                            cb.equal(root.get("email"), address),
+                            cb.equal(root.get("enabled"), true)
+                    )
+            ).getResultStream().findFirst().map(Function.identity());
         }).orElseGet(importUser);
     }
 
