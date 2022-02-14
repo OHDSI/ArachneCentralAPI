@@ -66,12 +66,14 @@ public class ExternalLoginService {
             CriteriaBuilder cb = em.getCriteriaBuilder();
             CriteriaQuery<RawUser> q = cb.createQuery(RawUser.class);
             Root<RawUser> root = q.from(RawUser.class);
-            return em.createQuery(
+            Optional<RawUser> result = em.createQuery(
                     q.where(
                             cb.equal(root.get("email"), address),
                             cb.equal(root.get("enabled"), true)
                     )
-            ).getResultStream().findFirst().map(Function.identity());
+            ).getResultStream().findFirst();
+            log.info("Autolink [{}] via [{}] result: {}", sub, address, result.map(IUser::getId).orElse(null));
+            return result.map(Function.identity());
         }).orElseGet(importUser);
     }
 

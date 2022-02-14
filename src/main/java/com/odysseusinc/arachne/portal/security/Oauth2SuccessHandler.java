@@ -1,15 +1,13 @@
 package com.odysseusinc.arachne.portal.security;
 
+import com.google.common.collect.ImmutableMap;
 import com.odysseusinc.arachne.portal.model.ExternalLogin;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.User;
-import com.odysseusinc.arachne.portal.model.factory.ArachneUserFactory;
-import com.odysseusinc.arachne.portal.model.security.ArachneUser;
 import com.odysseusinc.arachne.portal.service.ExternalLoginService;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
 import com.odysseusinc.arachne.portal.service.UserService;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -18,6 +16,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.lang3.ObjectUtils;
 import org.ohdsi.authenticator.service.authentication.TokenProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,9 +69,7 @@ public class Oauth2SuccessHandler extends SavedRequestAwareAuthenticationSuccess
             OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
             OAuth2User principal = oauthToken.getPrincipal();
 
-            Map<String, Object> additionalInfo = new HashMap<>();
             String method = oauthToken.getAuthorizedClientRegistrationId();
-            additionalInfo.put("method", method);
             ///additionalInfo.put("token", "Do we need this???");
 
             Map<String, Object> attributes = principal.getAttributes();
@@ -86,8 +83,11 @@ public class Oauth2SuccessHandler extends SavedRequestAwareAuthenticationSuccess
             ExternalLogin login = externalLoginService.login(
                     issuer, sub, email, createOrFindUser(method, attributes, sub, email)
             );
-            ArachneUser user = ArachneUserFactory.create(login.getUser());
-            String token = tokenProvider.createToken(user.getUsername(), additionalInfo, null);
+            IUser user = login.getUser();
+            String username = ObjectUtils.firstNonNull(user.getUsername(), user.getEmail());
+            // This is a bit ugly, however
+            Map<String, Object> additionalInfo = ImmutableMap.of("method", user.getOrigin());
+            String token = tokenProvider.createToken(username, additionalInfo, null);
             // TODO Put more stuff in token???
             Cookie cookie = new Cookie(header, token);
             cookie.setSecure(true);
@@ -101,15 +101,15 @@ public class Oauth2SuccessHandler extends SavedRequestAwareAuthenticationSuccess
     private Supplier<IUser> createOrFindUser(String method, Map<String, Object> attributes, String sub, String email) {
         return () -> Optional.ofNullable(
                 userService.getByUsername(method, sub)
-        ).orElseGet(() ->
-                createUser(attributes, sub, method, email)
-        );
+        ).orElseGet(() -> {
+            log.info("User [{}/{}] not found in DB, creating...", method, sub);
+            return createUser(attributes, sub, method, email);
+        });
     }
 
     // TODO For some reason we are not able to get OidcUser here and use its nice getters, and only get DefaultOAuth2User ...
 
     private IUser createUser(Map<String, Object> attributes, String username, String origin, String email) {
-        log.info("User [{}] not found in DB, creating...", username);
         User user = new User();
         user.setUsername(username);
         user.setEmail(username);
