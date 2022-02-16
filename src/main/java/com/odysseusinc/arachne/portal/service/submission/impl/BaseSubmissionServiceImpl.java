@@ -889,6 +889,7 @@ public abstract class BaseSubmissionServiceImpl<
                     destination.resolve(file.getOriginalFilename()),
                     StandardCopyOption.REPLACE_EXISTING
             );
+            submissionHelper.updateSubmissionExtendedInfo(submission);
         }
     }
 
