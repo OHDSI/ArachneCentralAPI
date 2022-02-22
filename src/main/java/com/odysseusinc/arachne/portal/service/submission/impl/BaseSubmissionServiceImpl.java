@@ -34,6 +34,7 @@ import static com.odysseusinc.arachne.portal.model.SubmissionStatus.PENDING;
 import static com.odysseusinc.arachne.portal.service.impl.submission.SubmissionActionType.EXECUTE;
 import static com.odysseusinc.arachne.portal.service.impl.submission.SubmissionActionType.PUBLISH;
 import static com.odysseusinc.arachne.portal.util.DataNodeUtils.isDataNodeOwner;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
@@ -59,6 +60,7 @@ import com.odysseusinc.arachne.portal.model.search.ResultFileSearch;
 import com.odysseusinc.arachne.portal.model.search.SubmissionGroupSearch;
 import com.odysseusinc.arachne.portal.model.search.SubmissionGroupSpecification;
 import com.odysseusinc.arachne.portal.model.search.SubmissionSpecification;
+import com.odysseusinc.arachne.portal.model.security.ArachneUser;
 import com.odysseusinc.arachne.portal.repository.ResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionGroupRepository;
@@ -79,33 +81,12 @@ import com.odysseusinc.arachne.portal.util.DataNodeUtils;
 import com.odysseusinc.arachne.portal.util.EntityUtils;
 import com.odysseusinc.arachne.portal.util.LegacyAnalysisHelper;
 import com.odysseusinc.arachne.portal.util.SubmissionHelper;
+import com.odysseusinc.arachne.portal.util.UserUtils;
 import com.odysseusinc.arachne.portal.util.ZipUtil;
 import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.storage.model.QuerySpec;
 import com.odysseusinc.arachne.storage.service.ContentStorageService;
 import com.odysseusinc.arachne.storage.util.FileSaveRequest;
-import net.lingala.zip4j.ZipFile;
-import net.lingala.zip4j.model.FileHeader;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.tuple.Triple;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.security.access.prepost.PostAuthorize;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.DigestUtils;
-import org.springframework.web.multipart.MultipartFile;
-
-import javax.persistence.EntityManager;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -132,8 +113,27 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipOutputStream;
-
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import javax.persistence.EntityManager;
+import net.lingala.zip4j.ZipFile;
+import net.lingala.zip4j.model.FileHeader;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.tuple.Triple;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.DigestUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 public abstract class BaseSubmissionServiceImpl<
         T extends Submission,
@@ -329,7 +329,7 @@ public abstract class BaseSubmissionServiceImpl<
 
     @Override
     @PreAuthorize("hasPermission(#id,  'Submission', "
-            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_STUDY)")
+            + "T(com.odysseusinc.arachne.portal.security.ArachnePermission).ACCESS_SUBMISSION_RESULTS)")
     @PostAuthorize("@ArachnePermissionEvaluator.addPermissions(principal, returnObject )")
     public T getSubmissionById(Long id) throws NotExistException {
 
@@ -548,9 +548,8 @@ public abstract class BaseSubmissionServiceImpl<
 
         Submission submission = submissionRepository.getOne(submissionId);
         Objects.requireNonNull(submission);
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        IUser user = userService.getByUsername(userDetails.getUsername());
-
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        ArachneUser user = UserUtils.getCurrentUser(authentication);
         Path unzipDir = Files.createTempDirectory(String.format("submission_%d_results", submissionId));
 
         try {
@@ -607,8 +606,8 @@ public abstract class BaseSubmissionServiceImpl<
     @Override
     public ResultFile uploadResultFileByDataOwner(Long submissionId, File localFile) throws IOException {
 
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        IUser user = userService.getByUsername(userDetails.getUsername());
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        IUser user = userService.getById(UserUtils.getCurrentUser(authentication).getId());
 
         T submission = submissionRepository.findByIdAndStatusIn(submissionId,
                 Collections.singletonList(IN_PROGRESS.name()));
@@ -922,6 +921,12 @@ public abstract class BaseSubmissionServiceImpl<
         SubmissionAction hideAction = getHideAction(submission);
 
         return Arrays.asList(execApproveAction, manualResultUploadAction, publishAction, hideAction);
+    }
+
+    @Override
+    public void updateSubmissionExtendedInfo(Long submissionId) {
+        T submission = submissionRepository.getOne(submissionId);
+        submissionHelper.updateSubmissionExtendedInfo(submission);
     }
 
     protected SubmissionAction getPublishAction(Submission submission) {

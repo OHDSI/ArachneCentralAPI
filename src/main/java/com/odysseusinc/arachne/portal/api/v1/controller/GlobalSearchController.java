@@ -32,12 +32,13 @@ import com.odysseusinc.arachne.portal.exception.PermissionDeniedException;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.service.GlobalSearchService;
 import com.odysseusinc.arachne.portal.service.UserService;
+import com.odysseusinc.arachne.portal.util.UserUtils;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
-import java.security.Principal;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -57,11 +58,11 @@ public class GlobalSearchController {
     @ApiOperation("Global search.")
     @RequestMapping(value = "/api/v1/search", method = GET)
     public GlobalSearchResultDTO list(
-            final Principal principal,
+            final Authentication principal,
             final @ModelAttribute SearchGlobalDTO searchDto)
             throws NotExistException, SolrServerException, NoSuchFieldException, IOException, PermissionDeniedException {
 
-        final IUser user = userService.getByUsername(principal.getName());
+        final IUser user = getCurrentUser(principal);
 
         if (user == null) {
             throw new PermissionDeniedException();            
@@ -70,4 +71,7 @@ public class GlobalSearchController {
         return searchService.search(user.getId(), searchDto);
     }
 
+    private IUser getCurrentUser(Authentication principal) {
+        return userService.getById(UserUtils.getCurrentUser(principal).getId());
+    }
 }

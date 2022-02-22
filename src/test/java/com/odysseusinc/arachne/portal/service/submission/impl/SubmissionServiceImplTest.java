@@ -1,13 +1,27 @@
 package com.odysseusinc.arachne.portal.service.submission.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.anyList;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Submission;
+import com.odysseusinc.arachne.portal.model.security.ArachneUser;
 import com.odysseusinc.arachne.portal.repository.SubmissionResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.submission.SubmissionRepository;
+import com.odysseusinc.arachne.portal.security.JWTAuthenticationToken;
 import com.odysseusinc.arachne.portal.service.UserService;
 import com.odysseusinc.arachne.portal.util.ContentStorageHelper;
 import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.storage.service.ContentStorageService;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,35 +30,13 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.anyList;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SubmissionServiceImplTest {
 
     @Mock
     private Submission submission;
-    @Mock
-    private SecurityContext securityContext;
-    @Mock
-    private Authentication authentication;
-    @Mock
-    private UserDetails userDetails;
     @Mock
     private IUser user;
     @Mock
@@ -70,14 +62,9 @@ public class SubmissionServiceImplTest {
 
     @Before
     public void setUp() {
-
-        when(submissionRepository.getOne(any())).thenReturn(submission);
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(userDetails);
-        when(userService.getByUsername(any())).thenReturn(user);
+        SecurityContextHolder.getContext().setAuthentication(new JWTAuthenticationToken("", new ArachneUser(1L), null));
+        when(submissionRepository.getOne(1L)).thenReturn(submission);
         when(contentStorageService.saveFile(any(), any(), any())).thenReturn(arachneFileMeta);
-
-        SecurityContextHolder.setContext(securityContext);
     }
 
     @Test

@@ -29,7 +29,7 @@ import com.github.springtestdbunit.annotation.DatabaseSetup;
 import com.github.springtestdbunit.annotation.DatabaseSetups;
 import com.github.springtestdbunit.annotation.DatabaseTearDown;
 import com.odysseusinc.arachne.portal.SingleContextTest;
-import com.odysseusinc.arachne.portal.api.v1.controller.BaseControllerTest;
+import com.odysseusinc.arachne.portal.TestContainersInitializer;
 import com.odysseusinc.arachne.portal.model.DataSource;
 import com.odysseusinc.arachne.portal.model.Paper;
 import com.odysseusinc.arachne.portal.security.ArachnePermission;
@@ -40,7 +40,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithUserDetails;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -51,6 +51,7 @@ import org.springframework.transaction.annotation.Transactional;
 @DatabaseTearDown(value = "/data/empty.xml", type = DatabaseOperation.DELETE_ALL)
 @TestExecutionListeners({TransactionalTestExecutionListener.class})
 @Transactional
+@ContextConfiguration(initializers = TestContainersInitializer.class)
 public class ArachnePermissionEvaluatorTest extends SingleContextTest {
 
     @Autowired

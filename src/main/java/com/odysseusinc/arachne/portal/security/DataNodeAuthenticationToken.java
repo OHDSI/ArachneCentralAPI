@@ -23,20 +23,23 @@
 package com.odysseusinc.arachne.portal.security;
 
 import com.odysseusinc.arachne.portal.model.DataNode;
+import com.odysseusinc.arachne.portal.model.security.HasTenant;
 import java.util.Collection;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 
-public class DataNodeAuthenticationToken extends AbstractAuthenticationToken {
+public class DataNodeAuthenticationToken extends AbstractAuthenticationToken implements HasTenant {
 
     private String token;
     private DataNode dataNode;
+    private final Long activeTenantId;
 
-    public DataNodeAuthenticationToken(String token, DataNode dataNode, Collection<? extends GrantedAuthority> authorities) {
+    public DataNodeAuthenticationToken(String token, DataNode dataNode, Collection<? extends GrantedAuthority> authorities, Long activeTenantId) {
 
         super(authorities);
         this.token = token;
         this.dataNode = dataNode;
+        this.activeTenantId = activeTenantId;
     }
 
     @Override
@@ -49,5 +52,10 @@ public class DataNodeAuthenticationToken extends AbstractAuthenticationToken {
     public Object getPrincipal() {
 
         return dataNode;
+    }
+
+    @Override
+    public Long getActiveTenantId() {
+        return activeTenantId;
     }
 }

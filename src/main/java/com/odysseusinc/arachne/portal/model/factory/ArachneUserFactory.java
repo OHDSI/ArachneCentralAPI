@@ -28,6 +28,9 @@ import com.odysseusinc.arachne.portal.model.security.ArachneUser;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -36,10 +39,9 @@ public class ArachneUserFactory {
 
     public static ArachneUser create(IUser user) {
 
-        List<GrantedAuthority> authorities = new LinkedList<>();
-        for (Role role : user.getRoles()) {
-            authorities.add(new SimpleGrantedAuthority(role.getName()));
-        }
+        List<GrantedAuthority> authorities = Optional.ofNullable(user.getRoles()).map(roles ->
+                roles.stream().map(role -> new SimpleGrantedAuthority(role.getName()))
+        ).orElseGet(Stream::empty).collect(Collectors.toList());
         return new ArachneUser(
                 user.getId(),
                 Objects.isNull(user.getActiveTenant()) ? null : user.getActiveTenant().getId(),
