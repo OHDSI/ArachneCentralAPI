@@ -86,6 +86,7 @@ public enum ParticipantRole {
     }),
     STUDY_READER("Study reader", new ArachnePermission[]{
             ACCESS_STUDY,
+            ACCESS_SUBMISSION_RESULTS,
     }),
     DATANODE_ADMIN("DataNode admin", new ArachnePermission[]{
             EDIT_DATANODE,
