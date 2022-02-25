@@ -79,6 +79,7 @@ import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightServic
 import com.odysseusinc.arachne.portal.util.ImportedFile;
 import com.odysseusinc.arachne.portal.util.UserUtils;
 import io.swagger.annotations.ApiOperation;
+import java.util.Optional;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -127,6 +128,7 @@ import java.util.stream.StreamSupport;
 import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.NO_ERROR;
 import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.PERMISSION_DENIED;
 import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.VALIDATION_ERROR;
+import static com.odysseusinc.arachne.commons.utils.CommonFilenameUtils.sanitizeFilename;
 import static com.odysseusinc.arachne.portal.util.CommentUtils.getRecentCommentables;
 import static com.odysseusinc.arachne.portal.util.HttpUtils.putFileContentToResponse;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
@@ -621,14 +623,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
 
         final Analysis analysis = analysisService.getById(analysisId);
 
-        final String archiveName;
-        if (analysis.getStudy() != null) {
-            archiveName = String.format("%s_%s_code.zip",
-                    CommonFilenameUtils.sanitizeFilename(analysis.getStudy().getTitle()),
-                    CommonFilenameUtils.sanitizeFilename(analysis.getTitle()));
-        } else {
-            archiveName = CommonFilenameUtils.sanitizeFilename(analysis.getTitle()) + "_code.zip";
-        }
+        String archiveName = formatStudyName(analysis);
 
         String contentType = "application/zip, application/octet-stream";
         response.setContentType(contentType);
@@ -637,6 +632,16 @@ public abstract class BaseAnalysisController<T extends Analysis,
                 "attachment; filename=" + archiveName);
         analysisService.getAnalysisAllFiles(analysisId, archiveName, response.getOutputStream());
         response.flushBuffer();
+    }
+
+    public static String formatStudyName(Analysis analysis) {
+        String code = analysis.getType().getCode();
+        String title = sanitizeFilename(analysis.getTitle()).replaceAll("-", "_");
+        return Optional.ofNullable(analysis.getStudy()).map(study ->
+                String.format("%s-%s-%s-code.zip", code, sanitizeFilename(study.getTitle()).replaceAll("-", "_"), title)
+        ).orElseGet(() ->
+                String.format("%s-%s-code.zip", code, title)
+        );
     }
 
     @ApiOperation("Update code file.")
