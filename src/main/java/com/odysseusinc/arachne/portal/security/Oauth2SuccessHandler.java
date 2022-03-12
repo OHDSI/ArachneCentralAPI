@@ -84,16 +84,20 @@ public class Oauth2SuccessHandler extends SavedRequestAwareAuthenticationSuccess
                     issuer, sub, email, createOrFindUser(method, attributes, sub, email)
             );
             IUser user = login.getUser();
-            String username = ObjectUtils.firstNonNull(user.getUsername(), user.getEmail());
-            // This is a bit ugly, however
-            Map<String, Object> additionalInfo = ImmutableMap.of("method", user.getOrigin());
-            String token = tokenProvider.createToken(username, additionalInfo, null);
-            // TODO Put more stuff in token???
-            Cookie cookie = new Cookie(header, token);
-            cookie.setSecure(true);
-            cookie.setHttpOnly(true);
-            cookie.setPath("/");
-            response.addCookie(cookie);
+            if (user.getEnabled()) {
+                String username = ObjectUtils.firstNonNull(user.getUsername(), user.getEmail());
+                // This is a bit ugly, however
+                Map<String, Object> additionalInfo = ImmutableMap.of("method", user.getOrigin());
+                String token = tokenProvider.createToken(username, additionalInfo, null);
+                // TODO Put more stuff in token???
+                Cookie cookie = new Cookie(header, token);
+                cookie.setSecure(true);
+                cookie.setHttpOnly(true);
+                cookie.setPath("/");
+                response.addCookie(cookie);
+            } else {
+                response.sendRedirect("/auth/login?message=inactive");
+            }
         }
         super.onAuthenticationSuccess(request, response, authentication);
     }
