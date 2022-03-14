@@ -33,11 +33,14 @@ import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Skill;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
 import com.odysseusinc.arachne.portal.service.impl.solr.SearchResult;
+import com.odysseusinc.arachne.portal.util.UserUtils;
 import io.swagger.annotations.ApiOperation;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -86,18 +89,14 @@ public abstract class BaseExpertFinderController<U extends IUser, SK extends Ski
     @ApiOperation("View user profile.")
     @GetMapping(value = "/api/v1/user-management/users/{userId}/profile")
     public JsonResult<UserProfileDTO> viewProfile(
-            Principal principal,
+            Authentication principal,
             @PathVariable("userId") String userId) {
-
-        IUser loggedInUser = userService.getByUsername(principal.getName());
-        JsonResult<UserProfileDTO> result;
+        IUser loggedInUser = userService.getById(UserUtils.getCurrentUser(principal).getId());
         IUser user = userService.getByUuidAndInitializeCollections(userId);
 
         UserProfileDTO userProfileDTO = conversionService.convert(user, UserProfileDTO.class);
         userProfileDTO.setIsEditable(loggedInUser.getUuid().equals(userId));
-        result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
-        result.setResult(userProfileDTO);
-        return result;
+        return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, userProfileDTO);
     }
 
     @ApiOperation("Get user by id")

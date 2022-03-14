@@ -1,6 +1,6 @@
 # suppress inspection "SpringBootApplicationProperties" for whole file
 server:
-  port: 8080
+  port: 8443
   ssl:
     enabled: true
     key-store: classpath:keystore.jks
@@ -35,6 +35,7 @@ spring:
     table: "schema_version"
     ignore-missing-migrations: true
     enabled: true
+    validate-on-migrate: false
   cache:
     jcache:
       config: classpath:ehcache.xml
@@ -99,6 +100,10 @@ arachne:
     notifier: odysseusinc.notifier@gmail.com
     signature: Regards,<br/> Odysseus Data Services, Inc.
     app-title: Arachne
+# see com.odysseusinc.arachne.commons.conditions.modules.Module values    
+#  disabledModules:
+#    - insights-library
+
 swagger:
  enable: true
 

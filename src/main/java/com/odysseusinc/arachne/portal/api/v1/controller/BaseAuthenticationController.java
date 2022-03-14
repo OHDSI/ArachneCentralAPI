@@ -24,6 +24,7 @@ package com.odysseusinc.arachne.portal.api.v1.controller;
 
 import static com.odysseusinc.arachne.portal.api.v1.controller.util.ControllerUtils.emulateEmailSent;
 
+import com.google.common.collect.ImmutableMap;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAuthMethodDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAuthenticationRequest;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonAuthenticationResponse;
@@ -32,6 +33,7 @@ import com.odysseusinc.arachne.commons.utils.ErrorMessages;
 import com.odysseusinc.arachne.portal.api.v1.dto.RemindPasswordDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.ResetPasswordDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.UserInfoDTO;
+import com.odysseusinc.arachne.portal.config.PortalAuthMethodConfig;
 import com.odysseusinc.arachne.portal.exception.NoDefaultTenantException;
 import com.odysseusinc.arachne.portal.exception.NotExistException;
 import com.odysseusinc.arachne.portal.exception.PasswordValidationException;
@@ -41,22 +43,29 @@ import com.odysseusinc.arachne.portal.exception.UserNotFoundException;
 import com.odysseusinc.arachne.portal.model.DataNode;
 import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.PasswordReset;
+import com.odysseusinc.arachne.portal.security.AuthenticationTokenFilter;
+import com.odysseusinc.arachne.portal.security.JWTAuthenticationToken;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordData;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidationResult;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
+import com.odysseusinc.arachne.portal.service.AuthenticationHelperService;
 import com.odysseusinc.arachne.portal.service.AuthenticationService;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
 import com.odysseusinc.arachne.portal.service.LoginAttemptService;
 import com.odysseusinc.arachne.portal.service.PasswordResetService;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
-import com.odysseusinc.arachne.portal.service.AuthenticationHelperService;
 import edu.vt.middleware.password.Password;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
 import java.security.Principal;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.ohdsi.authenticator.exception.MethodNotSupportedAuthenticationException;
 import org.ohdsi.authenticator.model.UserInfo;
 import org.ohdsi.authenticator.service.authentication.Authenticator;
 import org.slf4j.Logger;
@@ -66,6 +75,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -86,6 +96,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
     protected LoginAttemptService loginAttemptService;
     private AuthenticationService authenticationService;
     protected AuthenticationHelperService authenticationHelperService;
+    protected final PortalAuthMethodConfig oAuth2ClientProperties;
 
     public BaseAuthenticationController(Authenticator authenticator,
                                         BaseUserService userService,
@@ -93,8 +104,9 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
                                         @Qualifier("passwordValidator") ArachnePasswordValidator passwordValidator,
                                         ProfessionalTypeService professionalTypeService,
                                         LoginAttemptService loginAttemptService,
-                                        AuthenticationService authenticationService, AuthenticationHelperService authenticationHelperService) {
-
+                                        AuthenticationService authenticationService, AuthenticationHelperService authenticationHelperService,
+                                        PortalAuthMethodConfig oAuth2ClientProperties
+    ) {
         this.authenticator = authenticator;
         this.userService = userService;
         this.passwordResetService = passwordResetService;
@@ -103,6 +115,7 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
         this.loginAttemptService = loginAttemptService;
         this.authenticationService = authenticationService;
         this.authenticationHelperService = authenticationHelperService;
+        this.oAuth2ClientProperties = oAuth2ClientProperties;
     }
 
     @ApiOperation("Get auth method")
@@ -112,6 +125,22 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
         final JsonResult<CommonAuthMethodDTO> result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
         result.setResult(new CommonAuthMethodDTO(authenticationHelperService.getCurrentMethodType()));
         return result;
+    }
+
+    @ApiOperation("Get all auth methods")
+    @RequestMapping(value = "/api/v1/auth/methods", method = RequestMethod.GET)
+    public JsonResult<Map<String, Map<String, String>>> authMethods() {
+        Map<String, Map<String, String>> providers = Optional.ofNullable(oAuth2ClientProperties).map(oauth ->
+            oauth.getProvider().entrySet().stream().collect(
+                    Collectors.toMap(Map.Entry::getKey, entry  -> (Map<String, String>) ImmutableMap.of(
+                            "url", "/oauth2/authorization/" + entry.getKey(),
+                            "text", entry.getValue().getText(),
+                            "image", entry.getValue().getImage()
+                    ))
+            )
+        ).orElseGet(HashMap::new);
+        providers.put(authenticationHelperService.getCurrentMethodType(), null);
+        return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, providers);
     }
 
     @ApiOperation("Login with specified credentials.")
@@ -177,15 +206,12 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
 
     @ApiOperation("Logout.")
     @RequestMapping(value = "/api/v1/auth/logout", method = RequestMethod.POST)
-    public JsonResult logout(HttpServletRequest request) {
+    public JsonResult logout(@AuthenticationPrincipal JWTAuthenticationToken authentication) {
 
         JsonResult result;
         try {
-            String token = request.getHeader(tokenHeader);
-            if (token != null) {
-                authenticator.invalidateToken(token);
-            }
-            result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
+            authenticator.invalidateToken(authentication.getToken());
+            result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, true);
             result.setResult(true);
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
@@ -199,21 +225,21 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
     @ApiOperation("Refresh session token.")
     @RequestMapping(value = "/api/v1/auth/refresh", method = RequestMethod.POST)
     public JsonResult<String> refresh(HttpServletRequest request) {
-
-        JsonResult<String> result;
+        String header = request.getHeader(this.tokenHeader);
         try {
-            String token = request.getHeader(this.tokenHeader);
-            UserInfo userInfo = authenticator.refreshToken(token);
-            result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
-            if (userInfo == null || userInfo.getToken() == null) {
-                throw new AuthenticationServiceException("Cannot refresh token user info is either null or does not contain token");
-            }
-            result.setResult(userInfo.getToken());
+            String token = Optional.ofNullable(header).map(
+                    authenticator::refreshToken
+            ).map(UserInfo::getToken).orElseGet(() ->
+                    // Authenticator does not refresh oauth tokens, spring filters are doing that for us instead
+                    AuthenticationTokenFilter.getAuthTokenFromCookies(request, tokenHeader).orElse(null)
+            );
+            return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, token);
+        } catch (MethodNotSupportedAuthenticationException ex) {
+            return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, header);
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
-            result = new JsonResult<>(JsonResult.ErrorCode.UNAUTHORIZED);
+            return new JsonResult<>(JsonResult.ErrorCode.UNAUTHORIZED);
         }
-        return result;
     }
 
     @ApiOperation("Request password reset e-mail.")
@@ -275,14 +301,9 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
     @ApiOperation("Get information about current user.")
     @RequestMapping(value = "/api/v1/auth/me", method = RequestMethod.GET)
     public JsonResult<UserInfoDTO> info(Principal principal) {
-
-        final JsonResult<UserInfoDTO> result;
-        IUser user = userService.getByUsernameInAnyTenant(principal.getName());
+        IUser user = userService.getUser(principal);
         final UserInfoDTO userInfo = conversionService.convert(user, UserInfoDTO.class);
-        result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
-        result.setResult(userInfo);
-
-        return result;
+        return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, userInfo);
     }
 
 }

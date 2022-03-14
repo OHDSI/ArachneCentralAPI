@@ -54,7 +54,7 @@ public abstract class BaseController<DN extends DataNode, U extends IUser> {
 
     protected U getUser(Principal principal) throws PermissionDeniedException {
 
-        return userService.getUser(principal);
+        return (U) userService.getUser(principal);
     }
 
     protected DN getDatanode(Principal principal) throws PermissionDeniedException {

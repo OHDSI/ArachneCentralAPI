@@ -81,6 +81,7 @@ import com.odysseusinc.arachne.portal.service.BaseStudyService;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
 import com.odysseusinc.arachne.portal.service.analysis.BaseAnalysisService;
 import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
+import com.odysseusinc.arachne.portal.util.UserUtils;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -91,6 +92,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.support.GenericConversionService;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -275,12 +277,12 @@ public abstract class BaseUserController<
     @ApiOperation("Upload user avatar")
     @PostMapping(value = "/api/v1/user-management/users/avatar")
     public JsonResult<Boolean> saveUserAvatar(
-            Principal principal,
+            Authentication principal,
             @RequestParam(name = "file") MultipartFile[] file)
             throws IOException, WrongFileFormatException, ValidationException, ImageProcessingException, MetadataException, IllegalAccessException, SolrServerException, NoSuchFieldException {
 
         JsonResult<Boolean> result;
-        U user = userService.getByUsername(principal.getName());
+        U user = getCurrentUser(principal);
         if (file != null && file.length > 0) {
             userService.saveAvatar(user, file[0]);
         } else {
@@ -295,11 +297,10 @@ public abstract class BaseUserController<
     @ApiOperation("Download user avatar")
     @GetMapping(value = "/api/v1/user-management/users/avatar")
     public void getUserAvatar(
-            Principal principal,
+            Authentication principal,
             HttpServletResponse response) throws IOException {
 
-        final Optional<String> userName = Optional.ofNullable(principal != null ? principal.getName() : null);
-        U user = userName.map(userService::getByUsername).orElse(null);
+        U user = getCurrentUser(principal);
         userService.putAvatarToResponse(response, user);
     }
 
@@ -316,7 +317,7 @@ public abstract class BaseUserController<
     @ApiOperation("Save user profile")
     @PostMapping(value = "/api/v1/user-management/users/profile")
     public JsonResult<UserProfileDTO> saveProfile(
-            Principal principal,
+            Authentication principal,
             @RequestBody @Valid UserProfileGeneralDTO dto,
             BindingResult binding)
             throws
@@ -327,7 +328,7 @@ public abstract class BaseUserController<
             NoSuchFieldException {
 
         JsonResult<UserProfileDTO> result;
-        IUser owner = userService.getByUsername(principal.getName());
+        U owner = getCurrentUser(principal);
         if (binding.hasErrors()) {
             result = setValidationErrors(binding);
         } else {
@@ -345,11 +346,11 @@ public abstract class BaseUserController<
     @ApiOperation("Change user password")
     @PostMapping(value = "/api/v1/user-management/users/changepassword")
     public JsonResult changePassword(@RequestBody @Valid ChangePasswordDTO changePasswordDTO,
-                                     Principal principal
+                                     Authentication principal
     ) throws ValidationException, PasswordValidationException {
 
         JsonResult result;
-        U loggedUser = userService.getByUsername(principal.getName());
+        U loggedUser = getCurrentUser(principal);
         try {
             userService.updatePassword(loggedUser, changePasswordDTO.getOldPassword(), changePasswordDTO.getNewPassword());
             result = new JsonResult<>(NO_ERROR);
@@ -363,12 +364,12 @@ public abstract class BaseUserController<
     @ApiOperation("Add skill to user profile.")
     @PostMapping(value = "/api/v1/user-management/users/skills/{skillId}")
     public JsonResult<UserProfileDTO> addSkill(
-            Principal principal,
+            Authentication principal,
             @PathVariable("skillId") Long skillId
     ) throws NotExistException, IllegalAccessException, SolrServerException, IOException, NoSuchFieldException {
 
         JsonResult<UserProfileDTO> result;
-        U user = userService.getByUsername(principal.getName());
+        U user = getCurrentUser(principal);
         user = userService.addSkillToUser(user.getId(), skillId);
         UserProfileDTO userProfileDTO = conversionService.convert(user, UserProfileDTO.class);
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
@@ -379,12 +380,12 @@ public abstract class BaseUserController<
     @ApiOperation("Remove skill from user profile.")
     @DeleteMapping(value = "/api/v1/user-management/users/skills/{skillId}")
     public JsonResult<UserProfileDTO> removeSkill(
-            Principal principal,
+            Authentication principal,
             @PathVariable("skillId") Long skillId
     ) throws NotExistException, IllegalAccessException, SolrServerException, IOException, NoSuchFieldException {
 
         JsonResult<UserProfileDTO> result;
-        U user = userService.getByUsername(principal.getName());
+        U user = getCurrentUser(principal);
         user = userService.removeSkillFromUser(user.getId(), skillId);
         UserProfileDTO userProfileDTO = conversionService.convert(user, UserProfileDTO.class);
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
@@ -395,7 +396,7 @@ public abstract class BaseUserController<
     @ApiOperation("Add link to user profile.")
     @PostMapping(value = "/api/v1/user-management/users/links")
     public JsonResult<UserProfileDTO> addLink(
-            Principal principal,
+            Authentication principal,
             @Valid @RequestBody UserLinkDTO userLinkDTO,
             BindingResult binding
     ) throws NotExistException, PermissionDeniedException, NotUniqueException {
@@ -407,7 +408,7 @@ public abstract class BaseUserController<
                 result.getValidatorErrors().put(fieldError.getField(), fieldError.getDefaultMessage());
             }
         } else {
-            U user = userService.getByUsername(principal.getName());
+            U user = getCurrentUser(principal);
             user = userService.addLinkToUser(user.getId(), conversionService.convert(userLinkDTO, UserLink.class));
 
             UserProfileDTO userProfileDTO = conversionService.convert(user, UserProfileDTO.class);
@@ -420,12 +421,12 @@ public abstract class BaseUserController<
     @ApiOperation("Remove link from user profile.")
     @DeleteMapping(value = "/api/v1/user-management/users/links/{linkId}")
     public JsonResult<UserProfileDTO> removeLink(
-            Principal principal,
+            Authentication principal,
             @PathVariable("linkId") Long linkId
     ) throws NotExistException {
 
         JsonResult<UserProfileDTO> result;
-        U user = userService.getByUsername(principal.getName());
+        U user = getCurrentUser(principal);
         user = userService.removeLinkFromUser(user.getId(), linkId);
         UserProfileDTO userProfileDTO = conversionService.convert(user, UserProfileDTO.class);
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
@@ -436,7 +437,7 @@ public abstract class BaseUserController<
     @ApiOperation("Add user's publication.")
     @PostMapping(value = "/api/v1/user-management/users/publications")
     public JsonResult<UserProfileDTO> addPublication(
-            Principal principal,
+            Authentication principal,
             @Valid @RequestBody UserPublicationDTO userPublicationDTO,
             BindingResult binding
     ) throws NotExistException, PermissionDeniedException, NotUniqueException {
@@ -449,7 +450,7 @@ public abstract class BaseUserController<
             }
         } else {
 
-            U user = userService.getByUsername(principal.getName());
+            U user = getCurrentUser(principal);
             user = userService.addPublicationToUser(user.getId(), conversionService.convert(userPublicationDTO,
                     UserPublication.class));
             UserProfileDTO userProfileDTO = conversionService.convert(user, UserProfileDTO.class);
@@ -462,12 +463,12 @@ public abstract class BaseUserController<
     @ApiOperation("Remove user's publication.")
     @DeleteMapping(value = "/api/v1/user-management/users/publications/{publicationId}")
     public JsonResult<UserProfileDTO> removePublication(
-            Principal principal,
+            Authentication principal,
             @PathVariable("publicationId") Long publicationId
     ) throws NotExistException {
 
         JsonResult<UserProfileDTO> result;
-        U user = userService.getByUsername(principal.getName());
+        U user = getCurrentUser(principal);
         user = userService.removePublicationFromUser(user.getId(), publicationId);
         UserProfileDTO userProfileDTO = conversionService.convert(user, UserProfileDTO.class);
         result = new JsonResult<>(JsonResult.ErrorCode.NO_ERROR);
@@ -477,9 +478,9 @@ public abstract class BaseUserController<
 
     @ApiOperation("Get user's invitations.")
     @GetMapping("/api/v1/user-management/users/invitations")
-    public JsonResult<List<InvitationDTO>> invitations(Principal principal) throws NotExistException {
+    public JsonResult<List<InvitationDTO>> invitations(Authentication principal) throws NotExistException {
 
-        U user = userService.getByUsername(principal.getName());
+        U user = getCurrentUser(principal);
 
         Stream<? extends Invitationable> invitationables = getInvitations(user).stream().flatMap(Collection::stream);
         Stream<InvitationDTO> invitationStream = invitationables
@@ -593,11 +594,11 @@ public abstract class BaseUserController<
     @ApiOperation("Accept invitations.")
     @PostMapping("/api/v1/user-management/users/invitations")
     public JsonResult<UserProfileDTO> invitationAcceptViaInvitation(
-            Principal principal,
+            Authentication principal,
             @Valid @RequestBody InvitationActionDTO invitationActionDTO
     ) throws NotExistException, AlreadyExistException, IOException {
 
-        U user = userService.getByUsername(principal.getName());
+        U user = getCurrentUser(principal);
         return invitationAccept(invitationActionDTO, user);
     }
 
@@ -834,6 +835,10 @@ public abstract class BaseUserController<
         }
 
         return tokens;
+    }
+
+    private U getCurrentUser(Authentication principal) {
+        return userService.getById(UserUtils.getCurrentUser(principal).getId());
     }
 
 }

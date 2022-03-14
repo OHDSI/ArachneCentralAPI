@@ -25,6 +25,7 @@ import com.odysseusinc.arachne.commons.api.v1.dto.CommonAnalysisType;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonEntityRequestDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.OptionDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
+import com.odysseusinc.arachne.commons.conditions.modules.ModuleEnabled;
 import com.odysseusinc.arachne.commons.service.messaging.ProducerConsumerTemplate;
 import com.odysseusinc.arachne.commons.utils.CommonFilenameUtils;
 import com.odysseusinc.arachne.portal.api.v1.dto.AnalysisCreateDTO;
@@ -63,6 +64,7 @@ import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionInsight;
 import com.odysseusinc.arachne.portal.model.search.SubmissionGroupSearch;
+import com.odysseusinc.arachne.portal.modules.ModuleHelper;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
 import com.odysseusinc.arachne.portal.service.DataReferenceService;
 import com.odysseusinc.arachne.portal.service.ImportService;
@@ -75,7 +77,9 @@ import com.odysseusinc.arachne.portal.service.messaging.MessagingUtils;
 import com.odysseusinc.arachne.portal.service.submission.BaseSubmissionService;
 import com.odysseusinc.arachne.portal.service.submission.SubmissionInsightService;
 import com.odysseusinc.arachne.portal.util.ImportedFile;
+import com.odysseusinc.arachne.portal.util.UserUtils;
 import io.swagger.annotations.ApiOperation;
+import java.util.Optional;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,6 +93,7 @@ import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.destination.DestinationResolver;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.core.Authentication;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -123,6 +128,7 @@ import java.util.stream.StreamSupport;
 import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.NO_ERROR;
 import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.PERMISSION_DENIED;
 import static com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult.ErrorCode.VALIDATION_ERROR;
+import static com.odysseusinc.arachne.commons.utils.CommonFilenameUtils.sanitizeFilename;
 import static com.odysseusinc.arachne.portal.util.CommentUtils.getRecentCommentables;
 import static com.odysseusinc.arachne.portal.util.HttpUtils.putFileContentToResponse;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
@@ -300,12 +306,12 @@ public abstract class BaseAnalysisController<T extends Analysis,
     @ApiOperation("List analyses.")
     @RequestMapping(value = "/api/v1/analysis-management/analyses", method = GET)
     public JsonResult<List<D>> list(
-            Principal principal,
+            Authentication principal,
             @RequestParam("study-id") Long studyId)
             throws PermissionDeniedException, NotExistException {
 
         JsonResult<List<D>> result;
-        IUser user = userService.getByUsername(principal.getName());
+        IUser user = userService.getById(UserUtils.getCurrentUser(principal).getId());
         if (user == null) {
             result = new JsonResult<>(PERMISSION_DENIED);
             return result;
@@ -445,6 +451,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
 
     @ApiOperation("Get submission insight")
     @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/insight", method = GET)
+    @ModuleEnabled(ModuleHelper.INSIGHT)
     public JsonResult<SubmissionInsightDTO> getSubmissionInsight(
             @PathVariable("submissionId") Long submissionId,
             @RequestParam(value = "size", required = false) Integer size,
@@ -469,6 +476,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
 
     @ApiOperation("Create submission insight")
     @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/insight", method = POST)
+    @ModuleEnabled(ModuleHelper.INSIGHT)
     public JsonResult<SubmissionInsightDTO> addSubmissionInsight(
             @PathVariable("submissionId") Long submissionId,
             @RequestBody @Valid SubmissionInsightDTO insightDTO
@@ -485,6 +493,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
 
     @ApiOperation("Update submission insight")
     @RequestMapping(value = "/api/v1/analysis-management/submissions/{submissionId}/insight", method = PUT)
+    @ModuleEnabled(ModuleHelper.INSIGHT)
     public JsonResult<SubmissionInsightDTO> updateSubmissionInsight(
             @PathVariable("submissionId") Long submissionId,
             @RequestBody SubmissionInsightUpdateDTO insightDTO
@@ -614,14 +623,7 @@ public abstract class BaseAnalysisController<T extends Analysis,
 
         final Analysis analysis = analysisService.getById(analysisId);
 
-        final String archiveName;
-        if (analysis.getStudy() != null) {
-            archiveName = String.format("%s_%s_code.zip",
-                    CommonFilenameUtils.sanitizeFilename(analysis.getStudy().getTitle()),
-                    CommonFilenameUtils.sanitizeFilename(analysis.getTitle()));
-        } else {
-            archiveName = CommonFilenameUtils.sanitizeFilename(analysis.getTitle()) + "_code.zip";
-        }
+        String archiveName = formatStudyName(analysis);
 
         String contentType = "application/zip, application/octet-stream";
         response.setContentType(contentType);
@@ -630,6 +632,16 @@ public abstract class BaseAnalysisController<T extends Analysis,
                 "attachment; filename=" + archiveName);
         analysisService.getAnalysisAllFiles(analysisId, archiveName, response.getOutputStream());
         response.flushBuffer();
+    }
+
+    public static String formatStudyName(Analysis analysis) {
+        String code = analysis.getType().getCode();
+        String title = sanitizeFilename(analysis.getTitle()).replaceAll("-", "_");
+        return Optional.ofNullable(analysis.getStudy()).map(study ->
+                String.format("%s-%s-%s-code.zip", code, sanitizeFilename(study.getTitle()).replaceAll("-", "_"), title)
+        ).orElseGet(() ->
+                String.format("%s-%s-code.zip", code, title)
+        );
     }
 
     @ApiOperation("Update code file.")
