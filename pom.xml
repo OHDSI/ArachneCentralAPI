@@ -36,6 +36,9 @@
         <postgresql.version>42.2.25</postgresql.version>
         <springRetryVersion>1.2.4.RELEASE</springRetryVersion>
         <bcprov-jdk15on.version>1.68</bcprov-jdk15on.version>
+        
+        <!-- Referencing https://github.com/OHDSI/ArachneUI -->
+        <portal-resources.version>1.19.1</portal-resources.version>        
     </properties>
 
     <profiles>
@@ -450,7 +453,7 @@
                                 <artifactItem>
                                     <groupId>com.odysseusinc.arachne</groupId>
                                     <artifactId>portal-resources</artifactId>
-                                    <version>${project.version}</version>
+                                    <version>${portal-resources.version}</version>
                                     <type>zip</type>
                                     <overWrite>false</overWrite>
                                     <outputDirectory>${project.basedir}/src/main/resources/public/</outputDirectory>
