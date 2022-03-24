@@ -65,6 +65,7 @@ public class Oauth2SuccessHandler extends SavedRequestAwareAuthenticationSuccess
     ) throws IOException, ServletException {
         if (!(authentication instanceof OAuth2AuthenticationToken)) {
             log.warn("Unsupported authentication type [{}]", authentication.getClass());
+            super.onAuthenticationSuccess(request, response, authentication);
         } else {
             OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
             OAuth2User principal = oauthToken.getPrincipal();
@@ -95,11 +96,11 @@ public class Oauth2SuccessHandler extends SavedRequestAwareAuthenticationSuccess
                 cookie.setHttpOnly(true);
                 cookie.setPath("/");
                 response.addCookie(cookie);
+                super.onAuthenticationSuccess(request, response, authentication);
             } else {
                 response.sendRedirect("/auth/login?message=inactive");
             }
         }
-        super.onAuthenticationSuccess(request, response, authentication);
     }
 
     private Supplier<IUser> createOrFindUser(String method, Map<String, Object> attributes, String sub, String email) {
