@@ -67,6 +67,8 @@ public interface BaseDataSourceService<DS extends IDataSource> extends Indexable
 
     List<DS> getAllNotDeletedAndIsNotVirtualFromAllTenants(boolean withManual);
 
+    List<Long> getTenantsForDatanode(Long nodeId);
+
     DS findByUuidUnsecured(String uuid) throws NotExistException;
 
     void indexBySolr(DS dataSource)

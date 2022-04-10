@@ -16,7 +16,7 @@ public class AnalysisChangesListener {
     @PreRemove
     public void update(Object entity) {
 
-        if (TenantContext.getCurrentTenant() != null) {
+        if (!TenantContext.getActiveTenants().isEmpty()) {
             if (entity instanceof Analysis) {
                 ((Analysis) entity).getStudy().setUpdated(new Date());
             } else if (entity instanceof AnalysisFile) {

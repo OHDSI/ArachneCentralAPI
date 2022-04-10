@@ -131,7 +131,7 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends I
                 study = studyRepository.getOne(study.getId());
             }
 
-            if (Objects.equals(study.getTenant().getId(), user.getActiveTenantId())) {
+            if (user.getActiveTenantIds().contains(study.getTenant().getId())) {
 
                 if (!study.getPrivacy()) {
                     participantRoles.add(ParticipantRole.STUDY_READER);
@@ -163,6 +163,7 @@ public abstract class BaseArachneSecureServiceImpl<P extends Paper, DS extends I
         return result;
     }
 
+    // TODO Remove this, should be unnecessary
     protected void ensureAnalysisStudyCanBeRetrieved(final Analysis analysis) {
 
         final Long studyId = analysis.getStudy().getId();

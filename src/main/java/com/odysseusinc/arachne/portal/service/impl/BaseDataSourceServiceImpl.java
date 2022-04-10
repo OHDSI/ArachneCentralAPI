@@ -22,7 +22,6 @@
 
 package com.odysseusinc.arachne.portal.service.impl;
 
-import com.odysseusinc.arachne.commons.api.v1.dto.CommonDataSourceAccessType;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonModelType;
 import com.odysseusinc.arachne.portal.api.v1.dto.PageDTO;
 import com.odysseusinc.arachne.portal.api.v1.dto.SearchDataCatalogDTO;
@@ -130,10 +129,12 @@ public abstract class BaseDataSourceServiceImpl<
 
         dataSource.setPublished(false);
         dataSource.setCreated(new Date());
+        // TODO The code below doesn't work consistently with the tenant model.
+        //  Datasource created by user should be created with current tenant or with specified set of tenants
+        //  Virtual datasources should be created with tenant matching the study
         final Set<Tenant> tenants = tenantService.getDefault();
         if (virtual) {
-            final Tenant tenant = tenantService.findById(TenantContext.getCurrentTenant());
-            tenants.add(tenant);
+            tenants.addAll(tenantService.findByIdsIn(TenantContext.getActiveTenants()));
         }
         dataSource.setTenants(tenants);
     }
@@ -364,6 +365,16 @@ public abstract class BaseDataSourceServiceImpl<
     public List<DS> getAllNotDeletedAndIsNotVirtualFromAllTenants(boolean withManual) {
 
         return dataSourceRepository.getAllNotDeletedAndIsNotVirtualAndPublishedTrueFromAllTenants(withManual);
+    }
+
+    @Override
+    public List<Long> getTenantsForDatanode(Long nodeId) {
+        // TODO Replace with criteria query once Datasource is migrated to HasTenants
+        return getAllNotDeletedAndIsNotVirtualFromAllTenants(true).stream().filter(ds ->
+                Objects.equals(ds.getDataNode().getId(), nodeId)
+        ).flatMap(ds ->
+                ds.getTenants().stream()
+        ).map(Tenant::getId).distinct().collect(Collectors.toList());
     }
 
     @Override
