@@ -6,7 +6,7 @@
 
     <artifactId>portal</artifactId>
     <groupId>com.odysseusinc.arachne</groupId>
-    <version>1.19.2</version>
+    <version>1.19.3</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -24,8 +24,7 @@
         <jjwt.version>0.10.8</jjwt.version>
         <activemq.version>5.15.14</activemq.version>
         <assertj.version>3.19.0</assertj.version>
-        <build.id>${BUILD_TIMESTAMP}</build.id>
-        <build.number>${BUILD_NUMBER}</build.number>
+        <build.number>dev</build.number>
         <clamav.version>2.0.1</clamav.version>
         <commons.fileupload.version>1.4</commons.fileupload.version>
         <commonsCsv.version>1.7</commonsCsv.version>
@@ -89,6 +88,17 @@
             <properties>
                 <env>qa</env>
                 <latestSuffix>-qa</latestSuffix>
+            </properties>
+        </profile>
+        <profile>
+            <id>ci</id>
+            <activation>
+                <property>
+                    <name>env.BUILD_NUMBER</name>
+                </property>
+            </activation>
+            <properties>
+                <build.number>${env.BUILD_NUMBER}</build.number>
             </properties>
         </profile>
     </profiles>
@@ -420,6 +430,10 @@
                     <include>application-${env}.yml</include>
                 </includes>
             </resource>
+            <resource>
+                <directory>target/meta</directory>
+                <targetPath>META-INF</targetPath>
+            </resource>
         </resources>
         <plugins>
             <plugin>
@@ -436,6 +450,33 @@
                         </fileset>
                     </filesets>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>ru.yaal.maven</groupId>
+                <artifactId>write-text-files-maven-plugin</artifactId>
+                <version>1.1</version>
+                <executions>
+                    <execution>
+                        <id>write-text-files</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>write-text-files</goal>
+                        </goals>
+                        <configuration>
+                            <charset>UTF-8</charset>
+                            <files>
+                                <file>
+                                    <path>target/meta/version.properties</path>
+                                    <lines>
+                                        <line>buildNumber: ${build.number}</line>
+                                        <line>buildId: ${maven.build.timestamp}</line>
+                                        <line>version: ${project.version}</line>
+                                    </lines>
+                                </file>
+                            </files>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

@@ -44,7 +44,7 @@ public class Oauth2SuccessHandler extends SavedRequestAwareAuthenticationSuccess
 
     public Oauth2SuccessHandler(
             @Value("${arachne.token.header}") String header,
-            @Value("${user.enabled.default}") boolean enabledByDefault,
+            @Value("${user.enabled.default:false}") boolean enabledByDefault,
             UserService userService,
             TokenProvider tokenProvider,
             ExternalLoginService externalLoginService,

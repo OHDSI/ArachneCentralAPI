@@ -192,7 +192,7 @@ public abstract class BaseUserServiceImpl<
 
     @Value("${files.store.path}")
     private String fileStorePath;
-    @Value("${user.enabled.default}")
+    @Value("${user.enabled.default:false}")
     private boolean userEnableDefault;
     private Resource defaultAvatar = new ClassPathResource("avatar.svg");
 
