@@ -6,7 +6,7 @@
 
     <artifactId>portal</artifactId>
     <groupId>com.odysseusinc.arachne</groupId>
-    <version>1.19.3</version>
+    <version>1.19.4</version>
     <packaging>jar</packaging>
 
     <parent>
