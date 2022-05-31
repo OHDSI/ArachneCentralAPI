@@ -126,6 +126,7 @@ public class ExceptionHandlingController extends BaseController {
     public ResponseEntity<JsonResult> exceptionHandler(HttpServletRequest req, HttpServletResponse res, RuntimeException ex) throws Exception {
 
         if (Objects.isNull(ex.getCause())) {
+            LOGGER.warn(ex.getMessage(), ex);
             handleNotFoundError(req, res);
             return null;
         }
