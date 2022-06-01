@@ -389,7 +389,7 @@ public abstract class BaseSubmissionServiceImpl<
         SubmissionGroup submissionGroup = new SubmissionGroup();
         submissionGroup.setAnalysis(analysis);
         submissionGroup.setAnalysisType(analysis.getType());
-        submissionGroup.setAuthor(user);
+        submissionGroup.setAuthor(userRepository.getOne(user.getId()));
         Date now = new Date();
         submissionGroup.setCreated(now);
         submissionGroup.setUpdated(now);
