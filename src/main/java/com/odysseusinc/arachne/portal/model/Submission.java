@@ -70,8 +70,8 @@ public class Submission implements HasArachnePermissions, Breadcrumb, Invitation
     @ManyToOne(fetch = FetchType.LAZY)
     private Analysis analysis;
 
-    @ManyToOne(fetch = FetchType.LAZY, targetEntity = User.class)
-    private IUser author;
+    @ManyToOne
+    private RawUser author;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = RawDataSource.class)
     private IDataSource dataSource;
@@ -180,12 +180,12 @@ public class Submission implements HasArachnePermissions, Breadcrumb, Invitation
         this.analysis = analysis;
     }
 
-    public IUser getAuthor() {
+    public RawUser getAuthor() {
 
         return author;
     }
 
-    public void setAuthor(IUser author) {
+    public void setAuthor(RawUser author) {
 
         this.author = author;
     }
