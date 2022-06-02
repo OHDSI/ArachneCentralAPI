@@ -8,6 +8,7 @@ import com.odysseusinc.arachne.portal.service.ExternalLoginService;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
 import com.odysseusinc.arachne.portal.service.UserService;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -76,7 +77,7 @@ public class Oauth2SuccessHandler extends SavedRequestAwareAuthenticationSuccess
             Map<String, Object> attributes = principal.getAttributes();
             String sub = (String) attributes.get(StandardClaimNames.SUB);
             String email = (String) attributes.getOrDefault(StandardClaimNames.EMAIL, "");
-            String issuer = Optional.ofNullable((String) attributes.get(IdTokenClaimNames.ISS)).orElseGet(() ->
+            String issuer = Optional.ofNullable((URL) attributes.get(IdTokenClaimNames.ISS)).map(URL::toString).orElseGet(() ->
                     // Fall back to use domain from sub, as some providers don't send issuer
                     Stream.of(sub.split("@")).reduce((a, b) -> b).orElseThrow(() -> new RuntimeException("Missing sub"))
             );
