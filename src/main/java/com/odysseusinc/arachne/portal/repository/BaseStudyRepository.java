@@ -57,7 +57,7 @@ public interface BaseStudyRepository<T extends Study> extends EntityGraphJpaRepo
 
     @Query(nativeQuery = true,
             value = "SELECT s.* " +
-                    "FROM studies_data AS s JOIN studies_users ON studies.id = studies_users.study_id "
+                    "FROM studies_data AS s JOIN studies_users ON s.id = studies_users.study_id "
                     + " AND studies_users.role = 'LEAD_INVESTIGATOR' "
                     + " WHERE s.id NOT IN "
                     + " (SELECT study_id FROM studies_data_sources WHERE data_source_id=:datasourceId"
