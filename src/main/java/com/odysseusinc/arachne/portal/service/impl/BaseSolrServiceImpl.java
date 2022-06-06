@@ -379,10 +379,10 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
         try {
             return solrClient.query(collection, solrQuery);
         } catch (SolrServerException | IOException e) {
-            log.warn("Error running solr query: {}", solrQuery);
+            log.warn("Error running solr query [{}]: {}", solrQuery, e.getMessage());
             throw new SolrException(e);
-        } catch (SolrException e) {
-            log.warn("Error running solr query: {}", solrQuery);
+        } catch (org.apache.solr.common.SolrException e) {
+            log.warn("Error running solr query [{}]: {}", solrQuery, e.getMessage());
             throw e;
         }
     }
