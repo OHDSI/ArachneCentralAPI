@@ -65,6 +65,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.validation.ConstraintViolation;
@@ -279,25 +280,37 @@ public abstract class BaseAdminController<
     public JsonResult reindexSolr(@PathVariable("domain") final String domain)
             throws IllegalAccessException, NotExistException, NoSuchFieldException, SolrServerException, IOException {
 
-        switch(domain) {
-            case ArachneConsts.Domains.DATA_SOURCES:
-                dataSourceService.indexAllBySolr();
-                break;
-            case ArachneConsts.Domains.USERS:
-                userService.indexAllBySolr();
-                break;
-            case ArachneConsts.Domains.STUDIES:
-                studyService.indexAllBySolr();
-                break;
-            case ArachneConsts.Domains.ANALYSES:
-                analysisService.indexAllBySolr();
-                break;
-            case ArachneConsts.Domains.PAPERS:
-                paperService.indexAllBySolr();
-                break;
-            default:
-                throw new UnsupportedOperationException("Reindex isn't allowed for domain: " + domain);
-        }
+        //It's used an asynchronous call to run index job in a separated thread.
+        //A separate thread is required to execute reindex without any security context,
+        //and eliminate tenant checks because reindex procedure takes objects from all available tenants.
+        CompletableFuture.runAsync(() -> {
+            try {
+                switch (domain) {
+                    case ArachneConsts.Domains.DATA_SOURCES:
+                        dataSourceService.indexAllBySolr();
+                        break;
+                    case ArachneConsts.Domains.USERS:
+                        userService.indexAllBySolr();
+                        break;
+                    case ArachneConsts.Domains.STUDIES:
+                        studyService.indexAllBySolr();
+                        break;
+                    case ArachneConsts.Domains.ANALYSES:
+                        analysisService.indexAllBySolr();
+                        break;
+                    case ArachneConsts.Domains.PAPERS:
+                        paperService.indexAllBySolr();
+                        break;
+                    default:
+                        throw new UnsupportedOperationException("Reindex isn't allowed for domain: " + domain);
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }).exceptionally(e -> {
+            LOGGER.error("Reindex failed", e);
+            return null;
+        });
 
         return new JsonResult<>(NO_ERROR);
     }
