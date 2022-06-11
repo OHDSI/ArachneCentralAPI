@@ -59,6 +59,7 @@ import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -72,7 +73,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -85,6 +85,8 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
 
     private static final Logger log = LoggerFactory.getLogger(BaseAuthenticationController.class);
 
+    @Value("${security.login.collapse:#{null}}")
+    private String collapseLogin;
     @Value("${arachne.token.header}")
     private String tokenHeader;
 
@@ -139,8 +141,18 @@ public abstract class BaseAuthenticationController extends BaseController<DataNo
                     ))
             )
         ).orElseGet(HashMap::new);
-        providers.put(authenticationHelperService.getCurrentMethodType(), null);
-        return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, providers);
+        Map<String, Map<String, String>> providersSorted = new LinkedHashMap<>();
+        String internalLoginMethod = authenticationHelperService.getCurrentMethodType();
+        // The order in which providers are listed in this response defines the order in which they are shown on UI
+        // If internal login is collapsed it should be shown last.
+        if (collapseLogin == null) {
+            providersSorted.put(internalLoginMethod, null);
+            providersSorted.putAll(providers);
+        } else {
+            providersSorted.putAll(providers);
+            providersSorted.put(internalLoginMethod, ImmutableMap.of("collapse", collapseLogin));
+        }
+        return new JsonResult<>(JsonResult.ErrorCode.NO_ERROR, providersSorted);
     }
 
     @ApiOperation("Login with specified credentials.")
