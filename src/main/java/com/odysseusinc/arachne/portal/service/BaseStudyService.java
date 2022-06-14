@@ -148,8 +148,10 @@ public interface BaseStudyService<
 
     List<T> findWithAnalysesInAnyTenant();
 
+    String findTitleInAnyTenant(Long studyId);
+
     List<T> findByIdsInAnyTenant(Set<Long> studyIds);
-    
+
     T findByIdInAnyTenant(Long studyId);
 
     T findWorkspaceForUser(IUser user, Long userId) throws NotExistException;

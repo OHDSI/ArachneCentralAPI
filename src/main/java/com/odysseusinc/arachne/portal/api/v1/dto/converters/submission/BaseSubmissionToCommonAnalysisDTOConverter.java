@@ -32,14 +32,21 @@ import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.model.Study;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
+import com.odysseusinc.arachne.portal.repository.BaseRawUserRepository;
+import com.odysseusinc.arachne.portal.service.StudyService;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class BaseSubmissionToCommonAnalysisDTOConverter<T extends Submission>
         extends BaseConversionServiceAwareConverter<T, CommonAnalysisDTO> {
     Logger log = LoggerFactory.getLogger(SubmissionToCommonAnalysisDTOConverter.class);
+    @Autowired
+    private StudyService studyService;
+    @Autowired
+    private BaseRawUserRepository<?> rawUserRepository;
 
     @Override
     public CommonAnalysisDTO convert(T source) {
@@ -52,11 +59,17 @@ public abstract class BaseSubmissionToCommonAnalysisDTOConverter<T extends Submi
             dto.setType(analysis.getType());
             Study study = analysis.getStudy();
             if (study != null && conversionService.canConvert(study.getClass(), CommonStudyDTO.class)) {
-                dto.setStudy(conversionService.convert(study, CommonStudyDTO.class));
+                Long studyId = study.getId();
+                String title = studyService.findTitleInAnyTenant(studyId);
+                CommonStudyDTO studyDTO = new CommonStudyDTO();
+                studyDTO.setId(studyId);
+                studyDTO.setName(title);
+                dto.setStudy(studyDTO);
             }
         }
         IUser author = source.getSubmissionGroup().getAuthor();
         if (author != null && conversionService.canConvert(author.getClass(), CommonArachneUserDTO.class)) {
+            author = rawUserRepository.getOne(author.getId());
             CommonArachneUserDTO userDTO = conversionService.convert(author, CommonArachneUserDTO.class);
             dto.setOwner(userDTO);
         }

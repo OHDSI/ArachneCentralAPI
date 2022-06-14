@@ -33,7 +33,6 @@ import com.odysseusinc.arachne.portal.security.Roles;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.PasswordValidatorBuilder;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
-import com.odysseusinc.arachne.portal.service.TenantService;
 import java.io.IOException;
 import java.net.URI;
 import java.util.LinkedHashMap;
@@ -138,9 +137,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected UserDetailsService userDetailsService;
 
     @Autowired
-    private TenantService tenantService;
-
-    @Autowired
     private AuthenticationSuccessHandler authenticationSuccessHandler;
 
     @Autowired(required = false)
@@ -216,7 +212,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public AuthenticationSystemTokenFilter authenticationSystemTokenFilter() {
 
-        return new AuthenticationSystemTokenFilter(baseDataNodeService, tenantService);
+        return new AuthenticationSystemTokenFilter(baseDataNodeService);
     }
 
     @Bean
@@ -310,7 +306,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/v1/user-management/state-province/**").permitAll()
                 .antMatchers("/api/v1/user-management/organizations/**").authenticated()
                 .antMatchers("/api/v1/build-number**").permitAll()
-                .antMatchers("/api/v1/modules/disabled-modules").permitAll()
+                .antMatchers("/api/v1/modules/disabled-modules").permitAll()                
                 .antMatchers("/api/v1/auth/status/*").permitAll()
                 .antMatchers("/api/v1/data-nodes/**/check-health/**").hasRole(Roles.ROLE_DATA_NODE)
                 .antMatchers("/api/v1/data-nodes/manual").authenticated()
