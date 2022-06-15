@@ -43,6 +43,7 @@ public abstract class BaseUserToUserWithTenantsDTOConverter<DTO extends UserWith
         dto.setTenants(convertedTenantList);
 
         dto.setActiveTenant(convertTenant(user.getActiveTenant()));
+        dto.setContactEmail(user.getContactEmail());
         
         return dto;
     }
