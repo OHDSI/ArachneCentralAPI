@@ -37,7 +37,8 @@ public class UserUtils {
     }
 
     public static ArachneUser getCurrentUser(Authentication authentication) {
-        if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof ArachneUser) {
+        if (authentication != null && authentication.isAuthenticated()
+                && authentication.getPrincipal() instanceof ArachneUser) {
             return  (ArachneUser) authentication.getPrincipal();
         }
         return null;
