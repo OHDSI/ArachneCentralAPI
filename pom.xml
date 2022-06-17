@@ -6,7 +6,7 @@
 
     <artifactId>portal</artifactId>
     <groupId>com.odysseusinc.arachne</groupId>
-    <version>1.19.17</version>
+    <version>1.19.18</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -37,7 +37,7 @@
         <bcprov-jdk15on.version>1.68</bcprov-jdk15on.version>
         
         <!-- Referencing https://github.com/OHDSI/ArachneUI -->
-        <portal-resources.version>1.19.1</portal-resources.version>        
+        <portal-resources.version>1.19.3</portal-resources.version>        
     </properties>
 
     <profiles>
