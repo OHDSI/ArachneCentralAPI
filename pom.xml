@@ -35,7 +35,7 @@
         <postgresql.version>42.2.25</postgresql.version>
         <springRetryVersion>1.2.4.RELEASE</springRetryVersion>
         <bcprov-jdk15on.version>1.68</bcprov-jdk15on.version>
-        
+
         <!-- Referencing https://github.com/OHDSI/ArachneUI -->
         <portal-resources.version>1.19.5</portal-resources.version>
     </properties>
@@ -298,7 +298,7 @@
             <artifactId>commons-beanutils</artifactId>
             <version>1.9.4</version>
         </dependency>
-               <dependency>
+        <dependency>
             <groupId>org.dbunit</groupId>
             <artifactId>dbunit</artifactId>
             <version>2.7.0</version>
@@ -549,7 +549,9 @@
                     <execution>
                         <id>deploy</id>
                         <phase>deploy</phase>
-                        <goals><goal>push</goal></goals>
+                        <goals>
+                            <goal>push</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>
@@ -631,23 +633,7 @@
         <repository>
             <id>ohdsi</id>
             <name>repo.ohdsi.org</name>
-            <url>http://repo.ohdsi.org:8085/nexus/content/repositories/releases</url>
-        </repository>
-        <repository>
-            <id>ohdsi.thirdparty</id>
-            <name>repo.ohdsi.org</name>
-            <url>http://repo.ohdsi.org:8085/nexus/content/repositories/thirdparty</url>
-        </repository>
-        <repository>
-            <id>ohdsi.snapshots</id>
-            <name>repo.ohdsi.org-snapshots</name>
-            <url>http://repo.ohdsi.org:8085/nexus/content/repositories/snapshots</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
+            <url>https://repo.ohdsi.org/nexus/content/repositories/releases</url>
         </repository>
     </repositories>
 
