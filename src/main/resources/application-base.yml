@@ -97,9 +97,9 @@ arachne:
     notifier: odysseusinc.notifier@gmail.com
     signature: Regards,<br/> Odysseus Data Services, Inc.
     app-title: Arachne
-# see com.odysseusinc.arachne.commons.conditions.modules.Module values    
-#  disabledModules:
-#    - insights-library
+
+# Items to hide from ui sidebar, provide items as comma seperated list, options include workspace, study-manager, expert-finder, data-catalog, insights-library
+# disabledModules: workspace, insights-library
 
 swagger:
  enable: true
