@@ -1,4 +1,4 @@
-FROM hub.odysseusinc.com/portal_env:1.1.2
+FROM hub.odysseusinc.com/portal_env:1.1.3
 MAINTAINER alexandr.cumarav@odysseusinc.com
 USER root
 VOLUME /tmp
