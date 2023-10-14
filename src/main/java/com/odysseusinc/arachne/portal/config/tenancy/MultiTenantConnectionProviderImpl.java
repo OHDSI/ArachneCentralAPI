@@ -35,7 +35,7 @@ public class MultiTenantConnectionProviderImpl implements MultiTenantConnectionP
     public Connection getConnection(String tenantIdentifier) throws SQLException {
 
         final Connection connection = getAnyConnection();
-        setTenantToDb(connection, TenantContext.getCurrentTenant());
+        setTenantToDb(connection, tenantIdentifier);
         return connection;
     }
 
@@ -64,7 +64,7 @@ public class MultiTenantConnectionProviderImpl implements MultiTenantConnectionP
         return null;
     }
 
-    private void setTenantToDb(Connection connection, Long value) throws SQLException {
+    private void setTenantToDb(Connection connection, String value) throws SQLException {
 
         connection.createStatement().execute("SELECT set_config('" + TENANT_VAR + "', '" + ObjectUtils.firstNonNull(value, -1) + "', false)");
     }

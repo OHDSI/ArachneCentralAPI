@@ -90,7 +90,7 @@ public abstract class BaseStudyHelper<DN extends DataNode, DS extends IDataSourc
         Collection<GrantedAuthority> authorities
                 = Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + Roles.ROLE_DATA_NODE));
         DataNodeAuthenticationToken dataNodeAuth
-                = new DataNodeAuthenticationToken(dataNode.getToken(), dataNode, authorities, null);
+                = new DataNodeAuthenticationToken(dataNode.getToken(), dataNode, authorities, Collections.emptyList());
         SecurityContextHolder.getContext().setAuthentication(dataNodeAuth);
         return savedAuth;
     }

@@ -9,6 +9,7 @@ import com.odysseusinc.arachne.portal.model.security.ArachneUser;
 import com.odysseusinc.arachne.portal.security.JWTAuthenticationToken;
 import edu.emory.mathcs.backport.java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Ignore;
@@ -44,7 +45,7 @@ public class BaseDataSourceServiceTest extends SingleContextTest {
 
     public BaseDataSourceServiceTest() {
         ArachneUser user = new ArachneUser();
-        user.setActiveTenantId(1L);
+        user.setActiveTenantIds(Collections.singletonList(1L));
         SecurityContextHolder.getContext().setAuthentication(new JWTAuthenticationToken("", user, null));
     }
 

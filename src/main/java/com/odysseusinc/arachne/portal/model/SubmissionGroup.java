@@ -55,8 +55,8 @@ public class SubmissionGroup implements Breadcrumb {
     @ManyToOne(fetch = FetchType.LAZY)
     private Analysis analysis;
 
-    @ManyToOne(fetch = FetchType.LAZY, targetEntity = User.class)
-    private IUser author;
+    @ManyToOne
+    private RawUser author;
 
     @OneToMany(mappedBy = "submissionGroup", targetEntity = Submission.class, fetch = FetchType.LAZY)
     private List<Submission> submissions;
@@ -113,7 +113,7 @@ public class SubmissionGroup implements Breadcrumb {
         return author;
     }
 
-    public void setAuthor(IUser author) {
+    public void setAuthor(RawUser author) {
 
         this.author = author;
     }

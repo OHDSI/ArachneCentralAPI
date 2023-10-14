@@ -52,7 +52,7 @@ run_cohort_characterization <- function(
                                results_schema=resultsDatabaseSchema,
                                cohort_table=cohortTable,
                                source_name=connectionDetails$connectionString(),
-                               runHERACLESHeel = TRUE,
+                               runHERACLESHeel = FALSE,
                                CDM_version='5',
                                cohort_definition_id=cohortId)
     heraclesAnalyses <- translate(heraclesAnalyses, targetDialect = connectionDetails$dbms)

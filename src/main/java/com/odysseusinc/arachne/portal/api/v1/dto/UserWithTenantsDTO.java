@@ -21,7 +21,7 @@
 package com.odysseusinc.arachne.portal.api.v1.dto;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserDTO;
-import com.odysseusinc.arachne.portal.api.v1.dto.TenantBaseDTO;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,6 +29,7 @@ public class UserWithTenantsDTO extends CommonUserDTO {
     
     private TenantBaseDTO activeTenant;
     private List<TenantBaseDTO> tenants = new ArrayList<>();
+    private String contactEmail;
 
     public List<TenantBaseDTO> getTenants() {
 
@@ -48,5 +49,13 @@ public class UserWithTenantsDTO extends CommonUserDTO {
     public void setActiveTenant(final TenantBaseDTO activeTenant) {
 
         this.activeTenant = activeTenant;
+    }
+
+    public String getContactEmail() {
+        return contactEmail;
+    }
+
+    public void setContactEmail(String contactEmail) {
+        this.contactEmail = contactEmail;
     }
 }

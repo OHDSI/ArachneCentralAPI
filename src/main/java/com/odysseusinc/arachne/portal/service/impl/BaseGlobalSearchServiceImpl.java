@@ -118,7 +118,7 @@ public abstract class BaseGlobalSearchServiceImpl<SF extends SolrField> implemen
 
     private String buildSearchString(final String query, final Long userId, final String tenantId) {
 
-
+        // TODO do we need to change here, studies -> studies_data?
         final String q =
                 "(entity_type:studies AND (is_public:true OR (is_public:false AND participants:userId)) AND tenants:%tenantId AND query:*%query*) OR " +
                         "(entity_type:papers AND (readers_ts:userId OR _query_:\"{!join from=entity_id fromIndex=studies to=study_id_txt}(participants:userId AND tenants:%tenantId)\") AND query:*%query*) OR " +

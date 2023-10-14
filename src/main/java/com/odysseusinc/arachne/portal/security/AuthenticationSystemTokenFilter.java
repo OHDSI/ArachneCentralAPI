@@ -23,13 +23,12 @@
 package com.odysseusinc.arachne.portal.security;
 
 import com.odysseusinc.arachne.portal.model.DataNode;
-import com.odysseusinc.arachne.portal.model.security.Tenant;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
-import com.odysseusinc.arachne.portal.service.TenantService;
+import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
+import java.util.List;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
@@ -47,13 +46,12 @@ public class AuthenticationSystemTokenFilter extends GenericFilterBean {
     @Value("${arachne.systemToken.header}")
     private String tokenHeader;
 
-    private final BaseDataNodeService<DataNode> baseDataNodeService;
-    private final TenantService tenantService;
+    private final BaseDataNodeService<?> baseDataNodeService;
+    private final BaseDataSourceService<?> dataSourceService;
 
-    public AuthenticationSystemTokenFilter(BaseDataNodeService baseDataNodeService, TenantService tenantService) {
-
+    public AuthenticationSystemTokenFilter(BaseDataNodeService<?> baseDataNodeService, BaseDataSourceService<?> dataSourceService) {
         this.baseDataNodeService = baseDataNodeService;
-        this.tenantService = tenantService;
+        this.dataSourceService = dataSourceService;
     }
 
     @Override
@@ -65,15 +63,17 @@ public class AuthenticationSystemTokenFilter extends GenericFilterBean {
         if (token != null) {
             DataNode dataNode = baseDataNodeService.findByToken(token)
                     .orElseThrow(() -> new BadCredentialsException("dataNode not found"));
-            if (SecurityContextHolder.getContext().getAuthentication() == null) {
-                GrantedAuthority dataNodeAuthority = new SimpleGrantedAuthority("ROLE_" + Roles.ROLE_DATA_NODE);
-                Collection<GrantedAuthority> authorityCollection = new ArrayList<>();
-                authorityCollection.add(dataNodeAuthority);
-                Long tenant = tenantService.getDefault().stream().min(Comparator.comparing(Tenant::getId)).map(Tenant::getId).orElse(null);
-                DataNodeAuthenticationToken authentication = new DataNodeAuthenticationToken(token,
-                        dataNode, authorityCollection, tenant);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            }
+            // TODO The above call to com.odysseusinc.arachne.portal.service.BaseDataNodeService.findByToken
+            //  doesn't load datasources, because there are no tenants in security context yet!
+            //  And even when it does so (once we switch Datasources to HasTenants), there is no transaction
+            //  here to access lazily loaded many-to-many relation.
+            List<Long> tenantIds = dataSourceService.getTenantsForDatanode(dataNode.getId());
+            GrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + Roles.ROLE_DATA_NODE);
+            Collection<GrantedAuthority> authorities = Arrays.asList(authority);
+            DataNodeAuthenticationToken authentication = new DataNodeAuthenticationToken(
+                    token, dataNode, authorities, tenantIds
+            );
+            SecurityContextHolder.getContext().setAuthentication(authentication);
         }
         filterChain.doFilter(servletRequest, servletResponse);
     }

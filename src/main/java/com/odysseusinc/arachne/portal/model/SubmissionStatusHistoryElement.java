@@ -59,8 +59,8 @@ public class SubmissionStatusHistoryElement {
     @Column
     private boolean isLast;
 
-    @ManyToOne(fetch = FetchType.LAZY, targetEntity = User.class)
-    private IUser author;
+    @ManyToOne
+    private RawUser author;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Submission submission;
@@ -69,7 +69,7 @@ public class SubmissionStatusHistoryElement {
 
     }
 
-    public SubmissionStatusHistoryElement(Date date, SubmissionStatus status, IUser author, Submission submission,
+    public SubmissionStatusHistoryElement(Date date, SubmissionStatus status, RawUser author, Submission submission,
                                           String comment) {
 
         this.date = date;
@@ -111,12 +111,12 @@ public class SubmissionStatusHistoryElement {
         this.status = status;
     }
 
-    public IUser getAuthor() {
+    public RawUser getAuthor() {
 
         return author;
     }
 
-    public void setAuthor(IUser author) {
+    public void setAuthor(RawUser author) {
 
         this.author = author;
     }
