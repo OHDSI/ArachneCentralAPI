@@ -25,13 +25,14 @@ package com.odysseusinc.arachne.portal.model.security;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-public class ArachneUser implements UserDetails, HasTenant {
+public class ArachneUser implements UserDetails, HasTenants {
 
     private Long id;
-    private Long activeTenantId;
+    private List<Long> activeTenantIds;
     private String username;
     private String password;
     private String email;
@@ -52,11 +53,11 @@ public class ArachneUser implements UserDetails, HasTenant {
         this.id = id;
     }
 
-    public ArachneUser(Long id, Long activeTenantId, String username, String password, String email, Date lastPasswordReset,
+    public ArachneUser(Long id, List<Long> tenantIds, String username, String password, String email, Date lastPasswordReset,
                        Collection<? extends GrantedAuthority> authorities) {
 
         this.setId(id);
-        this.setActiveTenantId(activeTenantId);
+        this.setActiveTenantIds(tenantIds);
         this.setUsername(username);
         this.setPassword(password);
         this.setEmail(email);
@@ -75,14 +76,13 @@ public class ArachneUser implements UserDetails, HasTenant {
     }
 
     @Override
-    public Long getActiveTenantId() {
-
-        return activeTenantId;
+    public List<Long> getActiveTenantIds() {
+        return activeTenantIds;
     }
 
-    public void setActiveTenantId(Long activeTenantId) {
+    public void setActiveTenantIds(List<Long> activeTenantIds) {
 
-        this.activeTenantId = activeTenantId;
+        this.activeTenantIds = activeTenantIds;
     }
 
     public String getUsername() {

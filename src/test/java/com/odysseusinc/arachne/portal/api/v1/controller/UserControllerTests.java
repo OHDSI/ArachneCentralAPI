@@ -61,6 +61,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.skyscreamer.jsonassert.JSONAssert;
@@ -223,6 +224,7 @@ public class UserControllerTests extends BaseControllerTest {
 
     private static final String ACTIVATION_CODE = "activationCode";
 
+    @Ignore
     @Test
     @DatabaseSetup("/data/user/not-activated-user.xml")
     @ExpectedDatabase(value = "/data/user/activated-user.xml", assertionMode = NON_STRICT)

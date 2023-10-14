@@ -41,13 +41,13 @@ public interface BaseStudyRepository<T extends Study> extends EntityGraphJpaRepo
 
     @Query(nativeQuery = true,
             value = "SELECT * " +
-                    "FROM studies JOIN studies_users ON studies.id = studies_users.study_id " +
+                    "FROM studies_data AS s JOIN studies_users ON s.id = studies_users.study_id " +
                     "AND studies_users.role = 'LEAD_INVESTIGATOR' " +
                     "WHERE "
-                    + " studies.id NOT IN (SELECT study_id FROM users_studies_extended "
+                    + " s.id NOT IN (SELECT study_id FROM users_studies_extended "
                     + "                    WHERE user_id=:participantId "
                     + "                    AND lower(status) IN ('pending', 'approved')) "
-                    + " AND studies.kind=:studyKind "
+                    + " AND s.kind=:studyKind "
                     + " AND studies_users.user_id=:ownerId AND lower(title) SIMILAR TO :suggestRequest"
                     + " AND lower(studies_users.status) = 'approved'")
     Iterable<T> suggestByParticipantIdAndStudyKind(@Param("suggestRequest") String suggestRequest,
@@ -56,10 +56,10 @@ public interface BaseStudyRepository<T extends Study> extends EntityGraphJpaRepo
                                        @Param("studyKind") String studyKind);
 
     @Query(nativeQuery = true,
-            value = "SELECT studies.* " +
-                    "FROM studies JOIN studies_users ON studies.id = studies_users.study_id "
+            value = "SELECT s.* " +
+                    "FROM studies_data AS s JOIN studies_users ON s.id = studies_users.study_id "
                     + " AND studies_users.role = 'LEAD_INVESTIGATOR' "
-                    + " WHERE studies.id NOT IN "
+                    + " WHERE s.id NOT IN "
                     + " (SELECT study_id FROM studies_data_sources WHERE data_source_id=:datasourceId"
                     + " AND lower(studies_data_sources.status) IN ('pending', 'approved')) "
                     + " AND studies_users.user_id=:ownerId AND lower(title) SIMILAR TO :suggestRequest"

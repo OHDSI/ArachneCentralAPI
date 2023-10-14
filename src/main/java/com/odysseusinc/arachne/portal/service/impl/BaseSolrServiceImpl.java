@@ -56,6 +56,8 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -63,6 +65,7 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.convert.ConversionService;
 
 public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSolrService<T> {
+    private static final Logger log = LoggerFactory.getLogger(BaseSolrServiceImpl.class);
 
     private static final String QUERY_FIELD_PREFIX = "query_";
 
@@ -376,7 +379,11 @@ public abstract class BaseSolrServiceImpl<T extends SolrField> implements BaseSo
         try {
             return solrClient.query(collection, solrQuery);
         } catch (SolrServerException | IOException e) {
+            log.warn("Error running solr query [{}]: {}", solrQuery, e.getMessage());
             throw new SolrException(e);
+        } catch (org.apache.solr.common.SolrException e) {
+            log.warn("Error running solr query [{}]: {}", solrQuery, e.getMessage());
+            throw e;
         }
     }
 

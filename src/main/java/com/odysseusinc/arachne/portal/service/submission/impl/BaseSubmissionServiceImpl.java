@@ -50,6 +50,7 @@ import com.odysseusinc.arachne.portal.model.Analysis;
 import com.odysseusinc.arachne.portal.model.AnalysisFile;
 import com.odysseusinc.arachne.portal.model.IDataSource;
 import com.odysseusinc.arachne.portal.model.IUser;
+import com.odysseusinc.arachne.portal.model.RawUser;
 import com.odysseusinc.arachne.portal.model.ResultFile;
 import com.odysseusinc.arachne.portal.model.Submission;
 import com.odysseusinc.arachne.portal.model.SubmissionFile;
@@ -61,6 +62,7 @@ import com.odysseusinc.arachne.portal.model.search.SubmissionGroupSearch;
 import com.odysseusinc.arachne.portal.model.search.SubmissionGroupSpecification;
 import com.odysseusinc.arachne.portal.model.search.SubmissionSpecification;
 import com.odysseusinc.arachne.portal.model.security.ArachneUser;
+import com.odysseusinc.arachne.portal.repository.BaseRawUserRepository;
 import com.odysseusinc.arachne.portal.repository.ResultFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionFileRepository;
 import com.odysseusinc.arachne.portal.repository.SubmissionGroupRepository;
@@ -121,6 +123,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -164,6 +167,8 @@ public abstract class BaseSubmissionServiceImpl<
     protected final ContentStorageService contentStorageService;
     protected final UserService userService;
     protected final ContentStorageHelper contentStorageHelper;
+    @Autowired
+    protected BaseRawUserRepository<RawUser> userRepository;
 
     @Value("${files.store.path}")
     private String fileStorePath;
@@ -212,7 +217,8 @@ public abstract class BaseSubmissionServiceImpl<
         SubmissionStatus status = runApproveSubmissionProcess(submission,
                 beforeApproveSubmissionResult(submission, approveDTO), approveDTO);
         List<SubmissionStatusHistoryElement> statusHistory = submission.getStatusHistory();
-        statusHistory.add(new SubmissionStatusHistoryElement(new Date(), status, user, submission, approveDTO.getComment()));
+        RawUser rawUser = userRepository.getOne(user.getId());
+        statusHistory.add(new SubmissionStatusHistoryElement(new Date(), status, rawUser, submission, approveDTO.getComment()));
         submission.setStatusHistory(statusHistory);
         submissionHelper.updateSubmissionExtendedInfo(submission);
         submission = saveSubmission(submission);
@@ -229,7 +235,8 @@ public abstract class BaseSubmissionServiceImpl<
 
         DS dataSource = dataSourceService.getByIdUnsecured(datasourceId);
         T submission = newSubmission();
-        submission.setAuthor(user);
+        RawUser rawUser = userRepository.getOne(user.getId());
+        submission.setAuthor(rawUser);
         Date created = new Date();
         submission.setCreated(created);
         submission.setUpdated(created);
@@ -240,7 +247,7 @@ public abstract class BaseSubmissionServiceImpl<
 
         List<SubmissionStatusHistoryElement> statusHistory = new LinkedList<>();
         SubmissionStatusHistoryElement statusHistoryElement =
-                new SubmissionStatusHistoryElement(created, status, user, submission, null);
+                new SubmissionStatusHistoryElement(created, status, rawUser, submission, null);
 
         statusHistory.add(statusHistoryElement);
         submission.setStatusHistory(statusHistory);
@@ -314,7 +321,8 @@ public abstract class BaseSubmissionServiceImpl<
     public T moveSubmissionToNewStatus(T submission, SubmissionStatus status, IUser user, String comment) {
 
         List<SubmissionStatusHistoryElement> statusHistory = submission.getStatusHistory();
-        statusHistory.add(new SubmissionStatusHistoryElement(new Date(), status, user, submission, comment));
+        RawUser rawUser = Optional.ofNullable(user).map(u -> userRepository.getOne(u.getId())).orElse(null);
+        statusHistory.add(new SubmissionStatusHistoryElement(new Date(), status, rawUser, submission, comment));
         submission.setStatusHistory(statusHistory);
         return saveSubmission(submission);
     }
@@ -381,7 +389,7 @@ public abstract class BaseSubmissionServiceImpl<
         SubmissionGroup submissionGroup = new SubmissionGroup();
         submissionGroup.setAnalysis(analysis);
         submissionGroup.setAnalysisType(analysis.getType());
-        submissionGroup.setAuthor(user);
+        submissionGroup.setAuthor(userRepository.getOne(user.getId()));
         Date now = new Date();
         submissionGroup.setCreated(now);
         submissionGroup.setUpdated(now);

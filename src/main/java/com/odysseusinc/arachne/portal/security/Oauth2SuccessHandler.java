@@ -8,9 +8,11 @@ import com.odysseusinc.arachne.portal.service.ExternalLoginService;
 import com.odysseusinc.arachne.portal.service.ProfessionalTypeService;
 import com.odysseusinc.arachne.portal.service.UserService;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
@@ -32,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class Oauth2SuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[a-zA-Z0-9_!#$%&’*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$");
     private final static Logger log = LoggerFactory.getLogger(Oauth2SuccessHandler.class);
 
 
@@ -44,7 +47,7 @@ public class Oauth2SuccessHandler extends SavedRequestAwareAuthenticationSuccess
 
     public Oauth2SuccessHandler(
             @Value("${arachne.token.header}") String header,
-            @Value("${user.enabled.default}") boolean enabledByDefault,
+            @Value("${user.enabled.default:false}") boolean enabledByDefault,
             UserService userService,
             TokenProvider tokenProvider,
             ExternalLoginService externalLoginService,
@@ -65,6 +68,7 @@ public class Oauth2SuccessHandler extends SavedRequestAwareAuthenticationSuccess
     ) throws IOException, ServletException {
         if (!(authentication instanceof OAuth2AuthenticationToken)) {
             log.warn("Unsupported authentication type [{}]", authentication.getClass());
+            super.onAuthenticationSuccess(request, response, authentication);
         } else {
             OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
             OAuth2User principal = oauthToken.getPrincipal();
@@ -75,27 +79,36 @@ public class Oauth2SuccessHandler extends SavedRequestAwareAuthenticationSuccess
             Map<String, Object> attributes = principal.getAttributes();
             String sub = (String) attributes.get(StandardClaimNames.SUB);
             String email = (String) attributes.getOrDefault(StandardClaimNames.EMAIL, "");
-            String issuer = Optional.ofNullable((String) attributes.get(IdTokenClaimNames.ISS)).orElseGet(() ->
+            Optional<URL> issuerUrl = Optional.ofNullable((URL) attributes.get(IdTokenClaimNames.ISS));
+            String safeSub = EMAIL_PATTERN.matcher(sub).matches() ? sub
+                    : issuerUrl.map(url -> sub + "@" + url.getHost()).orElseGet(() ->
+                    sub + "@" + oauthToken.getAuthorizedClientRegistrationId()
+            );
+            String issuer = issuerUrl.map(URL::toString).orElseGet(() ->
                     // Fall back to use domain from sub, as some providers don't send issuer
-                    Stream.of(sub.split("@")).reduce((a, b) -> b).orElseThrow(() -> new RuntimeException("Missing sub"))
+                    Stream.of(safeSub.split("@")).reduce((a, b) -> b).orElseThrow(() -> new RuntimeException("Missing sub"))
             );
 
             ExternalLogin login = externalLoginService.login(
-                    issuer, sub, email, createOrFindUser(method, attributes, sub, email)
+                    issuer, safeSub, email, createOrFindUser(method, attributes, safeSub, email)
             );
             IUser user = login.getUser();
-            String username = ObjectUtils.firstNonNull(user.getUsername(), user.getEmail());
-            // This is a bit ugly, however
-            Map<String, Object> additionalInfo = ImmutableMap.of("method", user.getOrigin());
-            String token = tokenProvider.createToken(username, additionalInfo, null);
-            // TODO Put more stuff in token???
-            Cookie cookie = new Cookie(header, token);
-            cookie.setSecure(true);
-            cookie.setHttpOnly(true);
-            cookie.setPath("/");
-            response.addCookie(cookie);
+            if (user.getEnabled()) {
+                String username = ObjectUtils.firstNonNull(user.getUsername(), user.getEmail());
+                // This is a bit ugly, however
+                Map<String, Object> additionalInfo = ImmutableMap.of("method", user.getOrigin());
+                String token = tokenProvider.createToken(username, additionalInfo, null);
+                // TODO Put more stuff in token???
+                Cookie cookie = new Cookie(header, token);
+                cookie.setSecure(true);
+                cookie.setHttpOnly(true);
+                cookie.setPath("/");
+                response.addCookie(cookie);
+                super.onAuthenticationSuccess(request, response, authentication);
+            } else {
+                response.sendRedirect("/auth/login?message=inactive");
+            }
         }
-        super.onAuthenticationSuccess(request, response, authentication);
     }
 
     private Supplier<IUser> createOrFindUser(String method, Map<String, Object> attributes, String sub, String email) {

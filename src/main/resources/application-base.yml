@@ -76,9 +76,6 @@ management:
   health:
     ldap:
       enabled: false
-build:
-  number: @build.number@
-  id: @build.id@
 arachne:
   token:
     secret: 129DF19C8A91AFD8375A2826A33539K01ACQ778QOJFAA9MGWLWH73PLXVFVHBR7860MTIE2O8EEVF9KCO77P6A7NUNX4XHAGCRFSBWG879XPDOIN6C2LFCKJI002OIABS4D6Q9VMJJIX8UCE48EF
@@ -106,9 +103,6 @@ arachne:
 
 swagger:
  enable: true
-
-project:
-  version: @project.version@
 
 files:
   store:

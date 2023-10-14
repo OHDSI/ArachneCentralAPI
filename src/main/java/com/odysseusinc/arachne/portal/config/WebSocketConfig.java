@@ -22,8 +22,9 @@
 
 package com.odysseusinc.arachne.portal.config;
 
-import com.odysseusinc.arachne.portal.model.IUser;
 import com.odysseusinc.arachne.portal.service.BaseUserService;
+import com.odysseusinc.arachne.portal.util.UserUtils;
+import java.util.Optional;
 import org.ohdsi.authenticator.service.authentication.Authenticator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -112,24 +113,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 SimpMessageHeaderAccessor accessor =
                         MessageHeaderAccessor.getAccessor(message, SimpMessageHeaderAccessor.class);
 
-                Principal principal = null;
-
-                // NOTE
-                // From Spring docs:
-                // "interceptor only needs to authenticate and set the user header on the CONNECT" - bullshit
-
-                List tokenList = accessor.getNativeHeader(tokenHeader);
-                if (tokenList != null && tokenList.size() > 0) {
-                    String authToken = tokenList.get(0).toString();
-                    String username = authenticator.resolveUsername(authToken);
-                    if (authenticator.refreshToken(authToken) != null) {
-                        IUser user = userService.getByUsername(username);
-                        if (user != null) {
-                            principal = user::getUsername;
-                            accessor.setUser(principal);
-                        }
-                    }
-                }
+                Optional<Principal> maybePrincipal = Optional.ofNullable(UserUtils.getCurrentUser()).map(user ->
+                        user::getUsername
+                );
+                maybePrincipal.ifPresent(accessor::setUser);
+                Principal principal = maybePrincipal.orElse(null);
 
                 if (accessor.getMessageType() == SimpMessageType.CONNECT) {
                     userRegistry.onApplicationEvent(

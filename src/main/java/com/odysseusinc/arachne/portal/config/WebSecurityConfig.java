@@ -33,6 +33,7 @@ import com.odysseusinc.arachne.portal.security.Roles;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.ArachnePasswordValidator;
 import com.odysseusinc.arachne.portal.security.passwordvalidator.PasswordValidatorBuilder;
 import com.odysseusinc.arachne.portal.service.BaseDataNodeService;
+import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.TenantService;
 import java.io.IOException;
 import java.net.URI;
@@ -129,7 +130,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Autowired
-    protected BaseDataNodeService baseDataNodeService;
+    protected BaseDataNodeService<?> baseDataNodeService;
+
+    @Autowired
+    protected BaseDataSourceService<?> dataSourceService;
 
     @Autowired
     protected EntryPointUnauthorizedHandler unauthorizedHandler;
@@ -216,7 +220,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public AuthenticationSystemTokenFilter authenticationSystemTokenFilter() {
 
-        return new AuthenticationSystemTokenFilter(baseDataNodeService, tenantService);
+        return new AuthenticationSystemTokenFilter(baseDataNodeService, dataSourceService);
     }
 
     @Bean

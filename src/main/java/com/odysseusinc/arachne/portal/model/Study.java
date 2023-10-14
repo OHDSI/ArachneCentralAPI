@@ -56,11 +56,11 @@ import javax.persistence.Transient;
 import org.hibernate.annotations.DiscriminatorFormula;
 
 @Entity
-@Table(name = "studies")
+@Table(name = "studies_data")
 @DiscriminatorFormula("'STUDY_ENTITY'")
 @SolrFieldAnno(name = BaseSolrService.TITLE, postfix = false, extractor = StudySolrExtractors.TitleExtractor.class)
 @SolrFieldAnno(name = BaseSolrService.PARTICIPANTS, postfix = false, extractor = StudySolrExtractors.ParticipantsExtractor.class, filter = true)
-public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyStatus>, SolrEntity {
+public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyStatus>, SolrEntity, HasTenant {
 
     public Study() {
 
@@ -383,5 +383,10 @@ public class Study implements HasArachnePermissions, Breadcrumb, HasState<StudyS
     public void setKind(StudyKind kind) {
 
         this.kind = kind;
+    }
+
+    @Override
+    public Long getTenantId() {
+        return getTenant().getId();
     }
 }

@@ -465,6 +465,7 @@ public abstract class BasePaperServiceImpl<
     }
 
     @Override
+    @Transactional
     public void indexAllBySolr() throws IOException, NotExistException, SolrServerException, NoSuchFieldException, IllegalAccessException {
 
         solrService.deleteAll(SolrCollection.PAPERS);

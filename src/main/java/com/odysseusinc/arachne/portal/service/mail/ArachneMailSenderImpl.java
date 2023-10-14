@@ -22,6 +22,8 @@
 
 package com.odysseusinc.arachne.portal.service.mail;
 
+import com.odysseusinc.arachne.portal.model.IUser;
+import java.util.Optional;
 import net.htmlparser.jericho.Source;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,7 +94,7 @@ public class ArachneMailSenderImpl implements ArachneMailSender {
             helper = new MimeMessageHelper(message, true);
             helper.setSubject(mailMessage.getSubject().replaceAll("\\$\\{app-title\\}", appTitle));
             helper.setFrom(from, mailMessage.getFromPersonal().replaceAll("\\$\\{app-title\\}", appTitle));
-            helper.setTo(mailMessage.getUser().getEmail());
+            helper.setTo(getEmail(mailMessage.getUser()));
             URL templateUrl = this.getClass().getResource(PATH_TO_TEMPLATES + mailMessage.getTemplate() + NAME + EXTENSION);
             String htmlString = buildContent(mailMessage.getTemplate(), mailMessage.getParameters());
             if (templateUrl != null) {
@@ -110,5 +112,9 @@ public class ArachneMailSenderImpl implements ArachneMailSender {
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
+    }
+
+    private String getEmail(IUser user) {
+        return Optional.ofNullable(user.getContactEmail()).orElseGet(user::getEmail);
     }
 }

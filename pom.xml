@@ -6,7 +6,7 @@
 
     <artifactId>portal</artifactId>
     <groupId>com.odysseusinc.arachne</groupId>
-    <version>1.19.1-SNAPSHOT</version>
+    <version>1.20.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -24,8 +24,7 @@
         <jjwt.version>0.10.8</jjwt.version>
         <activemq.version>5.15.14</activemq.version>
         <assertj.version>3.19.0</assertj.version>
-        <build.id>${BUILD_TIMESTAMP}</build.id>
-        <build.number>${BUILD_NUMBER}</build.number>
+        <build.number>dev</build.number>
         <clamav.version>2.0.1</clamav.version>
         <commons.fileupload.version>1.4</commons.fileupload.version>
         <commonsCsv.version>1.7</commonsCsv.version>
@@ -36,6 +35,9 @@
         <postgresql.version>42.2.25</postgresql.version>
         <springRetryVersion>1.2.4.RELEASE</springRetryVersion>
         <bcprov-jdk15on.version>1.68</bcprov-jdk15on.version>
+        
+        <!-- Referencing https://github.com/OHDSI/ArachneUI -->
+        <portal-resources.version>1.19.5</portal-resources.version>
     </properties>
 
     <profiles>
@@ -88,6 +90,17 @@
                 <latestSuffix>-qa</latestSuffix>
             </properties>
         </profile>
+        <profile>
+            <id>ci</id>
+            <activation>
+                <property>
+                    <name>env.BUILD_NUMBER</name>
+                </property>
+            </activation>
+            <properties>
+                <build.number>${env.BUILD_NUMBER}</build.number>
+            </properties>
+        </profile>
     </profiles>
 
     <dependencyManagement>
@@ -113,13 +126,13 @@
         <dependency>
             <groupId>com.odysseusinc.arachne</groupId>
             <artifactId>arachne-commons</artifactId>
-            <version>${project.version}</version>
+            <version>1.19.0</version>
             <type>jar</type>
         </dependency>
         <dependency>
             <groupId>com.odysseusinc.arachne</groupId>
             <artifactId>arachne-common-utils</artifactId>
-            <version>${project.version}</version>
+            <version>1.19.0</version>
         </dependency>
 
         <dependency>
@@ -131,18 +144,18 @@
         <dependency>
             <groupId>com.odysseusinc.arachne</groupId>
             <artifactId>arachne-no-handler-found-exception-util</artifactId>
-            <version>${project.version}</version>
+            <version>1.19.0</version>
             <type>jar</type>
         </dependency>
         <dependency>
             <artifactId>arachne-sys-settings</artifactId>
             <groupId>com.odysseusinc.arachne</groupId>
-            <version>${project.version}</version>
+            <version>1.19.0</version>
         </dependency>
         <dependency>
             <groupId>com.odysseusinc.arachne</groupId>
             <artifactId>arachne-storage</artifactId>
-            <version>${project.version}</version>
+            <version>1.19.0</version>
             <type>jar</type>
         </dependency>
         <dependency>
@@ -318,12 +331,12 @@
         <dependency>
             <groupId>com.odysseusinc.arachne</groupId>
             <artifactId>execution-engine-commons</artifactId>
-            <version>${project.version}</version>
+            <version>1.19.0</version>
         </dependency>
         <dependency>
             <groupId>org.ohdsi.sql</groupId>
             <artifactId>SqlRender</artifactId>
-            <version>1.8.3</version>
+            <version>1.9.0</version>
         </dependency>
         <dependency>
             <groupId>com.cosium.spring.data</groupId>
@@ -417,6 +430,10 @@
                     <include>application-${env}.yml</include>
                 </includes>
             </resource>
+            <resource>
+                <directory>target/meta</directory>
+                <targetPath>META-INF</targetPath>
+            </resource>
         </resources>
         <plugins>
             <plugin>
@@ -435,6 +452,33 @@
                 </configuration>
             </plugin>
             <plugin>
+                <groupId>ru.yaal.maven</groupId>
+                <artifactId>write-text-files-maven-plugin</artifactId>
+                <version>1.1</version>
+                <executions>
+                    <execution>
+                        <id>write-text-files</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>write-text-files</goal>
+                        </goals>
+                        <configuration>
+                            <charset>UTF-8</charset>
+                            <files>
+                                <file>
+                                    <path>target/meta/version.properties</path>
+                                    <lines>
+                                        <line>buildNumber: ${build.number}</line>
+                                        <line>buildId: ${maven.build.timestamp}</line>
+                                        <line>version: ${project.version}</line>
+                                    </lines>
+                                </file>
+                            </files>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <version>3.0.0</version>
@@ -450,7 +494,7 @@
                                 <artifactItem>
                                     <groupId>com.odysseusinc.arachne</groupId>
                                     <artifactId>portal-resources</artifactId>
-                                    <version>${project.version}</version>
+                                    <version>${portal-resources.version}</version>
                                     <type>zip</type>
                                     <overWrite>false</overWrite>
                                     <outputDirectory>${project.basedir}/src/main/resources/public/</outputDirectory>

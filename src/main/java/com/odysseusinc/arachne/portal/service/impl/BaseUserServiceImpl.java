@@ -192,7 +192,7 @@ public abstract class BaseUserServiceImpl<
 
     @Value("${files.store.path}")
     private String fileStorePath;
-    @Value("${user.enabled.default}")
+    @Value("${user.enabled.default:false}")
     private boolean userEnableDefault;
     private Resource defaultAvatar = new ClassPathResource("avatar.svg");
 
@@ -366,8 +366,6 @@ public abstract class BaseUserServiceImpl<
     @Override
     public U createExternal(@NotNull U user, String origin) throws PasswordValidationException {
 
-        // External users are enabled by default
-        user.setEnabled(true);
         // TODO setCountry and setStateProvince from setFields?
         Assert.notNull(origin, "For external users, origin is mandatory");
         user.setOrigin(origin);
