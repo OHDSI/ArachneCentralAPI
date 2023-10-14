@@ -6,7 +6,7 @@
 
     <artifactId>portal</artifactId>
     <groupId>com.odysseusinc.arachne</groupId>
-    <version>1.20.0-SNAPSHOT</version>
+    <version>1.20.0-QA</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -24,7 +24,7 @@
         <jjwt.version>0.10.8</jjwt.version>
         <activemq.version>5.15.14</activemq.version>
         <assertj.version>3.19.0</assertj.version>
-        <build.number>dev</build.number>
+        <build.number>qa</build.number>
         <clamav.version>2.0.1</clamav.version>
         <commons.fileupload.version>1.4</commons.fileupload.version>
         <commonsCsv.version>1.7</commonsCsv.version>
@@ -37,7 +37,7 @@
         <bcprov-jdk15on.version>1.68</bcprov-jdk15on.version>
         
         <!-- Referencing https://github.com/OHDSI/ArachneUI -->
-        <portal-resources.version>1.20.0-SNAPSHOT</portal-resources.version>
+        <portal-resources.version>1.20.0-QA</portal-resources.version>
     </properties>
 
     <profiles>
