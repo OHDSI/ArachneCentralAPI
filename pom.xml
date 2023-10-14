@@ -37,7 +37,7 @@
         <bcprov-jdk15on.version>1.68</bcprov-jdk15on.version>
         
         <!-- Referencing https://github.com/OHDSI/ArachneUI -->
-        <portal-resources.version>1.20.0</portal-resources.version>
+        <portal-resources.version>1.20.0-SNAPSHOT</portal-resources.version>
     </properties>
 
     <profiles>
