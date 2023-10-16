@@ -6,7 +6,7 @@
 
     <artifactId>portal</artifactId>
     <groupId>com.odysseusinc.arachne</groupId>
-    <version>1.20.0-QA</version>
+    <version>${revision}</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -17,6 +17,7 @@
     </parent>
 
     <properties>
+        <revision>1.20-SNAPSHOT</revision>
         <spring.boot.version>2.1.18.RELEASE</spring.boot.version>
         <start-class>com.odysseusinc.arachne.portal.PortalStarter</start-class>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -37,7 +38,7 @@
         <bcprov-jdk15on.version>1.68</bcprov-jdk15on.version>
         
         <!-- Referencing https://github.com/OHDSI/ArachneUI -->
-        <portal-resources.version>1.20.0-QA</portal-resources.version>
+        <portal-resources.version>${project.version}</portal-resources.version>
     </properties>
 
     <profiles>
@@ -578,6 +579,15 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>2.8.2</version>
+                <configuration>
+                    <!-- Deploy goal is for docker only-->
+                    <skip>true</skip>
+                </configuration>
             </plugin>
 
         </plugins>
