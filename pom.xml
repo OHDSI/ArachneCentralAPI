@@ -534,9 +534,8 @@
                     <imageName>${dockerImagePrefix}/${project.artifactId}</imageName>
                     <imageTags>
                         <imageTag>${project.version}</imageTag>
-                        <imageTag>latest${latestSuffix}</imageTag>
                     </imageTags>
-                    <dockerDirectory>src/main/docker</dockerDirectory>
+                    <dockerDirectory>${project.basedir}/src/main/docker</dockerDirectory>
                     <resources>
                         <resource>
                             <directory>${project.build.directory}</directory>
