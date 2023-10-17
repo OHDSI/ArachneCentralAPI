@@ -37,6 +37,7 @@ import static com.odysseusinc.arachne.portal.util.DataNodeUtils.isDataNodeOwner;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.odysseusinc.arachne.commons.utils.CommonFileUtils;
 import com.odysseusinc.arachne.commons.utils.UUIDGenerator;
 import com.odysseusinc.arachne.portal.api.v1.dto.ApproveDTO;
@@ -72,6 +73,7 @@ import com.odysseusinc.arachne.portal.repository.SubmissionStatusHistoryReposito
 import com.odysseusinc.arachne.portal.repository.submission.BaseSubmissionRepository;
 import com.odysseusinc.arachne.portal.service.BaseDataSourceService;
 import com.odysseusinc.arachne.portal.service.UserService;
+import com.odysseusinc.arachne.portal.service.analysis.AnalysisMetadata;
 import com.odysseusinc.arachne.portal.service.impl.submission.SubmissionAction;
 import com.odysseusinc.arachne.portal.service.impl.submission.SubmissionActionType;
 import com.odysseusinc.arachne.portal.service.mail.ArachneMailSender;
@@ -89,12 +91,14 @@ import com.odysseusinc.arachne.storage.model.ArachneFileMeta;
 import com.odysseusinc.arachne.storage.model.QuerySpec;
 import com.odysseusinc.arachne.storage.service.ContentStorageService;
 import com.odysseusinc.arachne.storage.util.FileSaveRequest;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.SequenceInputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -128,6 +132,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.MediaType;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -143,6 +148,7 @@ public abstract class BaseSubmissionServiceImpl<
         A extends Analysis,
         DS extends IDataSource>
         implements BaseSubmissionService<T, A> {
+    private static final ObjectMapper MAPPER = new ObjectMapper();
     public static final String SUBMISSION_NOT_EXIST_EXCEPTION = "Submission with id='%s' does not exist";
     public static final String ILLEGAL_SUBMISSION_STATE_EXCEPTION = "Submission must be in EXECUTED or FAILED state before approve result";
     public static final String RESULT_FILE_NOT_EXISTS_EXCEPTION = "Result file with id='%s' for submission with "
@@ -423,16 +429,48 @@ public abstract class BaseSubmissionServiceImpl<
                     analysis.getId().toString(), analysisFile.getUuid());
             Path submissionFileContent = submissionGroupFolder.resolve(uuid);
             Path target = Files.copy(analysisFileContent, submissionFileContent, StandardCopyOption.REPLACE_EXISTING);
-            try (InputStream in = Files.newInputStream(target)) {
-                String checksum = DigestUtils.md5DigestAsHex(in);
-                submissionFile.setChecksum(checksum);
-            }
+            submissionFile.setChecksum(checksum(target));
             files.add(submissionFile);
         }
+        SubmissionFile metadata = createMetadataJson(analysis, submissionGroupFolder, submissionGroup);
+        files.add(metadata);
         submissionFileRepository.saveAll(files);
         submissionGroup.setChecksum(calculateMD5Hash(submissionGroupFolder, files));
         submissionGroupRepository.save(submissionGroup);
         return submissionGroup;
+    }
+
+    private SubmissionFile createMetadataJson(Analysis analysis, Path folder, SubmissionGroup group) throws IOException {
+        String uuid = UUID.randomUUID().toString();
+        SubmissionFile file = new SubmissionFile();
+        file.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+        file.setSubmissionGroup(group);
+        file.setLabel(AnalysisMetadata.NAME);
+        file.setRealName(AnalysisMetadata.NAME);
+        file.setUuid(uuid);
+        file.setExecutable(false);
+        Path target = folder.resolve(uuid);
+        Files.copy(getMetadata(analysis), target, StandardCopyOption.REPLACE_EXISTING);
+        file.setChecksum(checksum(target));
+        return file;
+    }
+
+    private InputStream getMetadata(Analysis analysis) {
+        String entrypoint = analysis.getFiles().stream().map(AnalysisFile::getEntryPoint).filter(Objects::nonNull).findFirst().orElse(null);
+
+        AnalysisMetadata metadata = new AnalysisMetadata();
+        metadata.setAnalysisType(analysis.getType().getCode());
+        metadata.setAnalysisName(analysis.getTitle());
+        metadata.setStudyName(analysis.getStudy().getTitle());
+        metadata.setEntryPoint(entrypoint);
+
+        try (InputStream in = new ByteArrayInputStream(MAPPER.writeValueAsString(metadata).getBytes(StandardCharsets.UTF_8))) {
+            return in;
+        } catch (IOException e) {
+            LOGGER.error("Failed to write analysis metadata", e);
+            throw new RuntimeException("Failed to write analysis metadata: " + e.getMessage(), e);
+        }
+
     }
 
     @Override
@@ -994,4 +1032,11 @@ public abstract class BaseSubmissionServiceImpl<
         hideAction.setAvailable(availableForStatuses.contains(submission.getStatus()));
         return hideAction;
     }
+
+    private static String checksum(Path target) throws IOException {
+        try (InputStream in = Files.newInputStream(target)) {
+            return DigestUtils.md5DigestAsHex(in);
+        }
+    }
+
 }
