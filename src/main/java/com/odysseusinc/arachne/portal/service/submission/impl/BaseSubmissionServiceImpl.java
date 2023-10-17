@@ -459,7 +459,7 @@ public abstract class BaseSubmissionServiceImpl<
         String entrypoint = analysis.getFiles().stream().map(AnalysisFile::getEntryPoint).filter(Objects::nonNull).findFirst().orElse(null);
 
         AnalysisMetadata metadata = new AnalysisMetadata();
-        metadata.setAnalysisType(analysis.getType().getCode());
+        metadata.setAnalysisType(analysis.getType().toString());
         metadata.setAnalysisName(analysis.getTitle());
         metadata.setStudyName(analysis.getStudy().getTitle());
         metadata.setEntryPoint(entrypoint);
