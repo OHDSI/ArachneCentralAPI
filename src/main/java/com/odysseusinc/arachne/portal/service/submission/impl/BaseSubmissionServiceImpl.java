@@ -443,7 +443,7 @@ public abstract class BaseSubmissionServiceImpl<
     private SubmissionFile createMetadataJson(Analysis analysis, Path folder, SubmissionGroup group) throws IOException {
         String uuid = UUID.randomUUID().toString();
         SubmissionFile file = new SubmissionFile();
-        file.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+        file.setContentType(CommonFileUtils.TYPE_TEXT);
         file.setSubmissionGroup(group);
         file.setLabel(AnalysisMetadata.NAME);
         file.setRealName(AnalysisMetadata.NAME);
